@@ -833,10 +833,11 @@ function defeat(why){G.over=true;sfx('bad');
 function victory(){G.over=true;sfx('legend');
   if(G.scn){const i=G.scnI,old=SAVE.scn[i]|0,st=scnStars();let bonus=0;if(!old)bonus+=150;if(st>old)bonus+=40*(st-Math.max(1,old));
     G.meritBonus=(G.meritBonus||0)+bonus;SAVE.scn[i]=Math.max(old,st);G.stars=st;G.earned=earnMerit(true);save();
-    const S=G.scn;showResult(S.n+' 승리',`${'★'.repeat(st)}${'☆'.repeat(3-st)}`,[S.s2.ok(G)?'':'남은 별: '+S.s2.d,S.s3.ok(G)?'':(S.s2.ok(G)?'남은 별: ':'')+S.s3.d].filter(Boolean).join(' · ')+(i+1<SCN.length&&!old?` · 다음 시나리오 「${SCN[i+1].n}」 열림`:''));return;}
+    const S=G.scn;const ex=[S.s2.ok(G)?'':S.s2.d,S.s3.ok(G)?'':S.s3.d].filter(Boolean);showResult(S.n+' 승리',`${'★'.repeat(st)}${'☆'.repeat(3-st)}`,[ex.length?'남은 별: '+ex.join(', '):'',i+1<SCN.length&&!old?`다음 시나리오 「${SCN[i+1].n}」 열림`:''].filter(Boolean).join(' · '));return;}
   SAVE.win++;G.earned=earnMerit(true);save();showResult('천하통일','40라운드를 모두 막아냈다','');}
 
 /* ============================== RENDER ============================== */
+{const P=CanvasRenderingContext2D.prototype,A=P.arc,E=P.ellipse;P.arc=function(x,y,r,a,b,c){return A.call(this,x,y,r>0?r:0,a,b,c);};if(E)P.ellipse=function(x,y,rx,ry,ro,a,b,c){return E.call(this,x,y,rx>0?rx:0,ry>0?ry:0,ro,a,b,c);};const RG=P.createRadialGradient;P.createRadialGradient=function(x0,y0,r0,x1,y1,r1){return RG.call(this,x0,y0,r0>0?r0:0,x1,y1,r1>0?r1:0);};const RR=P.roundRect;if(RR)P.roundRect=function(x,y,w,h,r){return RR.call(this,x,y,w,h,typeof r==='number'&&r<0?0:r);};}
 const CV=document.getElementById('cv'),ctx=CV.getContext('2d');let K=2,VS=1,VX=0,VY=0;
 function resize(){
   const app=document.getElementById('app'),aw=app.clientWidth,ah=app.clientHeight;
@@ -1002,7 +1003,7 @@ function render(){
   for(const e of G.enemies)if(e.boss)drawBossUI(e);
   for(const sh of G.shots)drawShot(sh);
   // fx
-  for(const f of G.fx){const p=f.t/f.d;
+  for(const f of G.fx){const p=f.t/f.d;if(p>1)continue;
     switch(f.k){
       case'arrow':{const x=f.x+(f.x2-f.x)*p,y=f.y+(f.y2-f.y)*p,a=Math.atan2(f.y2-f.y,f.x2-f.x);ctx.strokeStyle=f.c;ctx.lineWidth=f.big?2.2:1.4;ctx.beginPath();ctx.moveTo(x-Math.cos(a)*8,y-Math.sin(a)*8);ctx.lineTo(x,y);ctx.stroke();break;}
       case'slash':{ctx.strokeStyle=f.c;ctx.globalAlpha=1-p;ctx.lineWidth=f.big?3:2;const a=Math.atan2(f.y2-f.y,f.x2-f.x);ctx.beginPath();ctx.arc(f.x2,f.y2,f.big?11:8,a-1.2+p,a+.4+p);ctx.stroke();ctx.globalAlpha=1;break;}
@@ -1335,13 +1336,13 @@ function frame(now){
   let dt=Math.min(.1,(now-last)/1000);last=now;
   if(G&&!G.paused&&!G.over&&PORT.matches)togglePause();
   if(G&&!G.paused&&!G.over&&!G.choice){const steps=G.speed;try{for(let i=0;i<steps;i++)update(dt);}catch(err){if(!frame.uerr){frame.uerr=1;window.__showErr&&window.__showErr('update: '+err.message+' '+((err.stack||'').split('\n').slice(0,3).join(' | ')));}}}
-  else if(G&&G.over){for(const f of G.fx)f.t+=dt;}
+  else if(G&&G.over){for(const f of G.fx)f.t+=dt;G.fx=G.fx.filter(f=>f.t<f.d);}
   const showCtl=!!(G&&!G.over&&!G.paused&&!G.choice);if(CTL.hidden===showCtl)CTL.hidden=!showCtl;
   try{render();}catch(err){if(!frame.err){frame.err=1;window.__showErr&&window.__showErr('render: '+err.message+' '+((err.stack||'').split('\n').slice(0,3).join(' | ')));}}
   requestAnimationFrame(frame);
 }
 resize();updateTitle();applyOpts();requestAnimationFrame(frame);
-document.getElementById('title').classList.remove('wait');window.__verTxt='v16';artStatus();
+document.getElementById('title').classList.remove('wait');window.__verTxt='v17';artStatus();
 window.__dmg=(e,v)=>dmgEnemy(e,v,false);window.__sg={get G(){return G;},newGame,update,recruit,doMerge,mergeOptions,hiddenOption,doHidden,upgrade,upCost,UID,U,SAVE,render,placeUnit,sell};
 </script>
 
