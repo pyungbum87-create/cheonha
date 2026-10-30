@@ -331,14 +331,14 @@ const BGM={timer:null,next:0,step:0,on:false,
       this.step++;this.next+=e*(i%2===0?1.08:.92);}}// gentle swing
 };
 // recorded tracks (original, made for this game): loaded once, looped gaplessly, crossfaded between screens
-const MUSIC={buf:{},loading:{},err:{},src:null,g:null,cur:null,want:null};
+const MUSIC={buf:{},loading:{},err:{},next:{},src:null,g:null,cur:null,want:null};
 // loads a track; on failure keeps the simple melody playing and retries (2s, 4s, 8s ... up to 30s)
-function loadTrack(n){if(MUSIC.buf[n]||MUSIC.loading[n]||!AU.c)return;MUSIC.loading[n]=1;
+function loadTrack(n){if(MUSIC.buf[n]||MUSIC.loading[n]||!AU.c||Date.now()<(MUSIC.next[n]||0))return;MUSIC.loading[n]=1;
   fetch(n+'.mp4?'+(typeof VER!=='undefined'?VER:'1'),{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error('http '+r.status);return r.arrayBuffer();})
    .then(ab=>new Promise((res,rej)=>{const p=AU.c.decodeAudioData(ab,res,rej);if(p&&p.catch)p.catch(rej);}))
    .then(b=>{MUSIC.buf[n]=b;MUSIC.loading[n]=0;MUSIC.err[n]=0;if(MUSIC.want===n)musicSync(true);if(typeof onMusicStatus==='function')onMusicStatus();})
-   .catch(()=>{MUSIC.loading[n]=0;const k=(MUSIC.err[n]||0)+1;MUSIC.err[n]=k;musicSync(true);if(typeof onMusicStatus==='function')onMusicStatus();
-     setTimeout(()=>loadTrack(n),Math.min(30,Math.pow(2,k))*1000);});}
+   .catch(()=>{const k=(MUSIC.err[n]||0)+1,wait=Math.min(30,Math.pow(2,k))*1000;MUSIC.err[n]=k;MUSIC.next[n]=Date.now()+wait;MUSIC.loading[n]=0;
+     musicSync(true);if(typeof onMusicStatus==='function')onMusicStatus();setTimeout(()=>loadTrack(n),wait+50);});}
 function musicStatus(){if(!AU.c)return 'wait';const n=MUSIC.want||'bgm-shop';if(MUSIC.buf[n])return 'ok';if(MUSIC.err[n])return 'retry';return 'loading';}
 function musicStop(){if(MUSIC.src){const s=MUSIC.src,g=MUSIC.g;try{g.gain.setTargetAtTime(.0001,AU.c.currentTime,.2);s.stop(AU.c.currentTime+1);}catch(e){}MUSIC.src=null;MUSIC.g=null;}MUSIC.cur=null;BGM.stop();}
 function musicSync(force){if(!AU.c)return;const want=typeof scr==='undefined'?'bgm-shop':(scr==='game'?'bgm-play':'bgm-shop');MUSIC.want=want;
@@ -354,7 +354,7 @@ function musicSync(force){if(!AU.c)return;const want=typeof scr==='undefined'?'b
   for(const n of ['bgm-shop','bgm-play'])loadTrack(n);}
 function applySound(){if(!AU.c)return;AU.sfxG.gain.value=SAVE.opt.sfx?1:0;musicSync();}
 
-const VER='v4';
+const VER='v5';
 /* ============================== DATA & SAVE ============================== */
 const PROV=['北京','天津','上海','重庆','河北','山西','辽宁','吉林','黑龙江','江苏','浙江','安徽','福建','江西','山东','河南','湖北','湖南','广东','海南','四川','贵州','云南','陕西','甘肃','青海','台湾','内蒙古','广西','西藏','宁夏','新疆','香港','澳门'];
 const SAVE={coins:0,prov:null,lang:null,opt:{sfx:1,bgm:1},day:{date:'',stage:1,clear:0},streak:0,last:'',clears:0,deco:[],snack:{},games:0,best:0};
