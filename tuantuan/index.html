@@ -331,19 +331,22 @@ const BGM={timer:null,next:0,step:0,on:false,
       this.step++;this.next+=e*(i%2===0?1.08:.92);}}// gentle swing
 };
 // recorded tracks (original, made for this game): loaded once, looped gaplessly, crossfaded between screens
-const MUSIC={buf:{},loading:{},src:null,g:null,cur:null,want:null,failed:false};
+const MUSIC={buf:{},loading:{},err:{},src:null,g:null,cur:null,want:null};
+// loads a track; on failure keeps the simple melody playing and retries (2s, 4s, 8s ... up to 30s)
 function loadTrack(n){if(MUSIC.buf[n]||MUSIC.loading[n]||!AU.c)return;MUSIC.loading[n]=1;
-  fetch(n+'.mp4').then(r=>{if(!r.ok)throw new Error('http '+r.status);return r.arrayBuffer();})
-   .then(ab=>new Promise((res,rej)=>AU.c.decodeAudioData(ab,res,rej)))
-   .then(b=>{MUSIC.buf[n]=b;if(MUSIC.want===n)musicSync(true);})
-   .catch(()=>{MUSIC.failed=true;MUSIC.loading[n]=0;musicSync(true);});}
+  fetch(n+'.mp4?'+(typeof VER!=='undefined'?VER:'1'),{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error('http '+r.status);return r.arrayBuffer();})
+   .then(ab=>new Promise((res,rej)=>{const p=AU.c.decodeAudioData(ab,res,rej);if(p&&p.catch)p.catch(rej);}))
+   .then(b=>{MUSIC.buf[n]=b;MUSIC.loading[n]=0;MUSIC.err[n]=0;if(MUSIC.want===n)musicSync(true);if(typeof onMusicStatus==='function')onMusicStatus();})
+   .catch(()=>{MUSIC.loading[n]=0;const k=(MUSIC.err[n]||0)+1;MUSIC.err[n]=k;musicSync(true);if(typeof onMusicStatus==='function')onMusicStatus();
+     setTimeout(()=>loadTrack(n),Math.min(30,Math.pow(2,k))*1000);});}
+function musicStatus(){if(!AU.c)return 'wait';const n=MUSIC.want||'bgm-shop';if(MUSIC.buf[n])return 'ok';if(MUSIC.err[n])return 'retry';return 'loading';}
 function musicStop(){if(MUSIC.src){const s=MUSIC.src,g=MUSIC.g;try{g.gain.setTargetAtTime(.0001,AU.c.currentTime,.2);s.stop(AU.c.currentTime+1);}catch(e){}MUSIC.src=null;MUSIC.g=null;}MUSIC.cur=null;BGM.stop();}
 function musicSync(force){if(!AU.c)return;const want=typeof scr==='undefined'?'bgm-shop':(scr==='game'?'bgm-play':'bgm-shop');MUSIC.want=want;
   if(!SAVE.opt.bgm||document.hidden){musicStop();return;}
   AU.bgmG.gain.setTargetAtTime(.75,AU.c.currentTime,.1);
   if(MUSIC.cur===want&&MUSIC.src&&!force)return;
   const b=MUSIC.buf[want];
-  if(!b){if(MUSIC.failed){if(MUSIC.src)musicStop();if(!BGM.timer)BGM.start();}else loadTrack(want);return;}
+  if(!b){loadTrack(want);if(MUSIC.err[want]){if(MUSIC.src)musicStop();if(!BGM.timer)BGM.start();}return;}
   BGM.stop();if(MUSIC.cur===want&&MUSIC.src)return;
   if(MUSIC.src){const s=MUSIC.src,g=MUSIC.g;g.gain.setTargetAtTime(.0001,AU.c.currentTime,.25);try{s.stop(AU.c.currentTime+1.2);}catch(e){}}
   const s=AU.c.createBufferSource(),g=AU.c.createGain();s.buffer=b;s.loop=true;g.gain.setValueAtTime(.0001,AU.c.currentTime);g.gain.setTargetAtTime(.8,AU.c.currentTime,.35);
@@ -351,7 +354,7 @@ function musicSync(force){if(!AU.c)return;const want=typeof scr==='undefined'?'b
   for(const n of ['bgm-shop','bgm-play'])loadTrack(n);}
 function applySound(){if(!AU.c)return;AU.sfxG.gain.value=SAVE.opt.sfx?1:0;musicSync();}
 
-const VER='v3';
+const VER='v4';
 /* ============================== DATA & SAVE ============================== */
 const PROV=['北京','天津','上海','重庆','河北','山西','辽宁','吉林','黑龙江','江苏','浙江','安徽','福建','江西','山东','河南','湖北','湖南','广东','海南','四川','贵州','云南','陕西','甘肃','青海','台湾','内蒙古','广西','西藏','宁夏','新疆','香港','澳门'];
 const SAVE={coins:0,prov:null,lang:null,opt:{sfx:1,bgm:1},day:{date:'',stage:1,clear:0},streak:0,last:'',clears:0,deco:[],snack:{},games:0,best:0};
@@ -370,7 +373,7 @@ const TX={
    bgm:'背景音乐',sfx:'音效',lang:'语言',on:'开',off:'关',prov:'省份',change:'更换',owned:'已拥有',buy:n=>`${n} 铜钱`,noCoins:'铜钱不够啦',
    rankTitle:'排行榜',rankMine:'我的纪录',rankNote:'省份排行和好友排行需要联网服务器，上线时开放。',stTotal:'通关总数',stStreak:'最长连续',stBest:'练习最佳',stGames:'游戏次数',
    bookSub:'每凑齐一组点心就记一次',times:n=>`${n} 次`,locked:'还没凑齐过',hint:'只有没被挡住的点心才能点',blocked:'被挡住了',daily:d=>`${d.getMonth()+1}月${d.getDate()}日`,
-   pending:'练习',shareNote:'明天会有新的第2关，和全国玩家一起挑战！'},
+   pending:'练习',music:'背景音乐文件',ms_ok:'已加载 ✓',ms_loading:'加载中…',ms_retry:'暂用简易版，重试中',ms_wait:'点一下屏幕后加载',shareNote:'明天会有新的第2关，和全国玩家一起挑战！'},
  ko:{name:'퇀퇀 딤섬가게',tag:'같은 간식 3개를 찜통에 모으면 사라져요',today:'오늘의 도전',stage:n=>`${n}관`,start:'도전 시작',cont:'이어서 도전',done:'오늘 도전 완료',practice:'연습 한 판',
    streak:n=>`${n}일 연속 성공`,forProv:(p,n)=>`${p}에 ${n}번 기여`,pickProv:'지역(성)을 골라 주세요',pickSub:'성공 횟수가 고른 지역에 쌓여요',deco:'꾸미기',book:'도감',rank:'순위표',set:'설정',
    out:'빼기',undo:'되돌리기',shuffle:'섞기',left:n=>`남은 ${n}개`,win:'성공!',win2:'오늘의 도전 완료!',next:'2관으로',home:'가게로',again:'한 판 더',
@@ -379,7 +382,7 @@ const TX={
    bgm:'배경음악',sfx:'효과음',lang:'언어',on:'켬',off:'끔',prov:'지역',change:'바꾸기',owned:'보유 중',buy:n=>`${n} 동전`,noCoins:'동전이 부족해요',
    rankTitle:'순위표',rankMine:'내 기록',rankNote:'지역 순위와 친구 순위는 서버를 붙인 뒤 출시 때 열려요.',stTotal:'총 성공',stStreak:'최장 연속',stBest:'연습 최고',stGames:'플레이 수',
    bookSub:'같은 간식 3개를 모을 때마다 기록돼요',times:n=>`${n}번`,locked:'아직 못 모았어요',hint:'가려지지 않은 간식만 누를 수 있어요',blocked:'가려져 있어요',daily:d=>`${d.getMonth()+1}월 ${d.getDate()}일`,
-   pending:'연습',shareNote:'내일은 새로운 2관이 열려요!'}};
+   pending:'연습',music:'배경음악 파일',ms_ok:'불러옴 ✓',ms_loading:'불러오는 중…',ms_retry:'간단 멜로디로 대체, 다시 시도 중',ms_wait:'화면을 한 번 누르면 불러와요',shareNote:'내일은 새로운 2관이 열려요!'}};
 const T=(k,...a)=>{const v=(TX[LANG()]||TX.zh)[k];return typeof v==='function'?v(...a):v;};
 const snackName=S=>LANG()==='ko'?S.ko:S.zh;
 function todayKey(d){d=d||new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
@@ -657,7 +660,9 @@ function renderSet(){$('setTitle').textContent=T('set');const L=$('setList');L.i
     for(const [t,v] of opts){const b=document.createElement('button');b.textContent=t;b.className=v===cur?'on':'';b.onclick=()=>{auInit();fn(v);save();applySound();sfx('btn');renderSet();renderHomeUI();};g.append(b);}r.append(g);L.append(r);};
   row(T('bgm'),[[T('on'),1],[T('off'),0]],SAVE.opt.bgm,v=>SAVE.opt.bgm=v);row(T('sfx'),[[T('on'),1],[T('off'),0]],SAVE.opt.sfx,v=>SAVE.opt.sfx=v);
   row(T('lang'),[['中文','zh'],['한국어','ko']],LANG(),v=>SAVE.lang=v);
+  {const st=musicStatus(),r=document.createElement('div');r.className='opt';r.id='musicRow';r.innerHTML=`<span>${T('music')}</span><small style="font-weight:700;color:${st==='ok'?'#4f9c41':'#b0772e'}">${T('ms_'+st)} · ${VER}</small>`;L.append(r);}
   const r=document.createElement('div');r.className='opt';r.innerHTML=`<span>${T('prov')} · ${SAVE.prov||'—'}</span>`;const b=document.createElement('button');b.className='mini';b.textContent=T('change');b.onclick=()=>{sfx('btn');openProv();};r.append(b);L.append(r);}
+function onMusicStatus(){if(!$('set').hidden)renderSet();}
 function openProv(){$('provTitle').textContent=T('pickProv');$('provSub').textContent=T('pickSub');const L=$('provList');L.innerHTML='';
   for(const p of PROV){const b=document.createElement('button');b.textContent=p;b.className=p===SAVE.prov?'on':'';b.onclick=()=>{auInit();SAVE.prov=p;save();sfx('buy');closeSheets();renderHomeUI();};L.append(b);}openSheet('prov');}
 
@@ -677,7 +682,8 @@ tap('pOut',()=>{bump('pOut');propOut();});tap('pUndo',()=>{bump('pUndo');propUnd
 tap('adGet',()=>{if(G&&adFor){G.props[adFor]++;updateHud();}closeSheets();});tap('adClose',closeSheets);
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>{sfx('btn');closeSheets();if(scr==='home')renderHomeUI();}));
 document.addEventListener('visibilitychange',()=>musicSync());
-document.addEventListener('pointerdown',()=>{auInit();if(AU.c&&!MUSIC.src&&!BGM.timer)musicSync();},{capture:true});
+// iPhone only unlocks sound on the END of a touch (touchend/click), so listen to all of them
+for(const ev of ['pointerdown','touchend','click'])document.addEventListener(ev,()=>{auInit();if(AU.c&&!MUSIC.src)musicSync();},{capture:true,passive:true});
 window.addEventListener('resize',resize);resize();showScreen('home');requestAnimationFrame(frame);
 if(!SAVE.prov)setTimeout(openProv,300);
 window.__tt={genLevel,startLevel,get G(){return G;},pickTile,propOut,propUndo,propShuffle,SAVE,live,hitTest,tilePos};
