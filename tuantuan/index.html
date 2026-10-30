@@ -333,7 +333,7 @@ const BGM={timer:null,next:0,step:0,on:false,
 // recorded tracks (original, made for this game): loaded once, looped gaplessly, crossfaded between screens
 const MUSIC={buf:{},loading:{},src:null,g:null,cur:null,want:null,failed:false};
 function loadTrack(n){if(MUSIC.buf[n]||MUSIC.loading[n]||!AU.c)return;MUSIC.loading[n]=1;
-  fetch(n+'.m4a').then(r=>{if(!r.ok)throw new Error('http '+r.status);return r.arrayBuffer();})
+  fetch(n+'.mp4').then(r=>{if(!r.ok)throw new Error('http '+r.status);return r.arrayBuffer();})
    .then(ab=>new Promise((res,rej)=>AU.c.decodeAudioData(ab,res,rej)))
    .then(b=>{MUSIC.buf[n]=b;if(MUSIC.want===n)musicSync(true);})
    .catch(()=>{MUSIC.failed=true;MUSIC.loading[n]=0;musicSync(true);});}
@@ -351,7 +351,7 @@ function musicSync(force){if(!AU.c)return;const want=typeof scr==='undefined'?'b
   for(const n of ['bgm-shop','bgm-play'])loadTrack(n);}
 function applySound(){if(!AU.c)return;AU.sfxG.gain.value=SAVE.opt.sfx?1:0;musicSync();}
 
-const VER='v2';
+const VER='v3';
 /* ============================== DATA & SAVE ============================== */
 const PROV=['北京','天津','上海','重庆','河北','山西','辽宁','吉林','黑龙江','江苏','浙江','安徽','福建','江西','山东','河南','湖北','湖南','广东','海南','四川','贵州','云南','陕西','甘肃','青海','台湾','内蒙古','广西','西藏','宁夏','新疆','香港','澳门'];
 const SAVE={coins:0,prov:null,lang:null,opt:{sfx:1,bgm:1},day:{date:'',stage:1,clear:0},streak:0,last:'',clears:0,deco:[],snack:{},games:0,best:0};
