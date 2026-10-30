@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
+<script>try{var L=localStorage.getItem('cheonha-lang');if(L==='zh'||(!L&&/^zh/i.test(navigator.language||'')))location.replace('zh.html'+location.search);}catch(e){}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -54,6 +55,7 @@ h3{font-family:var(--brush);font-weight:normal;font-size:20px;margin:6px 0 2px;c
 .stat span{font-size:12px;color:var(--dim)}
 /* codex */
 #pick{background:rgba(12,8,5,.93)}
+.lang{position:absolute;top:10px;right:max(12px,env(safe-area-inset-right,0px));z-index:2;font-size:14px;padding:6px 14px;border:1px solid var(--gold);border-radius:4px;background:rgba(42,24,16,.85);color:var(--paper)}
 .btn:disabled{opacity:.42;filter:grayscale(.6)}
 .optlist .opt{padding-top:6px;padding-bottom:6px}
 .picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
@@ -143,6 +145,7 @@ h3{font-family:var(--brush);font-weight:normal;font-size:20px;margin:6px 0 2px;c
   <div id="rot"><b>가로로 돌려 주세요</b><span>천하등용은 가로 화면에서 플레이합니다</span></div>
 
   <section id="title" class="ov wait">
+    <button id="bLang" class="lang" aria-label="language">中文</button>
     <div class="inner">
       <p class="tag"><span class="seal">三國</span>&nbsp; 삼국 랜덤 디펜스</p>
       <h1 class="logo">천하등용</h1>
@@ -254,6 +257,7 @@ h3{font-family:var(--brush);font-weight:normal;font-size:20px;margin:6px 0 2px;c
 
 <script>
 'use strict';
+const LANG='ko';
 {const l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Song+Myung&family=Gowun+Dodum&display=swap';document.head.appendChild(l);}
 /* ============================== DATA ============================== */
 const W=640,H=360,TAU=Math.PI*2;
@@ -1318,6 +1322,8 @@ tap('bOpts',()=>openOpts('title'));
 tap('bCamp',()=>openCamp('title'));
 tap('mDaily',()=>{auInit();newGame('daily');});
 tap('mScn',()=>{auInit();openScn();});
+if(!document.querySelector('link[rel="manifest"]'))document.getElementById('bLang').hidden=true;
+tap('bLang',()=>{const to=LANG==='ko'?'zh':'ko';try{localStorage.setItem('cheonha-lang',to);}catch(e){}if(location.protocol.startsWith('http'))location.href=to==='zh'?'zh.html':'index.html';});
 document.getElementById('scnBack').onclick=()=>{showOnly('title');updateTitle();};
 document.getElementById('stBack').onclick=()=>openScn();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI);};
@@ -1342,7 +1348,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 resize();updateTitle();applyOpts();requestAnimationFrame(frame);
-document.getElementById('title').classList.remove('wait');window.__verTxt='v17';artStatus();
+document.getElementById('title').classList.remove('wait');window.__verTxt='v18';artStatus();
 window.__dmg=(e,v)=>dmgEnemy(e,v,false);window.__sg={get G(){return G;},newGame,update,recruit,doMerge,mergeOptions,hiddenOption,doHidden,upgrade,upCost,UID,U,SAVE,render,placeUnit,sell};
 </script>
 
