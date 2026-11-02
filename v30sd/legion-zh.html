@@ -1,0 +1,66 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>天下登用 — 军团征战</title>
+<style>html,body{margin:0;height:100%;background:#120c07;overflow:hidden}canvas{display:block;width:100vw;height:100vh;touch-action:none}</style></head><body><canvas id="cv"></canvas>
+<script>const FAC=[
+  {id:0,n:'魏',c:'#2c5aa8',l:'#7fa6ff'},
+  {id:1,n:'蜀',c:'#2a7f48',l:'#7fe0a0'},
+  {id:2,n:'吴',c:'#a8312a',l:'#ff9a8a'},
+  {id:3,n:'群雄',c:'#62408f',l:'#c9a8ff'},
+];
+const U=[];
+const add=(id,n,f,g,s,sn,extra)=>U.push(Object.assign({id,n,sn:sn||n,f,g,s},extra||{}));
+// 병졸
+add('w_sp','魏 枪兵',0,0,[58,42,22,26,22],'枪兵');add('w_ar','魏 弓兵',0,0,[40,60,26,24,24],'弓兵');
+add('s_sp','蜀 枪兵',1,0,[56,40,26,32,20],'枪兵');add('s_ar','蜀 弓兵',1,0,[38,58,30,30,22],'弓兵');
+add('o_sp','吴 枪兵',2,0,[54,44,24,26,26],'枪兵');add('o_ar','吴 弓兵',2,0,[38,62,28,24,26],'弓兵');
+add('q_sp','群雄 枪兵',3,0,[64,38,18,22,18],'枪兵');add('q_ar','群雄 弓兵',3,0,[44,56,22,20,18],'弓兵');
+// 무장
+add('ugeum','于禁',0,1,[70,78,56,48,50]);add('akjin','乐进',0,1,[82,72,42,50,36]);add('join','曹仁',0,1,[78,80,52,56,48]);
+add('gwanpyeong','关平',1,1,[78,68,56,62,40]);add('seoseo','徐庶',1,1,[58,64,88,72,30]);add('madae','马岱',1,1,[78,70,48,52,32]);
+add('jeongbo','程普',2,1,[72,76,60,62,40]);add('hwanggae','黄盖',2,1,[78,72,58,58,36]);add('handang','韩当',2,1,[74,66,42,46,30]);
+add('hwaung','华雄',3,1,[86,64,32,40,22]);add('gosun','高顺',3,1,[82,82,44,50,32]);add('jingung','陈宫',3,1,[44,60,90,56,60]);
+// 명장
+add('hahudon','夏侯惇',0,2,[90,84,56,74,44]);add('jangryo','张辽',0,2,[92,92,74,70,36]);add('sunuk','荀彧',0,2,[30,54,94,82,96]);
+add('yubi','刘备',1,2,[72,74,70,99,64]);add('hwangchung','黄忠',1,2,[93,80,60,66,40]);add('macho','马超',1,2,[97,82,44,76,30]);add('bangtong','庞统',1,2,[34,62,97,66,62]);
+add('songwon','孙权',2,2,[64,74,80,95,80]);add('gamnyeong','甘宁',2,2,[94,82,60,58,30]);add('taesaja','太史慈',2,2,[93,78,64,72,42]);add('yeomong','吕蒙',2,2,[82,86,86,70,60]);
+add('anryang','颜良',3,2,[95,80,42,56,34]);add('munchu','文丑',3,2,[94,80,40,52,36]);add('choseon','貂蝉',3,2,[22,40,80,100,66]);
+// 전설
+add('jojo','曹操',0,3,[74,96,92,96,94]);add('samaui','司马懿',0,3,[62,96,98,72,84]);add('heojeo','许褚',0,3,[97,74,36,60,30]);
+add('gwanu','关羽',1,3,[97,95,76,94,62]);add('jangbi','张飞',1,3,[98,86,40,52,22]);add('joun','赵云',1,3,[96,92,78,84,64]);add('jegal','诸葛亮',1,3,[40,97,100,94,96]);
+add('sonchaek','孙策',2,3,[94,92,72,92,66]);add('juyu','周瑜',2,3,[72,97,97,92,70]);add('yukson','陆逊',2,3,[68,96,96,84,82]);
+add('yeopo','吕布',3,3,[100,92,30,40,14]);add('dongtak','董卓',3,3,[86,88,72,52,60]);add('wonso','袁绍',3,3,[70,86,72,90,80]);
+// 신화 (히든 조합 전용)
+add('m_gwanu','武圣关羽',1,4,[100,98,80,98,70],'关羽',{sp:'spin',d:'每3秒青龙偃月刀回旋斩'});
+add('m_jegal','卧龙诸葛亮',1,4,[50,99,100,98,99],'诸葛亮',{sp:'wind',d:'每10秒全场东南风计策'});
+add('m_jojo','奸雄曹操',0,4,[80,99,96,99,98],'曹操',{sp:'aura',d:'魏全体攻击力+40%'});
+add('m_sonchaek','小霸王孙策',2,4,[99,96,80,96,72],'孙策',{sp:'rapid',d:'两倍速连续攻击'});
+add('m_yeopo','战神吕布',3,4,[100,99,40,50,20],'吕布',{sp:'god',d:'全游戏最高单体攻击力'});
+add('m_joun','常山赵子龙',1,4,[100,96,84,90,70],'赵云',{sp:'pierce',d:'直线贯穿攻击'});
+const PKEYS=["gwanu", "jangbi", "joun", "jegal", "jojo", "samaui", "heojeo", "sonchaek", "juyu", "yukson", "yeopo", "dongtak", "wonso", "yubi", "hahudon", "jangryo", "sunuk", "hwangchung", "macho", "bangtong", "songwon", "gamnyeong", "taesaja", "yeomong", "anryang", "munchu", "choseon", "seoseo", "join", "jingung", "ugeum", "akjin", "gwanpyeong", "madae", "jeongbo", "hwanggae", "handang", "hwaung", "gosun", "jangak", "sol_w", "sol_s", "sol_o", "sol_q"],PCOLS=8,PCELL=128;
+const PALIAS={w_sp:'sol_w',w_ar:'sol_w',s_sp:'sol_s',s_ar:'sol_s',o_sp:'sol_o',o_ar:'sol_o',q_sp:'sol_q',q_ar:'sol_q',m_gwanu:'gwanu',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo',m_joun:'joun'};
+const MRECT={"m0": [0, 0, 98, 112], "m1": [100, 0, 105, 112], "m2": [207, 0, 105, 112], "m3": [314, 0, 97, 112], "m4": [413, 0, 97, 112], "m5": [512, 0, 88, 112], "m6": [602, 0, 72, 112], "m7": [676, 0, 91, 112]};
+</script>
+<script src="legion_core.js"></script>
+<script src="legion_orders.js"></script>
+<script src="legion_ui.js"></script>
+<script>
+// ---- adapter: portraits + mobs from the host atlases, optional art/legion/*.webp from ChatGPT ----
+const PIMG={},MIMG={},ART={},HAVE=["bg_castle", "bg_forest", "bg_gate", "bg_mountain", "bg_plain", "bg_river", "brush_stroke", "flag_0", "flag_1", "flag_2", "flag_3", "fx_eastwind", "fx_firewall", "fx_heal", "fx_qinglong", "fx_wushuang", "reserve_ally", "reserve_foe", "seal", "sol_arc_ally", "sol_arc_foe", "sol_cav_ally", "sol_cav_foe", "sol_inf_ally", "sol_inf_foe", "sol_str_ally", "sol_str_foe"];let wait=2+HAVE.length;
+function load(src,fn){const im=new Image();im.onload=()=>{fn(im);if(--wait===0)go();};im.onerror=()=>{if(--wait===0)go();};im.src=src;}
+load('art/portraits.webp',im=>PKEYS.forEach((k,i)=>{const c=document.createElement('canvas');c.width=c.height=PCELL;c.getContext('2d').drawImage(im,(i%PCOLS)*PCELL,((i/PCOLS)|0)*PCELL,PCELL,PCELL,0,0,PCELL,PCELL);PIMG[k]=c;}));
+load('art/mobs.webp',im=>{for(const k in MRECT){const r=MRECT[k],c=document.createElement('canvas');c.width=r[2];c.height=r[3];c.getContext('2d').drawImage(im,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);MIMG[k]=c;}});
+HAVE.forEach(k=>load('art/legion/'+k+'.webp',im=>ART[k]=im));
+// until ChatGPT draws legion backgrounds, borrow the host's own theme strips
+const BGA={bg_gate:'theme_siege',bg_castle:'theme_siege',bg_plain:'theme_day',bg_river:'theme_dusk',bg_mountain:'theme_winter',bg_forest:'theme_night'};wait+=Object.keys(BGA).length;
+for(const k in BGA)load('art/'+BGA[k]+'.webp',im=>{if(!ART[k])ART[k]=im;});
+const cv=document.getElementById('cv');function fit(){const d=Math.min(2,devicePixelRatio||1);cv.width=innerWidth*d;cv.height=innerHeight*d;}addEventListener('resize',fit);fit();
+let game;function go(){game=LEGION.mount({canvas:cv,lang:'zh',units:U,factions:FAC,
+ portrait:id=>PIMG[id]||PIMG[PALIAS[id]]||null,mob:k=>MIMG[k]||null,art:k=>ART[k]||null,
+ load:()=>{try{return JSON.parse(localStorage.getItem('cheonha_legion_v2'))}catch(e){return null}},
+ store:o=>{try{localStorage.setItem('cheonha_legion_v2',JSON.stringify(o))}catch(e){}},
+ onExit:()=>location.href='zh.html',
+ ads:{rewarded:(kind,done)=>{if(confirm('广告测试：并非真实广告。要发放测试奖励吗？'))done();}}});}
+const P=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
+cv.addEventListener('pointerdown',e=>game&&game.touch('down',...P(e)));cv.addEventListener('pointerup',e=>game&&game.touch('up',...P(e)));
+</script></body></html>
