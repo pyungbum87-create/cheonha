@@ -33,10 +33,13 @@ const SW={spear:{img:'sd_w_spear',grip:[160,242],rest:-18,move:'thrust',fx:'fx_t
  scroll:{img:'sd_w_scroll',grip:[256,256],rest:-20,move:'fan',fx:'fx_fan_wind',ws:.45},
  twin:{img:'sd_w_twin',grip:[256,300],rest:-10,move:'slash',fx:'fx_slash',ws:.55}};
 const WMAP={spear:'spear',blade:'sword',glaive:'glaive',smash:'mace',bow:'bow',crossbow:'bow',talisman:'scroll',fan:'fan',petal:'fan'};
-const GEN2={hahudon:0,jangryo:'halberd',sunuk:0,yubi:'twin',macho:0,bangtong:0,songwon:0,gamnyeong:0,taesaja:0,yeomong:0,anryang:0,munchu:0,choseon:0};
+const GEN2={ugeum:0,akjin:0,join:0,gwanpyeong:0,seoseo:0,madae:0,jeongbo:0,hwanggae:0,handang:0,hwaung:0,gosun:0,jingung:0,hahudon:0,jangryo:'halberd',sunuk:0,yubi:'twin',macho:0,bangtong:0,songwon:0,gamnyeong:0,taesaja:0,yeomong:0,anryang:0,munchu:0,choseon:0};
 const ALIAS={m_gwanu:'gwanu',m_joun:'joun',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo'};
 const IMG={};let ready=false;
-const names=['pad_1','pad_2','pad_3','decor','fx_slash','fx_thrust','fx_arrow_trail','fx_fan_wind'].concat(...Object.keys(CH).map(k=>['sd_'+k+'_body','sd_'+k+'_weapon']),Object.keys(GEN2).map(k=>'sd_'+k+'_body'),Object.values(SW).map(w=>w.img));
+/* soldiers hold their weapon in the drawing: body-only motion */
+const SOL={w_sp:'thrust',s_sp:'thrust',o_sp:'thrust',q_sp:'thrust',w_ar:'shoot',s_ar:'shoot',o_ar:'shoot',q_ar:'shoot'};
+const MYTH=['m_gwanu','m_jegal','m_jojo','m_sonchaek','m_yeopo','m_joun'],FACFX=['fx_wei','fx_shu','fx_wu','fx_qun'];
+const names=['pad_1','pad_2','pad_3','decor','fx_slash','fx_thrust','fx_arrow_trail','fx_fan_wind','fx_mythic_aura'].concat(FACFX,Object.keys(SOL).map(k=>'sd_'+k+'_body'),MYTH.map(k=>'sd_'+k+'_body'),...Object.keys(CH).map(k=>['sd_'+k+'_body','sd_'+k+'_weapon']),Object.keys(GEN2).map(k=>'sd_'+k+'_body'),Object.values(SW).map(w=>w.img));
 let left=names.length;
 function done(){if(--left>0)return;ready=true;try{bgCache=null;}catch(e){}}
 if(on)names.forEach(n=>{const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=done;im.src=BASE+n+'.webp';});
@@ -54,8 +57,9 @@ const GRC=['#9b958a','#c47a3a','#dfe6ef','#f2c14e','#ff5a3a'];
 function unit(ctx,u,x,y){if(!on||!ready)return false;const id=ALIAS[u.d.id]||u.d.id;let c=CH[id],wpn;
   if(c)wpn=IMG['sd_'+id+'_weapon'];else if(id in GEN2){const w=SW[GEN2[id]||WMAP[u.wp]||'sword'];if(!w)return false;
     c=u._sdc||(u._sdc=Object.assign({hand:/thrust|slash/.test(w.move)&&w.ws>.7?[350,304]:[410,300]},w));wpn=IMG[w.img];}
+  else if(SOL[id]){c=u._sdc||(u._sdc={solo:1,move:SOL[id],fx:SOL[id]==='shoot'?'fx_arrow_trail':'fx_thrust',rest:0,hand:[430,300]});}
   else return false;
-  const body=IMG['sd_'+id+'_body'];if(!body||!wpn)return false;
+  const body=IMG['sd_'+u.d.id+'_body']||IMG['sd_'+id+'_body'];if(!body||(!wpn&&!c.solo))return false;
   const now=performance.now()/1000,s=u._sd||(u._sd={a:null,t:9,face:1,ph:Math.random()*6});
   if(u.anim&&u.anim!==s.a){s.a=u.anim;s.t=0;if(Math.abs(u.anim.nx)>.25)s.face=u.anim.nx<0?-1:1;s.nx=u.anim.nx;s.ny=u.anim.ny;}
   const dt=Math.min(.05,s.last?now-s.last:0);s.last=now;s.t+=dt;
@@ -71,15 +75,16 @@ function unit(ctx,u,x,y){if(!on||!ready)return false;const id=ALIAS[u.d.id]||u.d
     else if(c.move==='shoot'){wx=-3*p1+3*p2;lean=-4*p1+4*p2;bx=-3*p1+3*p2;fxA=q>.35&&q<.75?1-(q-.35)/.4:0;}
     else{wa=c.rest-25*p1+85*p2-60*back;lean=-3*p1+6*p2-3*back;fxA=q>.35&&q<.85?1-(q-.35)/.5:0;}
     if(q>.35&&q<.5){sx=1.06;sy=.95;}}
-  const BS=64*(u.d.g>=4?1.1:u.d.g>=3?1.04:1),k=BS/512,f=s.face;       // body drawn 76×76 logical, feet on the pad
+  const BS=64*(u.d.g>=4?1.1:u.d.g>=3?1.04:c.solo?.86:1),k=BS/512,f=s.face;       // body drawn 76×76 logical, feet on the pad
+  if(mythic&&IMG.fx_mythic_aura){ctx.save();ctx.globalAlpha=.55+.25*Math.sin(now*4+s.ph);ctx.drawImage(IMG.fx_mythic_aura,x-30,y-18,60,60);ctx.restore();}
   ctx.save();ctx.translate(x+bx*f,y+20);ctx.scale(f,1);ctx.rotate(lean*R);ctx.scale(sx,sy);
   if(u.d.g>=3){const gr=ctx.createRadialGradient(0,-BS*.42,4,0,-BS*.42,BS*.5);gr.addColorStop(0,mythic?'rgba(255,170,60,.55)':'rgba(255,214,90,.32)');gr.addColorStop(1,'rgba(255,200,80,0)');ctx.globalAlpha=.75+.25*Math.sin(now*(mythic?5:3)+s.ph);ctx.fillStyle=gr;ctx.beginPath();ctx.ellipse(0,-BS*.42,BS*.5,BS*.56,0,0,7);ctx.fill();ctx.globalAlpha=1;}
   ctx.drawImage(body,-BS/2,-BS*.93,BS,BS);
   // weapon: rotates around the hand
   const hx=(c.hand[0]-256)*k,hy=c.hand[1]*k-BS*.93,ws=k*c.ws;
-  ctx.save();ctx.translate(hx+wx,hy+wy);ctx.rotate(wa*R);ctx.drawImage(wpn,-c.grip[0]*ws,-c.grip[1]*ws,512*ws,512*ws);ctx.restore();
+  if(wpn){ctx.save();ctx.translate(hx+wx,hy+wy);ctx.rotate(wa*R);ctx.drawImage(wpn,-c.grip[0]*ws,-c.grip[1]*ws,512*ws,512*ws);ctx.restore();}
   // effect in front of the weapon
-  const fx=IMG[c.fx];if(fx&&fxA>0){ctx.globalAlpha=Math.min(1,fxA*1.6);const fs=c.move==='shoot'?44:c.move==='thrust'?46:54;
+  const fx=(u.d.g>=3&&c.move!=='shoot'&&IMG[FACFX[u.d.f]])||IMG[c.fx];if(fx&&fxA>0){ctx.globalAlpha=Math.min(1,fxA*1.6);const fs=c.move==='shoot'?44:c.move==='thrust'?46:54;
     ctx.drawImage(fx,hx+(c.move==='slash'?2:14),hy-fs/2-(c.move==='slash'?6:0),fs,fs);ctx.globalAlpha=1;}
   ctx.restore();
   return true;}
