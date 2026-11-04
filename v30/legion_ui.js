@@ -192,7 +192,7 @@ function mount(ad){
     if(!img('vs',W/2-26,-2,52,52)){g.save();g.translate(W/2,20);g.rotate(Math.PI/4);rr(-17,-17,34,34,4,'#3a2716',COL.gold,2.5);g.restore();text('VS',W/2,21,15,COL.gold,'center',true);}
     text(`${Math.max(0,Math.ceil(bt.limit-bt.t))}`,W/2,52,13,'#fff','center',true);}
   function reserve(){if(img('reserve_ally',-10,150,250,60)&&img('reserve_foe',400,150,250,60))return;for(let sd=0;sd<2;sd++){const x0=sd?468:2,c=sd?'#5a1a14':'#14284a';g.strokeStyle=c;g.lineWidth=1;for(let i=0;i<26;i++){const x=x0+(i%13)*13+(i>12?6:0),y=196+(i>12?10:0);g.fillStyle=c;g.globalAlpha=i>12?.55:.4;g.fillRect(x,y-12,6,12);g.beginPath();g.arc(x+3,y-14,3,0,7);g.fill();g.beginPath();g.moveTo(x+5,y-8);g.lineTo(x+8,y-26);g.stroke();if(i%4===0){g.fillStyle=sd?'#c23a2a':'#2f6fd0';g.fillRect(x+8,y-38+Math.sin(last*.004+i)*1.5,10,12);}}}g.globalAlpha=1;}
-  function drawBattle(dt){const s=scr,bt=s.bt,G=s.G;s.intro=(s.intro||0)+dt;if(s.shk>0)s.shk-=dt;const sh=(s.intro>1.1&&s.intro<1.45?(Math.random()-.5)*6:0)+(s.shk>0?(Math.random()-.5)*5:0);g.save();g.translate(sh,sh*.5);bgDraw(G);reserve();
+  function drawBattle(dt){const s=scr,bt=s.bt,G=s.G;s.intro=(s.intro||0)+dt;if(s.shk>0)s.shk-=dt;const sh=(s.intro>1.1&&s.intro<1.45?(Math.random()-.5)*6:0)+(s.shk>0?(Math.random()-.5)*5:0);g.save();g.translate(sh,sh*.5);if(s.zoom){s.zoom.t+=dt;const zq=s.zoom.t/.38;if(zq>=1)s.zoom=null;else{const z=1+.08*Math.sin(zq*Math.PI);g.translate(s.zoom.x,s.zoom.y);g.scale(z,z);g.translate(-s.zoom.x,-s.zoom.y);}}bgDraw(G);reserve();
     if(s.stop>0)s.stop-=dt;else if(!bt.done&&s.intro>1.2){s.acc+=dt*s.sp;let n=0;while(s.acc>=D.curve.tick&&!bt.done&&n++<200){s.acc-=D.curve.tick;for(const e of C.step(bt))onEv(e);}}
     // melee squads march to the middle in the first seconds, ranged ones hold
     for(const f of bt.A.concat(bt.B))if(D.types[f.type].range==='melee')f.adv=Math.min(f.col===0?40:30,bt.t*45);
@@ -224,7 +224,7 @@ function mount(ad){
     s.fx.push({k,x:d.x,y:d.y,t:0,life:k==='rain'?.55:.6,c,ang:Math.random()*Math.PI});s.fx.push({k:'spark',x:d.x,y:d.y-8,t:0,life:.35,c});
     if(sk==='trap'||sk==='charm'||sk==='roar')s.fx.push({k:'stun',x:d.x,y:d.y-40,t:0,life:1,c});}
   function onEv(e){const s=scr;if(e.k==='die'){sfx('die');const d=upos(e.f);s.fx.push({k:'num',x:d.x,y:d.y-44,s:(L.ko||'격파!'),c:'#ff8a5a',big:1,t:0,life:1.1});s.shk=Math.max(s.shk||0,.18);return;}
-  if(e.k==='hit'){const a=upos(e.a),d=upos(e.d);e.a.lunge=.22;e.d.flash=.15;if(e.a._u)e.a._u.anim={nx:e.a.side?-1:1,ny:0};sfx(e.big?'big':'hit');if(e.big){skFx(s,e.a.skill,d,1);s.stop=Math.max(s.stop||0,.06);s.shk=Math.max(s.shk||0,.14);}
+  if(e.k==='hit'){const a=upos(e.a),d=upos(e.d);e.a.lunge=.22;e.d.flash=.15;if(e.a._u)e.a._u.anim={nx:e.a.side?-1:1,ny:0};sfx(e.big?'big':'hit');if(e.big){skFx(s,e.a.skill,d,1);if(!s.zoom||s.zoom.t>.2)s.zoom={t:0,x:d.x,y:d.y-10};s.stop=Math.max(s.stop||0,.06);s.shk=Math.max(s.shk||0,.14);}
       const ranged=D.types[e.a.type].range==='ranged';
       if(ranged)for(let i=0;i<(e.big?7:3);i++)s.fx.push({k:'arrow',x1:a.x+(i%3-1)*12,y1:a.y-6+(i%2)*8,x2:d.x+(Math.random()*30-15),y2:d.y+(Math.random()*16-8),t:-i*.03,life:.3,str:e.a.type==='str'});
       s.fx.push({k:'num',x:d.x+(Math.random()*40-20),y:d.y-34-Math.random()*14,s:'-'+e.v,c:e.big?'#ffd94a':'#fff',big:e.big,t:0,life:.9});
@@ -252,6 +252,9 @@ function mount(ad){
     if(!f._u)f._u={d:{id:f.id,g:f.u.g,f:f.u.f},wp:LWP[f.type]||'blade',_sd:{a:null,t:9,face:dir,ph:Math.random()*6}};
     let dx=0;if(f.dashT>0){f.dashT=Math.max(0,f.dashT-dt);const q=1-f.dashT/.55;dx=Math.sin(q*Math.PI)*46;}
     const hit=f.flash>0?(Math.random()-.5)*4:0;const gx=x+dir*(26+dx)+hit,gy=y+8;
+    if(f.dashT>0){const q=1-f.dashT/.55,a=Math.sin(q*Math.PI);g.save();g.globalAlpha=.55*a;g.strokeStyle='#fff8e0';g.lineWidth=2;
+      for(let i=0;i<6;i++){const ly=gy-48+i*8+((i*7)%5),len=18+((i*13)%14)+dx*.6;g.beginPath();g.moveTo(gx-dir*(14+i%3*4),ly);g.lineTo(gx-dir*(14+len),ly);g.stroke();}
+      g.globalAlpha=.35*a;g.fillStyle='#c8a878';for(let i=0;i<4;i++){g.beginPath();g.arc(gx-dir*(10+i*9),gy+18-i,5+i*2.5*a,0,7);g.fill();}g.restore();}
     if(!f.alive){g.save();g.globalAlpha=.35;const ok=SD.unit(g,f._u,gx,gy);g.restore();return ok;}
     return SD.unit(g,f._u,gx,gy);}
   function soldier(t,side,fac,x,y,sc,ph,atk){const key=`sol_${t}_${side?'foe':'ally'}`,im=art(key),fr=art(key+'_frames');const flip=side===1;

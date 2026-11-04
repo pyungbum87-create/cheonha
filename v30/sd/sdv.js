@@ -36,11 +36,13 @@ const WMAP={spear:'spear',blade:'sword',glaive:'glaive',smash:'mace',bow:'bow',c
 const GEN2={ugeum:0,akjin:0,join:0,gwanpyeong:0,seoseo:0,madae:0,jeongbo:0,hwanggae:0,handang:0,hwaung:0,gosun:0,jingung:0,hahudon:0,jangryo:'halberd',sunuk:0,yubi:'twin',macho:0,bangtong:0,songwon:0,gamnyeong:0,taesaja:0,yeomong:0,anryang:0,munchu:0,choseon:0};
 const ALIAS={m_gwanu:'gwanu',m_joun:'joun',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo',m_jangbi:'jangbi',m_samaui:'samaui',m_juyu:'juyu',m_wonso:'wonso'};
 const IMG={};let ready=false;
+/* attack poses (weapon drawn in the picture): add ids here when sd_<id>_atk.webp files arrive */
+const ATK=[];
 /* soldiers hold their weapon in the drawing: body-only motion */
 const SOL={w_sp:'thrust',s_sp:'thrust',o_sp:'thrust',q_sp:'thrust',w_ar:'shoot',s_ar:'shoot',o_ar:'shoot',q_ar:'shoot'};
 const MYTH=['m_gwanu','m_jegal','m_jojo','m_sonchaek','m_yeopo','m_joun','m_jangbi','m_samaui','m_juyu','m_wonso'],FACFX=['fx_wei','fx_shu','fx_wu','fx_qun'];
 const names=['pad_1','pad_2','pad_3','decor','fx_slash','fx_thrust','fx_arrow_trail','fx_fan_wind','fx_mythic_aura'].concat(FACFX,Object.keys(SOL).map(k=>'sd_'+k+'_body'),MYTH.map(k=>'sd_'+k+'_body'),...Object.keys(CH).map(k=>['sd_'+k+'_body','sd_'+k+'_weapon']),Object.keys(GEN2).map(k=>'sd_'+k+'_body'),Object.values(SW).map(w=>w.img));
-let left=names.length;
+ATK.forEach(id=>names.push('sd_'+id+'_atk'));let left=names.length;
 function done(){if(--left>0)return;ready=true;try{bgCache=null;}catch(e){}}
 if(on)names.forEach(n=>{const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=done;im.src=BASE+n+'.webp';});
 const R=Math.PI/180,ease=q=>q<.5?2*q*q:1-Math.pow(-2*q+2,2)/2;
@@ -79,10 +81,11 @@ function unit(ctx,u,x,y){if(!on||!ready)return false;const id=ALIAS[u.d.id]||u.d
   if(mythic&&IMG.fx_mythic_aura){ctx.save();ctx.globalAlpha=.55+.25*Math.sin(now*4+s.ph);ctx.drawImage(IMG.fx_mythic_aura,x-30,y-18,60,60);ctx.restore();}
   ctx.save();ctx.translate(x+bx*f,y+20);ctx.scale(f,1);ctx.rotate(lean*R);ctx.scale(sx,sy);
   if(u.d.g>=3){const gr=ctx.createRadialGradient(0,-BS*.42,4,0,-BS*.42,BS*.5);gr.addColorStop(0,mythic?'rgba(255,170,60,.55)':'rgba(255,214,90,.32)');gr.addColorStop(1,'rgba(255,200,80,0)');ctx.globalAlpha=.75+.25*Math.sin(now*(mythic?5:3)+s.ph);ctx.fillStyle=gr;ctx.beginPath();ctx.ellipse(0,-BS*.42,BS*.5,BS*.56,0,0,7);ctx.fill();ctx.globalAlpha=1;}
-  ctx.drawImage(body,-BS/2,-BS*.93,BS,BS);
+  const pose=act&&q>.28&&q<.8&&IMG['sd_'+(MYTH.includes(u.d.id)&&IMG['sd_'+u.d.id+'_atk']?u.d.id:id)+'_atk'];
+  if(pose){ctx.drawImage(pose,-BS/2,-BS*.93,BS,BS);}else ctx.drawImage(body,-BS/2,-BS*.93,BS,BS);
   // weapon: rotates around the hand
   const hx=(c.hand[0]-256)*k,hy=c.hand[1]*k-BS*.93,ws=k*c.ws;
-  if(wpn){ctx.save();ctx.translate(hx+wx,hy+wy);ctx.rotate(wa*R);ctx.drawImage(wpn,-c.grip[0]*ws,-c.grip[1]*ws,512*ws,512*ws);ctx.restore();}
+  if(wpn&&!pose){ctx.save();ctx.translate(hx+wx,hy+wy);ctx.rotate(wa*R);ctx.drawImage(wpn,-c.grip[0]*ws,-c.grip[1]*ws,512*ws,512*ws);ctx.restore();}
   // effect in front of the weapon
   const fx=(u.d.g>=3&&c.move!=='shoot'&&IMG[FACFX[u.d.f]])||IMG[c.fx];if(fx&&fxA>0){ctx.globalAlpha=Math.min(1,fxA*1.6);const fs=c.move==='shoot'?44:c.move==='thrust'?46:54;
     ctx.drawImage(fx,hx+(c.move==='slash'?2:14),hy-fs/2-(c.move==='slash'?6:0),fs,fs);ctx.globalAlpha=1;}
