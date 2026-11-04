@@ -739,7 +739,7 @@ function upgrade(f){if(G&&G.onlyF!=null&&f!==G.onlyF)return;const c=upCost(f);if
 function buffs(){
   const ids=new Set(G.slots.filter(Boolean).map(u=>u.d.id));
   // mythic forms count as their base for synergies
-  const alias={m_gwanu:'gwanu',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo',m_joun:'joun'};
+  const alias={m_gwanu:'gwanu',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo',m_joun:'joun',m_jangbi:'jangbi',m_samaui:'samaui',m_juyu:'juyu',m_wonso:'wonso'};
   for(const k in alias)if(ids.has(k))ids.add(alias[k]);
   const on={};for(const S of SYN){const c=S.need.filter(id=>ids.has(id)).length;if(c>=S.min)on[S.id]=c;}
   const prev=G.synOn;G.synOn=on;
@@ -761,6 +761,7 @@ function buffs(){
     if(on.habuk&&f===3)atk*=1.25;
     if(on.yeonhwan&&base==='yeopo')atk*=2;
     if(mythJojo&&f===0)atk*=1.4;
+    for(const S of SYN){if(!S.e||!on[S.id])continue;const E=(S.e2&&on[S.id]>=S.e2.n)?S.e2:S.e;if(E.who==='self'?!S.need.includes(base):(E.f!=null&&E.f!==f))continue;if(E.atk)atk*=E.atk;if(E.spd)spd*=E.spd;if(E.crit)crit+=E.crit;if(E.scd)scd*=E.scd;}
     // neighbour charm aura
     let aura=0;const c=i%COLS,r=(i/COLS)|0;
     [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const cc=c+dx,rr=r+dy;if(cc<0||cc>=COLS||rr<0||rr>=ROWS)return;const v=G.slots[rr*COLS+cc];if(v)aura+=v.d.s[3]/10*(v.role===3?2*(1+.25*v.d.g):1);});
@@ -2048,6 +2049,35 @@ window.buildBG=function(){const c=document.createElement('canvas');c.width=W*K;c
 function v30AdLeft(){const k=mcapKey();mcapLeft(k);SAVE.mday.ad=SAVE.mday.ad||{};return Math.max(0,MCAP2.ad-(SAVE.mday.ad[k]|0));}
 function v30AdBonus(){return Math.min(5,v30AdLeft());}
 window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===i&&performance.now()-G.sellAt<2500)){G.sellArm=i;G.sellAt=performance.now();return;}G.sellArm=-1;orig(i);})(sell);
+/* ===== v30g: 인연 16개 + 히든 조합(신화) 4개 추가 — 세력마다 고르게 ===== */
+(function(){const Z=V30ZH;
+  const N=(ko,zh)=>Z?zh:ko;
+  const ADD=[
+   {id:'wei_kan',n:N('천하의 간웅','天下奸雄'),d:N('조조·사마의·순욱 중 2명: 위 공격력 +15%, 3명: +30% · 기술 주기 -20%','曹操·司马懿·荀彧 2名：魏攻击+15%，3名：+30%·技能冷却-20%'),need:['jojo','samaui','sunuk'],min:2,e:{f:0,atk:1.15},e2:{n:3,f:0,atk:1.3,scd:.8}},
+   {id:'wei_tiger',n:N('위의 맹장','魏之猛将'),d:N('하후돈·장료·허저 중 2명: 위 공격 속도 +15%, 3명: +30%','夏侯惇·张辽·许褚 2名：魏攻速+15%，3名：+30%'),need:['hahudon','jangryo','heojeo'],min:2,e:{f:0,spd:1.15},e2:{n:3,f:0,spd:1.3}},
+   {id:'wei_wall',n:N('철벽 수비','铁壁坚守'),d:N('조인·우금: 위 치명타 +8%','曹仁·于禁：魏暴击+8%'),need:['join','ugeum'],min:2,e:{f:0,crit:.08}},
+   {id:'shu_fish',n:N('수어지교','鱼水之交'),d:N('유비·제갈량: 촉 공격력 +20%','刘备·诸葛亮：蜀攻击+20%'),need:['yubi','jegal'],min:2,e:{f:1,atk:1.2}},
+   {id:'shu_kwan',n:N('관씨 부자','关氏父子'),d:N('관우·관평: 두 사람 공격력 +40%','关羽·关平：二人攻击+40%'),need:['gwanu','gwanpyeong'],min:2,e:{who:'self',atk:1.4}},
+   {id:'shu_old',n:N('노장의 투혼','老将斗魂'),d:N('황충·마대·서서 중 2명: 촉 치명타 +10%','黄忠·马岱·徐庶 2名：蜀暴击+10%'),need:['hwangchung','madae','seoseo'],min:2,e:{f:1,crit:.1}},
+   {id:'wu_hero',n:N('강동의 호걸','江东豪杰'),d:N('감녕·태사자·여몽 중 2명: 오 공격력 +15%, 3명: +30%','甘宁·太史慈·吕蒙 2名：吴攻击+15%，3名：+30%'),need:['gamnyeong','taesaja','yeomong'],min:2,e:{f:2,atk:1.15},e2:{n:3,f:2,atk:1.3}},
+   {id:'wu_dudu',n:N('오의 대도독','东吴都督'),d:N('주유·육손·여몽 중 2명: 오 기술 주기 -25%','周瑜·陆逊·吕蒙 2名：吴技能冷却-25%'),need:['juyu','yukson','yeomong'],min:2,e:{f:2,scd:.75}},
+   {id:'wu_kugyuk',n:N('고육지계','苦肉计'),d:N('주유·황개: 오 치명타 +12%','周瑜·黄盖：吴暴击+12%'),need:['juyu','hwanggae'],min:2,e:{f:2,crit:.12}},
+   {id:'wu_vet',n:N('강동 노장','江东老将'),d:N('정보·황개·한당 중 2명: 오 공격 속도 +15%','程普·黄盖·韩当 2名：吴攻速+15%'),need:['jeongbo','hwanggae','handang'],min:2,e:{f:2,spd:1.15}},
+   {id:'qun_tyr',n:N('동탁의 폭정','董卓暴政'),d:N('동탁·화웅: 군웅 공격력 +20%','董卓·华雄：群雄攻击+20%'),need:['dongtak','hwaung'],min:2,e:{f:3,atk:1.2}},
+   {id:'qun_hamjin',n:N('함진영','陷阵营'),d:N('여포·고순·진궁 중 2명: 군웅 공격 속도 +20%','吕布·高顺·陈宫 2名：群雄攻速+20%'),need:['yeopo','gosun','jingung'],min:2,e:{f:3,spd:1.2}},
+   {id:'qun_yuan',n:N('원가의 위세','袁家威势'),d:N('원소·안량·문추 3명: 군웅 공격력 +40%','袁绍·颜良·文丑 3名：群雄攻击+40%'),need:['wonso','anryang','munchu'],min:3,e:{f:3,atk:1.4}},
+   {id:'qun_charm',n:N('경국지색','倾国倾城'),d:N('초선·동탁: 군웅 치명타 +10%','貂蝉·董卓：群雄暴击+10%'),need:['choseon','dongtak'],min:2,e:{f:3,crit:.1}},
+   {id:'x_three',n:N('삼국의 영웅','三国英雄'),d:N('조조·유비·손권: 모든 장수 공격력 +20%','曹操·刘备·孙权：全体攻击+20%'),need:['jojo','yubi','songwon'],min:3,e:{atk:1.2}},
+   {id:'x_peerless',n:N('천하무쌍','天下无双'),d:N('여포·관우·장비: 세 사람 공격력 +30%','吕布·关羽·张飞：三人攻击+30%'),need:['yeopo','gwanu','jangbi'],min:3,e:{who:'self',atk:1.3}}];
+  for(const S of ADD){SYN.push(S);S.need.forEach(id=>KEEP.add(id));}
+  // 새 신화 4명 (같은 세력 재료만 — 세력별 시나리오에서도 만들 수 있게)
+  const M=[['m_jangbi',N('만인지적 장비','万人敌张飞'),1,[100,92,46,60,26],N('장비','张飞'),{sp:'god',d:N('게임 최고 수준의 단일 공격력','顶级单体攻击')}],
+   ['m_samaui',N('총명 사마의','冢虎司马懿'),0,[66,99,100,78,90],N('사마의','司马懿'),{sp:'wind',d:N('10초마다 전장 전체 책략','每10秒全场计策')}],
+   ['m_juyu',N('미주랑 주유','美周郎周瑜'),2,[76,99,99,96,76],N('주유','周瑜'),{sp:'wind',d:N('10초마다 전장 전체 화공','每10秒全场火攻')}],
+   ['m_wonso',N('사세삼공 원소','四世三公袁绍'),3,[78,94,80,96,86],N('원소','袁绍'),{sp:'rapid',d:N('두 배 빠른 연속 공격','两倍速连击')}]];
+  for(const [id,n,f,s,sn,ex] of M){if(UID[id])continue;add(id,n,f,4,s,sn,ex);UID[id]=U[U.length-1];PALIAS[id]=id.slice(2);if(window.SDV&&SDV.alias)SDV.alias[id]=id.slice(2);}
+  RECIPES.push({out:'m_jangbi',in:['jangbi','gwanpyeong','madae']},{out:'m_samaui',in:['samaui','join','jangryo']},{out:'m_juyu',in:['juyu','yukson','hwanggae']},{out:'m_wonso',in:['wonso','anryang','munchu']});
+  RECIPES.slice(-4).forEach(R=>R.in.forEach(id=>KEEP.add(id)));})();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
 document.getElementById('pOpts').onclick=()=>openOpts('pause');

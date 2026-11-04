@@ -34,7 +34,7 @@ const SW={spear:{img:'sd_w_spear',grip:[160,242],rest:-18,move:'thrust',fx:'fx_t
  twin:{img:'sd_w_twin',grip:[256,300],rest:-10,move:'slash',fx:'fx_slash',ws:.55}};
 const WMAP={spear:'spear',blade:'sword',glaive:'glaive',smash:'mace',bow:'bow',crossbow:'bow',talisman:'scroll',fan:'fan',petal:'fan'};
 const GEN2={ugeum:0,akjin:0,join:0,gwanpyeong:0,seoseo:0,madae:0,jeongbo:0,hwanggae:0,handang:0,hwaung:0,gosun:0,jingung:0,hahudon:0,jangryo:'halberd',sunuk:0,yubi:'twin',macho:0,bangtong:0,songwon:0,gamnyeong:0,taesaja:0,yeomong:0,anryang:0,munchu:0,choseon:0};
-const ALIAS={m_gwanu:'gwanu',m_joun:'joun',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo'};
+const ALIAS={m_gwanu:'gwanu',m_joun:'joun',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo',m_jangbi:'jangbi',m_samaui:'samaui',m_juyu:'juyu',m_wonso:'wonso'};
 const IMG={};let ready=false;
 /* soldiers hold their weapon in the drawing: body-only motion */
 const SOL={w_sp:'thrust',s_sp:'thrust',o_sp:'thrust',q_sp:'thrust',w_ar:'shoot',s_ar:'shoot',o_ar:'shoot',q_ar:'shoot'};
