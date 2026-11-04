@@ -37,7 +37,7 @@ const GEN2={ugeum:0,akjin:0,join:0,gwanpyeong:0,seoseo:0,madae:0,jeongbo:0,hwang
 const ALIAS={m_gwanu:'gwanu',m_joun:'joun',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo',m_jangbi:'jangbi',m_samaui:'samaui',m_juyu:'juyu',m_wonso:'wonso'};
 const IMG={};let ready=false;
 /* attack poses (weapon drawn in the picture): add ids here when sd_<id>_atk.webp files arrive */
-const ATK=[];
+const ATK=['gwanu','joun','macho','samaui','sonchaek','yeopo','jojo','yukson','choseon','dongtak'];
 /* soldiers hold their weapon in the drawing: body-only motion */
 const SOL={w_sp:'thrust',s_sp:'thrust',o_sp:'thrust',q_sp:'thrust',w_ar:'shoot',s_ar:'shoot',o_ar:'shoot',q_ar:'shoot'};
 const MYTH=['m_gwanu','m_jegal','m_jojo','m_sonchaek','m_yeopo','m_joun','m_jangbi','m_samaui','m_juyu','m_wonso'],FACFX=['fx_wei','fx_shu','fx_wu','fx_qun'];
