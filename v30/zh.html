@@ -168,6 +168,7 @@ h3{font-family:var(--brush);font-weight:normal;font-size:20px;margin:6px 0 2px;c
 @media(max-height:440px){.sc.sc-art{min-height:98px}}
 #title{background:linear-gradient(rgba(20,10,4,.25),rgba(20,10,4,.55) 55%,rgba(12,6,3,.88)),url(art/title_bg.webp) center/cover no-repeat}
 #scnSel,#story{background:linear-gradient(rgba(18,10,5,.55),rgba(12,6,3,.82)),url(art/scenario_map.webp) center/cover no-repeat}
+#mDaily{display:none!important}
 </style>
 
 <script>
@@ -547,10 +548,10 @@ function newGame(mode,si,tier=0){
      up:[0,0,0,0],sel:-1,drag:null,speed:1,paused:false,over:false,kills:0,recruits:0,best:null,banner:null,jbT:30,windT:0,
      synOn:{},buffDirty:true,eid:1,goldEarned:0,parts:[],shake:0,goldPulse:0,shots:[],zones:[],casts:[],fame:0,merges:0,legends:0,bossKills:0,choice:null,adSupplyUsed:false,adMeritUsed:false,baseEarned:0,adMeritBonus:0};
   if(mode==='daily')G.daily=todayDaily();
-  if(mode==='scn'){G.scnI=si|0;G.scn=SCN[G.scnI];G.scnTier=Math.max(0,Math.min(3,tier|0));G.mut=v30PickMut(G.scnTier);}
+  if(mode==='scn'){G.scnI=si|0;G.scn=SCN[G.scnI];G.scnTier=Math.max(0,Math.min(3,tier|0));G.mut=v30PickMut(G.scnTier);G.onlyF=storyF;}
   G.last=mode==='end'?0:G.scn?G.scn.rounds:40;
-  {const dm=dmod();G.gold+=20*SAVE.mu.gold+(dm&&dm.gold||0);G.fame=Math.min(5,SAVE.mu.fame+(dm&&dm.fame||0));G.walls+=SAVE.mu.wall+(dm&&dm.wall||0);if(G.scn&&G.scn.walls)G.walls=G.scn.walls;G.walls0=G.walls;
-   if(G.scn&&G.scn.start)G.scn.start.forEach((id,k)=>{const u=placeUnit(id,ROWS>1?COLS+3+k:k);markSeen(id);});}
+  {const dm=dmod();G.gold+=20*CMU().gold+(dm&&dm.gold||0);G.fame=Math.min(5,CMU().fame+(dm&&dm.fame||0));G.walls+=CMU().wall+(dm&&dm.wall||0);if(G.scn&&G.scn.walls)G.walls=G.scn.walls;G.walls0=G.walls;
+   if(G.scn&&G.scn.start)(G.onlyF!=null?FSTART[G.onlyF]:G.scn.start).forEach((id,k)=>{const u=placeUnit(id,ROWS>1?COLS+3+k:k);markSeen(id);});}
   startRound();
   if(G.mut&&G.mut.length){const gg=G;setTimeout(()=>{if(G===gg&&!G.over)G.banner={a:V30ZH?'战场变异':'전장 변이',b:G.mut.map(k=>MUT[k].n+' · '+MUT[k].d).join('  /  '),t:3.2,c:'#ff9a6a'};},3200);}
   showOnly(null);
@@ -701,7 +702,7 @@ function doMerge(i){
   o.forEach(j=>{const [x,y]=slotXY(j);G.fx.push({k:'puff',x,y,t:0,d:.4});G.slots[j]=null;});
   G.buffDirty=true;G.merges=(G.merges||0)+1;
   if(g+1===3){ // legend: let the player choose 1 of 3
-    const sc=G.scn,pool=U.filter(v=>v.g===3&&(o.f==null||v.f===o.f)&&!(sc&&sc.ban===v.f)).map(v=>v.id);const opts=[];
+    const sc=G.scn,pool=U.filter(v=>v.g===3&&(o.f==null?(G.onlyF==null||v.f===G.onlyF):v.f===o.f)&&!(sc&&sc.ban===v.f)).map(v=>v.id);const opts=[];
     if(sc&&sc.favor){const fv=sc.favor.filter(id=>pool.includes(id));if(fv.length&&Math.random()<.6){const x=pick(fv);opts.push(x);pool.splice(pool.indexOf(x),1);}}
     while(opts.length<3&&pool.length){opts.push(pool.splice((Math.random()*pool.length)|0,1)[0]);}
     while(opts.length<3){const x=randomOfGrade(3);if(!opts.includes(x))opts.push(x);}
@@ -760,12 +761,12 @@ function buffs(){
     [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const cc=c+dx,rr=r+dy;if(cc<0||cc>=COLS||rr<0||rr>=ROWS)return;const v=G.slots[rr*COLS+cc];if(v)aura+=v.d.s[3]/10*(v.role===3?2*(1+.25*v.d.g):1);});
     atk*=1+aura/100;
     if(u.d.sp==='god')atk*=1.6;
-    atk*=1+.03*SAVE.mu.atk;if(FDONE[f])atk*=1.05;{const dm=dmod();if(dm&&dm.f===f)atk*=1.4;}
+    atk*=1+.03*CMU().atk;if(FDONE[f])atk*=1.05;{const dm=dmod();if(dm&&dm.f===f)atk*=1.4;}
     atk*=ALLY;u.atk=atk;u.aura=aura;
     u.int=Math.max(.25,(1.6-s[1]*.009)/spd*(u.d.sp==='rapid'?.5:1));
     u.range=(92+s[1]*.38+(u.d.g>=3?8:0))*(hasMut('fog')?.8:1);
     u.crit=crit;
-    u.sint=(1-(Math.min(5,SAVE.mu.cd)*.03+Math.max(0,SAVE.mu.cd-5)*.015))*(u.role===2?Math.max(2.5,(12-s[2]*.07)*scd):[7,8,0,10,9][u.role]*(u.role===0||u.role===1?scd*1:1));
+    u.sint=(1-(Math.min(5,CMU().cd)*.03+Math.max(0,CMU().cd-5)*.015))*(u.role===2?Math.max(2.5,(12-s[2]*.07)*scd):[7,8,0,10,9][u.role]*(u.role===0||u.role===1?scd*1:1));
     u.spow=s[2]*g.m*upm*trm*(u.role===2?3*((G.scn&&G.scn.intMul)||1):1.5);
   });
   G.buffDirty=false;
@@ -1077,7 +1078,7 @@ function defeat(why){G.over=true;sfx('bad');
   showResult('城破',why,G.mode==='end'?`无尽战场 第${G.round}回合${G.round>=SAVE.best?' · 最高纪录':''}`:'');}
 function victory(){G.over=true;sfx('legend');
   if(G.scn){const i=G.scnI,tier=G.scnTier||0,old=scnStarsAt(i,tier),st=scnStars();let bonus=0;if(!old)bonus+=150;if(st>old)bonus+=40*(st-Math.max(1,old));
-    G.meritBonus=(G.meritBonus||0)+bonus;SAVE.scnD[i][tier]=Math.max(old,st);if(tier===0)SAVE.scn[i]=Math.max(SAVE.scn[i]|0,st);G.stars=st;G.earned=earnMerit(true);save();
+    G.meritBonus=(G.meritBonus||0)+bonus;SAVE.scnD[i][tier]=Math.max(old,st);if(tier===0)SAVE.scn[i]=Math.max(SAVE.scn[i]|0,st);G.stars=st;V30SetStars(i,tier,st);G.earned=earnMerit(true);save();
     const S=G.scn;const ex=[S.s2.ok(G)?'':S.s2.d,S.s3.ok(G)?'':S.s3.d].filter(Boolean);showResult(S.n+' · '+DIFF[tier].n+' 胜利',`${'★'.repeat(st)}${'☆'.repeat(3-st)}`,[ex.length?'未获得的星：'+ex.join(', '):'',tier===0&&i+1<SCN.length&&!old?`下一剧本「${SCN[i+1].n}」已开启`:''].filter(Boolean).join(' · '));return;}
   SAVE.win++;G.earned=earnMerit(true);save();showResult('天下统一','成功守住全部40回合','');}
 
@@ -1782,7 +1783,7 @@ function refreshRewardResult(){
   if(!G||!G.over)return;
   document.getElementById('rStats').innerHTML=finishStats().map(([k,v])=>`<div class="stat"><b>${Number(v).toLocaleString()}</b><span>${k}</span></div>`).join('');
   const sub=document.getElementById('rSub');
-  sub.textContent=G.resultHead+' · '+REWARD_TXT.cost+' +'+(G.earned||0)+' ('+REWARD_TXT.hold+' '+SAVE.merit.toLocaleString()+')';
+  sub.textContent=G.resultHead+' · '+REWARD_TXT.cost+' +'+(G.earned||0)+' ('+REWARD_TXT.hold+' '+(G.mode==='scn'&&G.onlyF!=null?SAVE.meritF[G.onlyF]:SAVE.merit).toLocaleString()+')';
   document.getElementById('rRewardHint').textContent=G.adMeritUsed ? REWARD_TXT.claimed+' · '+REWARD_TXT.bonus+' +'+G.adMeritBonus : REWARD_TXT.resultIntro+' · '+REWARD_TXT.daily+' '+rewardRemaining()+'/'+REWARD_DAILY_CAP+' · '+(rewardProvider()?REWARD_TXT.real:REWARD_TXT.demo);
 }
 function openRewardModal(kind){
@@ -1812,7 +1813,7 @@ function rewardGrant(kind,g){
     g.txt.push({x:W/2,y:50,s:REWARD_TXT.supplyBonus,t:0,c:'#ffdf84',big:1});
     sfx('coin');
   }else{
-    const bonus=Math.max(1,Math.round(g.baseEarned*.5));g.adMeritUsed=true;g.adMeritBonus=bonus;g.earned+=bonus;SAVE.merit+=bonus;
+    const bonus=Math.max(1,Math.round(g.baseEarned*.5));g.adMeritUsed=true;g.adMeritBonus=bonus;g.earned+=bonus;if(g.mode==='scn'&&g.onlyF!=null)SAVE.meritF[g.onlyF]+=bonus;else SAVE.merit+=bonus;
     sfx('fame');
   }
   SAVE.rewardAds.count++;save();updateTitle();
@@ -1901,6 +1902,46 @@ if(!document.querySelector('link[rel="manifest"]'))document.getElementById('bLan
 tap('bLang',()=>{const to=LANG==='ko'?'zh':'ko';try{localStorage.setItem('cheonha-lang',to);}catch(e){}if(location.protocol.startsWith('http'))location.href=to==='zh'?'zh.html':'index.html';});
 document.getElementById('scnBack').onclick=()=>{showOnly('title');updateTitle();};
 document.getElementById('stBack').onclick=()=>openScn();
+/* ===== v30b: 세력별 시나리오 + 모드·세력별 군영 (각자 따로 성장) ===== */
+const FSTART=[['jojo','heojeo','hahudon'],['yubi','gwanu','jangbi'],['sonchaek','juyu','hwanggae'],['yeopo','dongtak','hwaung']];
+let storyF=1;
+(function(){const zero=()=>({gold:0,fame:0,wall:0,atk:0,cd:0});SAVE.muF=[0,1,2,3].map(zero);SAVE.meritF=[0,0,0,0];SAVE.scnF=[0,1,2,3].map(()=>SCN.map(()=>[0,0,0,0]));SAVE.campTab=-1;
+  try{const s=JSON.parse(localStorage.getItem('cheonha-save')||'null');if(s){
+    if(Array.isArray(s.muF))s.muF.forEach((m,f)=>{if(m&&f<4)for(const k in SAVE.muF[f])SAVE.muF[f][k]=Math.max(0,m[k]|0);});
+    if(Array.isArray(s.meritF))s.meritF.forEach((v,f)=>{if(f<4)SAVE.meritF[f]=Math.max(0,v|0);});
+    if(Array.isArray(s.scnF))s.scnF.forEach((row,f)=>{if(f<4&&Array.isArray(row))row.forEach((t,i)=>{if(i<SCN.length&&Array.isArray(t))for(let k=0;k<4;k++)SAVE.scnF[f][i][k]=Math.max(0,Math.min(3,t[k]|0));});});
+    if(typeof s.storyF==='number'&&s.storyF>=0&&s.storyF<4)storyF=s.storyF;if(typeof s.campTab==='number')SAVE.campTab=s.campTab;}}catch(e){}
+  // 군영 비용: 오래 키우도록 크게 상향 (모든 군영 공통 표)
+  const C={gold:[15,l=>Math.round(80*Math.pow(1.38,l))],atk:[40,l=>Math.round(100*Math.pow(1.26,l))],cd:[15,l=>Math.round(120*Math.pow(1.35,l))],fame:[2,l=>[1500,6000][l]],wall:[2,l=>[2500,9000][l]]};
+  for(const m of MU)if(C[m.k]){m.max=C[m.k][0];m.cost=C[m.k][1];}
+})();
+function CMU(){return G&&G.mode==='scn'&&G.onlyF!=null?SAVE.muF[G.onlyF]:SAVE.mu;}
+function V30SetStars(i,t,st){const row=SAVE.scnF[G.onlyF!=null?G.onlyF:storyF][i];row[t]=Math.max(row[t]|0,st);}
+window.scnStarsAt=function(i,t){const r=SAVE.scnF[storyF]&&SAVE.scnF[storyF][i];return r?(r[t]|0):0;};
+window.scnOpen=function(i){return i===0||scnStarsAt(i-1,0)>=1;};
+window.scnTierOpen=function(i,t){return scnOpen(i)&&(t===0||scnStarsAt(i,t-1)>0);};
+window.randomOfGrade=(orig=>function(g,f){if(G&&G.onlyF!=null){const F=G.onlyF,sc=G.scn;
+    if(sc&&sc.favor&&Math.random()<.3){const fv=sc.favor.filter(id=>UID[id]&&UID[id].g===g&&UID[id].f===F);if(fv.length)return pick(fv);}
+    const pool=U.filter(u=>u.g===g&&u.f===F);if(pool.length)return pick(pool).id;}
+  return orig(g,f);})(randomOfGrade);
+window.scnStars=(orig=>function(){const S=G.scn;if(G.onlyF!=null&&S&&S.id==='bandongtak'){let n=1;if(S.s2.ok(G))n++;if(G.slots.filter(u=>u&&u.d.g>=3).length>=2)n++;return n;}return orig();})(scnStars);
+window.earnMerit=function(win){const g=G;let m=g.round*2+(g.bossKills||0)*10+(g.legends||0)*5+(g.meritBonus||0)+(win?100:0);
+  if(g.mode==='end')m=Math.round(m*1.3);if(g.scn)m=Math.round(m*DIFF[g.scnTier||0].merit);m=Math.round(m);
+  if(g.mode==='scn'&&g.onlyF!=null)SAVE.meritF[g.onlyF]+=m;else SAVE.merit+=m;SAVE.games++;SAVE.storyF=storyF;save();return m;};
+function v30Tabs(host,id,items,cur,onPick){let row=document.getElementById(id);if(!row){row=document.createElement('div');row.id=id;row.className='row';row.style.cssText='gap:6px;flex-wrap:wrap;justify-content:center;margin:4px 0 8px';host.parentNode.insertBefore(row,host);}
+  row.innerHTML='';items.forEach(([v,label,col])=>{const b=document.createElement('button');b.className='btn';b.style.cssText=`min-width:64px;padding:6px 12px;font-size:14px;${v===cur?'outline:2px solid #f2c14e;':''}${col?'border-color:'+col+';':''}`;b.textContent=label;b.onclick=()=>onPick(v);row.append(b);});}
+window.renderScn=(orig=>function(){orig();v30Tabs(document.getElementById('scnList'),'v30ftabs',FAC.map(F=>[F.id,F.n,F.l]),storyF,f=>{storyF=f;SAVE.storyF=f;save();renderScn();});
+  const t=document.querySelector('#scnSel .tag');if(t)t.textContent=V30ZH?'选择势力，只能使用该势力的武将。每个势力的进度与军营分别成长。':'세력을 고르면 그 세력 장수만 등용됩니다. 세력마다 진행과 군영이 따로 성장해요.';})(renderScn);
+window.renderDiff=(orig=>function(){orig();const y=document.getElementById('stYear');if(y&&!/\[/.test(y.textContent))y.textContent='['+FAC[storyF].n+'] '+y.textContent;
+  if(SCN[storyI].id==='bandongtak'){const gEl=document.getElementById('stGoal');if(gEl)gEl.innerHTML=gEl.innerHTML.replace(SCN[storyI].s3.d,V30ZH?'传说武将2名以上获胜':'전설 장수 2명 이상과 승리');}})(renderDiff);
+window.renderCamp=function(){const L=document.getElementById('campList'),tab=SAVE.campTab;const merit=tab<0?SAVE.merit:SAVE.meritF[tab],mu=tab<0?SAVE.mu:SAVE.muF[tab];
+  v30Tabs(L,'v30ctabs',[[-1,V30ZH?'无尽战场':'끝없는 전장']].concat(FAC.map(F=>[F.id,(V30ZH?'剧本·':'시나리오·')+F.n,F.l])),tab,v=>{SAVE.campTab=v;save();renderCamp();});
+  document.getElementById('meritTxt').textContent=(V30ZH?'持有功绩 ':'보유 공적 ')+merit.toLocaleString();L.innerHTML='';
+  for(const m of MU){const lv=mu[m.k]|0,max=lv>=m.max,c=max?0:m.cost(lv);const row=document.createElement('div');row.className='opt';
+    row.innerHTML=`<span>${m.n} <small>${m.d} · ${lv}/${m.max}</small></span>`;const b=document.createElement('button');b.className='btn';b.style.minWidth='110px';b.style.padding='8px 12px';b.style.fontSize='15px';
+    b.textContent=max?(V30ZH?'最高':'최고 단계'):`${V30ZH?'功绩':'공적'} ${c.toLocaleString()}`;b.disabled=max||merit<c;
+    b.onclick=()=>{const have=tab<0?SAVE.merit:SAVE.meritF[tab];if(have<c||max)return;if(tab<0)SAVE.merit-=c;else SAVE.meritF[tab]-=c;mu[m.k]=lv+1;save();sfx('fame');renderCamp();updateTitle();};row.append(b);L.append(row);}};
+window.updateTitle=(orig=>function(){orig();const st=document.getElementById('scnTxt');if(st){const tot=SAVE.scnF.reduce((a,F)=>a+F.reduce((x,r)=>x+r.reduce((y,n)=>y+(n|0),0),0),0);st.textContent=(V30ZH?'星 ':'별 ')+tot+'/'+SCN.length*12*4;}})(updateTitle);
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
 document.getElementById('pOpts').onclick=()=>openOpts('pause');
