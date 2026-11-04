@@ -1,0 +1,18 @@
+/* Offline checks: every picture key exists, targets exist, all 32 photos reachable, titles unique. */
+const fs=require('fs'),path=require('path');const ST=require('./src/stages.js');
+const cond=(c,v)=>!c||c.split('|').some(a=>a.split('&').every(t=>t[0]==='!'?!v[t.slice(1)]:!!v[t]));
+const has=k=>['art','../art'].some(d=>fs.existsSync(path.join(__dirname,d,k+'.webp')));let bad=0;const err=(s,m)=>{bad++;console.log('  ✗ stage',s.id,m);};
+for(const s of ST){const ids=new Set(s.objs.map(o=>o.id).concat(['lili']));const tools=new Set(s.tools.map(t=>t.id));ids.size;
+ if(s.probs.length!==5)err(s,'probs');if(!has(s.bg))err(s,'bg '+s.bg);if(s.hid&&!has(s.hid))err(s,'hid '+s.hid);
+ for(const o of s.objs){if(o.img&&!has(o.img))err(s,'img '+o.img);for(const a of o.alt||[])if(a.img&&!has(a.img))err(s,'alt '+a.img);}
+ const fl=new Set(s.probs.map(p=>p.id));const flags=[...fl];const others=new Set();
+ for(const r of s.rules){if(!ids.has(r.t)&&r.t!=='lili')err(s,'rule target '+r.t);if(r.tool&&!tools.has(r.tool))err(s,'rule tool '+r.tool);for(const d of r.do){if(d[0]==='set'&&!fl.has(d[1]))others.add(d[1]);if(d[0]==='fly'&&!has(d[1]))err(s,'fly '+d[1]);if((d[0]==='wig'||d[0]==='go'||d[0]==='tmp'||d[0]==='off')&&!ids.has(d[1]))err(s,'op target '+d[1]);}if(!r.do.some(d=>d[0]==='say'||d[0]==='set'||d[0]==='found'||d[0]==='wig'||d[0]==='pv'||d[0]==='tone'))err(s,'empty rule');}
+ const allFlags=[...flags,...others];const key=v=>allFlags.map(f=>v[f]?1:0).join('');const seen=new Map();const q=[{}];seen.set(key({}),null);const masks=new Set();let parentPath=new Map([[key({}),[]]]);
+ while(q.length){const v=q.shift();const m=s.probs.map(p=>v[p.id]?'0':'1').join('');masks.add(m);const pk=parentPath.get(key(v));
+  s.rules.forEach((r,ri)=>{if(r.t==='lili'&&0)return;const tool=r.tool&&s.tools.find(t=>t.id===r.tool);if(tool&&!cond(tool.have,v))return;if(r.t&&s.objs.find(o=>o.id===r.t)){const o=s.objs.find(o=>o.id===r.t);if(o.show&&!cond(o.show,v))return;}if(!cond(r.if,v))return;const n=Object.assign({},v);for(const d of r.do)if(d[0]==='set')n[d[1]]=true;const k=key(n);if(!parentPath.has(k)){parentPath.set(k,pk.concat(ri));q.push(n);}});}
+ if(masks.size!==32)err(s,'reachable '+masks.size+'/32 missing '+Array.from({length:32},(_,i)=>i.toString(2).padStart(5,'0')).filter(m=>!masks.has(m)).join(','));
+ const titles=new Set();for(let i=0;i<32;i++){const m=i.toString(2).padStart(5,'0');const u=s.probs.filter((p,k)=>m[k]==='1');titles.add(s.titles[m]?s.titles[m][0]:u.map(p=>p.f[0]).join('，')+'！');}if(titles.size!==32)err(s,'titles '+titles.size);if(Object.keys(s.titles).length!==8)err(s,'special '+Object.keys(s.titles).length);
+ if(!s.rules.some(r=>r.do.some(d=>d[0]==='found')))err(s,'no hidden');if(!others.has('tw')&&s.id!==4&&s.id!==2&&s.id!==5&&s.id!==16)console.log('  · stage',s.id,'no tw twist flag');
+ s._win=parentPath.get(key(Object.assign({},...s.probs.map(p=>({[p.id]:true})))));
+ let best=null;for(const [k,p] of parentPath){const on=k.split('');if(s.probs.every((_,i)=>on[i]==='1')&&(!best||p.length<best.length))best=p;}s._path=best;}
+fs.writeFileSync(path.join(__dirname,'site/paths.json'),JSON.stringify(ST.map(s=>s._path)));console.log(bad?bad+' problems':'static OK: 20 stages, 32/32 each');
