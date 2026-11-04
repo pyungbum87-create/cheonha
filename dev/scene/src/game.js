@@ -1,4 +1,4 @@
-const VER='v1';
+const VER='v2';
 /* ============================== SAVE ============================== */
 const SAVE={stars:{},opt:{bgm:1,sfx:1,vib:1},hint:{key:'',n:0},adCount:0,lastAd:0,plays:0};
 try{const s=JSON.parse(localStorage.getItem('tt-scene')||'null');if(s&&typeof s==='object'){if(s.stars&&typeof s.stars==='object')for(const k in s.stars)SAVE.stars[k]=Math.min(3,s.stars[k]|0);
@@ -178,7 +178,7 @@ const LEVELS=[
 /* ============================== PLAY STATE ============================== */
 const W=390;let H=780,KS=1,DPR=1,INS={t:0,b:0};
 let P=null,scr='home';
-function SC(){if(P&&P.L.diff){const top=INS.t+96,a=P.L.aspect||1,s=Math.min(W-12,((H-INS.b-150-top)/2-3)/a),sh=s*a;return{x:(W-s)/2,y:top,s,sh,dy:sh+6};}return{x:0,y:INS.t+104,s:W,sh:W};}            // scene rect on screen
+function SC(){if(P&&P.L.diff){const top=INS.t+96,a=P.L.aspect||1,s=Math.min(W-12,((H-INS.b-172-top)/2-3)/a),sh=s*a;return{x:(W-s)/2,y:top,s,sh,dy:sh+6};}return{x:0,y:INS.t+104,s:W,sh:W};}            // scene rect on screen
 const toS=(x,y)=>{const c=SC();return{x:c.x+x*c.s,y:c.y+y*c.sh};};
 const toN=(x,y)=>{const c=SC();return{x:(x-c.x)/c.s,y:(y-c.y)/c.sh};};
 function startLevel(i){const L=LEVELS[i];P={i,L,t:L.time,el:0,done:new Set(),reveals:[],objs:{},parts:[],floats:[],stamps:[],hint:null,hintsUsed:0,drag:null,over:false,won:false,dirt:{},tick:0,used:new Set(),ff:[]};
@@ -330,9 +330,9 @@ function drawHand(p,t){const g=ctx,k=(performance.now()/900)%1;let x=p.x,y=p.y;
 const $=id=>document.getElementById(id);
 const SHEETS=['home','playUI','timeup','win','ad'];
 function show(id){for(const s of SHEETS)$(s).hidden=!(s===id||(s==='playUI'&&(id==='play'||id==='timeup'||id==='ad'&&P&&!P.won)));scr=id==='home'?'home':'play';musicSync();if(id==='home')renderHome();}
-function renderChips(){const L=$('chips');L.innerHTML='';for(const t of P.L.tasks){const d=document.createElement('div');d.className='chip'+(P.done.has(t.id)?' ok':'');d.textContent=P.L.diff&&!P.done.has(t.id)?'?':t.label;L.append(d);}
+function renderChips(){const L=$('chips');L.innerHTML='';for(const t of P.L.tasks){const d=document.createElement('div');const ok=P.done.has(t.id);d.className='chip'+(ok?' ok':' q');d.textContent=ok?t.label:'?';L.append(d);}
   $('mProg').textContent=`${P.done.size}/${P.L.tasks.length}`;$('mBar').style.setProperty('--p',(P.done.size/P.L.tasks.length*100)+'%');updHintBtn();}
-function updHintBtn(){const n=hintsLeft();$('bHint').querySelector('small').textContent=n>0?`免费 ${n}`:'看广告';}
+function updHintBtn(){const n=hintsLeft();$('bHint').querySelector('small').textContent=n>0?n:'▶';$('bHint').classList.toggle('ready',n>0);}
 function renderHome(){const L=$('lvList');L.innerHTML='';LEVELS.forEach((lv,i)=>{const b=document.createElement('button');b.className='lv'+(lv.locked?' lock':'');const st=SAVE.stars[lv.id]||0;
   b.innerHTML=`<div class="th" style="${lv.bg?`background-image:url(art/${lv.bg}.webp)`:''}">${lv.locked?'<span>画画中…</span>':''}</div><b>${lv.id}. ${lv.title}</b><i class="ss">${[0,1,2].map(k=>`<em class="${k<st?'on':''}"></em>`).join('')}</i>`;
   b.onclick=()=>{auInit();if(lv.locked){sfx('nope');b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);return;}sfx('btn');startLevel(i);};L.append(b);});}

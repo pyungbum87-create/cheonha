@@ -45,12 +45,28 @@ button:focus-visible{outline:3px solid var(--chili);outline-offset:2px}
 #mTime.low{background:var(--chili);animation:sh .5s infinite}
 #chips{position:absolute;left:12px;right:12px;top:calc(var(--sceneBot,500px) + 10px);display:flex;flex-wrap:wrap;gap:6px;justify-content:center;pointer-events:none}
 .chip{font-size:13px;font-weight:900;padding:5px 10px;border-radius:999px;background:#fff;border:2px dashed #d7b68f;color:#b49272}
+.chip.q{min-width:12px;padding:4px 8px;text-align:center;border-radius:14px 14px 10px 10px;background:#fff7e8}
+@media (max-height:700px){.chip{font-size:12px;padding:3px 8px}.chip.q{padding:3px 7px}}
 .chip.ok{background:#e5f4e4;border:2px solid var(--jade);color:#2f7a45}
 .chip.ok::before{content:"✓ "}
-.bar{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;justify-content:space-around;padding:0 10px}
-.ab{display:flex;flex-direction:column;align-items:center;gap:2px;width:92px;padding:8px 0;border-radius:18px;border:3px solid var(--ink);font-weight:900;font-size:16px;box-shadow:0 4px 0 var(--ink);color:#fff}
-.ab small{font-size:11px;opacity:.9}
-#bTime{background:linear-gradient(#7be08c,#3fae5a)}#bHint{background:linear-gradient(#ffe07a,#f2b52c);color:var(--ink)}#bSkip{background:linear-gradient(#7cc8ff,#3b86e0)}
+/* bottom: three bamboo steamers on the shop counter (our own look) */
+.bar{position:absolute;left:0;right:0;bottom:0;height:calc(env(safe-area-inset-bottom,0px) + 98px);display:flex;justify-content:center;align-items:flex-start;gap:clamp(14px,6vw,34px);padding-top:12px;box-sizing:border-box;
+  background:linear-gradient(#c98a4e 0 8px,#a8693a 8px 11px,#e7b27a 11px,#d99a5e)}
+.bar::before{content:"";position:absolute;left:0;right:0;top:-6px;height:8px;background:repeating-linear-gradient(90deg,#e8524a 0 22px,#f2b52c 22px 30px);border-top:2px solid var(--ink)}
+.ab{position:relative;width:78px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center}
+.ab .st2{position:relative;width:66px;height:52px}
+.ab .lidd{position:absolute;left:4px;right:4px;top:0;height:24px;border:3px solid var(--ink);border-radius:40px 40px 10px 10px;
+  background:repeating-linear-gradient(90deg,#f6d79a 0 5px,#e9c27e 5px 7px);box-shadow:inset 0 -4px 0 #d9a960}
+.ab .lidd::before{content:"";position:absolute;left:50%;top:-8px;width:16px;height:8px;margin-left:-8px;border:3px solid var(--ink);border-bottom:0;border-radius:8px 8px 0 0;background:#f6d79a}
+.ab .base{position:absolute;left:0;right:0;bottom:0;height:30px;border:3px solid var(--ink);border-radius:10px 10px 16px 16px;
+  background:repeating-linear-gradient(0deg,#e9c27e 0 5px,#f6d79a 5px 9px);display:grid;place-items:center;box-shadow:0 4px 0 var(--ink)}
+.ab svg{width:24px;height:24px}
+.ab .nm{margin-top:6px;font-size:12px;font-weight:900;color:#fff;background:var(--chili);border:2px solid var(--ink);border-radius:8px;padding:2px 8px;white-space:nowrap}
+.ab small{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;padding:0 4px;box-sizing:border-box;border-radius:999px;border:2px solid var(--ink);background:#fff;color:var(--chili);font-size:11px;font-weight:900;display:grid;place-items:center;transform:rotate(8deg)}
+.ab:active .lidd{transform:translateY(-7px) rotate(-6deg)}
+.ab .puff{position:absolute;left:50%;top:-14px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#fff;opacity:0}
+.ab.ready .puff{animation:puff 1.6s ease-out infinite}
+@keyframes puff{0%{opacity:.85;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-22px) scale(2.4)}}
 /* sheets */
 .sheet{position:fixed;inset:0;background:rgba(60,32,16,.5);display:flex;align-items:center;justify-content:center;z-index:5;padding:16px;box-sizing:border-box}
 .card{width:min(340px,100%);background:var(--dough);border:3px solid var(--ink);border-radius:26px;padding:20px 18px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;text-align:center;animation:pop .25s cubic-bezier(.2,1.6,.4,1)}
@@ -70,7 +86,7 @@ button:focus-visible{outline:3px solid var(--chili);outline-offset:2px}
 <section id="playUI" hidden>
   <div class="top"><button id="bBack" aria-label="返回">←</button><div class="mt"><div id="mTitle"></div><div class="pr"><div id="mBar"></div><span id="mProg">0/6</span></div></div><div id="mTime">180s</div></div>
   <div id="chips"></div>
-  <div class="bar"><button class="ab" id="bTime">加时<small>▶ 广告</small></button><button class="ab" id="bHint">提示<small>免费 3</small></button><button class="ab" id="bSkip">跳过<small>▶ 广告</small></button></div>
+  <div class="bar"><button class="ab" id="bTime" aria-label="加时"><span class="st2"><i class="lidd"></i><i class="base"><svg viewBox="0 0 32 32" fill="none" stroke="#5b3520" stroke-width="2.6" stroke-linecap="round"><path d="M9 26c-3-4 3-6 0-10s3-6 0-10"/><path d="M16 26c-3-4 3-6 0-10s3-6 0-10"/><path d="M23 26c-3-4 3-6 0-10s3-6 0-10"/></svg></i><i class="puff"></i></span><b class="nm">多蒸一会</b><small>▶</small></button><button class="ab ready" id="bHint" aria-label="提示"><span class="st2"><i class="lidd"></i><i class="base"><svg viewBox="0 0 32 32" fill="none" stroke-linecap="round"><path d="M6 27L25 5" stroke="#5b3520" stroke-width="3.2"/><path d="M11 29L29 10" stroke="#5b3520" stroke-width="3.2"/><circle cx="24" cy="7" r="3.2" fill="#e8524a" stroke="#5b3520" stroke-width="1.6"/></svg></i><i class="puff"></i></span><b class="nm">筷子指路</b><small>3</small></button><button class="ab" id="bSkip" aria-label="跳过"><span class="st2"><i class="lidd"></i><i class="base"><svg viewBox="0 0 32 32" fill="none" stroke="#5b3520" stroke-width="2.4" stroke-linejoin="round"><path d="M7 13h18l-3 14H10z" fill="#fff"/><path d="M7 13l4-5h10l4 5" fill="#fff"/><path d="M12 8c0-4 8-4 8 0"/><path d="M13 19h6" stroke="#e8524a"/></svg></i><i class="puff"></i></span><b class="nm">打包带走</b><small>▶</small></button></div>
 </section>
 <section class="sheet" id="timeup" hidden><div class="card"><img src="art/tuantuan.webp" alt=""><h2>时间到啦</h2><p class="sub">已经完成 <b id="tuN">0/6</b>，再给一点时间吧?</p>
   <button class="btn blue" id="tuMore">▶ 看广告 +60 秒</button><button class="btn" id="tuRetry">重新开始</button><button class="btn" id="tuHome">回到首页</button></div></section>
