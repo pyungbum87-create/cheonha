@@ -328,7 +328,7 @@ function mount(ad){
     if(toastM){toastM.t-=dt;g.font=`bold 13px ${FONT}`;const w=g.measureText(toastM.m).width+28;g.globalAlpha=Math.min(1,toastM.t*3);rr(W/2-w/2,H-64,w,30,15,'#000d');text(toastM.m,W/2,H-49,13,'#fff','center',true);g.globalAlpha=1;if(toastM.t<=0)toastM=null;}
     g.restore();raf(frame);}
   function find(px,py){const x=(px-ox)/k,y=(py-oy)/k;for(let i=BT.length-1;i>=0;i--){const b=BT[i];if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h)return b;}return null;}
-  function touch(type,px,py){if(type==='down'){auOn();down=find(px,py);}else if(type==='up'){const b=find(px,py);if(b&&down&&b.x===down.x&&b.y===down.y&&b.fn){sfx('tap');b.fn();}down=null;}}
+  function touch(type,px,py){if(type==='down'){auOn();if(!AU.unl){AU.unl=1;['bgm_battle','bgm_boss'].forEach(k=>{const el=AF[k];if(!el)return;el.muted=true;try{const pr=el.play();if(pr&&pr.then)pr.then(()=>{el.pause();el.muted=false;}).catch(()=>{el.muted=false;});else{el.pause();el.muted=false;}}catch(e){el.muted=false;}});}down=find(px,py);}else if(type==='up'){const b=find(px,py);if(b&&down&&b.x===down.x&&b.y===down.y&&b.fn){sfx('tap');b.fn();}down=null;}}
   openMap();raf(frame);
   return{touch,close(){alive=false;clearInterval(bgmTimer);},get save(){return S;},debug:{get scr(){return scr;},get ov(){return ov;},openForm,startBattle}};}
 root.LEGION={mount,T,ART_KEYS,core:C};

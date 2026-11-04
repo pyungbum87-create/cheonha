@@ -55,7 +55,9 @@ HAVE.forEach(k=>load('art/legion/'+k+'.webp',im=>ART[k]=im));
 const BGA={bg_gate:'theme_siege',bg_castle:'theme_siege',bg_plain:'theme_day',bg_river:'theme_dusk',bg_mountain:'theme_winter',bg_forest:'theme_night'};wait+=Object.keys(BGA).length;
 for(const k in BGA)load('art/'+BGA[k]+'.webp',im=>{if(!ART[k])ART[k]=im;});
 const cv=document.getElementById('cv');function fit(){const d=Math.min(2,devicePixelRatio||1);cv.width=innerWidth*d;cv.height=innerHeight*d;}addEventListener('resize',fit);fit();
-let game;function go(){game=LEGION.mount({canvas:cv,lang:'zh',units:U,factions:FAC,
+(function(){try{const x=cv.getContext('2d');x.fillStyle='#120c07';x.fillRect(0,0,cv.width,cv.height);x.fillStyle='#f2c14e';x.font='bold '+Math.max(16,cv.height/16|0)+'px sans-serif';x.textAlign='center';x.fillText('加载中…',cv.width/2,cv.height/2);}catch(e){}})();
+setTimeout(()=>{try{go();}catch(e){}},5000);
+let game,goDone=0;function go(){if(goDone)return;goDone=1;game=LEGION.mount({canvas:cv,lang:'zh',units:U,factions:FAC,
  portrait:id=>PIMG[id]||PIMG[PALIAS[id]]||null,mob:k=>MIMG[k]||null,art:k=>ART[k]||null,
  load:()=>{try{return JSON.parse(localStorage.getItem('cheonha_legion_v2'))}catch(e){return null}},
  store:o=>{try{localStorage.setItem('cheonha_legion_v2',JSON.stringify(o))}catch(e){}},
