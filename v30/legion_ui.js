@@ -44,11 +44,11 @@ function mount(ad){
     die:()=>{nz(.28,.2,700);tn(72,.32,'sine',.22,.6);},win:()=>[523,659,784,1047].forEach((f,i)=>tn(f,.4,'triangle',.11,0,i*.13)),lose:()=>[392,330,262].forEach((f,i)=>tn(f,.45,'triangle',.09,0,i*.2)),
     tap:()=>tn(880,.05,'square',.025),gong:()=>{tn(110,2.2,'sine',.24);tn(165,1.7,'sine',.09);nz(.3,.06,500);}};
   function sfx(k){try{if(k==='hit'){const t=performance.now();if(t-AU.lastHit<90)return;AU.lastHit=t;}const FM={hit:['sfx_hit',.3],big:['sfx_drum',.5],gong:['sfx_gong',.5],win:['sfx_victory',.6]};if(FM[k]&&playF(FM[k][0],FM[k][1]))return;SFX[k]&&SFX[k]();}catch(e){}}
-  const AF={};if(root.Audio)['bgm_battle','bgm_boss','sfx_hit','sfx_gong','sfx_drum','sfx_victory'].forEach(k=>{try{const a=new root.Audio('audio/'+k+'.mp3');a.preload='auto';if(k.startsWith('bgm'))a.loop=true;AF[k]=a;}catch(e){}});
+  const AF={};if(root.Audio)['bgm_legion','bgm_boss','bgm_menu','sfx_hit','sfx_gong','sfx_drum','sfx_victory'].forEach(k=>{try{const a=new root.Audio('audio/'+k+'.mp3');a.preload='auto';if(k.startsWith('bgm'))a.loop=true;AF[k]=a;}catch(e){}});
   function playF(k,v){const a=AF[k];if(!a||AU.mute)return false;try{const c=k.startsWith('bgm')?a:a.cloneNode();c.volume=v;if(!k.startsWith('bgm'))c.currentTime=0;const pr=c.play();if(pr&&pr.catch)pr.catch(()=>{});}catch(e){return false;}return true;}
-  function bgmFile(want){if(AU.cur===want)return;if(AU.cur&&AF[AU.cur])try{AF[AU.cur].pause();}catch(e){}AU.cur=want;if(want){try{AF[want].currentTime=0;}catch(e){}playF(want,.42);}}
+  function bgmFile(want){if(AU.cur===want)return;if(AU.cur&&AF[AU.cur])try{AF[AU.cur].pause();}catch(e){}AU.cur=want;if(want){try{AF[want].currentTime=0;}catch(e){}playF(want,want==='bgm_legion'?.38:.5);}}
   const PENT=[294,330,392,440,494,587,659];
-  const bgmTimer=setInterval(()=>{const c=AU.c;if(!c||AU.mute||!alive||c.state!=='running')return;const battle=scr&&scr.k==='battle'&&scr.bt&&!scr.bt.done;if(AF.bgm_battle){bgmFile(battle&&!AU.mute?(scr.G&&scr.G.boss&&AF.bgm_boss?'bgm_boss':'bgm_battle'):null);if(battle)return;}
+  const bgmTimer=setInterval(()=>{const c=AU.c;if(!c||AU.mute||!alive||c.state!=='running')return;const battle=scr&&scr.k==='battle'&&scr.bt&&!scr.bt.done;if(AF.bgm_legion){bgmFile(AU.mute?null:battle?(scr.G&&scr.G.boss&&AF.bgm_boss?'bgm_boss':'bgm_legion'):'bgm_menu');return;}
     const beat=60/(battle?112:70);if(AU.next<c.currentTime)AU.next=c.currentTime+.05;
     while(AU.next<c.currentTime+.3){const st=++AU.step,d=AU.next-c.currentTime;
       if(battle){if(st%4===1)tn(62,.38,'sine',.4,.55,d);else if(st%4===3)tn(74,.26,'sine',.24,.6,d);else nz(.03,.05,3000,d);
@@ -387,7 +387,7 @@ function mount(ad){
     if(toastM){toastM.t-=dt;g.font=`bold 13px ${FONT}`;const w=g.measureText(toastM.m).width+28;g.globalAlpha=Math.min(1,toastM.t*3);rr(W/2-w/2,H-64,w,30,15,'#000d');text(toastM.m,W/2,H-49,13,'#fff','center',true);g.globalAlpha=1;if(toastM.t<=0)toastM=null;}
     g.restore();raf(frame);}
   function find(px,py){const x=(px-ox)/k,y=(py-oy)/k;for(let i=BT.length-1;i>=0;i--){const b=BT[i];if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h)return b;}return null;}
-  function touch(type,px,py){if(type==='down'){auOn();if(!AU.unl){AU.unl=1;['bgm_battle','bgm_boss'].forEach(k=>{const el=AF[k];if(!el)return;el.muted=true;try{const pr=el.play();if(pr&&pr.then)pr.then(()=>{el.pause();el.muted=false;}).catch(()=>{el.muted=false;});else{el.pause();el.muted=false;}}catch(e){el.muted=false;}});}down=find(px,py);}else if(type==='up'){const b=find(px,py);if(b&&down&&b.x===down.x&&b.y===down.y&&b.fn){sfx('tap');b.fn();}down=null;}}
+  function touch(type,px,py){if(type==='down'){auOn();if(!AU.unl){AU.unl=1;['bgm_legion','bgm_boss','bgm_menu'].forEach(k=>{const el=AF[k];if(!el)return;el.muted=true;try{const pr=el.play();if(pr&&pr.then)pr.then(()=>{el.pause();el.muted=false;}).catch(()=>{el.muted=false;});else{el.pause();el.muted=false;}}catch(e){el.muted=false;}});}down=find(px,py);}else if(type==='up'){const b=find(px,py);if(b&&down&&b.x===down.x&&b.y===down.y&&b.fn){sfx('tap');b.fn();}down=null;}}
   openMap();raf(frame);
   return{touch,close(){alive=false;clearInterval(bgmTimer);},get save(){return S;},debug:{get scr(){return scr;},get ov(){return ov;},openForm,startBattle}};}
 root.LEGION={mount,T,ART_KEYS,core:C};

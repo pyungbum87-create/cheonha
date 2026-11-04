@@ -2074,11 +2074,11 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
   RECIPES.push({out:'m_jangbi',in:['jangbi','gwanpyeong','madae']},{out:'m_samaui',in:['samaui','join','jangryo']},{out:'m_juyu',in:['juyu','yukson','hwanggae']},{out:'m_wonso',in:['wonso','anryang','munchu']});
   RECIPES.slice(-4).forEach(R=>R.in.forEach(id=>KEEP.add(id)));})();
 /* v30h: 시나리오·끝없는 전장 음원 (보스가 나오면 보스 BGM). 설정의 배경음 끄기·멈춤·결과 화면에서는 꺼짐 */
-(function(){if(!window.Audio)return;const A={};['bgm_battle','bgm_boss'].forEach(k=>{try{const a=new Audio('audio/'+k+'.mp3');a.loop=true;a.preload='auto';a.volume=.4;A[k]=a;}catch(e){}});let cur=null,unl=false;
+(function(){if(!window.Audio)return;const A={};const VOL={bgm_battle:.38,bgm_boss:.5,bgm_menu:.5};['bgm_battle','bgm_boss','bgm_menu'].forEach(k=>{try{const a=new Audio('audio/'+k+'.mp3');a.loop=true;a.preload=k==='bgm_menu'?'auto':'auto';a.volume=VOL[k];A[k]=a;}catch(e){}});let cur=null,unl=false;
   const set=w=>{if(cur===w)return;if(cur&&A[cur])try{A[cur].pause();}catch(e){}cur=w;if(w&&A[w]){try{A[w].currentTime=0;const p=A[w].play();if(p&&p.catch)p.catch(()=>{cur=null;});}catch(e){cur=null;}}};
   addEventListener('pointerdown',()=>{if(unl)return;unl=true;for(const k in A){const a=A[k];a.muted=true;try{const p=a.play();if(p&&p.then)p.then(()=>{a.pause();a.muted=false;}).catch(()=>{a.muted=false;});}catch(e){a.muted=false;}}},{capture:true});
   window.__bgmCur=()=>cur;BGM.start=function(){};BGM.stop=function(){};   // 코드 합성 BGM 대신 음원 사용
-  setInterval(()=>{const on=!!(G&&!G.over&&!G.paused&&!G.choice&&SAVE.opt.bgm&&unl&&!document.hidden);set(on?(G.enemies.some(e=>e.boss)&&A.bgm_boss?'bgm_boss':'bgm_battle'):null);},400);})();
+  setInterval(()=>{const ok=!!(SAVE.opt.bgm&&unl&&!document.hidden);const inGame=!!(G&&!G.over);set(!ok?null:inGame?(G.enemies.some(e=>e.boss)&&A.bgm_boss?'bgm_boss':'bgm_battle'):'bgm_menu');},400);})();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
 document.getElementById('pOpts').onclick=()=>openOpts('pause');
