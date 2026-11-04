@@ -224,14 +224,14 @@ function mount(ad){
     s.fx.push({k,x:d.x,y:d.y,t:0,life:k==='rain'?.55:.6,c,ang:Math.random()*Math.PI});s.fx.push({k:'spark',x:d.x,y:d.y-8,t:0,life:.35,c});
     if(sk==='trap'||sk==='charm'||sk==='roar')s.fx.push({k:'stun',x:d.x,y:d.y-40,t:0,life:1,c});}
   function onEv(e){const s=scr;if(e.k==='die'){sfx('die');const d=upos(e.f);s.fx.push({k:'num',x:d.x,y:d.y-44,s:(L.ko||'격파!'),c:'#ff8a5a',big:1,t:0,life:1.1});s.shk=Math.max(s.shk||0,.18);return;}
-  if(e.k==='hit'){const a=upos(e.a),d=upos(e.d);e.a.lunge=.22;e.d.flash=.15;sfx(e.big?'big':'hit');if(e.big){skFx(s,e.a.skill,d,1);s.stop=Math.max(s.stop||0,.06);s.shk=Math.max(s.shk||0,.14);}
+  if(e.k==='hit'){const a=upos(e.a),d=upos(e.d);e.a.lunge=.22;e.d.flash=.15;if(e.a._u)e.a._u.anim={nx:e.a.side?-1:1,ny:0};sfx(e.big?'big':'hit');if(e.big){skFx(s,e.a.skill,d,1);s.stop=Math.max(s.stop||0,.06);s.shk=Math.max(s.shk||0,.14);}
       const ranged=D.types[e.a.type].range==='ranged';
       if(ranged)for(let i=0;i<(e.big?7:3);i++)s.fx.push({k:'arrow',x1:a.x+(i%3-1)*12,y1:a.y-6+(i%2)*8,x2:d.x+(Math.random()*30-15),y2:d.y+(Math.random()*16-8),t:-i*.03,life:.3,str:e.a.type==='str'});
       s.fx.push({k:'num',x:d.x+(Math.random()*40-20),y:d.y-34-Math.random()*14,s:'-'+e.v,c:e.big?'#ffd94a':'#fff',big:e.big,t:0,life:.9});
       if(e.big&&s.fx.filter(fx=>fx.k==='boom').length<7)s.fx.push({k:'boom',x:d.x,y:d.y,t:0,life:.45,key:'fx_'+e.a.skill});}
     else if(e.k==='heal'){const d=upos(e.d);s.fx.push({k:'num',x:d.x,y:d.y-34,s:'+'+e.v,c:'#7be08c',t:0,life:.9});s.fx.push({k:'boom',x:d.x,y:d.y,t:0,life:.45,key:'fx_heal',c:'#7be08c'});}
     else if(e.k==='skill'){
-      const p=upos(e.f);e.f.aura=.8;sfx('skill');{const sk=D.skills[e.sk],side=e.f.side===0?scr.bt.A:scr.bt.B,col=SKC[e.sk]||'#ffd94a';s.fl={c:col,t:0};
+      const p=upos(e.f);e.f.aura=.8;e.f.dashT=.55;if(e.f._u)e.f._u.anim={nx:e.f.side?-1:1,ny:0};sfx('skill');{const sk=D.skills[e.sk],side=e.f.side===0?scr.bt.A:scr.bt.B,col=SKC[e.sk]||'#ffd94a';s.fl={c:col,t:0};
         if((sk.kind==='heal'||sk.kind==='buff')&&art('fx_'+e.sk)){const q=upos(e.f);s.fx.push({k:'boom',x:q.x,y:q.y-10,t:0,life:.6,key:'fx_'+e.sk,c:col});}
         if(sk.kind==='heal'||sk.kind==='buff')for(const t of side)if(t.alive){const q=upos(t);s.fx.push({k:sk.kind==='heal'?'rise':'aura',x:q.x,y:q.y,t:0,life:1,c:col});}}
       if(e.f.isGen&&!s.cut)s.cut={u:e.f.u,side:e.f.side,name:tx(D.skills[e.sk]),t:0};
@@ -246,6 +246,14 @@ function mount(ad){
       }
     }}
   // procedural soldier when no sprite: 4 troop silhouettes in side colours
+  /* v30: generals as full-body SD in front of their squad (shared renderer sd/sdv.js), dash on skills, shake when hit */
+  const LWP={inf:'spear',cav:'spear',arc:'bow',str:'talisman'};
+  function v30Gen(f,x,y,dir,dt){const SD=root.SDV;if(!SD||!SD.on||!f.isGen)return false;
+    if(!f._u)f._u={d:{id:f.id,g:f.u.g,f:f.u.f},wp:LWP[f.type]||'blade',_sd:{a:null,t:9,face:dir,ph:Math.random()*6}};
+    let dx=0;if(f.dashT>0){f.dashT=Math.max(0,f.dashT-dt);const q=1-f.dashT/.55;dx=Math.sin(q*Math.PI)*46;}
+    const hit=f.flash>0?(Math.random()-.5)*4:0;const gx=x+dir*(26+dx)+hit,gy=y+8;
+    if(!f.alive){g.save();g.globalAlpha=.35;const ok=SD.unit(g,f._u,gx,gy);g.restore();return ok;}
+    return SD.unit(g,f._u,gx,gy);}
   function soldier(t,side,fac,x,y,sc,ph,atk){const key=`sol_${t}_${side?'foe':'ally'}`,im=art(key),fr=art(key+'_frames');const flip=side===1;
     g.save();g.translate(x,y);if(flip)g.scale(-1,1);g.scale(sc,sc);
     if(fr){const fw=fr.width/3,fi=atk?2:(Math.floor(ph*.9)&1);g.drawImage(fr,fi*fw,0,fw,fr.height,-12,-24,24,24);g.restore();return;}if(im){g.drawImage(im,-12,-24,24,24);g.restore();return;}
@@ -271,7 +279,7 @@ function mount(ad){
     if(f.fx.guard>0&&!img('shield',x-40,y-50,80,70)){g.strokeStyle='#ffd94acc';g.lineWidth=2.5;g.beginPath();g.ellipse(x,y-10,40,30,0,0,7);g.stroke();g.fillStyle='#ffd94a22';g.fill();}
     // banner: general portrait on a flag pole, or the troop name for plain soldiers
     const bx=x-dir*30,byy=y-44;g.strokeStyle='#3a2716';g.lineWidth=2;g.beginPath();g.moveTo(bx,y-2);g.lineTo(bx,byy-6);g.stroke();
-    {const fk=f.isGen?'flag_'+f.fac:(f.side?'flag_2':'flag_0'),ch=f.isGen?(ad.factions[f.fac]||{n:'?'}).n[0]:tx(D.types[f.type].s);if(img(fk,bx-3,byy-12,22,33))text(ch,bx+8,byy+3,10,'#fff','center',true);else{rr(bx,byy-6,16,20,2,f.isGen&&ad.factions[f.fac]?ad.factions[f.fac].c:(f.side?'#8a2a20':'#2a4a8a'),'#f2c14e',1);text(ch,bx+8,byy+4,10,'#fff','center',true);}if(f.isGen)face(f.id,x-13,byy-30,26,f.u.g);}
+    {const fk=f.isGen?'flag_'+f.fac:(f.side?'flag_2':'flag_0'),ch=f.isGen?(ad.factions[f.fac]||{n:'?'}).n[0]:tx(D.types[f.type].s);if(img(fk,bx-3,byy-12,22,33))text(ch,bx+8,byy+3,10,'#fff','center',true);else{rr(bx,byy-6,16,20,2,f.isGen&&ad.factions[f.fac]?ad.factions[f.fac].c:(f.side?'#8a2a20':'#2a4a8a'),'#f2c14e',1);text(ch,bx+8,byy+4,10,'#fff','center',true);}if(f.isGen&&!v30Gen(f,x,y,dir,dt))face(f.id,x-13,byy-30,26,f.u.g);}
     if(f.alive){const w=50,hb=y+10;rr(x-w/2,hb,w,5,2,'#000b');rr(x-w/2,hb,Math.max(0,w*f.hp/f.max),5,2,f.side?COL.foe:COL.ally);rr(x-w/2,hb+6,w*f.gauge/100,3,1,COL.gold);
       text(f.isGen?(f.u.sn||f.u.n):tx(D.types[f.type].n),x,hb+17,10,'#fff','center',true,70);
       if(f.fx.stun>0)text('★',x,y-40,13,'#ffd94a','center',true);if(f.fx.burn>0)text('🔥',x+22,y-26,12,'#fff','center');
