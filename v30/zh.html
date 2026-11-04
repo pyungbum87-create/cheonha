@@ -548,9 +548,9 @@ function newGame(mode,si,tier=0){
      up:[0,0,0,0],sel:-1,drag:null,speed:1,paused:false,over:false,kills:0,recruits:0,best:null,banner:null,jbT:30,windT:0,
      synOn:{},buffDirty:true,eid:1,goldEarned:0,parts:[],shake:0,goldPulse:0,shots:[],zones:[],casts:[],fame:0,merges:0,legends:0,bossKills:0,choice:null,adSupplyUsed:false,adMeritUsed:false,baseEarned:0,adMeritBonus:0};
   if(mode==='daily')G.daily=todayDaily();
-  if(mode==='scn'){G.scnI=si|0;G.scn=SCN[G.scnI];G.scnTier=Math.max(0,Math.min(3,tier|0));G.mut=v30PickMut(G.scnTier);G.onlyF=storyF;}
+  if(mode==='scn'){G.scnI=si|0;G.scn=SCN[G.scnI];G.scnTier=Math.max(0,Math.min(3,tier|0));G.mut=v30PickMut(G.scnTier);G.onlyF=storyF;G.scn=v30ScnFor(G.scn,storyF);}
   G.last=mode==='end'?0:G.scn?G.scn.rounds:40;
-  {const dm=dmod();G.gold+=20*CMU().gold+(dm&&dm.gold||0);G.fame=Math.min(5,CMU().fame+(dm&&dm.fame||0));G.walls+=CMU().wall+(dm&&dm.wall||0);if(G.scn&&G.scn.walls)G.walls=G.scn.walls;G.walls0=G.walls;
+  {const dm=dmod();G.gold+=10*CMU().gold+(dm&&dm.gold||0);G.fame=Math.min(5,CMU().fame+(dm&&dm.fame||0));G.walls+=CMU().wall+(dm&&dm.wall||0);if(G.scn&&G.scn.walls)G.walls=G.scn.walls;G.walls0=G.walls;
    if(G.scn&&G.scn.start)(G.onlyF!=null?FSTART[G.onlyF]:G.scn.start).forEach((id,k)=>{const u=placeUnit(id,ROWS>1?COLS+3+k:k);markSeen(id);});}
   startRound();
   if(G.mut&&G.mut.length){const gg=G;setTimeout(()=>{if(G===gg&&!G.over)G.banner={a:V30ZH?'战场变异':'전장 변이',b:G.mut.map(k=>MUT[k].n+' · '+MUT[k].d).join('  /  '),t:3.2,c:'#ff9a6a'};},3200);}
@@ -727,7 +727,7 @@ function doHidden(i){
 function sellValue(u){return 15*(u.d.g+1);}
 function sell(i){const u=G.slots[i];if(!u)return;const v=sellValue(u);G.gold+=v;const [x,y]=slotXY(i);G.txt.push({x,y:y-20,s:`+${v}金`,t:0,c:'#f2c14e'});G.slots[i]=null;G.sel=-1;G.buffDirty=true;sfx('coin');}
 function upCost(f){return 50+40*G.up[f];}
-function upgrade(f){const c=upCost(f);if(G.gold<c){flash('金币不足');sfx('bad');return;}G.gold-=c;G.up[f]++;G.buffDirty=true;sfx('merge');
+function upgrade(f){if(G&&G.onlyF!=null&&f!==G.onlyF)return;const c=upCost(f);if(G.gold<c){flash('金币不足');sfx('bad');return;}G.gold-=c;G.up[f]++;G.buffDirty=true;sfx('merge');
   G.txt.push({x:W/2,y:150,s:`${FAC[f].n}武将攻击力+12%（共+${G.up[f]*12}%）`,t:0,c:FAC[f].l,big:1});}
 
 /* ---------- buffs & synergies ---------- */
@@ -1536,7 +1536,7 @@ function drawHUD(){
   let sy=48;const on=Object.keys(G.synOn);
   for(const k of on){const S=SYN.find(s=>s.id===k);ctx.fillStyle='rgba(20,10,6,.7)';rr(ctx,578,sy,58,16,3);ctx.fill();ctx.strokeStyle='#d6a94a';ctx.lineWidth=.8;rr(ctx,578,sy,58,16,3);ctx.stroke();txt(S.n,607,sy+11.5,8,'#f2c14e','center','"Songti SC","STSong","Noto Serif SC"',0);sy+=19;}
   // left column: faction upgrade buttons
-  for(let f=0;f<4;f++){const c=upCost(f),y=48+f*55,dis=G.gold<c,id='up'+f;BTN.push({id,x:2,y,w:50,h:50});
+  for(let f=0;f<4;f++){if(G.onlyF!=null&&f!==G.onlyF)continue;const c=upCost(f),y=48+(G.onlyF!=null?0:f)*55,dis=G.gold<c,id='up'+f;BTN.push({id,x:2,y,w:50,h:50});
     ctx.fillStyle=dis?'rgba(30,20,14,.88)':'rgba(48,28,18,.95)';rr(ctx,2,y,50,50,5);ctx.fill();
     ctx.strokeStyle=dis?'#5a4636':FAC[f].l;ctx.lineWidth=1.3;rr(ctx,2.5,y+.5,49,49,5);ctx.stroke();
     if(G.pressId===id&&performance.now()-G.pressAt<160){ctx.fillStyle='rgba(255,240,200,.35)';rr(ctx,2,y,50,50,5);ctx.fill();}
@@ -1942,6 +1942,48 @@ window.renderCamp=function(){const L=document.getElementById('campList'),tab=SAV
     b.textContent=max?(V30ZH?'最高':'최고 단계'):`${V30ZH?'功绩':'공적'} ${c.toLocaleString()}`;b.disabled=max||merit<c;
     b.onclick=()=>{const have=tab<0?SAVE.merit:SAVE.meritF[tab];if(have<c||max)return;if(tab<0)SAVE.merit-=c;else SAVE.meritF[tab]-=c;mu[m.k]=lv+1;save();sfx('fame');renderCamp();updateTitle();};row.append(b);L.append(row);}};
 window.updateTitle=(orig=>function(){orig();const st=document.getElementById('scnTxt');if(st){const tot=SAVE.scnF.reduce((a,F)=>a+F.reduce((x,r)=>x+r.reduce((y,n)=>y+(n|0),0),0),0);st.textContent=(V30ZH?'星 ':'별 ')+tot+'/'+SCN.length*12*4;}})(updateTitle);
+/* ===== v30c: 일일 공적 한도, 세력별 시나리오 문구·규칙, 첫 진입 설명 ===== */
+const MCAP=100;   // 군영(끝없는 전장 / 세력별 시나리오)마다 하루 받을 수 있는 공적. 광고 추가 공적은 한도 밖
+(function(){SAVE.mday={date:'',used:{}};SAVE.intro={};
+  try{const s=JSON.parse(localStorage.getItem('cheonha-save')||'null');if(s){if(s.mday&&typeof s.mday==='object'){SAVE.mday.date=String(s.mday.date||'');if(s.mday.used&&typeof s.mday.used==='object')for(const k in s.mday.used)SAVE.mday.used[k]=Math.max(0,s.mday.used[k]|0);}
+    if(s.intro&&typeof s.intro==='object')for(const k in s.intro)SAVE.intro[k]=1;}}catch(e){}
+  // 군영 비용: 하루 100 공적 기준으로 약 3달에 걸쳐 완성 (군영마다)
+  const C={gold:[10,l=>Math.round(40*Math.pow(1.25,l))],atk:[40,l=>Math.round(15*Math.pow(1.08,l))],cd:[15,l=>Math.round(40*Math.pow(1.12,l))],fame:[2,l=>[500,1500][l]],wall:[2,l=>[800,2000][l]]};
+  for(const m of MU){if(C[m.k]){m.max=C[m.k][0];m.cost=C[m.k][1];}if(m.k==='gold')m.d=V30ZH?'初始金币+10':'시작 금 +10';}
+  for(const mu of [SAVE.mu].concat(SAVE.muF))if(mu.gold>10)mu.gold=10;})();
+function mcapKey(){return G&&G.mode==='scn'&&G.onlyF!=null?'f'+G.onlyF:'e';}
+function mcapLeft(k){if(SAVE.mday.date!==todayKey()){SAVE.mday={date:todayKey(),used:{}};}return Math.max(0,MCAP-(SAVE.mday.used[k]|0));}
+window.earnMerit=(orig=>function(win){const k=mcapKey(),left=mcapLeft(k),g=G;let m=g.round*2+(g.bossKills||0)*10+(g.legends||0)*5+(g.meritBonus||0)+(win?100:0);
+  if(g.mode==='end')m=Math.round(m*1.3);if(g.scn)m=Math.round(m*DIFF[g.scnTier||0].merit);m=Math.min(Math.round(m),left);g.capHit=left<=m;
+  SAVE.mday.used[k]=(SAVE.mday.used[k]|0)+m;if(g.mode==='scn'&&g.onlyF!=null)SAVE.meritF[g.onlyF]+=m;else SAVE.merit+=m;SAVE.games++;SAVE.storyF=storyF;save();return m;})(earnMerit);
+window.renderCamp=(orig=>function(){orig();const tab=SAVE.campTab,k=tab<0?'e':'f'+tab,el=document.getElementById('meritTxt');if(el)el.textContent+=(V30ZH?'  · 今日剩余 ':'  · 오늘 남은 공적 ')+mcapLeft(k)+'/'+MCAP;})(renderCamp);
+/* 세력별 시나리오: 규칙의 '세력 보너스'는 고른 세력에 적용, 금지 세력·4세력 연합 규칙은 해제 */
+function v30ScnFor(S,F){const c=Object.assign({},S);if(S.f!=null)c.f=F;if(S.ban===F)c.ban=undefined;if(S.favor)c.favor=S.favor.filter(id=>UID[id]&&UID[id].f===F);if(S.ally)c.ally=undefined;return c;}
+const V30RULE={hwanggeon:['군주와 측근 2명과 함께 시작 · 마지막 적장 장각','与君主及两名亲信一同出阵 · 最终敌将张角'],
+ bandongtak:['마지막 적장 여포 · 화웅·이각·곽사가 앞을 막는다','最终敌将吕布 · 华雄、李傕、郭汜挡在前方'],
+ gwando:['적이 1.4배 몰려온다 · {F} 장수 공격력 +40%','敌军多1.4倍 · {F}武将攻击+40%'],
+ jeokbyeok:['책사 기술 피해 2배 · 화공 인연 15초마다','谋士技能伤害×2 · 火攻每15秒'],
+ ireung:['성벽 단 1개 · {F} 장수 공격력 +40% · 적장 제한 시간 +35%','城墙仅1座 · {F}武将攻击+40% · 敌将时限+35%'],
+ ojangwon:['마지막 적장 사마의는 70초 안에 · {F} 장수 공격력 +40%','最终敌将司马懿须在70秒内击破 · {F}武将攻击+40%']};
+const V30LINE={hwanggeon:[['jojo','황건의 무리가 천하를 어지럽힌다. 이 조맹덕이 질서를 세우겠다.','黄巾乱贼祸乱天下，我曹孟德必定平之。'],null,['sonchaek','아버님의 깃발 아래, 강동의 첫 싸움이다!','在父亲的旗下，这是江东的第一战！'],['yeopo','누런 두건 따위, 이 방천화극 한 번이면 충분하다.','区区黄巾，一戟足矣。']],
+ bandongtak:[['jojo','역적 동탁을 치자. 호뢰관의 여포만 넘으면 된다.','讨伐逆贼董卓！只要越过虎牢关的吕布。'],['yubi','제후들이 모였소. 우리 형제도 의를 위해 싸우겠소.','诸侯会盟，我兄弟也当为大义而战。'],['sonchaek','강동의 군사도 뒤처지지 않겠소.','江东之兵，绝不落后。'],['yeopo','제후 연합이라… 모두 이 여포의 창끝 앞에 무릎 꿇으리라.','诸侯联军？都将跪在我吕布戟下。']],
+ gwando:[['jojo','군사의 수가 승패를 정하지는 않는 법.','兵多未必能胜。'],['yubi','원소와 조조가 맞붙었다. 이 틈에 우리 힘을 키워야 하오.','袁曹相争，正是我等壮大之机。'],['songwon','북쪽이 시끄러울 때 강동의 기틀을 다지리라.','北方纷乱之时，正好稳固江东根基。'],['wonso','하북의 대군이 남하한다. 조조 따위는 한 번에 쓸어버리리라.','河北大军南下，曹操不过一击之敌。']],
+ jeokbyeok:[['jojo','백만 대군이 강을 건넌다. 바람만 우리 편이면 된다.','百万大军渡江，只待东风相助。'],['jegal','바람은 제가 빌려 오겠습니다.','东风，亮自会借来。'],['juyu','조조의 배들이 쇠사슬로 묶여 있다. 불 한 줄기면 충분하다.','曹军战船以铁链相连，一把火足矣。'],['yeopo','강 위의 싸움이라… 누가 이기든 남은 쪽은 내가 친다.','江上之战？无论谁胜，剩下的由我来收拾。']],
+ ireung:[['samaui','촉과 오가 서로 피를 흘린다. 우리는 기다리기만 하면 된다.','蜀吴相争，我等只需静待。'],null,['yukson','촉의 진영이 칠백 리에 늘어섰다. 기다리면 때가 온다.','蜀军连营七百里，待时机一到便可破之。'],['dongtak','천하가 서로 싸우는구나. 남은 땅은 모두 내 것이다.','天下互相残杀，剩下的土地全归我。']],
+ ojangwon:[['samaui','공명은 오래 버티지 못한다. 성문을 닫고 기다려라.','孔明撑不了多久，闭门坚守便是。'],null,['songwon','위와 촉이 오장원에서 맞선다. 우리는 강동을 지킨다.','魏蜀对峙五丈原，我等守住江东。'],['yeopo','누가 천하를 쥐든, 마지막 싸움은 이 여포가 끝낸다.','无论谁得天下，最后一战由我吕布终结。']]};
+function v30Rule(S){if(storyF===1&&S.id==='hwanggeon')return S.rule;const r=V30RULE[S.id];return r?r[V30ZH?1:0].replace('{F}',FAC[storyF].n):S.rule;}
+window.renderScn=(orig=>function(){orig();document.querySelectorAll('#scnList .sc').forEach((b,i)=>{const S=SCN[i],r=b.querySelector('.rule');if(r&&S&&scnOpen(i))r.textContent=v30Rule(S);});})(renderScn);
+window.renderDiff=(orig=>function(){orig();const S=SCN[storyI],g=document.getElementById('stGoal');if(g&&S)g.innerHTML=g.innerHTML.replace(S.rule,v30Rule(S));})(renderDiff);
+window.openStory=(orig=>function(i){orig(i);const S=SCN[i],ln=V30LINE[S.id]&&V30LINE[S.id][storyF];if(!ln)return;const L=document.getElementById('stLines');L.innerHTML='';
+  const d=UID[ln[0]],ps=portraitSrc(ln[0]),el=document.createElement('div');el.className='ln';el.innerHTML=`${ps?`<img src="${ps}" alt="">`:''}<div><div class="who">${d?d.n:''}</div><div class="say">${ln[V30ZH?2:1]}</div></div>`;L.append(el);})(openStory);
+/* 첫 진입 설명 카드 */
+const V30INTRO={end:V30ZH?['无尽战场','敌军无穷无尽，坚持越久越强。','招募 → 同将合成 → 传说·神话 → 两名传说合成为「超越✦」(无上限)。','势力强化与缘分效果助你走得更远。']:['끝없는 전장','적이 끝없이 몰려와요. 오래 버틸수록 기록이 올라가요.','등용 → 같은 장수 합성 → 전설·신화 → 전설 2명을 합치면 초월 ✦ (상한 없음)','세력 강화와 인연 효과로 더 멀리 가 보세요.'],
+ scn:V30ZH?['剧本','只会招募所选势力的武将。','击败所有敌将即胜利，守住城墙可得星。','困难·地狱·极上会附加战场变异。功绩用于该势力的军营（每日上限100）。']:['시나리오','고른 세력의 장수만 등용돼요.','적장을 모두 막으면 승리, 성벽을 지키면 별을 받아요.','어려움·지옥·극상은 전장 변이가 붙어요. 공적으로 그 세력 군영을 키워요 (하루 100).']};
+function v30ShowIntro(k){const t=V30INTRO[k];if(!t||SAVE.intro[k])return;G.paused=true;const o=document.createElement('div');
+  o.style.cssText='position:fixed;inset:0;z-index:80;background:rgba(10,6,3,.72);display:flex;align-items:center;justify-content:center';
+  o.innerHTML=`<div style="max-width:440px;margin:16px;background:#2a1c11;border:2px solid #f2c14e;border-radius:14px;padding:16px 18px;color:#f6ead2;font-size:15px;line-height:1.55"><h3 style="margin:0 0 8px;color:#f2c14e">${t[0]}</h3>${t.slice(1).map(x=>'<p style="margin:4px 0">· '+x+'</p>').join('')}<div style="text-align:center;margin-top:12px"><button class="btn red" style="min-width:120px">${V30ZH?'开始':'시작'}</button></div></div>`;
+  o.querySelector('button').onclick=()=>{SAVE.intro[k]=1;save();o.remove();if(G)G.paused=false;};document.body.append(o);}
+window.newGame=(orig=>function(mode,si,tier){orig(mode,si,tier);v30ShowIntro(mode==='scn'?'scn':mode==='end'?'end':'');})(newGame);
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
 document.getElementById('pOpts').onclick=()=>openOpts('pause');
