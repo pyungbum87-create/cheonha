@@ -1549,31 +1549,26 @@ function drawHUD(){
     txt(`+${G.up[f]*12}%`,23,y+16,10,G.up[f]?FAC[f].l:'#8a7a66','left','"Gowun Dodum"',0);
     txt('강화',27,y+31,10,dis?'#8a7a66':'#fff2d8','center','"Gowun Dodum"',0);
     txt(`${c}금`,27,y+44,9,dis?'#7a6a56':'#f2c14e','center','"Gowun Dodum"',0);}
-  // bottom panel: info card
-  const u=G.sel>=0?G.slots[G.sel]:null;
-  if(u){
-    drawToken(ctx,u,32,318,22,{});
-    txt(u.d.n,62,299,15,'#fff2d8','left','"Song Myung"',0);
-    if(u.d.g>=1){ctx.font='15px "Song Myung",serif';const nw=ctx.measureText(u.d.n).width,sk=SKILL[u.role][Math.min(3,u.d.g)-1];ctx.fillStyle=ROLEC[u.role];rr(ctx,66+nw,288,ctx.measureText(sk).width*.72+12,14,3);ctx.fill();txt(sk,72+nw,299,10,'#1a1008','left','"Gowun Dodum"',0);}
-    txt(`${FAC[u.d.f].n} · ${GR[u.d.g].n} · ${ROLE[u.role].n} · ${WPN[u.wp]}`,62,313,10,GR[u.d.g].ring,'left','"Gowun Dodum"',0);
-    for(let k=0;k<5;k++){const x=62+k*38,y=322;txt(STATN[k],x,y+7,8,'#b9a582','left','"Gowun Dodum"',0);txt(String(u.d.s[k]),x+22,y+7,9,u.d.s[k]>=90?'#f2c14e':'#fff2d8','left','"Gowun Dodum"',0);
-      ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(x,y+11,32,3);ctx.fillStyle=k===u.role?'#f2c14e':'#9a8158';ctx.fillRect(x,y+11,32*u.d.s[k]/100,3);}
-    txt(`공격 ${Math.round(u.atk)} · ${u.int.toFixed(2)}초마다 · 사거리 ${Math.round(u.range)}${u.d.g>=1?` · 기술 ${Math.round(u.sint)}초`:''}`,62,346,9,'#d8c8a8','left','"Gowun Dodum"',0);
-    {const ex=[];if(u.hasteT>0)ex.push(`버프 중 ${Math.ceil(u.hasteT)}초`);if(G.up[u.d.f])ex.push(`${FAC[u.d.f].n} 강화 +${G.up[u.d.f]*12}% 포함`);if(u.aura)ex.push(`이웃 매력 +${Math.round(u.aura)}%`);if(ex.length)txt(ex.join(' · '),62,357,9,'#f2c14e','left','"Gowun Dodum"',0);}
-  }else{
-    txt('장수를 누르면 정보·합성·판매',12,302,11,'#b9a582','left','"Gowun Dodum"',0);
-    txt('위·아래 줄일수록 길을 넓게 공격 · 끌어서 자리 이동',12,318,10,'#8a7a66','left','"Gowun Dodum"',0);
-    txt(`인연 ${Object.keys(G.synOn).length}개 발동 중`,12,336,10,'#f2c14e','left','"Gowun Dodum"',0);
-  }
-  // action buttons
-  const x0=262;
-  button('recruit',x0,281,120,40,'등용','30금',{hot:G.gold>=30,dis:G.gold<30});
+  // v30: selected general → speech bubble on the field (info + 합성/판매/히든), slim bottom bar (등용·명성)
+  const u=G.sel>=0?G.slots[G.sel]:null,ZH=V30ZH;
   const mo=u?mergeOptions(G.sel):null,ho=u?hiddenOption(G.sel):null;
-  button('merge',x0+126,281,120,40,'합성',mo?mergeLabel(mo):u&&u.d.g>=3?'최고 등급':'재료 부족',{dis:!mo});
-  button('sell',x0,325,120,32,'판매',u?`+${sellValue(u)}금`:'장수를 고르세요',{dis:!u});
-  {const fc=fameCost(),o=FAME_ODDS[G.fame];button('fame',x0+252,281,118,40,`명성 ${G.fame}단계`,fc==null?'최고 단계':`${fc}금 · 등용 확률↑`,{dis:fc==null||G.gold<fc,col:'#f2c14e'});
-    txt(`무장 ${o[0]}% · 명장 ${o[1]}%`,x0+311,346,10,'#b9a582','center','"Gowun Dodum"',0);}
-  button('hidden',x0+126,325,120,32,ho?'히든 조합':'히든',ho?UID[ho.R.out].n:'재료 모으면 열림',{dis:!ho,hot:!!ho,col:'#ff5a3a'});
+  if(u){const [sx,sy]=slotXY(G.sel),row=(G.sel/COLS)|0,bw=212,bh=84,bx=Math.max(56,Math.min(W-62-bw,sx-bw/2)),by=row===0?sy+30:sy-30-bh;
+    ctx.save();ctx.fillStyle='rgba(22,13,8,.93)';rr(ctx,bx,by,bw,bh,9);ctx.fill();ctx.strokeStyle=GR[u.d.g].ring;ctx.lineWidth=1.5;rr(ctx,bx,by,bw,bh,9);ctx.stroke();
+    ctx.fillStyle='rgba(22,13,8,.93)';ctx.beginPath();if(row===0){ctx.moveTo(sx-7,by);ctx.lineTo(sx,by-8);ctx.lineTo(sx+7,by);}else{ctx.moveTo(sx-7,by+bh);ctx.lineTo(sx,by+bh+8);ctx.lineTo(sx+7,by+bh);}ctx.fill();ctx.restore();
+    txt(u.d.n+(u.tr?' ✦'+u.tr:''),bx+10,by+17,14,'#fff2d8','left','"Song Myung"',0);
+    txt(`${FAC[u.d.f].n} · ${GR[u.d.g].n} · ${ROLE[u.role].n} · ${WPN[u.wp]}`,bx+10,by+32,9.5,GR[u.d.g].ring,'left','"Gowun Dodum"',0);
+    txt((ZH?'攻击 ':'공격 ')+Math.round(u.atk)+' · '+(ZH?'射程 ':'사거리 ')+Math.round(u.range)+(u.d.g>=1?' · '+SKILL[u.role][Math.min(3,u.d.g)-1]:''),bx+10,by+46,9,'#d8c8a8','left','"Gowun Dodum"',0);
+    const bw2=ho?64:96,y2=by+54;
+    button('merge',bx+6,y2,bw2,24,ZH?'合成':'합성','',{dis:!mo,hot:!!mo});
+    button('sell',bx+12+bw2,y2,bw2,24,(ZH?'出售 +':'판매 +')+sellValue(u),'',{});
+    if(ho)button('hidden',bx+18+bw2*2,y2,bw2,24,ZH?'隐藏':'히든','',{hot:true,col:'#ff5a3a'});
+    if(mo)txt(mergeLabel(mo),bx+bw-8,by+17,8.5,'#f2c14e','right','"Gowun Dodum"',0);
+  }else{txt(ZH?'点击武将：信息·合成·出售 · 拖动换位':'장수를 누르면 정보·합성·판매 · 끌어서 자리 이동',12,334,10,'#b9a582','left','"Gowun Dodum"',0);
+    txt((ZH?'缘分 ':'인연 ')+Object.keys(G.synOn).length+(ZH?' 个发动中':'개 발동 중'),12,349,10,'#f2c14e','left','"Gowun Dodum"',0);}
+  // slim action bar
+  button('recruit',318,306,124,44,ZH?'招募':'등용',ZH?'30金':'30금',{hot:G.gold>=30,dis:G.gold<30});
+  {const fc=fameCost(),o=FAME_ODDS[G.fame];button('fame',448,306,104,44,(ZH?'名声 ':'명성 ')+G.fame,fc==null?(ZH?'最高':'최고'):fc+(ZH?'金':'금'),{dis:fc==null||G.gold<fc,col:'#f2c14e'});
+    txt((ZH?'武将 ':'무장 ')+o[0]+'% · '+(ZH?'名将 ':'명장 ')+o[1]+'%',250,334,9,'#b9a582','center','"Gowun Dodum"',0);}
   // bottom-right corner intentionally left without buttons (hosting badges sit there)
 }
 
