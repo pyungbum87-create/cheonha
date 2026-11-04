@@ -57,15 +57,15 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .lv b{display:block;font:400 15px/1.2 var(--zh);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lv span{display:block;font-size:11px;color:var(--soft);margin-top:1px}
 .lv.lock{filter:grayscale(.8);opacity:.6}
-#homeBar{width:100%;max-width:440px}
-#homeBar button{width:100%;border:0;border-radius:14px;padding:12px;font:400 18px/1 var(--zh);background:var(--gold);color:var(--ink);box-shadow:0 4px 0 var(--goldd);cursor:pointer}
+#homeBar{width:100%;max-width:440px;display:grid;grid-template-columns:1fr 92px;gap:8px}
+#homeBar button{border:0;border-radius:14px;padding:12px;font:400 18px/1 var(--zh);background:var(--gold);color:var(--ink);box-shadow:0 4px 0 var(--goldd);cursor:pointer}
 @media (prefers-reduced-motion:reduce){#polaroid{transform:none}}
 </style>
 
 <div id="home" class="screen">
  <div id="homeHead"><h1>团团小镇闹哄哄</h1><p id="homeSub"></p></div>
  <div id="list"></div>
- <div id="homeBar"><button id="toHall" type="button">纪念馆</button></div>
+ <div id="homeBar"><button id="toHall" type="button">纪念馆</button><button id="mus" type="button">音乐 开</button></div>
 </div>
 <div id="play" class="screen" hidden>
  <div id="hud"><button id="back" class="mini" type="button">返回</button><div id="goal"></div><div id="prog"></div><button id="hintBtn" class="mini" type="button">提示</button><div id="timer" style="grid-row:2"></div></div>
@@ -90,7 +90,7 @@ const KEY='tt-photo-v2';let SAVE={alb:{},last:{},found:{}};try{const s=JSON.pars
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(SAVE));}catch(e){}}
 /* ---------- art ---------- */
 const ART={};const keys=new Set(['lili_basic','lili_shock','lili_joy','lili_worry','paw']);
-for(const st of STAGES){keys.add(st.bg);for(const o of st.objs){if(o.img)keys.add(o.img);for(const a of o.alt||[])if(a.img)keys.add(a.img);}for(const t of st.tools)keys.add(t.img);for(const r of st.rules)for(const d of r.do)if(d[0]==='tmp'&&d[2].img)keys.add(d[2].img);else if(d[0]==='fly')keys.add(d[1]);}
+for(const st of STAGES){keys.add(st.bg);if(st.hid)keys.add(st.hid);for(const o of st.objs){if(o.img)keys.add(o.img);for(const a of o.alt||[])if(a.img)keys.add(a.img);}for(const t of st.tools)keys.add(t.img);for(const r of st.rules)for(const d of r.do)if(d[0]==='tmp'&&d[2].img)keys.add(d[2].img);else if(d[0]==='fly')keys.add(d[1]);}
 for(const n of keys){const im=new Image();im.onload=()=>{ART[n]=im;if(S)refreshPV();};im.src='art/'+n+'.webp';}
 /* ---------- rules ---------- */
 const cond=(c,v)=>!c||c.split('|').some(a=>a.split('&').every(t=>t[0]==='!'?!v[t.slice(1)]:!!v[t]));
@@ -99,9 +99,9 @@ const obj=id=>L.objs.find(o=>o.id===id);
 function view(o,v,tmp){let r={img:o.img,x:o.x,y:o.y,w:o.w,h:o.h,rot:o.rot||0,hide:false};if(o.show&&!cond(o.show,v))r.hide=true;for(const a of o.alt||[])if(cond(a.if,v)){for(const k of ['img','x','y','w','h','rot'])if(a[k]!==undefined)r[k]=a[k];if(a.hide)r.hide=true;}const t=tmp&&tmp[o.id];if(t){Object.assign(r,t);if(t.hide===undefined&&t.show)r.hide=false;}return r;}
 const probsDone=v=>L.probs.filter(p=>v[p.id]).length;
 function blank(st){const v={};for(const p of st.probs)v[p.id]=false;return v;}
-function start(i){L=STAGES[i];S={i,v:blank(L),found:false,phase:'playing',t:L.time||120,tmp:{},fx:{},rub:{},rot:{},q:[],qw:0,qBusy:false,parts:[],fly:[],bubble:null,drag:null,g:null,flash:0,mood:'worry',idle:0,hint:0,hintR:null,zone:null,comp:false};
- $('home').hidden=true;$('play').hidden=false;$('result').hidden=true;$('goal').textContent=L.goal;$('comp').hidden=!L.comp;$('comp').textContent='全景';fit();updHud();refreshPV();enqueue(L.open||[]);}
-function goHome(){S=null;L=null;$('play').hidden=true;$('result').hidden=true;$('home').hidden=false;renderHome();}
+function start(i){if(STAGES[i].wall)buildWall();L=STAGES[i];S={i,v:blank(L),found:false,phase:'playing',t:L.time||120,tmp:{},fx:{},rub:{},rot:{},q:[],qw:0,qBusy:false,parts:[],fly:[],bubble:null,drag:null,g:null,flash:0,mood:'worry',idle:0,hint:0,hintR:null,zone:null,comp:false};
+ music('play');$('home').hidden=true;$('play').hidden=false;$('result').hidden=true;$('goal').textContent=L.goal;$('comp').hidden=!L.comp;$('comp').textContent='全景';fit();updHud();refreshPV();enqueue(L.open||[]);}
+function goHome(){music('menu');S=null;L=null;$('play').hidden=true;$('result').hidden=true;$('home').hidden=false;renderHome();}
 function enqueue(ops){S.q.push(...ops);}
 const at=p=>{if(Array.isArray(p))return{x:p[0],y:p[1]};if(p==='tray')return{x:.5,y:1.08};if(p==='lili')return{x:L.lili[0],y:L.lili[1]-L.lili[2]*.5};const o=obj(p);const w=view(o,S.v,S.tmp);return{x:w.x,y:w.y};};
 function runOp(d){const k=d[0];
@@ -144,11 +144,13 @@ function scene(c,ox,oy,s,st,v,tmp,fxs,rots,mood,found,photo){const now=performan
  const list=st.objs.slice().sort((a,b)=>(a.z||0)-(b.z||0));let drawnLili=false;
  const lili=()=>{if(!st.lili)return;drawnLili=true;const k={joy:'lili_joy',shock:'lili_shock',worry:'lili_worry'}[mood]||'lili_basic';sprite(c,k,ox+st.lili[0]*s,oy+st.lili[1]*s,st.lili[2]*s);};
  for(const o of list){if(!drawnLili&&(o.z||0)>2)lili();if(o.hot)continue;const w=view(o,v,tmp);if(w.hide||!w.img)continue;const f=!photo&&fxs[o.id]>0?Math.sin(now*34)*.09*Math.min(1,fxs[o.id]*2):0;let dy=0,r=w.rot+f+(rots&&rots[o.id]||0);if(!photo&&o.anim==='bob'&&!w.still)dy=Math.sin(now*3+o.x*9)*.012;if(!photo&&o.anim==='shake'&&!cond(o.calm,v))r+=Math.sin(now*26)*.12;sprite(c,w.img,ox+w.x*s,oy+(w.y+dy)*s,w.w*s,{r,h:w.h?w.h*s:0});}
+ if(st.wall)for(let i=0;i<5;i++){const x=ox+(.25+i*.125)*s,y=oy+.27*s,w=.105*s;c.fillStyle='#fff8ec';c.strokeStyle='#8a5a37';c.lineWidth=s/260;c.fillRect(x-w/2,y-w/2,w,w*1.1);c.strokeRect(x-w/2,y-w/2,w,w*1.1);const t=WALL[i];if(t)c.drawImage(t,x-w*.44,y-w*.44,w*.88,w*.88);else{c.fillStyle='#ead7b6';c.fillRect(x-w*.44,y-w*.44,w*.88,w*.88);}}
  if(!drawnLili)lili();
  if(st.dark){const a=st.dark.a*(st.dark.off&&cond(st.dark.off,v)?0:1)*(st.dark.fade?1-probsDoneOf(st,v)/5*.85:1);if(a>.01){c.fillStyle=`rgba(12,14,48,${a})`;c.fillRect(ox,oy,s,s);}}
  if(st.rain){c.strokeStyle='rgba(190,220,255,.55)';c.lineWidth=s/300;for(let i=0;i<46;i++){const x=(i*37.3%100)/100,y=((i*61.7+(photo?0:now*90))%100)/100;c.beginPath();c.moveTo(ox+x*s,oy+y*s);c.lineTo(ox+(x-.012)*s,oy+(y+.05)*s);c.stroke();}}
  if(photo&&found&&st.hid)sprite(c,st.hid,ox+.92*s,oy+.09*s,.09*s,{r:.12});
  if(photo&&st.fog&&!cond(st.fog,v)){const gr=c.createRadialGradient(ox+s/2,oy+s/2,s*.34,ox+s/2,oy+s/2,s*.72);gr.addColorStop(0,'rgba(240,244,248,0)');gr.addColorStop(1,'rgba(240,244,248,.82)');c.fillStyle=gr;c.fillRect(ox,oy,s,s);}}
+let WALL=[];function buildWall(){WALL=[];const ids=Object.keys(SAVE.last).map(Number).filter(i=>i!==20).sort((a,b)=>b-a).slice(0,5);for(const id of ids){const st=STAGES.find(q=>q.id===id),l=SAVE.last[id];if(!st)continue;const c=document.createElement('canvas');c.width=c.height=170;const v=blank(st);st.probs.forEach((p,i)=>{v[p.id]=l.mask[i]==='0';});photoInto(c.getContext('2d'),170,st,v,l.found,l.zoom);WALL.push(c);}}
 function probsDoneOf(st,v){return st.probs.filter(p=>v[p.id]).length;}
 function bubble(b){const zh=b.t[0],ko=b.t[1],a=Math.min(1,b.life*3);g.save();g.globalAlpha=a;g.textAlign='center';const F='18px "ZCOOL KuaiLe","PingFang SC",sans-serif';g.font=F;const w1=g.measureText(zh).width;g.font='11px sans-serif';const w=Math.min(VW-8,Math.max(w1,g.measureText(ko).width)+26);const x=Math.max(w/2+4,Math.min(VW-w/2-4,b.x)),y=Math.max(30,Math.min(SS-30,b.y));
  g.fillStyle='#fffdf7';g.strokeStyle='#5b3520';g.lineWidth=2.5;g.beginPath();g.roundRect(x-w/2,y-26,w,50,16);g.fill();g.stroke();g.textBaseline='middle';g.fillStyle='#5b3520';g.font=F;g.fillText(zh,x,y-7,w-10);g.font='11px sans-serif';g.fillStyle='#8a6448';g.fillText(ko,x,y+13,w-10);g.restore();}
@@ -218,6 +220,10 @@ $('back').onclick=()=>{goHome();};
 $('hintBtn').onclick=()=>{if(S&&S.phase==='playing')showHint(false);};
 $('comp').onclick=()=>{S.comp=!S.comp;$('comp').textContent=S.comp?'近景':'全景';refreshPV();};
 /* ---------- sound ---------- */
+const BGM={menu:new Audio('music/menu.mp3'),play:new Audio('music/play.mp3')};for(const k in BGM){BGM[k].loop=true;BGM[k].volume=k==='menu'?.3:.34;BGM[k].preload='auto';}let bgmNow='menu',bgmOn=SAVE.music!==false;
+function music(n){if(n)bgmNow=n;for(const k in BGM){if(k===bgmNow&&bgmOn&&!document.hidden){const p=BGM[k].play();if(p&&p.catch)p.catch(()=>{});}else BGM[k].pause();}}
+document.addEventListener('visibilitychange',()=>music());document.addEventListener('pointerdown',()=>music(),{once:true});
+$('mus').onclick=()=>{bgmOn=!bgmOn;SAVE.music=bgmOn;persist();$('mus').textContent=bgmOn?'音乐 开':'音乐 关';music();};$('mus').textContent=bgmOn?'音乐 开':'音乐 关';
 let AC=null;function au(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();}catch(e){AC=null;}}
 function beep(f,t,d,v,ty){const o=AC.createOscillator(),a=AC.createGain();o.type=ty||'sine';o.frequency.value=f;a.gain.setValueAtTime(.0001,AC.currentTime+t);a.gain.exponentialRampToValueAtTime(v,AC.currentTime+t+.01);a.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+t+d);o.connect(a);a.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+d+.03);}
 function tone(n,f){if(!AC)return;try{({tap:()=>beep(660,0,.07,.08),good:()=>[784,988,1319].forEach((q,i)=>beep(q,i*.07,.3,.09)),nope:()=>{beep(300,0,.12,.07,'triangle');beep(230,.08,.13,.06,'triangle');},shake:()=>{for(let i=0;i<6;i++)beep(170+i*25,i*.06,.05,.05,'triangle');},note:()=>beep(f||523,0,.45,.13),shutter:()=>{beep(1400,0,.03,.08,'square');beep(900,.05,.05,.07,'square');}})[n]();}catch(e){}}

@@ -23,4 +23,5 @@ for k in sorted(keys):
     for base in (R+'/art/',R+'/../art/'):
         if os.path.exists(base+k+'.webp'):shutil.copy(base+k+'.webp',O+'/art/');break
     else:miss.append(k)
+shutil.copytree(R+'/music',O+'/music')
 print(len(keys),'art; missing:',miss)
