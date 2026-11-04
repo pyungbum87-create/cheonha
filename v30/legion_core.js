@@ -7,7 +7,15 @@
 const D={};
 /* ---------- tuning curve (one place to rebalance hundreds of gates) ---------- */
 D.curve={teamSize:3,gatesPerChapter:10,lvPerGate:.72,bossLv:2,lateFrom:100,lateLv:.12,
-  goldBase:30,goldPer:8,expBase:25,expPer:14,expNeed:45,trainCost:25,replayRate:.5,timeLimit:90,tick:.05};
+  goldBase:30,goldPer:8,expBase:25,expPer:14,expNeed:45,trainCost:25,replayRate:.5,timeLimit:90,tick:.05,
+  resMax:3,resAlly:[5,15,30],resFoe:[6,16,31],resDelay:2.4,resTime:25,cmdFill:16};
+/* battle strategies: a shared 군략 gauge per side (fills over time). auto mode / enemy pick by situation */
+D.cmds={
+  rally:{n:{ko:'사기 진작',zh:'鼓舞士气'},d:{ko:'아군 전체 공격력 5초간 상승',zh:'全军攻击提升5秒'},icon:'⚑'},
+  fire:{n:{ko:'화공',zh:'火攻'},d:{ko:'적 전체 피해 + 화상',zh:'敌全体伤害+灼烧'},icon:'🔥'},
+  guard:{n:{ko:'방진',zh:'方阵'},d:{ko:'아군 전체 보호막 + 회복',zh:'全军护盾+回复'},icon:'▣'}};
+/* reinforcements: how many reserve squads each side may bring at gate n (0..resMax) */
+D.resSlots=(n,side)=>{const t=side?D.curve.resFoe:D.curve.resAlly;let k=0;for(const g of t)if(n>=g)k++;return Math.min(D.curve.resMax,k);};
 /* ---------- troop types. beats = which types this one counters ---------- */
 D.types={
  inf:{n:{ko:'창병',zh:'枪兵'},s:{ko:'창',zh:'枪'},range:'melee',spd:.9,hp:1.15,atk:.95,gauge:1,beats:['cav'],c:'#4f86c6'},
@@ -109,13 +117,16 @@ function gate(n,salt,playerTypes){const C=D.curve,R=rng(hash(n,salt||0,7));const
   for(let j=0;j<C.teamSize;j++){
     if((boss&&j===0)||R()<pGen){const u=pick(pool.filter(x=>!foes.some(f=>f.gen===x.id)));if(u){foes.push({gen:u.id,lv:Math.max(1,Math.round(lv-2*u.g))});continue;}}
     foes.push({mob:pick(D.mobs),type:pick(['inf','cav','arc']),lv:Math.round(lv)});}
+  const res=[],rn=Math.min(C.resMax,D.resSlots(n,1)+(boss&&n>=6?1:0));
+  for(let j=0;j<rn;j++){if(R()<pGen+.15){const u=pick(pool.filter(x=>!foes.some(f=>f.gen===x.id)&&!res.some(f=>f.gen===x.id)));if(u){res.push({gen:u.id,lv:Math.max(1,Math.round(lv-1-2*u.g))});continue;}}
+    res.push({mob:pick(D.mobs),type:pick(['inf','cav','arc']),lv:Math.max(1,Math.round(lv-1))});}
   // boss gates read the player's line-up: their soldiers switch to the types that counter it
   if(boss&&playerTypes&&playerTypes.length){let i=0;for(const f of foes)if(f.mob){const c=counterOf(playerTypes[i++%playerTypes.length]);if(c)f.type=c;}}
   const forms=Object.keys(D.forms).filter(f=>D.forms[f].unlock<=n);
   const tpool=Object.keys(D.traits).filter(t=>D.traits[t].unlock<=n),tn=n<6?0:n<30?1:n<120?2:3,traits=[];
   while(traits.length<Math.min(tn,tpool.length)){const t=pick(tpool);if(!traits.includes(t))traits.push(t);}
   const{c,round,ch}=chapterOf(n);
-  return{n,salt:salt||0,k,boss,c,round,chapter:ch,foes,form:pick(forms),traits,seed:hash(n,salt||0,99),
+  return{n,salt:salt||0,k,boss,c,round,chapter:ch,foes,res,form:pick(forms),traits,seed:hash(n,salt||0,99),
     gold:Math.round((C.goldBase+n*C.goldPer)*(boss?2:1)),exp:Math.round((C.expBase+n*C.expPer)*(boss?1.5:1))};}
 
 /* ---------- selector grammar for mods ---------- */
@@ -141,13 +152,41 @@ function applyMods(fs,mods){for(const m of mods)for(const f of fs){if(!match(f,m
 // teamA: [{u,lv}|{mob,type,lv}] in slot order. opt: {formA,formB,traits,seed,boost}
 function newBattle(teamA,teamB,opt){const R=rng(opt.seed||1);
   const A=teamA.map((x,i)=>fighter(x,0,i,opt.formA)),B=teamB.map((x,i)=>fighter(x,1,i,opt.formB));
-  const synA=synergies(teamA),synB=synergies(teamB);
-  applyMods(A,D.forms[opt.formA].mods);applyMods(B,D.forms[opt.formB].mods);
-  for(const s of synA)applyMods(A,s.mods);for(const s of synB)applyMods(B,s.mods);
-  for(const t of opt.traits||[])for(const m of D.traits[t].mods){if(m.side!=='enemy')applyMods(A,[m]);if(m.side!=='ally')applyMods(B,[m]);}
-  for(const f of A.concat(B)){f.hp=f.max=Math.round(f.max);}
-  if(opt.boost)for(const f of A){f.max=Math.round(f.max*opt.boost);f.hp=f.max;}
-  return{A,B,R,t:0,limit:D.curve.timeLimit,done:false,win:false,synA,synB};}
+  const rA=opt.resA||[],rB=opt.resB||[];
+  const QA=rA.map((x,i)=>fighter(x,0,i,opt.formA)),QB=rB.map((x,i)=>fighter(x,1,i,opt.formB));
+  // the whole legion (field + reserves) counts for synergies; reserves get the same modifiers
+  const synA=synergies(teamA.concat(rA)),synB=synergies(teamB.concat(rB));
+  const XA=A.concat(QA),XB=B.concat(QB);
+  applyMods(XA,D.forms[opt.formA].mods);applyMods(XB,D.forms[opt.formB].mods);
+  for(const s of synA)applyMods(XA,s.mods);for(const s of synB)applyMods(XB,s.mods);
+  for(const t of opt.traits||[])for(const m of D.traits[t].mods){if(m.side!=='enemy')applyMods(XA,[m]);if(m.side!=='ally')applyMods(XB,[m]);}
+  for(const f of XA.concat(XB)){f.hp=f.max=Math.round(f.max);}
+  if(opt.boost)for(const f of XA){f.max=Math.round(f.max*opt.boost);f.hp=f.max;}
+  QA.forEach(f=>f.res=1);QB.forEach(f=>f.res=1);
+  const limit=D.curve.timeLimit+D.curve.resTime*Math.max(QA.length,QB.length);
+  return{A,B,QA,QB,lostA:[],lostB:[],pend:[],cp:[0,0],manual:!!opt.manual,R,t:0,limit,done:false,win:false,synA,synB};}
+/* manual mode: ally skills wait at full gauge until the player taps them */
+function castNow(st,f){if(!f||!f.alive||f.gauge<100||f.fx.stun>0||st.done)return[];f.gauge=0;return cast(f,f.side?st.B:st.A,f.side?st.A:st.B,st.R);}
+function useCmd(st,side,id){if(st.done||st.cp[side]<100||!D.cmds[id])return[];st.cp[side]=0;
+  const mine=(side?st.B:st.A).filter(f=>f.alive),foes=(side?st.A:st.B).filter(f=>f.alive),ev=[{k:'cmd',side,id}];if(!mine.length)return ev;
+  if(id==='rally')for(const f of mine){f.fx.atkUp=5;f.gauge=Math.min(100,f.gauge+15);}
+  else if(id==='guard')for(const f of mine){f.fx.guard=4;const v=Math.round(f.max*.08);f.hp=Math.min(f.max,f.hp+v);ev.push({k:'heal',d:f,v});}
+  else if(id==='fire'){const src=mine.slice().sort((a,b)=>b.atk-a.atk)[0];for(const t of foes){hurt(t,dmg(src,t,.55,st.R),ev,src,1);if(t.alive)t.fx.burn=2.5;}}
+  return ev;}
+function aiCmd(st,side){const mine=(side?st.B:st.A).filter(f=>f.alive),foes=(side?st.A:st.B).filter(f=>f.alive);
+  const hurtShare=mine.reduce((h,f)=>h+f.hp,0)/Math.max(1,mine.reduce((m,f)=>m+f.max,0));
+  return hurtShare<.55?'guard':foes.length>=3?'fire':'rally';}
+/* a fallen squad's slot is taken by the next reserve after a short march (morale: arrives with half gauge + 4s attack up) */
+function reinforce(st,ev){
+  for(const[side,arr,Q,lost]of[[0,st.A,st.QA,st.lostA],[1,st.B,st.QB,st.lostB]]){if(!Q)continue;
+    arr.forEach((f,i)=>{if(f.alive||f.rq||!Q.length)return;f.rq=1;st.pend.push({side,i,t:st.t+D.curve.resDelay,f:Q.shift()});});}
+  for(let j=st.pend.length-1;j>=0;j--){const p=st.pend[j];if(st.t<p.t)continue;st.pend.splice(j,1);
+    const arr=p.side?st.B:st.A,old=arr[p.i],n=p.f;(p.side?st.lostB:st.lostA).push(old);
+    n.slot=old.slot;n.col=old.col;n.y=old.y;n.cd=.4;n.gauge=50;n.fx.atkUp=4;arr[p.i]=n;ev.push({k:'reinf',f:n,old,side:p.side});}}
+const waiting=(st,side)=>(side?st.QB:st.QA||[]).length+(st.pend||[]).filter(p=>p.side===side).length;
+/* whole-legion strength (field + waiting reserves + fallen) for HP bars and time-out judging */
+function pool(st,side){const arr=side?st.B:st.A,Q=(side?st.QB:st.QA)||[],L=(side?st.lostB:st.lostA)||[],P=(st.pend||[]).filter(p=>p.side===side).map(p=>p.f);
+  let hp=0,max=0;for(const f of arr){hp+=f.hp;max+=f.max;}for(const f of Q.concat(P)){hp+=f.hp;max+=f.max;}for(const f of L)max+=f.max;return{hp,max};}
 function pickTarget(me,foes){const live=foes.filter(f=>f.alive);if(!live.length)return null;
   if(D.types[me.type].range==='melee'){const fr=live.filter(f=>f.col===0);return(fr.length?fr:live).sort((a,b)=>Math.abs(a.y-me.y)-Math.abs(b.y-me.y))[0];}
   const good=live.filter(f=>D.types[me.type].beats.includes(f.type));return(good.length?good:live).sort((a,b)=>a.hp-b.hp)[0];}
@@ -167,14 +206,17 @@ function step(st){const dt=D.curve.tick,ev=[],R=st.R;st.t+=dt;
     if(f.fx.burn>0){f.hp-=f.max*.012*dt*10;if(f.hp<=0){f.hp=0;f.alive=false;ev.push({k:'die',f});}}}
   for(const[side,foes]of[[st.A,st.B],[st.B,st.A]])for(const f of side){if(!f.alive||f.fx.stun>0)continue;
     f.cd-=dt*f.spd*(f.fx.slow>0?.6:1);f.gauge=Math.min(100,f.gauge+dt*(12+f.lv*.05)*f.gaugeR);
-    if(f.gauge>=100){f.gauge=0;ev.push(...cast(f,side,foes,R));continue;}
+    if(f.gauge>=100&&!(st.manual&&f.side===0)){f.gauge=0;ev.push(...cast(f,side,foes,R));continue;}
     if(f.cd<=0){f.cd=1.2;const t=pickTarget(f,foes);if(!t)continue;hurt(t,dmg(f,t,1,R),ev,f,0);t.gauge=Math.min(100,t.gauge+4);}}
-  const a=st.A.some(f=>f.alive),b=st.B.some(f=>f.alive);
-  if(!a||!b||st.t>=st.limit){st.done=true;st.win=a&&(!b||share(st.A)>share(st.B));}
+  if(st.pend)reinforce(st,ev);
+  if(st.cp)for(const sd of[0,1]){st.cp[sd]=Math.min(100,st.cp[sd]+dt*100/D.curve.cmdFill);if(st.cp[sd]>=100&&(sd===1||!st.manual))ev.push(...useCmd(st,sd,aiCmd(st,sd)));}
+  const a=st.A.some(f=>f.alive)||(st.pend&&waiting(st,0)>0),b=st.B.some(f=>f.alive)||(st.pend&&waiting(st,1)>0);
+  if(!a||!b||st.t>=st.limit){st.done=true;const pa=st.pend?pool(st,0):null,pb=st.pend?pool(st,1):null;
+    st.win=a&&(!b||(pa?pa.hp/pa.max>pb.hp/pb.max:share(st.A)>share(st.B)));}
   return ev;}
 const share=s=>s.reduce((h,f)=>h+f.hp,0)/s.reduce((m,f)=>m+f.max,0);
 function finish(st){let n=0;while(!st.done&&n++<1e5)step(st);return st;}
-function stars(st){if(!st.win)return 0;return 1+(share(st.A)>=.5?1:0)+(st.A.every(f=>f.alive)?1:0);}
+function stars(st){if(!st.win)return 0;const lost=(st.lostA||[]).length;return 1+(share(st.A)>=.5?1:0)+(!lost&&st.A.every(f=>f.alive)?1:0);}
 
 /* ---------- save + growth ---------- */
 function defSave(){return{v:2,cleared:0,gold:0,gens:{},team:[],form:'feng',stars:{},seen:{}};}
@@ -195,7 +237,7 @@ function settle(S,G,team,st){const win=st.win,first=win&&G.n>S.cleared,rate=firs
   return{win,first,gold,exp,bonus,stars:sr,newStars:sr>old,unlock,ups};}
 function totalStars(S){let t=0;for(const k in S.stars)t+=S.stars[k];return t;}
 
-const API={D,lang,tx,rng,hash,setUnits,typeOf,counterOf,gate,chapterOf,synergies,newBattle,step,finish,stars,share,
+const API={D,lang,tx,rng,hash,setUnits,typeOf,counterOf,gate,chapterOf,synergies,newBattle,step,finish,stars,share,pool,waiting,castNow,useCmd,aiCmd,
   loadSave,needExp,addExp,trainCost,train,settle,unlockFor,totalStars,get UID(){return UID;},get UNITS(){return UNITS;}};
 root.LEGION_CORE=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:typeof GameGlobal!=='undefined'?GameGlobal:globalThis);
