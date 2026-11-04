@@ -1,0 +1,10 @@
+const {chromium,devices}=require('playwright');const O='/tmp/claude-0/-home-claude/ebb00a03-07b5-51d7-8a3d-281a8c6441fa/scratchpad/';
+(async()=>{const b=await chromium.launch();const p=await (await b.newContext({...devices['iPhone 13'],serviceWorkers:'block'})).newPage();const errs=[];p.on('pageerror',e=>errs.push(String(e)));
+await p.goto('http://localhost:8768/');await p.waitForTimeout(900);await p.click('.lv');await p.waitForTimeout(2800);await p.screenshot({path:O+'s1.png'});
+const r=await p.evaluate(async()=>{const S=__sp,w=ms=>new Promise(r=>setTimeout(r,ms));const at=(x,y)=>S.toS(x,y);
+ const tap=async(x,y)=>{const a=at(x,y);S.down(a.x,a.y);S.up();await w(150);};
+ const drag=async(pts)=>{let a=at(...pts[0]);S.down(a.x,a.y);for(const q of pts.slice(1)){for(let k=1;k<=6;k++){const pr=pts[pts.indexOf(q)-1],x=pr[0]+(q[0]-pr[0])*k/6,y=pr[1]+(q[1]-pr[1])*k/6;a=at(x,y);S.move(a.x,a.y);await w(16);}}S.up();await w(200);};
+ await tap(.47,.80);await tap(.235,.535);await drag([[.64,.73],[.495,.13]]);await drag([[.5,.45],[.5,.3]]);await tap(.885,.69);
+ const o=S.P.objs.broom;const im=document.createElement('img');await drag([[.075,.80],[.33,.88],[.60,.90],[.77,.84],[.43,.64],[.33,.88],[.60,.90],[.77,.84],[.43,.64],[.33,.88],[.60,.90],[.77,.84],[.43,.64]]);
+ await w(400);return{done:[...S.P.done],won:S.P.won};});
+await p.waitForTimeout(1500);await p.screenshot({path:O+'s2.png'});console.log(JSON.stringify(r),'errs',JSON.stringify(errs));await b.close();})();
