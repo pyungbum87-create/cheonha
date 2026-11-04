@@ -235,12 +235,12 @@ $('back').onclick=()=>{goHome();};
 $('hintBtn').onclick=()=>{if(S&&S.phase==='playing')showHint(false);};
 $('comp').onclick=()=>{S.comp=!S.comp;$('comp').textContent=S.comp?'近景':'全景';refreshPV();};
 /* ---------- sound ---------- */
-const BGM={menu:new Audio('music/menu.mp3'),play:new Audio('music/play.mp3')};for(const k in BGM){BGM[k].loop=true;BGM[k].volume=k==='menu'?.3:.34;BGM[k].preload='auto';}let bgmNow='menu',bgmOn=SAVE.music!==false;
-function music(n){if(n)bgmNow=n;for(const k in BGM){if(k===bgmNow&&bgmOn&&!document.hidden){const p=BGM[k].play();if(p&&p.catch)p.catch(()=>{});}else BGM[k].pause();}}
-document.addEventListener('visibilitychange',()=>music());document.addEventListener('pointerdown',()=>music(),{once:true});
+const BGM={menu:new Audio('music/menu.mp3'),play:new Audio('music/play.mp3')};for(const k in BGM){BGM[k].loop=true;BGM[k].volume=k==='menu'?.72:.8;BGM[k].preload='auto';}let bgmNow='menu',bgmOn=SAVE.music!==false;
+function music(n){if(n)bgmNow=n;for(const k in BGM){if(k===bgmNow&&bgmOn&&!document.hidden){if(BGM[k].paused){const p=BGM[k].play();if(p&&p.catch)p.catch(()=>{});}}else if(!BGM[k].paused)BGM[k].pause();}}
+document.addEventListener('visibilitychange',()=>music());for(const ev of ['touchend','pointerup','click'])document.addEventListener(ev,()=>{au();music();},{capture:true,passive:true});
 $('mus').onclick=()=>{bgmOn=!bgmOn;SAVE.music=bgmOn;persist();$('mus').textContent=bgmOn?'音乐 开':'音乐 关';music();};$('mus').textContent=bgmOn?'音乐 开':'音乐 关';
 let AC=null;function au(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();}catch(e){AC=null;}}
-function beep(f,t,d,v,ty){const o=AC.createOscillator(),a=AC.createGain();o.type=ty||'sine';o.frequency.value=f;a.gain.setValueAtTime(.0001,AC.currentTime+t);a.gain.exponentialRampToValueAtTime(v,AC.currentTime+t+.01);a.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+t+d);o.connect(a);a.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+d+.03);}
+function beep(f,t,d,v0,ty){const v=Math.min(.5,v0*2.6),o=AC.createOscillator(),a=AC.createGain();o.type=ty||'sine';o.frequency.value=f;a.gain.setValueAtTime(.0001,AC.currentTime+t);a.gain.exponentialRampToValueAtTime(v,AC.currentTime+t+.01);a.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+t+d);o.connect(a);a.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+d+.03);}
 function tone(n,f){if(!AC)return;try{({tap:()=>beep(660,0,.07,.08),good:()=>[784,988,1319].forEach((q,i)=>beep(q,i*.07,.3,.09)),nope:()=>{beep(300,0,.12,.07,'triangle');beep(230,.08,.13,.06,'triangle');},shake:()=>{for(let i=0;i<6;i++)beep(170+i*25,i*.06,.05,.05,'triangle');},note:()=>beep(f||523,0,.45,.13),shutter:()=>{beep(1400,0,.03,.08,'square');beep(900,.05,.05,.07,'square');}})[n]();}catch(e){}}
 /* ---------- loop ---------- */
 function updHud(){$('prog').textContent=`已整理 ${probsDone(S.v)}/5`;}
