@@ -1552,15 +1552,15 @@ function drawHUD(){
     txt(FAC[u.d.f].n+' · '+GR[u.d.g].n,PX+PW/2,120,9.5,GR[u.d.g].ring,'center','"Gowun Dodum"',0);
     txt(ROLE[u.role].n+' · '+WPN[u.wp],PX+PW/2,132,9.5,'#d8c8a8','center','"Gowun Dodum"',0);
     const L2=[[(ZH?'攻击':'공격'),Math.round(u.atk)],[(ZH?'间隔':'간격'),u.int.toFixed(2)+(ZH?'秒':'초')],[(ZH?'射程':'사거리'),Math.round(u.range)]];if(u.d.g>=1)L2.push([SKILL[u.role][Math.min(3,u.d.g)-1],Math.round(u.sint)+(ZH?'秒':'초')]);
-    L2.forEach(([a,b],k)=>{txt(a,PX+8,148+k*12,9,'#b9a582','left','"Gowun Dodum"',0);txt(String(b),PX+PW-8,148+k*12,9,'#fff2d8','right','"Gowun Dodum"',0);});
-    button('merge',PX+4,200,PW-8,28,ZH?'合成':'합성',mo?mergeLabel(mo):'',{dis:!mo,hot:!!mo});
-    button('sell',PX+4,232,PW-8,26,(ZH?'出售 +':'판매 +')+sellValue(u),'',{});
-    if(ho)button('hidden',PX+4,262,PW-8,30,ZH?'隐藏组合':'히든 조합',UID[ho.R.out].n,{hot:true,col:'#ff5a3a'});
+    L2.forEach(([a,b],k)=>{txt(a,PX+8,140+k*11,9,'#b9a582','left','"Gowun Dodum"',0);txt(String(b),PX+PW-8,140+k*11,9,'#fff2d8','right','"Gowun Dodum"',0);});
+    button('merge',PX+4,182,PW-8,32,ZH?'合成':'합성',mo?mergeLabel(mo):'',{dis:!mo,hot:!!mo});
+    button('sell',PX+4,270,PW-8,24,(G.sellArm===G.sel&&performance.now()-G.sellAt<2500)?(ZH?'确认出售?':'정말 판매?'):(ZH?'出售 +':'판매 +')+sellValue(u),'',{col:'#9a8a70'});
+    if(ho)button('hidden',PX+4,226,PW-8,30,ZH?'隐藏组合':'히든 조합',UID[ho.R.out].n,{hot:true,col:'#ff5a3a'});
   }else{txt(ZH?'缘分':'인연',PX+PW/2,52,11,'#f2c14e','center','"Song Myung"',0);let sy=60;
     for(const k of on){const S=SYN.find(s=>s.id===k);ctx.fillStyle='rgba(20,10,6,.7)';rr(ctx,PX+6,sy,PW-12,16,3);ctx.fill();ctx.strokeStyle='#d6a94a';ctx.lineWidth=.8;rr(ctx,PX+6,sy,PW-12,16,3);ctx.stroke();txt(S.n,PX+PW/2,sy+11.5,8.5,'#f2c14e','center','"Song Myung"',0);sy+=19;if(sy>240)break;}
     if(!on.length)txt(ZH?'暂无':'없음',PX+PW/2,74,9,'#8a7a66','center','"Gowun Dodum"',0);
     const H2=ZH?['点击武将','查看信息·合成·出售','拖动可换位']:['장수를 누르면','정보·합성·판매','끌어서 자리 이동'];H2.forEach((t,k)=>txt(t,PX+PW/2,250+k*13,9,'#8a7a66','center','"Gowun Dodum"',0));}
-  button('recruit',PX+2,300,PW-4,54,ZH?'招募':'등용',ZH?'30金':'30금',{hot:G.gold>=30,dis:G.gold<30});
+  button('recruit',PX+2,304,PW-4,50,ZH?'招募':'등용',ZH?'30金':'30금',{hot:G.gold>=30,dis:G.gold<30});
   // bottom-right corner intentionally left without buttons (hosting badges sit there)
 }
 
@@ -1763,7 +1763,7 @@ function rewardCount(){
 }
 function rewardRemaining(){return Math.max(0,REWARD_DAILY_CAP-rewardCount());}
 function rewardProvider(){return window.CHEONHA_REWARDED_AD && typeof window.CHEONHA_REWARDED_AD.show==='function' ? window.CHEONHA_REWARDED_AD : null;}
-function canReward(kind){return !!(G&&rewardRemaining()>0 && (kind==='supply' ? !G.over && G.paused && !G.adSupplyUsed : kind==='merit' && G.over && !G.adMeritUsed && (G.baseEarned||0)>0));}
+function canReward(kind){return !!(G&&rewardRemaining()>0 && (kind==='supply' ? !G.over && G.paused && !G.adSupplyUsed : kind==='merit' && G.over && !G.adMeritUsed && v30AdLeft()>0));}
 function refreshRewardPause(){
   const b=document.getElementById('pRewardSupply'),d=document.getElementById('pRewardHint');
   if(!b||!d||!G)return;
@@ -1783,7 +1783,7 @@ function openRewardModal(kind){
   rewardPending={kind,game:G};rewardBusy=false;
   document.getElementById('rewardModal').hidden=false;
   document.getElementById('rewardModalTitle').textContent=REWARD_TXT.modalHeader;
-  document.getElementById('rewardModalPrize').textContent=kind==='supply'?REWARD_TXT.supplyBonus:REWARD_TXT.meritBonus+' ('+Math.max(1,Math.round(G.baseEarned*.5))+')';
+  document.getElementById('rewardModalPrize').textContent=kind==='supply'?REWARD_TXT.supplyBonus:REWARD_TXT.meritBonus+' ('+v30AdBonus()+')';
   document.getElementById('rewardModalDesc').textContent=REWARD_TXT.choose;
   const provider=rewardProvider();
   document.getElementById('rewardModalMode').textContent=provider?REWARD_TXT.adTitle:REWARD_TXT.simulateTitle;
@@ -1805,7 +1805,7 @@ function rewardGrant(kind,g){
     g.txt.push({x:W/2,y:50,s:REWARD_TXT.supplyBonus,t:0,c:'#ffdf84',big:1});
     sfx('coin');
   }else{
-    const bonus=Math.max(1,Math.round(g.baseEarned*.5));g.adMeritUsed=true;g.adMeritBonus=bonus;g.earned+=bonus;if(g.mode==='scn'&&g.onlyF!=null)SAVE.meritF[g.onlyF]+=bonus;else SAVE.merit+=bonus;
+    const bonus=v30AdBonus();{const k=mcapKey();SAVE.mday.ad[k]=(SAVE.mday.ad[k]|0)+bonus;}g.adMeritUsed=true;g.adMeritBonus=bonus;g.earned+=bonus;if(g.mode==='scn'&&g.onlyF!=null)SAVE.meritF[g.onlyF]+=bonus;else SAVE.merit+=bonus;
     sfx('fame');
   }
   SAVE.rewardAds.count++;save();updateTitle();
@@ -1843,7 +1843,7 @@ function showResult(title,sub,extra){BGM.stop();
   const row=document.getElementById('rRow');row.innerHTML='';
   const mk=(t,c,f)=>{const b=document.createElement('button');b.className='btn'+(c?' red':'');b.textContent=t;b.onclick=()=>{auInit();f();};row.append(b);};
   if(G.scn&&G.stars&&G.scnTier===0&&G.scnI+1<SCN.length){const nx=G.scnI+1;mk('下一剧本',1,()=>openStory(nx));}
-  if(canReward('merit')){mk('领取额外功勋 +'+Math.max(1,Math.round(G.baseEarned*.5)),1,()=>openRewardModal('merit'));row.lastElementChild.dataset.rewardAd='merit';}
+  if(canReward('merit')){mk('领取额外功勋 +'+v30AdBonus(),1,()=>openRewardModal('merit'));row.lastElementChild.dataset.rewardAd='merit';}
   mk('再来一局',!(G.scn&&G.stars),(gm=>()=>newGame(gm.mode,gm.scnI,gm.scnTier||0))(G));mk('军营（永久强化）',0,()=>openCamp('result'));mk('主界面',0,toTitle);
   G.baseEarned=G.earned||0;G.resultHead=document.getElementById('rSub').textContent;refreshRewardResult();
   setTimeout(()=>showOnly('result'),600);updateBest();
@@ -1935,20 +1935,20 @@ window.renderCamp=function(){const L=document.getElementById('campList'),tab=SAV
     b.onclick=()=>{const have=tab<0?SAVE.merit:SAVE.meritF[tab];if(have<c||max)return;if(tab<0)SAVE.merit-=c;else SAVE.meritF[tab]-=c;mu[m.k]=lv+1;save();sfx('fame');renderCamp();updateTitle();};row.append(b);L.append(row);}};
 window.updateTitle=(orig=>function(){orig();const st=document.getElementById('scnTxt');if(st){const tot=SAVE.scnF.reduce((a,F)=>a+F.reduce((x,r)=>x+r.reduce((y,n)=>y+(n|0),0),0),0);st.textContent=(V30ZH?'星 ':'별 ')+tot+'/'+SCN.length*12*4;}})(updateTitle);
 /* ===== v30c: 일일 공적 한도, 세력별 시나리오 문구·규칙, 첫 진입 설명 ===== */
-const MCAP=100;   // 군영(끝없는 전장 / 세력별 시나리오)마다 하루 받을 수 있는 공적. 광고 추가 공적은 한도 밖
+const MCAP2={free:5,ad:10};let MCAP=5;   // 군영(끝없는 전장 / 세력별 시나리오)마다 하루 받을 수 있는 공적. 광고 추가 공적은 한도 밖
 (function(){SAVE.mday={date:'',used:{}};SAVE.intro={};
-  try{const s=JSON.parse(localStorage.getItem('cheonha-save')||'null');if(s){if(s.mday&&typeof s.mday==='object'){SAVE.mday.date=String(s.mday.date||'');if(s.mday.used&&typeof s.mday.used==='object')for(const k in s.mday.used)SAVE.mday.used[k]=Math.max(0,s.mday.used[k]|0);}
+  try{const s=JSON.parse(localStorage.getItem('cheonha-save')||'null');if(s){if(s.mday&&typeof s.mday==='object'){SAVE.mday.date=String(s.mday.date||'');if(s.mday.used&&typeof s.mday.used==='object')for(const k in s.mday.used)SAVE.mday.used[k]=Math.max(0,s.mday.used[k]|0);}if(s.mday&&s.mday.ad&&typeof s.mday.ad==='object'){SAVE.mday.ad={};for(const k in s.mday.ad)SAVE.mday.ad[k]=Math.max(0,s.mday.ad[k]|0);}
     if(s.intro&&typeof s.intro==='object')for(const k in s.intro)SAVE.intro[k]=1;}}catch(e){}
   // 군영 비용: 하루 100 공적 기준으로 약 3달에 걸쳐 완성 (군영마다)
   const C={gold:[10,l=>Math.round(40*Math.pow(1.25,l))],atk:[40,l=>Math.round(15*Math.pow(1.08,l))],cd:[15,l=>Math.round(40*Math.pow(1.12,l))],fame:[2,l=>[500,1500][l]],wall:[2,l=>[800,2000][l]]};
   for(const m of MU){if(C[m.k]){m.max=C[m.k][0];m.cost=C[m.k][1];}if(m.k==='gold')m.d=V30ZH?'初始金币+10':'시작 금 +10';}
   for(const mu of [SAVE.mu].concat(SAVE.muF))if(mu.gold>10)mu.gold=10;})();
 function mcapKey(){return G&&G.mode==='scn'&&G.onlyF!=null?'f'+G.onlyF:'e';}
-function mcapLeft(k){if(SAVE.mday.date!==todayKey()){SAVE.mday={date:todayKey(),used:{}};}return Math.max(0,MCAP-(SAVE.mday.used[k]|0));}
+function mcapLeft(k){MCAP=MCAP2.free;if(SAVE.mday.date!==todayKey()){SAVE.mday={date:todayKey(),used:{},ad:{}};}return Math.max(0,MCAP-(SAVE.mday.used[k]|0));}
 window.earnMerit=(orig=>function(win){const k=mcapKey(),left=mcapLeft(k),g=G;let m=g.round*2+(g.bossKills||0)*10+(g.legends||0)*5+(g.meritBonus||0)+(win?100:0);
   if(g.mode==='end')m=Math.round(m*1.3);if(g.scn)m=Math.round(m*DIFF[g.scnTier||0].merit);m=Math.min(Math.round(m),left);g.capHit=left<=m;
   SAVE.mday.used[k]=(SAVE.mday.used[k]|0)+m;if(g.mode==='scn'&&g.onlyF!=null)SAVE.meritF[g.onlyF]+=m;else SAVE.merit+=m;SAVE.games++;SAVE.storyF=storyF;save();return m;})(earnMerit);
-window.renderCamp=(orig=>function(){orig();const tab=SAVE.campTab,k=tab<0?'e':'f'+tab,el=document.getElementById('meritTxt');if(el)el.textContent+=(V30ZH?'  · 今日剩余 ':'  · 오늘 남은 공적 ')+mcapLeft(k)+'/'+MCAP;})(renderCamp);
+window.renderCamp=(orig=>function(){orig();const tab=SAVE.campTab,k=tab<0?'e':'f'+tab,el=document.getElementById('meritTxt');if(el)el.textContent+=(V30ZH?'  · 今日剩余 ':'  · 오늘 남은 공적 ')+mcapLeft(k)+'/'+MCAP2.free+(V30ZH?' (看广告再+':' (광고로 +')+Math.max(0,MCAP2.ad-((SAVE.mday.ad||{})[k]|0))+')';})(renderCamp);
 /* 세력별 시나리오: 규칙의 '세력 보너스'는 고른 세력에 적용, 금지 세력·4세력 연합 규칙은 해제 */
 function v30ScnFor(S,F){const c=Object.assign({},S);if(S.f!=null)c.f=F;if(S.ban===F)c.ban=undefined;if(S.favor)c.favor=S.favor.filter(id=>UID[id]&&UID[id].f===F);if(S.ally)c.ally=undefined;return c;}
 const V30RULE={hwanggeon:['군주와 측근 2명과 함께 시작 · 마지막 적장 장각','与君主及两名亲信一同出阵 · 最终敌将张角'],
@@ -2035,6 +2035,14 @@ window.buildBG=function(){const c=document.createElement('canvas');c.width=W*K;c
   // vignette
   const v=g.createRadialGradient(W/2-50,H/2,120,W/2-50,H/2,420);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.35)');g.fillStyle=v;g.fillRect(0,0,W,H);
   return c;};
+/* v30f: 공적 경제 재설계 — 하루 기본 5 + 광고 최대 10 (군영마다), 비용 총합 약 1,450 */
+(function(){MCAP2.free=5;MCAP2.ad=10;
+  const C={gold:[10,l=>8+4*l],atk:[40,l=>3+Math.floor(l*.6)],cd:[15,l=>6+2*l],fame:[2,l=>[40,90][l]],wall:[2,l=>[60,120][l]]};
+  for(const m of MU)if(C[m.k]){m.max=C[m.k][0];m.cost=C[m.k][1];}
+  if(!SAVE.v30f){SAVE.v30f=1;SAVE.merit=Math.min(SAVE.merit,15);SAVE.meritF=SAVE.meritF.map(v=>Math.min(v,15));save();}})();
+function v30AdLeft(){const k=mcapKey();mcapLeft(k);SAVE.mday.ad=SAVE.mday.ad||{};return Math.max(0,MCAP2.ad-(SAVE.mday.ad[k]|0));}
+function v30AdBonus(){return Math.min(5,v30AdLeft());}
+window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===i&&performance.now()-G.sellAt<2500)){G.sellArm=i;G.sellAt=performance.now();return;}G.sellArm=-1;orig(i);})(sell);
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
 document.getElementById('pOpts').onclick=()=>openOpts('pause');
