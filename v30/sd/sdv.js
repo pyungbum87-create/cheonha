@@ -38,7 +38,7 @@ const ALIAS={m_gwanu:'gwanu',m_joun:'joun',m_jegal:'jegal',m_jojo:'jojo',m_sonch
 const IMG={};let ready=false;
 /* soldiers hold their weapon in the drawing: body-only motion */
 const SOL={w_sp:'thrust',s_sp:'thrust',o_sp:'thrust',q_sp:'thrust',w_ar:'shoot',s_ar:'shoot',o_ar:'shoot',q_ar:'shoot'};
-const MYTH=['m_gwanu','m_jegal','m_jojo','m_sonchaek','m_yeopo','m_joun'],FACFX=['fx_wei','fx_shu','fx_wu','fx_qun'];
+const MYTH=['m_gwanu','m_jegal','m_jojo','m_sonchaek','m_yeopo','m_joun','m_jangbi','m_samaui','m_juyu','m_wonso'],FACFX=['fx_wei','fx_shu','fx_wu','fx_qun'];
 const names=['pad_1','pad_2','pad_3','decor','fx_slash','fx_thrust','fx_arrow_trail','fx_fan_wind','fx_mythic_aura'].concat(FACFX,Object.keys(SOL).map(k=>'sd_'+k+'_body'),MYTH.map(k=>'sd_'+k+'_body'),...Object.keys(CH).map(k=>['sd_'+k+'_body','sd_'+k+'_weapon']),Object.keys(GEN2).map(k=>'sd_'+k+'_body'),Object.values(SW).map(w=>w.img));
 let left=names.length;
 function done(){if(--left>0)return;ready=true;try{bgCache=null;}catch(e){}}
