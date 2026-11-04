@@ -1,0 +1,188 @@
+<title>春节合照大翻车</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap">
+<style>
+/* Layout: one phone screen. Goal and countdown on top, the scene as a framed stage, tools in a tray, the shutter as the single big action. */
+:root{--paper:#fbefdc;--ink:#5b3520;--red:#d8473a;--gold:#f2b52c;--mint:#7fc9a2;--cream:#fff8ec;--line:#e7cfa9;
+ --zh:"ZCOOL KuaiLe","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;--body:"PingFang SC","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+html,body{height:100%;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+body{background:var(--paper);color:var(--ink);font-family:var(--body)}
+#app{height:100%;display:flex;flex-direction:column;gap:8px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-sizing:border-box;align-items:center}
+#hud{width:100%;max-width:440px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:2px 10px}
+#goal{font:400 24px/1.1 var(--zh);color:var(--red)}
+#prog{font:400 16px/1.2 var(--zh);text-align:right}
+#timer{grid-column:1/3;font:400 15px/1.2 var(--zh);font-variant-numeric:tabular-nums}
+#timer.low{color:var(--red)}
+#wrap{flex:1;min-height:0;width:100%;display:flex;justify-content:center;align-items:flex-start}
+canvas{display:block;touch-action:none;max-width:100%}
+#shoot{flex:none;width:100%;max-width:440px;border:0;border-radius:18px;padding:12px 8px 11px;background:var(--red);color:#fff;font:400 22px/1 var(--zh);box-shadow:0 5px 0 #a8332a;cursor:pointer}
+#shoot small{display:block;font:500 11px/1.3 var(--body);margin-top:3px;opacity:.9}
+#shoot:active{transform:translateY(3px);box-shadow:0 2px 0 #a8332a}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#pv{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(70,38,20,.45);z-index:4}
+#polaroid2{background:var(--cream);padding:8px 8px 10px;border-radius:6px;width:min(70vw,280px);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+#polaroid2 canvas{width:100%;height:auto;display:block}
+#pvCap{font:400 18px/1.2 var(--zh);text-align:center;margin-top:8px}
+#pvKo{font-size:11px;text-align:center;color:#8a6448;margin-top:2px}
+#result,#album{position:fixed;inset:0;background:rgba(70,38,20,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));z-index:5}
+#polaroid{background:var(--cream);padding:10px 10px 12px;border-radius:6px;box-shadow:0 10px 26px rgba(0,0,0,.35);transform:rotate(-1.6deg);width:min(86vw,340px);max-width:100%;box-sizing:border-box}
+#polaroid canvas{width:100%;height:auto;border-radius:3px}
+#pTitle{font:400 21px/1.2 var(--zh);text-align:center;margin-top:9px;color:var(--ink);text-wrap:balance}
+#pKo{font-size:12px;text-align:center;margin-top:3px;color:#8a6448}
+#pTag{font-size:12px;color:var(--cream);text-align:center;min-height:16px}
+.row{display:flex;gap:10px;width:min(86vw,340px)}
+.row button{flex:1;border:0;border-radius:14px;padding:11px 6px;font:400 17px/1 var(--zh);background:var(--gold);color:var(--ink);box-shadow:0 4px 0 #bd8a1a;cursor:pointer}
+.row button.alt{background:var(--cream);box-shadow:0 4px 0 var(--line)}
+#albumBox{background:var(--cream);border-radius:14px;padding:14px;width:min(90vw,380px);max-height:72%;overflow:auto;box-sizing:border-box}
+#albumBox h2{font:400 21px/1.1 var(--zh);margin:0 0 8px;color:var(--red)}
+#albumList{display:grid;gap:5px}
+.al{display:grid;grid-template-columns:1fr auto;gap:8px;padding:6px 8px;border-radius:8px;background:var(--paper);font:400 15px/1.25 var(--zh)}
+.al span{font:500 11px var(--body);color:#8a6448;align-self:center}
+#badge{font-size:11px;color:#8a6448;text-align:center}
+@media (prefers-reduced-motion:reduce){#polaroid{transform:none}}
+</style>
+
+<div id="app">
+ <div id="hud"><div id="goal">春节全家福</div><div id="prog">已整理 0/5</div><div id="timer">还有 02:00 开拍！</div></div>
+ <div id="wrap"><canvas id="cv"></canvas></div>
+ <button id="shoot" type="button">现在拍照<small>지금 촬영 · 언제든 찍을 수 있어요</small></button>
+ <div id="badge">시험판 · 한국어는 확인용</div>
+</div>
+<div id="result" hidden>
+ <div id="polaroid"><canvas id="pc" width="640" height="640"></canvas><div id="pTitle"></div><div id="pKo"></div></div>
+ <div id="pTag"></div>
+ <div class="row"><button id="again" type="button">再拍一次</button><button id="toAlbum" class="alt" type="button">相册</button></div>
+</div>
+<div id="pv" hidden><div id="polaroid2"><canvas id="pvBig" width="480" height="480"></canvas><div id="pvCap">现在拍，会是什么样呢？</div><div id="pvKo">지금 찍으면 어떤 사진이 나올까? · 눌러서 닫기</div></div></div>
+<div id="album" hidden>
+ <div id="albumBox"><h2 id="albumHead">相册</h2><div id="albumList"></div></div>
+ <div class="row"><button id="albumBack" type="button">返回</button></div>
+</div>
+
+<script>
+/* ---------- text: from the design pack, plus a few lines marked NEW for this trial ---------- */
+const T={begin:['哎呀！大家还没准备好呢！','앗! 다들 아직 준비가 안 됐잖아!'],tuanOk:['没关系，什么时候拍都好玩！','괜찮아, 언제 찍어도 재미있을 거야!'],twist1:['喵？！怎么又湿了！','야옹?! 왜 또 젖은 거야!'],twist2:['糟糕！水坑还在呢！','이런! 웅덩이가 그대로잖아!'],safe:['这里干干的！','여기는 뽀송해!'],preview:['现在拍，会是什么样呢？','지금 찍으면 어떤 사진이 나올까?'],manual:['就是现在！咔嚓！','지금 이 순간이 좋아! 찰칵!'],auto:['时间到！就拍现在的样子！','시간 됐다! 지금 모습 그대로 찰칵!'],
+ foot:['咦？谁来过这里呀？','어라? 여기 누가 다녀갔지?'],catFirst:['先把地上弄干嘛！','바닥부터 부탁해!'],broomCat:['我又不是灰尘！','난 먼지가 아니야!'],clothPot:['我想喝点水呀～','나한테 필요한 건 물이야~'],
+ didiCam:['哎呀，更模糊啦！','앗, 더 뿌옇게 됐네!'],scrollHard:['轻一点！我头晕啦！','살살! 나 어지러워!'],clothPuddle:['这也太多水啦！','이건 나한테 너무 많아!'],lili:['哎呀，又被我弄乱啦！','앗, 내가 또 어질러 버렸네!'],
+ /* NEW */ catShake:['喵呜！抖抖抖！','부르르르!'],potDrink:['哇！喝到水啦！','와! 물 마셨다!'],catTap:['喵！我好湿！','야옹! 나 흠뻑 젖었어!'],potTap:['我好渴……','목말라…'],puddleTap:['哼！谁也别想踩我！','흥! 아무도 날 못 밟아!'],camTap:['镜头雾蒙蒙的……','렌즈가 뿌예…'],frameDone:['后面好像有东西！','뒤에 뭔가 있어!'],cloth:['找到手帕啦！','손수건을 찾았어!'],broomNew:['扫一扫！','쓱쓱!']};
+const K=['puddle','cat','pot','scroll','camera'];
+const FR={puddle:['地上还湿着','바닥은 아직 젖었고'],cat:['猫咪还气着','고양이는 아직 화났고'],pot:['花儿在打盹','꽃은 졸고 있고'],scroll:['挂轴歪着呢','족자는 삐딱하고'],camera:['镜头又起雾啦','카메라엔 또 김이 서렸네']};
+const SPECIAL={'00000':['大家都笑啦！','모두가 웃는 설날'],'11111':['还没准备好就咔嚓！','준비도 안 됐는데 찰칵!'],'10000':['地板还湿着的全家福','바닥만 촉촉한 가족사진'],'01000':['炸毛猫咪抢镜啦！','삐친 고양이가 주인공!'],'00100':['花儿还在打瞌睡','꽃도 졸고 있는 사진'],'00010':['挂轴歪了也要拍！','족자가 삐딱해도 찰칵!'],'00001':['雾蒙蒙的新年照','안개 속 설날 기념사진'],'11000':['猫咪和水坑的合影','고양이와 웅덩이의 합작']};
+function titleOf(mask){if(SPECIAL[mask])return SPECIAL[mask];const u=K.filter((k,i)=>mask[i]==='1');return [u.map(k=>FR[k][0]).join('，')+'！',u.map(k=>FR[k][1]).join(', ')+'!'];}
+
+/* ---------- art ---------- */
+const ART={};const names=['bg','cat_wet','cat_dry','cam_fog','cam_clear','drain','frame','pot_wilt','pot_bloom','hanky','banner','puddle','broom2','didi','lili_basic','lili_shock','lili_joy','lili_worry','scroll_ok','paw'];
+for(const n of names){const im=new Image();im.onload=()=>{ART[n]=im;};im.src='art/'+n+'.webp';}
+
+/* ---------- state ---------- */
+const POS={lili:[.53,.51,.21],scroll:[.74,.30,.135],pot:[.21,.63,.17],cat:[.80,.63,.22],puddle:[.63,.81,.30],drain:[.91,.91,.12],tuan:[.42,.83,.19],frame:[.115,.87,.19],paw:[.09,.90,.05]};
+const HOME=[.80,.63],DRY=[.37,.70,.10];let S;const saveKey='tt-photo-trial';let ALB={};try{ALB=JSON.parse(localStorage.getItem(saveKey)||'{}')||{};}catch(e){}
+function fresh(){S={f:{puddle:false,cat:false,pot:false,scroll:false,camera:false},frameMoved:false,hidden:false,phase:'playing',t:120,fx:{},rub:{},scrollTap:0,framePos:0,puddleA:1,scrollRot:0,scrollT:0,idle:0,bubble:null,parts:[],drag:null,flash:0,mood:'worry',tools:{broom:1,cloth:0,didi:1},catPos:[HOME[0],HOME[1]],catSafe:false,catTwistSeen:false,twist:null,catShow:null,zoneT:0,catDrag:null,scrollDrag:null,scrollWarned:false};say(T.begin,POS.lili,2);setTimeout(()=>{if(S.phase==='playing'&&S.bubble&&S.bubble.t===T.begin)say(T.tuanOk,POS.tuan,2.2);},2000);updHud();refreshPV();}
+const done=()=>K.filter(k=>S.f[k]).length;
+const fx=(k,v)=>{S.fx[k]=v;};
+
+/* ---------- screen ---------- */
+const cv=document.getElementById('cv'),g=cv.getContext('2d');let VW=358,SS=358,TRAY=92,DPR=1;
+const pvC=document.createElement('canvas');pvC.width=pvC.height=480;
+function committed(){return JSON.parse(JSON.stringify({f:S.f,hidden:S.hidden,frameMoved:S.frameMoved,framePos:S.frameMoved?1:0,fx:{},mood:done()>=2?'joy':'shock',puddleA:S.f.puddle?0:1,scrollRot:S.scrollRot,catSafe:S.catSafe,catPos:S.catSafe?[DRY[0],DRY[1]-.03]:[HOME[0],HOME[1]]}));}
+function refreshPV(){if(S)drawScene(pvC.getContext('2d'),0,0,480,committed(),true);if(!document.getElementById('pv').hidden)showPV();}
+function showPV(){const c=document.getElementById('pvBig').getContext('2d');c.clearRect(0,0,480,480);c.drawImage(pvC,0,0);}
+function fit(){const wrap=document.getElementById('wrap'),aw=wrap.clientWidth,ah=wrap.clientHeight;SS=Math.min(aw,440,ah-TRAY);VW=SS;DPR=Math.min(2.5,devicePixelRatio||1);cv.width=VW*DPR;cv.height=(SS+TRAY)*DPR;cv.style.width=VW+'px';cv.style.height=(SS+TRAY)+'px';}
+addEventListener('resize',fit);
+const slots=()=>{const n=['broom','cloth','didi','preview'];return n.map((id,i)=>({id,x:VW*(i+.5)/4,y:SS+TRAY/2+4,r:38}));};
+
+/* ---------- drawing ---------- */
+function sprite(c,n,x,y,w,o={}){const im=ART[n];if(!im)return;const h=w*im.height/im.width;c.save();c.globalAlpha=o.a??1;c.translate(x,y);c.rotate(o.r||0);c.scale(o.sx||1,o.sy||1);c.drawImage(im,-w/2,-h/2,w,h);c.restore();}
+function drawScene(c,ox,oy,s,st,photo){const P=(k)=>{const p=POS[k];return{x:ox+p[0]*s,y:oy+p[1]*s,w:p[2]*s};};const now=performance.now()/1000;const wig=(k)=>{const v=!photo&&st.fx[k]>0?Math.sin(now*34)*.09*Math.min(1,st.fx[k]*2):0;return v;};
+ if(ART.bg)c.drawImage(ART.bg,ox,oy,s,s);else{c.fillStyle='#e9c9a0';c.fillRect(ox,oy,s,s);}
+ let p=P('drain');sprite(c,'drain',p.x,p.y,p.w);
+ p=P('puddle');if(st.puddleA>0.02)sprite(c,'puddle',p.x+(photo?0:(1-st.puddleA)*s*.26),p.y+(photo?0:(1-st.puddleA)*s*.09),p.w*(.5+.5*st.puddleA),{a:st.puddleA,r:wig('puddle')});
+ p=P('scroll');if(st.f.scroll)sprite(c,'scroll_ok',p.x,p.y,p.w*.92);else sprite(c,'banner',p.x,p.y,p.w,{r:st.scrollRot+wig('scroll')});
+ p=P('pot');sprite(c,st.f.pot?'pot_bloom':'pot_wilt',p.x,p.y,p.w,{r:wig('pot')});
+ p=P('lili');sprite(c,{joy:'lili_joy',shock:'lili_shock',worry:'lili_worry'}[st.mood]||'lili_basic',p.x,p.y,p.w);
+ const cp=st.catPos;if(photo&&!st.f.cat&&!st.catSafe){sprite(c,'cat_wet',ox+.86*s,oy+.70*s,.20*s);}else{const sh=st.fx.catShake>0&&!photo?Math.sin(now*60)*.1:0,dg=!photo&&st.fx.catDodge>0?Math.sin(st.fx.catDodge*6.3)*s*.05:0;sprite(c,(st.f.cat||(!photo&&st.catShow==='dry'))?'cat_dry':'cat_wet',ox+cp[0]*s+dg,oy+cp[1]*s,POS.cat[2]*s,{r:wig('cat'),sx:1+Math.abs(sh)});}
+ p=P('tuan');sprite(c,st.f.camera?'cam_clear':'cam_fog',p.x,p.y,p.w,{r:wig('tuan')});
+ if(!photo&&st.frameMoved&&!st.hidden){p=P('paw');pawAt(c,p.x,p.y,s/390,.75);}
+ if(!st.hidden||!photo){const fx0=.115+.125*st.framePos;if(!photo||true)sprite(c,'frame',ox+fx0*s,oy+.87*s,.19*s,{r:wig('frame')-.05*st.framePos});}
+ if(photo&&st.hidden)pawAt(c,ox+.11*s,oy+.92*s,s/390,.9);
+ if(photo&&!st.f.camera){const gr=c.createRadialGradient(ox+s/2,oy+s/2,s*.34,ox+s/2,oy+s/2,s*.72);gr.addColorStop(0,'rgba(240,244,248,0)');gr.addColorStop(1,'rgba(240,244,248,.82)');c.fillStyle=gr;c.fillRect(ox,oy,s,s);}}
+function pawAt(c,x,y,k,a){sprite(c,'paw',x,y,30*k,{a});}
+function bubble(b){const zh=b.t[0],ko=b.t[1],a=Math.min(1,b.life*3);g.save();g.globalAlpha=a;g.textAlign='center';g.font='19px "ZCOOL KuaiLe","PingFang SC",sans-serif';const w=Math.max(g.measureText(zh).width,(g.font='11px sans-serif',g.measureText(ko).width))+26;const x=Math.max(w/2+4,Math.min(VW-w/2-4,b.x)),y=Math.max(30,b.y);
+ g.fillStyle='#fffdf7';g.strokeStyle='#5b3520';g.lineWidth=2.5;g.beginPath();g.roundRect(x-w/2,y-26,w,50,16);g.fill();g.stroke();g.textBaseline='middle';g.fillStyle='#5b3520';g.font='19px "ZCOOL KuaiLe","PingFang SC",sans-serif';g.fillText(zh,x,y-7);g.font='11px sans-serif';g.fillStyle='#8a6448';g.fillText(ko,x,y+13);g.restore();}
+function draw(){g.setTransform(DPR,0,0,DPR,0,0);g.clearRect(0,0,VW,SS+TRAY);g.save();g.beginPath();g.roundRect(0,0,SS,SS,14);g.clip();drawScene(g,0,0,SS,S,false);
+ for(const q of S.parts){g.globalAlpha=Math.min(1,q.life*2);g.fillStyle=q.c;g.beginPath();g.arc(q.x,q.y,q.r,0,7);g.fill();}g.globalAlpha=1;g.restore();
+ /* tray */
+ if(S.catDrag||S.zoneT>0){g.save();g.setLineDash([7,6]);g.lineWidth=3;g.strokeStyle='rgba(255,246,190,.95)';g.beginPath();g.ellipse(DRY[0]*SS,DRY[1]*SS,DRY[2]*SS,DRY[2]*SS*.62,0,0,7);g.stroke();g.restore();}
+ g.fillStyle='#f3dcb8';g.beginPath();g.roundRect(0,SS+6,VW,TRAY-8,16);g.fill();
+ for(const s of slots()){if(s.id==='preview'){g.save();g.translate(s.x,s.y);g.rotate(-.05);g.fillStyle='#fffaf0';g.strokeStyle='#5b3520';g.lineWidth=2;g.beginPath();g.roundRect(-34,-35,68,70,5);g.fill();g.stroke();g.drawImage(pvC,-30,-31,60,60);g.restore();continue;}const have=S.tools[s.id],dragging=S.drag&&S.drag.id===s.id;if(!have){g.fillStyle='#e6c99c';g.beginPath();g.arc(s.x,s.y,30,0,7);g.fill();g.fillStyle='#a67f5a';g.font='24px "ZCOOL KuaiLe",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('?',s.x,s.y+1);continue;}
+  if(dragging)continue;drawTool(s.id,s.x,s.y,60);}
+ if(S.drag)drawTool(S.drag.id,S.drag.x,S.drag.y,78,.08);
+ if(S.bubble)bubble(S.bubble);
+ if(S.flash>0){g.fillStyle=`rgba(255,255,255,${Math.min(1,S.flash*3)})`;g.fillRect(0,0,VW,SS+TRAY);}}
+function drawTool(id,x,y,sz,r){const n={broom:'broom2',cloth:'hanky',didi:'didi'}[id];const im=ART[n];if(!im)return;const k=Math.min(sz/im.width,sz/im.height);sprite(g,n,x,y,im.width*k,{r:r||0});}
+
+/* ---------- reactions ---------- */
+function say(t,p,life){const x=Array.isArray(p)?p[0]*SS:p.x,y=Array.isArray(p)?p[1]*SS-p[2]*SS*.72:p.y;S.bubble={t,x,y,life:life||1.9};}
+function resolved(k,msgPos){if(S.f[k])return;S.f[k]=true;tone('good');refreshPV();S.mood=done()>=4?'joy':done()>=2?'joy':'worry';for(let i=0;i<22;i++){const p=POS[msgPos||k]||POS[k],a=Math.random()*7,v=50+Math.random()*90;S.parts.push({x:p[0]*SS,y:p[1]*SS,vx:Math.cos(a)*v,vy:Math.sin(a)*v-30,life:.7,r:2.4,c:['#ffd94a','#ff8fa3','#fff','#7fc9a2'][i%4]});}updHud();}
+function drops(fromK,toK,n){const a=POS[fromK],b=POS[toK];for(let i=0;i<n;i++){const d=i*.03;S.parts.push({x:a[0]*SS,y:a[1]*SS,vx:(b[0]-a[0])*SS/.7+(Math.random()-.5)*50,vy:(b[1]-a[1])*SS/.7-90,g:240,life:.75+d,r:3.2,c:'#8ccbf2'});}}
+function wrong(line,k,target){if(!wrongSeen[line.join()])wrongSeen[line.join()]=0;wrongSeen[line.join()]++;tone('nope');fx(k,.7);say(line,POS[target||k]);S.mood='shock';setTimeout(()=>{if(S&&S.phase==='playing')S.mood=done()>=2?'joy':'worry';},900);}
+const wrongSeen={};
+function dropOn(tool,tg){if(tool==='broom'){if(tg==='cat'&&!S.twist){fx('catDodge',.6);wrong(T.broomCat,'cat');}return;}
+ if(tool==='cloth'){if(tg==='puddle')wrong(T.clothPuddle,'puddle');else if(tg==='pot'&&!S.f.pot)wrong(T.clothPot,'pot');return;}
+ if(tool==='didi'){if(tg==='pot'&&!S.f.pot){drops('tuan','pot',12);setTimeout(()=>{resolved('pot');say(T.potDrink,POS.pot);},450);}
+  else if(tg==='tuan'&&!S.f.camera)wrong(T.didiCam,'tuan');
+  else if(tg==='cat'&&!S.f.cat&&!S.twist){/* the surprise: the cat shakes and the spray waters the plant */S.fx.catShake=1;tone('shake');say(T.catShake,POS.cat,1.1);drops('cat','pot',16);if(!S.f.pot)setTimeout(()=>{resolved('pot');say(T.potDrink,POS.pot);},1000);}}}
+
+/* ---------- input ---------- */
+const TG={puddle:[.63,.81,.15],cat:[.80,.63,.12],pot:[.21,.63,.10],scroll:[.74,.30,.09],tuan:[.42,.83,.11],frame:[.115,.87,.10],lili:[.53,.50,.10],paw:[.09,.90,.05]};
+const hit=(x,y,k)=>{const c=k==='cat'?S.catPos:TG[k];return Math.hypot(x/SS-c[0],y/SS-c[1])<TG[k][2];};
+const pt=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+function targetAt(x,y){for(const k of ['paw','scroll','pot','cat','tuan','frame','puddle','lili']){if(k==='paw'&&(!S.frameMoved||S.hidden))continue;if(k==='frame'&&S.frameMoved)continue;if(k==='puddle'&&S.f.puddle)continue;if(hit(x,y,k))return k;}return null;}
+cv.addEventListener('pointerdown',e=>{if(S.phase!=='playing')return;au();S.idle=0;const p=pt(e);try{cv.setPointerCapture(e.pointerId);}catch(_){}
+ for(const s of slots())if(Math.hypot(p.x-s.x,p.y-s.y)<s.r){if(s.id==='preview'){openPV();return;}if(!S.tools[s.id])continue;S.drag={id:s.id,x:p.x,y:p.y-34,lx:p.x,ly:p.y,moved:0};tone('tap');return;}
+ const k=targetAt(p.x,p.y);if(!k)return;if(k==='cat'&&!S.f.cat&&!S.twist){S.catDrag={sx:p.x,sy:p.y,moved:0};return;}if(k==='scroll'&&!S.f.scroll){S.scrollDrag={sx:p.x,r0:S.scrollRot,moved:0};return;}tapOn(k);});
+cv.addEventListener('pointermove',e=>{const p0=pt(e);if(S.catDrag){const c=S.catDrag;c.moved=Math.max(c.moved,Math.hypot(p0.x-c.sx,p0.y-c.sy));if(c.moved>8)S.catPos=[p0.x/SS,p0.y/SS];return;}if(S.scrollDrag){const c=S.scrollDrag;c.moved=Math.abs(p0.x-c.sx);S.scrollRot=Math.max(-.7,Math.min(.35,c.r0+(p0.x-c.sx)/SS*1.6));if(S.scrollRot<-.52&&!S.scrollWarned){S.scrollWarned=true;wrong(T.scrollHard,'scroll');}return;}const d=S.drag;if(!d)return;const p=pt(e),dist=Math.hypot(p.x-d.lx,p.y-d.ly);d.x=p.x;d.y=p.y-34;d.lx=p.x;d.ly=p.y;d.moved+=dist;rubAt(d,dist);});
+for(const ev of ['pointerup','pointercancel'])cv.addEventListener(ev,()=>{if(S.catDrag){const c=S.catDrag;S.catDrag=null;if(c.moved<=8){tapOn('cat');return;}if(Math.hypot(S.catPos[0]-DRY[0],S.catPos[1]-DRY[1])<DRY[2]+.03){S.catSafe=true;S.catPos=[DRY[0],DRY[1]-.03];S.zoneT=0;tone('good');say(T.safe,S.catPos.concat([.1]));refreshPV();}else S.catPos=S.catSafe?[DRY[0],DRY[1]-.03]:[HOME[0],HOME[1]];return;}if(S.scrollDrag){const c=S.scrollDrag;S.scrollDrag=null;if(c.moved<6){fx('scroll',.5);return;}S.scrollWarned=false;if(Math.abs(S.scrollRot+.23)<.1)resolved('scroll');else refreshPV();return;}const d=S.drag;if(!d)return;S.drag=null;const k=targetAt(d.x,d.y);if(k)dropOn(d.id,k);});
+function rubAt(d,dist){const k=targetAt(d.x,d.y);if(!k)return;const need={broom_puddle:1,cloth_cat:1,cloth_tuan:1}[d.id+'_'+k];if(!need)return;if(S.twist&&k==='cat')return;if((k==='cat'&&S.f.cat)||(k==='tuan'&&S.f.camera))return;
+ const r=d.id+k;S.rub[r]=(S.rub[r]||0)+dist;if(Math.random()<.3)S.parts.push({x:d.x,y:d.y+14,vx:(Math.random()-.5)*50,vy:-30,life:.4,r:3,c:k==='puddle'?'#8ccbf2':'#fff'});
+ if(k==='puddle')S.puddleA=Math.max(.05,1-S.rub[r]/150);if(S.rub[r]>150){if(k==='puddle'){S.puddleA=0;resolved('puddle','drain');}if(k==='cat'){if(S.f.puddle||S.catSafe)resolved('cat');else{S.rub[r]=0;S.twist={t:0,full:!S.catTwistSeen};S.catTwistSeen=true;S.catShow='dry';tone('good');}}if(k==='tuan'){resolved('camera','tuan');}}}
+function tapOn(k){tone('tap');if(k==='frame'){S.frameMoved=true;fx('frame',.3);say(T.frameDone,POS.frame);refreshPV();setTimeout(()=>{if(S.phase==='playing'){S.tools.cloth=1;say(T.cloth,[.5,1,0]);tone('good');}},900);return;}
+ if(k==='paw'){S.hidden=true;tone('good');say(T.foot,POS.paw);refreshPV();return;}
+ if(k==='lili'){say(T.lili,POS.lili);return;}
+ if(k==='cat'&&!S.f.cat){fx('cat',.5);say(T.catTap,POS.cat);return;}if(k==='pot'&&!S.f.pot){fx('pot',.5);say(T.potTap,POS.pot);return;}if(k==='puddle'){fx('puddle',.5);say(T.puddleTap,POS.puddle);return;}if(k==='tuan')openPV();}
+function openPV(){refreshPV();document.getElementById('pv').hidden=false;showPV();}
+
+/* ---------- photo ---------- */
+function capture(reason){if(S.phase!=='playing')return;S.phase='capturing';S.drag=null;S.catDrag=S.scrollDrag=null;S.twist=null;document.getElementById('pv').hidden=true;const mask=K.map(k=>S.f[k]?'0':'1').join('');const snap=committed();
+ say(reason==='timeout'?T.auto:T.manual,[.5,.5,0],1.2);tone('shutter');S.flash=.55;
+ setTimeout(()=>{const pc=document.getElementById('pc'),c=pc.getContext('2d');drawScene(c,0,0,640,snap,true);const t=titleOf(mask);document.getElementById('pTitle').textContent=t[0];document.getElementById('pKo').textContent=t[1];
+  const first=!ALB[mask];ALB[mask]=ALB[mask]||{n:0,zh:t[0],ko:t[1]};ALB[mask].n++;if(snap.hidden)ALB[mask].paw=1;try{localStorage.setItem(saveKey,JSON.stringify(ALB));}catch(e){}
+  document.getElementById('pTag').textContent=`${first?'새 사진 기록!':'같은 사진 '+ALB[mask].n+'번째'} · 사진첩 ${Object.keys(ALB).length}/32${snap.hidden?' · 발자국 스티커 획득':''}`;S.phase='result';document.getElementById('result').hidden=false;window.__last={mask,title:t,reason,n:(window.__last?.n||0)+1};},750);}
+function renderAlbum(){const L=document.getElementById('albumList');L.innerHTML='';document.getElementById('albumHead').textContent=`相册 ${Object.keys(ALB).length}/32`;for(const m of Object.keys(ALB).sort()){const d=document.createElement('div');d.className='al';d.textContent=ALB[m].zh;d.textContent=(SPECIAL[m]?'★ ':'')+ALB[m].zh;const s=document.createElement('span');s.textContent='×'+ALB[m].n+(ALB[m].paw?' 발자국':'');d.append(s);L.append(d);}}
+document.getElementById('shoot').onclick=()=>{au();capture('manual');};
+document.getElementById('again').onclick=()=>{document.getElementById('result').hidden=true;fresh();};
+document.getElementById('toAlbum').onclick=()=>{renderAlbum();document.getElementById('album').hidden=false;};
+document.getElementById('pv').onclick=()=>{document.getElementById('pv').hidden=true;};
+document.getElementById('albumBack').onclick=()=>{document.getElementById('album').hidden=true;};
+
+/* ---------- sound (short and soft) ---------- */
+let AC=null;function au(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();}catch(e){AC=null;}}
+function beep(f,t,d,v,ty){const o=AC.createOscillator(),a=AC.createGain();o.type=ty||'sine';o.frequency.value=f;a.gain.setValueAtTime(.0001,AC.currentTime+t);a.gain.exponentialRampToValueAtTime(v,AC.currentTime+t+.01);a.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+t+d);o.connect(a);a.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+d+.03);}
+function tone(n){if(!AC)return;try{({tap:()=>beep(660,0,.07,.08),good:()=>[784,988,1319].forEach((f,i)=>beep(f,i*.07,.3,.09)),nope:()=>{beep(300,0,.12,.07,'triangle');beep(230,.08,.13,.06,'triangle');},shake:()=>{for(let i=0;i<6;i++)beep(170+i*25,i*.06,.05,.05,'triangle');},shutter:()=>{beep(1400,0,.03,.08,'square');beep(900,.05,.05,.07,'square');}})[n]();}catch(e){}}
+
+/* ---------- loop ---------- */
+function updHud(){document.getElementById('prog').textContent=`已整理 ${done()}/5`;}
+function fmt(t){const s=Math.ceil(t),m=Math.floor(s/60);return `还有 ${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')} 开拍！`;}
+let last=0;function frame(n){const dt=Math.min(.05,(n-(last||n))/1000);last=n;if(S.phase==='playing'){S.t-=dt;S.idle+=dt;if(S.t<=0){S.t=0;capture('timeout');}const el=document.getElementById('timer');el.textContent=fmt(S.t);el.classList.toggle('low',S.t<=20);
+  if(S.idle>10){S.idle=0;const opts=K.filter(k=>!S.f[k]).map(k=>k==='camera'?'tuan':k);if(!S.frameMoved)opts.push('frame');if(opts.length)fx(opts[Math.floor(Math.random()*opts.length)],.8);}}
+ if(S.frameMoved)S.framePos=Math.min(1,S.framePos+dt*3);for(const k in S.fx)S.fx[k]=Math.max(0,S.fx[k]-dt);if(S.zoneT>0)S.zoneT-=dt;
+ if(S.twist){const w=S.twist,base=S.catSafe?S.catPos:HOME;w.t+=dt;const wetAt=w.full?1.2:.35;
+  if(w.full&&w.t>.7&&w.t<wetAt){const q=(w.t-.7)/.5;S.catPos=[HOME[0]+(.68-HOME[0])*q,HOME[1]+(.77-HOME[1])*q-Math.sin(q*3.14)*.12];}
+  if(w.t>=wetAt&&!w.sp){w.sp=1;S.catShow=null;tone('nope');say(T.twist1,[.66,.2,0],1.3);for(let i=0;i<20;i++){const a=Math.random()*3.14+3.14,v=70+Math.random()*90;S.parts.push({x:S.catPos[0]*SS,y:S.catPos[1]*SS+24,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:320,life:.6,r:3,c:'#8ccbf2'});}}
+  if(w.full&&w.t>wetAt+1.1&&!w.l){w.l=1;say(T.twist2,POS.lili);}
+  const end=w.full?wetAt+1.6:wetAt+.3;if(w.t>=end){S.catPos=[base[0],base[1]];S.twist=null;S.zoneT=4;}else if(w.full&&w.t>wetAt+.4){const q=Math.min(1,(w.t-wetAt-.4)/.5);S.catPos=[.68+(HOME[0]-.68)*q,.77+(HOME[1]-.77)*q];}}
+ for(const q of S.parts){q.life-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;if(q.g)q.vy+=q.g*dt;}S.parts=S.parts.filter(q=>q.life>0);if(S.bubble){S.bubble.life-=dt;if(S.bubble.life<=0)S.bubble=null;}if(S.flash>0)S.flash=Math.max(0,S.flash-dt);draw();requestAnimationFrame(frame);}
+fit();fresh();requestAnimationFrame(frame);setTimeout(refreshPV,700);setTimeout(refreshPV,2000);
+window.__t={get S(){return S;},capture,SS:()=>SS,slots,titleOf};
+</script>
