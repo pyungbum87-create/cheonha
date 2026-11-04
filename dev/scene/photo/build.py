@@ -66,6 +66,7 @@ const CACHE='{CACHE}',PRE={json.dumps(files)};
 self.addEventListener('install',e=>{{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>Promise.all(PRE.map(u=>c.add(new Request(u,{{cache:'reload'}})).catch(()=>{{}})))));}});
 self.addEventListener('activate',e=>{{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('tttown-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));}});
 self.addEventListener('fetch',e=>{{const r=e.request;if(r.method!=='GET'||!r.url.startsWith(self.registration.scope))return;
+ if(r.headers.has('range')){{e.respondWith(fetch(r).catch(()=>caches.match(r.url).then(async m=>{{if(!m)return Response.error();const b=await m.arrayBuffer(),q=/bytes=(\\d+)-(\\d*)/.exec(r.headers.get('range')),a=+q[1],z=q[2]?+q[2]:b.byteLength-1;return new Response(b.slice(a,z+1),{{status:206,headers:{{'Content-Type':'audio/mpeg','Content-Range':`bytes ${{a}}-${{z}}/${{b.byteLength}}`,'Content-Length':String(z-a+1),'Accept-Ranges':'bytes'}}}});}})));return;}}
  e.respondWith(fetch(r,{{cache:'no-cache'}}).then(res=>{{if(res&&res.ok&&res.status===200){{const cp=res.clone();caches.open(CACHE).then(c=>c.put(r,cp));}}return res;}}).catch(()=>caches.match(r,{{ignoreSearch:true}}).then(m=>m||caches.match('./index.html'))));}});
 '''
 open(O+'/sw.js','w').write(sw)
