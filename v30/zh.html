@@ -489,9 +489,9 @@ function sfx0(n){
 }
 
 /* ============================== BOARD GEOMETRY ============================== */
-const PL=66,PR=574,PT=56,PB=250;            // enemy road (a loop)
+const PL=56,PR=516,PT=46,PB=334;            // enemy road (a loop)
 const PER=2*((PR-PL)+(PB-PT));
-const COLS=8,ROWS=3,SX=124,SY=100,SPX=56,SPY=54;
+const COLS=8,ROWS=3,SX=90,SY=126,SPX=56,SPY=64;
 const slotXY=i=>[SX+(i%COLS)*SPX,SY+((i/COLS)|0)*SPY];
 function roadPos(d){d=((d%PER)+PER)%PER;const w=PR-PL,h=PB-PT;
   if(d<w)return[PL+d,PT];d-=w;if(d<h)return[PR,PT+d];d-=h;if(d<w)return[PR-d,PB];d-=w;return[PL,PB-d];}
@@ -527,7 +527,7 @@ function v28ScenarioEvent(){
 function v28DrawEventLabel(){
   if(!G||!G.sceneEventTxt)return;
   const e=G.sceneEventTxt;ctx.save();ctx.globalAlpha=Math.min(1,e.t*2)*.92;
-  ctx.fillStyle='rgba(35,20,12,.88)';ctx.fillRect(242,34,156,24);
+  ctx.fillStyle='rgba(35,20,12,.88)';ctx.fillRect(200,34,156,24);
   ctx.strokeStyle=e.c;ctx.lineWidth=1;ctx.strokeRect(242,34,156,24);
   txt(e.n,320,51,13,e.c,'center','"Song Myung"',1.5);ctx.restore();
 }
@@ -764,7 +764,7 @@ function buffs(){
     atk*=1+.03*CMU().atk;if(FDONE[f])atk*=1.05;{const dm=dmod();if(dm&&dm.f===f)atk*=1.4;}
     atk*=ALLY;u.atk=atk;u.aura=aura;
     u.int=Math.max(.25,(1.6-s[1]*.009)/spd*(u.d.sp==='rapid'?.5:1));
-    u.range=(92+s[1]*.38+(u.d.g>=3?8:0))*(hasMut('fog')?.8:1);
+    u.range=(92+s[1]*.38+(u.d.g>=3?8:0))*1.3*(hasMut('fog')?.8:1);
     u.crit=crit;
     u.sint=(1-(Math.min(5,CMU().cd)*.03+Math.max(0,CMU().cd-5)*.015))*(u.role===2?Math.max(2.5,(12-s[2]*.07)*scd):[7,8,0,10,9][u.role]*(u.role===0||u.role===1?scd*1:1));
     u.spow=s[2]*g.m*upm*trm*(u.role===2?3*((G.scn&&G.scn.intMul)||1):1.5);
@@ -1532,38 +1532,35 @@ function drawHUD(){
   // walls
   for(let i=0;i<3;i++){const x=432+i*14;ctx.fillStyle=i<G.walls?'#c9a35a':'#3a2d24';ctx.fillRect(x,6,10,12);ctx.fillStyle=i<G.walls?'#8a6a34':'#2a2018';ctx.fillRect(x,6,10,3);ctx.fillRect(x+3,9,4,2);}
   txt('城墙',476,17,9,'#b9a582');
-  // right margin: active synergies
-  let sy=48;const on=Object.keys(G.synOn);
-  for(const k of on){const S=SYN.find(s=>s.id===k);ctx.fillStyle='rgba(20,10,6,.7)';rr(ctx,578,sy,58,16,3);ctx.fill();ctx.strokeStyle='#d6a94a';ctx.lineWidth=.8;rr(ctx,578,sy,58,16,3);ctx.stroke();txt(S.n,607,sy+11.5,8,'#f2c14e','center','"Songti SC","STSong","Noto Serif SC"',0);sy+=19;}
-  // left column: faction upgrade buttons
-  for(let f=0;f<4;f++){if(G.onlyF!=null&&f!==G.onlyF)continue;const c=upCost(f),y=48+(G.onlyF!=null?0:f)*55,dis=G.gold<c,id='up'+f;BTN.push({id,x:2,y,w:50,h:50});
-    ctx.fillStyle=dis?'rgba(30,20,14,.88)':'rgba(48,28,18,.95)';rr(ctx,2,y,50,50,5);ctx.fill();
-    ctx.strokeStyle=dis?'#5a4636':FAC[f].l;ctx.lineWidth=1.3;rr(ctx,2.5,y+.5,49,49,5);ctx.stroke();
-    if(G.pressId===id&&performance.now()-G.pressAt<160){ctx.fillStyle='rgba(255,240,200,.35)';rr(ctx,2,y,50,50,5);ctx.fill();}
-    ctx.fillStyle=FAC[f].c;ctx.beginPath();ctx.arc(13,y+12,8,0,TAU);ctx.fill();txt(FAC[f].n[0],13,y+15.5,10,'#fff','center','"Songti SC","STSong","Noto Serif SC"',0);
-    txt(`+${G.up[f]*12}%`,23,y+16,10,G.up[f]?FAC[f].l:'#8a7a66','left','"PingFang SC","Hiragino Sans GB","Noto Sans SC"',0);
-    txt('强化',27,y+31,10,dis?'#8a7a66':'#fff2d8','center','"PingFang SC","Hiragino Sans GB","Noto Sans SC"',0);
-    txt(`${c}金`,27,y+44,9,dis?'#7a6a56':'#f2c14e','center','"PingFang SC","Hiragino Sans GB","Noto Sans SC"',0);}
-  // v30: selected general → speech bubble on the field (info + 합성/판매/히든), slim bottom bar (등용·명성)
-  const u=G.sel>=0?G.slots[G.sel]:null,ZH=V30ZH;
-  const mo=u?mergeOptions(G.sel):null,ho=u?hiddenOption(G.sel):null;
-  if(u){const [sx,sy]=slotXY(G.sel),row=(G.sel/COLS)|0,bw=212,bh=84,bx=Math.max(56,Math.min(W-62-bw,sx-bw/2)),by=row===0?sy+30:sy-30-bh;
-    ctx.save();ctx.fillStyle='rgba(22,13,8,.93)';rr(ctx,bx,by,bw,bh,9);ctx.fill();ctx.strokeStyle=GR[u.d.g].ring;ctx.lineWidth=1.5;rr(ctx,bx,by,bw,bh,9);ctx.stroke();
-    ctx.fillStyle='rgba(22,13,8,.93)';ctx.beginPath();if(row===0){ctx.moveTo(sx-7,by);ctx.lineTo(sx,by-8);ctx.lineTo(sx+7,by);}else{ctx.moveTo(sx-7,by+bh);ctx.lineTo(sx,by+bh+8);ctx.lineTo(sx+7,by+bh);}ctx.fill();ctx.restore();
-    txt(u.d.n+(u.tr?' ✦'+u.tr:''),bx+10,by+17,14,'#fff2d8','left','"Song Myung"',0);
-    txt(`${FAC[u.d.f].n} · ${GR[u.d.g].n} · ${ROLE[u.role].n} · ${WPN[u.wp]}`,bx+10,by+32,9.5,GR[u.d.g].ring,'left','"Gowun Dodum"',0);
-    txt((ZH?'攻击 ':'공격 ')+Math.round(u.atk)+' · '+(ZH?'射程 ':'사거리 ')+Math.round(u.range)+(u.d.g>=1?' · '+SKILL[u.role][Math.min(3,u.d.g)-1]:''),bx+10,by+46,9,'#d8c8a8','left','"Gowun Dodum"',0);
-    const bw2=ho?64:96,y2=by+54;
-    button('merge',bx+6,y2,bw2,24,ZH?'合成':'합성','',{dis:!mo,hot:!!mo});
-    button('sell',bx+12+bw2,y2,bw2,24,(ZH?'出售 +':'판매 +')+sellValue(u),'',{});
-    if(ho)button('hidden',bx+18+bw2*2,y2,bw2,24,ZH?'隐藏':'히든','',{hot:true,col:'#ff5a3a'});
-    if(mo)txt(mergeLabel(mo),bx+bw-8,by+17,8.5,'#f2c14e','right','"Gowun Dodum"',0);
-  }else{txt(ZH?'点击武将：信息·合成·出售 · 拖动换位':'장수를 누르면 정보·합성·판매 · 끌어서 자리 이동',12,334,10,'#b9a582','left','"Gowun Dodum"',0);
-    txt((ZH?'缘分 ':'인연 ')+Object.keys(G.synOn).length+(ZH?' 个发动中':'개 발동 중'),12,349,10,'#f2c14e','left','"Gowun Dodum"',0);}
-  // slim action bar
-  button('recruit',318,306,124,44,ZH?'招募':'등용',ZH?'30金':'30금',{hot:G.gold>=30,dis:G.gold<30});
-  {const fc=fameCost(),o=FAME_ODDS[G.fame];button('fame',448,306,104,44,(ZH?'名声 ':'명성 ')+G.fame,fc==null?(ZH?'最高':'최고'):fc+(ZH?'金':'금'),{dis:fc==null||G.gold<fc,col:'#f2c14e'});
-    txt((ZH?'武将 ':'무장 ')+o[0]+'% · '+(ZH?'名将 ':'명장 ')+o[1]+'%',250,334,9,'#b9a582','center','"Gowun Dodum"',0);}
+  // v30 layout: left fold-out 강화 / 명성, right info panel + 등용. No bottom bar.
+  const ZH=V30ZH,on=Object.keys(G.synOn);
+  {const one=G.onlyF!=null,fs=one?[G.onlyF]:[0,1,2,3];
+   const upBtn=(f,x,y)=>{const c=upCost(f),dis=G.gold<c,id='up'+f;BTN.push({id,x,y,w:46,h:46});
+     ctx.fillStyle=dis?'rgba(30,20,14,.92)':'rgba(48,28,18,.96)';rr(ctx,x,y,46,46,6);ctx.fill();ctx.strokeStyle=dis?'#5a4636':FAC[f].l;ctx.lineWidth=1.3;rr(ctx,x+.5,y+.5,45,45,6);ctx.stroke();
+     if(G.pressId===id&&performance.now()-G.pressAt<160){ctx.fillStyle='rgba(255,240,200,.35)';rr(ctx,x,y,46,46,6);ctx.fill();}
+     ctx.fillStyle=FAC[f].c;ctx.beginPath();ctx.arc(x+11,y+11,8,0,TAU);ctx.fill();txt(FAC[f].n[0],x+11,y+14.5,10,'#fff','center','"Song Myung"',0);
+     txt('+'+G.up[f]*12+'%',x+21,y+15,9,G.up[f]?FAC[f].l:'#8a7a66','left','"Gowun Dodum"',0);txt(ZH?'强化':'강화',x+23,y+30,10,dis?'#8a7a66':'#fff2d8','center','"Gowun Dodum"',0);txt(c+(ZH?'金':'금'),x+23,y+41,9,dis?'#7a6a56':'#f2c14e','center','"Gowun Dodum"',0);};
+   if(one)upBtn(G.onlyF,3,34);
+   else{const id='upT';BTN.push({id,x:3,y:34,w:46,h:30});ctx.fillStyle='rgba(48,28,18,.96)';rr(ctx,3,34,46,30,6);ctx.fill();ctx.strokeStyle='#d6a94a';ctx.lineWidth=1.2;rr(ctx,3.5,34.5,45,29,6);ctx.stroke();
+     txt((ZH?'强化 ':'강화 ')+(G.upOpen?'◂':'▸'),26,53,10,'#f2c14e','center','"Gowun Dodum"',0);
+     if(G.upOpen)fs.forEach((f,k)=>upBtn(f,3,68+k*50));}
+   const fc=fameCost(),o=FAME_ODDS[G.fame];button('fame',3,308,46,46,(ZH?'名声':'명성')+G.fame,fc==null?(ZH?'最高':'최고'):fc+(ZH?'金':'금'),{dis:fc==null||G.gold<fc,col:'#f2c14e'});}
+  // right panel
+  const PX=528,PW=108,u=G.sel>=0?G.slots[G.sel]:null,mo=u?mergeOptions(G.sel):null,ho=u?hiddenOption(G.sel):null;
+  if(u){drawToken(ctx,u,PX+PW/2,70,20,{});
+    txt(u.d.n+(u.tr?' ✦'+u.tr:''),PX+PW/2,106,13,'#fff2d8','center','"Song Myung"',0);
+    txt(FAC[u.d.f].n+' · '+GR[u.d.g].n,PX+PW/2,120,9.5,GR[u.d.g].ring,'center','"Gowun Dodum"',0);
+    txt(ROLE[u.role].n+' · '+WPN[u.wp],PX+PW/2,132,9.5,'#d8c8a8','center','"Gowun Dodum"',0);
+    const L2=[[(ZH?'攻击':'공격'),Math.round(u.atk)],[(ZH?'间隔':'간격'),u.int.toFixed(2)+(ZH?'秒':'초')],[(ZH?'射程':'사거리'),Math.round(u.range)]];if(u.d.g>=1)L2.push([SKILL[u.role][Math.min(3,u.d.g)-1],Math.round(u.sint)+(ZH?'秒':'초')]);
+    L2.forEach(([a,b],k)=>{txt(a,PX+8,148+k*12,9,'#b9a582','left','"Gowun Dodum"',0);txt(String(b),PX+PW-8,148+k*12,9,'#fff2d8','right','"Gowun Dodum"',0);});
+    button('merge',PX+4,200,PW-8,28,ZH?'合成':'합성',mo?mergeLabel(mo):'',{dis:!mo,hot:!!mo});
+    button('sell',PX+4,232,PW-8,26,(ZH?'出售 +':'판매 +')+sellValue(u),'',{});
+    if(ho)button('hidden',PX+4,262,PW-8,30,ZH?'隐藏组合':'히든 조합',UID[ho.R.out].n,{hot:true,col:'#ff5a3a'});
+  }else{txt(ZH?'缘分':'인연',PX+PW/2,52,11,'#f2c14e','center','"Song Myung"',0);let sy=60;
+    for(const k of on){const S=SYN.find(s=>s.id===k);ctx.fillStyle='rgba(20,10,6,.7)';rr(ctx,PX+6,sy,PW-12,16,3);ctx.fill();ctx.strokeStyle='#d6a94a';ctx.lineWidth=.8;rr(ctx,PX+6,sy,PW-12,16,3);ctx.stroke();txt(S.n,PX+PW/2,sy+11.5,8.5,'#f2c14e','center','"Song Myung"',0);sy+=19;if(sy>240)break;}
+    if(!on.length)txt(ZH?'暂无':'없음',PX+PW/2,74,9,'#8a7a66','center','"Gowun Dodum"',0);
+    const H2=ZH?['点击武将','查看信息·合成·出售','拖动可换位']:['장수를 누르면','정보·합성·판매','끌어서 자리 이동'];H2.forEach((t,k)=>txt(t,PX+PW/2,250+k*13,9,'#8a7a66','center','"Gowun Dodum"',0));}
+  button('recruit',PX+2,300,PW-4,54,ZH?'招募':'등용',ZH?'30金':'30금',{hot:G.gold>=30,dis:G.gold<30});
   // bottom-right corner intentionally left without buttons (hosting badges sit there)
 }
 
@@ -1589,7 +1586,7 @@ function onButton(id){
   else if(id==='merge'&&G.sel>=0)doMerge(G.sel);
   else if(id==='sell'&&G.sel>=0)sell(G.sel);
   else if(id==='hidden'&&G.sel>=0)doHidden(G.sel);
-  else if(id.startsWith('up'))upgrade(+id[2]);
+  else if(id==='upT')G.upOpen=!G.upOpen;else if(id.startsWith('up'))upgrade(+id[2]);
   else if(id==='speed'){G.speed=G.speed>=3?1:G.speed+1;}
   else if(id==='pause')togglePause();
 }
@@ -2008,6 +2005,36 @@ window.announce=(orig=>function(u){orig(u);try{if(u&&u.d&&u.d.g>=3)v30Cine(G.slo
   const top=document.createElement('div');top.className='v30band v30top';top.innerHTML=`<b>${V30ZH?'天下登用':'천하등용'}</b><span>${V30ZH?'三国合成塔防':'삼국 합성 디펜스'}</span>`;
   const bot=document.createElement('div');bot.className='v30band v30bot';bot.innerHTML='<b></b><span></span>';document.body.append(top,bot);
   setInterval(()=>{const B=G&&G.banner,c=CINE[CINE.length-1];const a=c?c.lab:B&&B.t>0?B.a:'',s=c?c.nm:B&&B.t>0?B.b:(G&&!G.over?(V30ZH?'第 '+G.round+' 回合':G.round+' 라운드'):'');bot.firstChild.textContent=a||'';bot.lastChild.textContent=s||'';},200);})();
+/* ===== v30e: 새 전장 배치용 배경 (하단 바 없음, 오른쪽 정보 패널) ===== */
+const V30G=new Image();V30G.onload=()=>{bgCache=null;};V30G.src='art/ground.webp';
+window.buildBG=function(){const c=document.createElement('canvas');c.width=W*K;c.height=H*K;const g=c.getContext('2d');g.scale(K,K);
+  const th=activeTheme();const lin=(y0,y1,st)=>{const q=g.createLinearGradient(0,y0,0,y1);st.forEach(([t,col])=>q.addColorStop(t,col));return q;};
+  g.fillStyle=lin(0,H,[[0,'#3a4a44'],[.35,'#7a6a48'],[1,'#4a3622']]);g.fillRect(0,0,W,H);
+  if(hdReady(th)){g.save();g.globalAlpha=.95;g.drawImage(HDART[th],0,0,W,W*HDART[th].height/HDART[th].width);g.restore();}
+  // battlefield ground (inside and around the road)
+  g.save();if(V30G.complete&&V30G.naturalWidth){g.fillStyle=g.createPattern(V30G,'repeat');}else g.fillStyle='#8a6e46';
+  g.globalAlpha=1;g.beginPath();g.rect(0,70,W,H-70);g.fill();g.restore();
+  g.fillStyle=lin(40,120,[[0,'rgba(90,70,40,0)'],[1,'rgba(90,70,40,.0)']]);
+  {const q=lin(56,110,[[0,'rgba(0,0,0,0)'],[1,'rgba(40,26,14,.0)']]);}
+  g.fillStyle=lin(60,96,[[0,'rgba(120,96,60,0)'],[1,'rgba(120,96,60,.55)']]);g.fillRect(0,60,W,36);
+  g.fillStyle='rgba(60,40,20,.18)';g.fillRect(0,96,W,H-96);
+  // the road loop
+  g.save();g.lineJoin='round';g.strokeStyle='rgba(40,26,14,.55)';g.lineWidth=36;g.strokeRect(PL,PT,PR-PL,PB-PT);
+  g.strokeStyle='#9a7a4e';g.lineWidth=30;g.strokeRect(PL,PT,PR-PL,PB-PT);g.strokeStyle='#b48f5c';g.lineWidth=22;g.strokeRect(PL,PT,PR-PL,PB-PT);
+  g.setLineDash([10,14]);g.strokeStyle='rgba(90,64,36,.45)';g.lineWidth=2;g.strokeRect(PL-6,PT-6,PR-PL+12,PB-PT+12);g.strokeRect(PL+6,PT+6,PR-PL-12,PB-PT-12);g.setLineDash([]);g.restore();
+  let sd=7;const rnd=()=>((sd=(sd*16807)%2147483647)/2147483647);
+  for(let i=0;i<90;i++){const t=rnd()*PER,[x,y]=roadPos(t),side=rnd()<.5?-1:1,[nx,ny]=roadNormal(x,y);const px=x+nx*side*(17+rnd()*5),py=y+ny*side*(17+rnd()*5);
+    g.fillStyle=rnd()<.5?'#6e5a40':'#857052';g.beginPath();g.ellipse(px,py,2+rnd()*3,1.5+rnd()*2,0,0,TAU);g.fill();}
+  // gate where enemies enter / leave
+  {const [gx,gy]=roadPos(0);g.fillStyle='#4a3626';g.fillRect(gx-16,gy-26,32,22);g.fillStyle='#2a1c12';g.beginPath();g.arc(gx,gy-8,9,Math.PI,0);g.fill();g.fillRect(gx-9,gy-8,18,6);g.fillStyle='#c23a2a';g.fillRect(gx+10,gy-40,10,7);g.strokeStyle='#3a2716';g.lineWidth=1.5;g.beginPath();g.moveTo(gx+10,gy-26);g.lineTo(gx+10,gy-40);g.stroke();}
+  // slots: pads (SD) or soft squares
+  for(let i=0;i<COLS*ROWS;i++){const [x,y]=slotXY(i);if(window.SDV&&SDV.pad(g,x,y,i))continue;g.fillStyle='rgba(40,26,14,.35)';rr(g,x-24,y-24,48,48,6);g.fill();g.strokeStyle='rgba(240,200,120,.35)';g.lineWidth=1;rr(g,x-24,y-24,48,48,6);g.stroke();}
+  // top bar + right panel frame
+  g.fillStyle=lin(0,30,[[0,'rgba(18,10,6,.95)'],[1,'rgba(18,10,6,.75)']]);g.fillRect(0,0,W,30);g.fillStyle='#d6a94a';g.fillRect(0,30,W,1);
+  g.fillStyle=lin(30,H,[[0,'rgba(30,18,10,.94)'],[1,'rgba(18,10,6,.97)']]);g.fillRect(526,31,W-526,H-31);g.fillStyle='#d6a94a';g.fillRect(526,31,1.2,H-31);
+  // vignette
+  const v=g.createRadialGradient(W/2-50,H/2,120,W/2-50,H/2,420);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.35)');g.fillStyle=v;g.fillRect(0,0,W,H);
+  return c;};
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
 document.getElementById('pOpts').onclick=()=>openOpts('pause');
