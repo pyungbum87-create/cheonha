@@ -9,6 +9,7 @@ keys={'lili_basic','lili_shock','lili_joy','lili_worry','paw'}
 for st in json.loads(data):
     keys.add(st['bg'])
     if st.get('hid'):keys.add(st['hid'])
+    if st.get('endArt'):keys.add(st['endArt'])
     for o in st['objs']:
         if o.get('img'):keys.add(o['img'])
         for a in o.get('alt',[]):
