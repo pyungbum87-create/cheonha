@@ -5,7 +5,7 @@ R=os.path.dirname(os.path.abspath(__file__));O=os.path.join(R,'site');shutil.rmt
 data=subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify(require('./src/stages.js')))"],cwd=R).decode()
 html=open(R+'/src/engine.html',encoding='utf-8').read().replace('/*@@STAGES@@*/[]',data)
 open(O+'/photo.html','w',encoding='utf-8').write(html)
-keys={'lili_basic','lili_shock','lili_joy','lili_worry','paw'}
+keys={'lili_basic','lili_shock','lili_joy','lili_worry','paw','tt_cheer','flashlight','clock','fu','hanky','dundun','zhuozhuo','tuantuan','cat_dry','cam_clear'}
 for st in json.loads(data):
     keys.add(st['bg'])
     if st.get('hid'):keys.add(st['hid'])

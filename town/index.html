@@ -51,6 +51,23 @@ body{color:var(--ink);font-family:var(--body);background-color:var(--paper);back
 #offer p{margin:0 0 7px;font:400 14px/1.3 var(--zh);text-align:center;text-wrap:balance}
 #offer .row{width:100%}
 #offer button{font-size:14px;padding:9px 3px}
+#items{width:100%;max-width:440px;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+#items button{position:relative;border:0;border-radius:12px;background:var(--cream);box-shadow:0 3px 0 var(--line);height:46px;display:grid;grid-template-columns:34px 1fr;align-items:center;padding:0 5px;cursor:pointer;color:var(--ink);font:400 13px/1 var(--zh)}
+#items button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+#items img{width:32px;height:32px;object-fit:contain}
+#items em{position:absolute;top:-5px;right:-3px;min-width:19px;height:19px;border-radius:10px;background:var(--red);color:#fff;font:400 12px/19px var(--zh);font-style:normal}
+#items button.off{filter:grayscale(.85);opacity:.55}
+#intro{z-index:9;background:rgba(70,38,20,.88)}
+#inBox{width:min(88vw,350px);background:var(--cream);border-radius:16px;padding:14px;box-sizing:border-box;text-align:center;box-shadow:0 0 0 3px var(--gold)}
+#inPic{height:150px;display:flex;justify-content:center;align-items:flex-end;gap:2px;margin-bottom:8px}
+#inPic img{min-width:0;height:auto;max-height:138px;flex:0 1 auto;width:30%;object-fit:contain;animation:bob 2.6s ease-in-out infinite}
+#inPic img:nth-child(even){animation-delay:.5s}
+#inT{font:400 24px/1.15 var(--zh);margin:0;color:var(--red)}
+#inZh{font:400 16px/1.4 var(--zh);margin:7px 0 3px}
+#inKo{font-size:12px;line-height:1.45;color:var(--soft);margin:0 0 8px}
+#inDots{display:flex;gap:6px;justify-content:center;margin-bottom:9px}
+#inDots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+#inDots i.on{background:var(--red)}
 #adAsk,#adMock{z-index:8}
 #askYes::before,#offerAd::before{content:'';display:inline-block;width:0;height:0;border-left:11px solid var(--red);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-right:6px;vertical-align:-1px}
 #comp{border:0;border-radius:18px;width:78px;background:var(--gold);color:var(--ink);font:400 17px/1.1 var(--zh);box-shadow:0 5px 0 var(--goldd);cursor:pointer}
@@ -140,7 +157,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .lv u{display:block;height:5px;border-radius:3px;background:var(--line);margin:5px 3px 0;overflow:hidden;text-decoration:none}
 .lv u s{display:block;height:100%;background:var(--gold);border-radius:3px}
 .lv.lock{filter:grayscale(.8);opacity:.6}
-#homeBar{width:100%;max-width:440px;display:grid;grid-template-columns:1fr 92px;gap:8px}
+#homeBar{width:100%;max-width:440px;display:grid;grid-template-columns:1fr 70px 88px;gap:7px}
 #homeBar button{border:0;border-radius:14px;padding:12px;font:400 18px/1 var(--zh);background:var(--gold);color:var(--ink);box-shadow:0 4px 0 var(--goldd);cursor:pointer}
 @media (prefers-reduced-motion:reduce){#polaroid{transform:none}}
 </style>
@@ -148,14 +165,16 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 <div id="home" class="screen">
  <div id="homeHead"><img src="art/lili_joy.webp" alt=""><div><h1>团团小镇闹哄哄</h1><p id="homeSub"></p></div></div>
  <div id="list"></div>
- <div id="homeBar"><button id="toHall" type="button">纪念馆</button><button id="mus" type="button">音乐 开</button></div>
+ <div id="homeBar"><button id="toHall" type="button">纪念馆</button><button id="howto" type="button">玩法</button><button id="mus" type="button">音乐 开</button></div>
 </div>
 <div id="play" class="screen" hidden>
  <div id="hud"><button id="back" class="mini" type="button" aria-label="返回">‹</button><div id="ribbon"><div id="goal"></div><div id="pips"></div><div id="timer"></div></div><button id="hintBtn" class="mini" type="button">提示<em id="hintN">3</em></button><div id="prog"></div></div>
  <div id="wrap"><canvas id="cv"></canvas></div>
+ <div id="items"><button id="itLight" type="button"><img src="art/flashlight.webp" alt=""><span>手电筒</span><em></em></button><button id="itClock" type="button"><img src="art/clock.webp" alt=""><span>加时钟</span><em></em></button><button id="itFu" type="button"><img src="art/fu.webp" alt=""><span>福气贴</span><em></em></button></div>
  <div id="foot"><button id="plus" type="button" hidden>+30秒<small>广告</small></button><button id="comp" type="button" hidden>全景</button><button id="shoot" type="button"><svg viewBox="0 0 34 30" aria-hidden="true"><path fill="#fff" d="M11 3h12l2 4h5a3 3 0 0 1 3 3v15a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3h5z"/><circle cx="17" cy="17" r="7" fill="#d8473a"/><circle cx="17" cy="17" r="4" fill="#ffe29a"/></svg><span>现在拍照<small>지금 촬영 · 언제든 찍을 수 있어요</small></span></button></div>
 </div>
 <div id="card" hidden><div id="cardIn"><span id="cardN"></span><b id="cardT"></b><small id="cardK"></small></div></div>
+<div id="intro" class="over" hidden><div id="inBox"><div id="inPic"></div><h2 id="inT"></h2><p id="inZh"></p><p id="inKo"></p><div id="inDots"></div><div class="row" style="width:100%"><button id="inSkip" class="alt" type="button">跳过</button><button id="inNext" class="main" type="button">继续</button></div></div></div>
 <div id="result" class="over" hidden>
  <div id="polaroid"><canvas id="pc" width="640" height="640"></canvas><div id="stamp"></div><div id="shine"></div><div id="pTitle"></div><div id="pKo"></div></div>
  <div id="pAfter" hidden></div>
@@ -180,7 +199,7 @@ function persist(){try{localStorage.setItem(KEY,JSON.stringify(SAVE));}catch(e){
 /* ---------- art ---------- */
 const ART={};const keys=new Set(['lili_basic','lili_shock','lili_joy','lili_worry','paw']);
 for(const st of STAGES){keys.add(st.bg);if(st.endArt)keys.add(st.endArt);if(st.hid)keys.add(st.hid);for(const o of st.objs){if(o.img)keys.add(o.img);for(const a of o.alt||[])if(a.img)keys.add(a.img);}for(const t of st.tools)keys.add(t.img);for(const r of st.rules)for(const d of r.do)if(d[0]==='tmp'&&d[2].img)keys.add(d[2].img);else if(d[0]==='fly')keys.add(d[1]);}
-keys.add('tt_cheer');
+keys.add('tt_cheer');for(const n of ['flashlight','clock','fu','hanky','dundun','zhuozhuo','tuantuan','cat_dry','cam_clear'])keys.add(n);
 for(const n of keys){const im=new Image();im.onload=()=>{ART[n]=im;if(S)refreshPV();};im.src='art/'+n+'.webp';}
 /* ---------- rules ---------- */
 const cond=(c,v)=>!c||c.split('|').some(a=>a.split('&').every(t=>t[0]==='!'?!v[t.slice(1)]:!!v[t]));
@@ -189,8 +208,8 @@ const obj=id=>L.objs.find(o=>o.id===id);
 function view(o,v,tmp){let r={img:o.img,x:o.x,y:o.y,w:o.w,h:o.h,rot:o.rot||0,hide:false};if(o.show&&!cond(o.show,v))r.hide=true;for(const a of o.alt||[])if(cond(a.if,v)){for(const k of ['img','x','y','w','h','rot'])if(a[k]!==undefined)r[k]=a[k];if(a.hide)r.hide=true;}const t=tmp&&tmp[o.id];if(t){Object.assign(r,t);if(t.hide===undefined&&t.show)r.hide=false;}return r;}
 const probsDone=v=>L.probs.filter(p=>v[p.id]).length;
 function blank(st){const v={};for(const p of st.probs)v[p.id]=false;return v;}
-function start(i){if(STAGES[i].wall)buildWall();L=STAGES[i];S={i,v:blank(L),found:false,phase:'playing',t:L.time||120,tmp:{},fx:{},rub:{},rot:{},q:[],qw:0,qBusy:false,parts:[],fly:[],bubble:null,drag:null,g:null,flash:0,mood:'worry',idle:0,hint:0,hintR:null,zone:null,comp:false,hints:L.diff.hints,paused:false,timeAd:false,hintAd:false,adRound:false};if(AD.missStage!==L.id){AD.miss=0;AD.missStage=L.id;AD.next={time:0,detail:0,free:0};}S.t+=AD.next.time;S.hints+=AD.next.free;S.detailReady=AD.next.detail;AD.next={time:0,detail:0,free:0};AD.played++;
- music('play');$('home').hidden=true;$('play').hidden=false;$('result').hidden=true;$('goal').textContent=L.goal;$('comp').hidden=!L.comp;$('comp').textContent='全景';fit();updHud();refreshPV();S.cardT=1.5;$('cardN').textContent=`第 ${L.id} 关`;$('cardT').textContent=L.title;$('cardK').textContent=L.ko;const cd=$('card');cd.hidden=true;void cd.offsetWidth;cd.hidden=false;const ci=$('cardIn');ci.style.animation='none';void ci.offsetWidth;ci.style.animation='';S.q.push(['wait',1.4]);enqueue(L.open||[]);}
+function start(i){$('intro').hidden=true;if(STAGES[i].wall)buildWall();L=STAGES[i];S={i,v:blank(L),found:false,phase:'playing',t:L.time||120,tmp:{},fx:{},rub:{},rot:{},q:[],qw:0,qBusy:false,parts:[],fly:[],bubble:null,drag:null,g:null,flash:0,mood:'worry',idle:0,hint:0,hintR:null,zone:null,comp:false,hints:L.diff.hints,used:{},paused:false,timeAd:false,hintAd:false,adRound:false};if(AD.missStage!==L.id){AD.miss=0;AD.missStage=L.id;AD.next={time:0,detail:0,free:0};}S.t+=AD.next.time;S.hints+=AD.next.free;S.detailReady=AD.next.detail;AD.next={time:0,detail:0,free:0};AD.played++;
+ music('play');$('home').hidden=true;$('play').hidden=false;$('result').hidden=true;$('goal').textContent=L.goal;$('comp').hidden=!L.comp;$('comp').textContent='全景';fit();updHud();updItems();refreshPV();S.cardT=1.5;$('cardN').textContent=`第 ${L.id} 关`;$('cardT').textContent=L.title;$('cardK').textContent=L.ko;const cd=$('card');cd.hidden=true;void cd.offsetWidth;cd.hidden=false;const ci=$('cardIn');ci.style.animation='none';void ci.offsetWidth;ci.style.animation='';S.q.push(['wait',1.4]);enqueue(L.open||[]);}
 function goHome(){music('menu');S=null;L=null;$('play').hidden=true;$('result').hidden=true;$('home').hidden=false;renderHome();}
 function enqueue(ops){S.q.push(...ops);}
 const at=p=>{if(Array.isArray(p))return{x:p[0],y:p[1]};if(p==='tray')return{x:.5,y:1.08};if(p==='lili')return{x:L.lili[0],y:L.lili[1]-L.lili[2]*.5};const o=obj(p);const w=view(o,S.v,S.tmp);return{x:w.x,y:w.y};};
@@ -295,12 +314,27 @@ function titleOf(st,mask){if(st.titles[mask])return st.titles[mask];const u=st.p
 function maskOf(st,v){return st.probs.map(p=>v[p.id]?'0':'1').join('');}
 function capture(reason){if(!S||S.phase!=='playing')return;S.phase='capturing';S.g=null;S.drag=null;S.hold=null;S.q=[];S.tmp={};$('pv').hidden=true;const v=JSON.parse(JSON.stringify(S.v)),mask=maskOf(L,v),found=S.found,zoom=S.comp,rots=Object.assign({},S.rot);
  S.bubble={t:reason==='timeout'?['时间到！就拍现在的样子！','시간 됐다! 지금 모습 그대로 찰칵!']:['就是现在！咔嚓！','지금 이 순간이 좋아! 찰칵!'],x:VW/2,y:SS/2,life:1.2};tone('shutter');S.flash=.55;
- setTimeout(()=>{if(!S)return;photoInto($('pc').getContext('2d'),640,L,v,found,zoom,rots);const t=titleOf(L,mask),A=SAVE.alb[L.id]=SAVE.alb[L.id]||{};const first=!A[mask];A[mask]=A[mask]||{n:0};A[mask].n++;SAVE.last[L.id]={mask,found,zoom};if(found)SAVE.found[L.id]=1;persist();
-  const dn0=5-[...mask].filter(c=>c==='1').length,prevBest=(SAVE.best=SAVE.best||{})[L.id]||0;if(dn0>prevBest)SAVE.best[L.id]=dn0;const bk=SAVE.bestShot=SAVE.bestShot||{};if(!bk[L.id]||dn0>=bk[L.id].n)bk[L.id]={mask,found,zoom,n:dn0};persist();const tier=dn0===5?3:dn0>=3?2:dn0>=1?1:0;$('polaroid').className='t'+tier;$('pAfter').hidden=dn0!==5;if(dn0===5){const firstP=!SAVE.seen||!SAVE.seen[L.id];$('pAfter').innerHTML=`<b>小镇日记 · 解锁</b>${L.after[0]}<small>${L.after[1]}</small><button id="reStory" type="button">看小故事</button>`;const stg=L;$('reStory').onclick=()=>openStory(stg);tone('good');setTimeout(()=>tone('good'),260);confetti();if(firstP){SAVE.seen=SAVE.seen||{};SAVE.seen[L.id]=1;persist();setTimeout(()=>{if(L===stg&&!$('result').hidden)openStory(stg);},2100);}}$('pTitle').textContent=t[0];$('pKo').textContent=t[1];$('pTag').textContent=`${first?'새 사진 기록!':'같은 사진 '+A[mask].n+'번째'} · 사진첩 ${Object.keys(A).length}/32${found?' · 숨은 스티커 획득':''}${dn0<5?` · ${5-dn0}개 더 해결하면 황금 사진!`:''}`;$('next').textContent=S.i+1<STAGES.length?'下一关':'纪念馆';const dn=5-[...mask].filter(c=>c==='1').length,sd=$('stamp');sd.innerHTML=dn===5?'<b>完美</b>全家福':dn===0?'<b>翻车</b>也好看':`<b>${dn}/5</b>小惊喜`;sd.style.animation='none';void sd.offsetWidth;sd.style.animation='';const po=$('polaroid');po.style.animation='none';void po.offsetWidth;po.style.animation='';S.phase='result';$('result').hidden=false;AD.sinceI++;AD.launchFirst=false;const dn2=5-[...mask].filter(c=>c==='1').length;AD.miss=dn2<5?AD.miss+1:0;$('offer').hidden=true;$('plus').hidden=true;if(AD.miss>=3){AD.next.free=1;$('pTag').textContent+=' · 다음 촬영에 무료 힌트 1개 추가';if(!AD.offered.has(L.id)&&adAdapter.allowed()&&adAdapter.ready()){AD.offered.add(L.id);$('offerT').textContent='想发现更多小惊喜吗？看广告，下次拍照增加30秒和1条详细提示';$('offerAd').textContent='看广告';$('offer').hidden=false;}}window.__last={stage:L.id,mask,title:t,reason,n:(window.__last?.n||0)+1};},750);}
+ setTimeout(()=>{if(!S)return;photoInto($('pc').getContext('2d'),640,L,v,found,zoom,rots);const t=titleOf(L,mask),hadFound=!!SAVE.found[L.id],A=SAVE.alb[L.id]=SAVE.alb[L.id]||{};const first=!A[mask];A[mask]=A[mask]||{n:0};A[mask].n++;SAVE.last[L.id]={mask,found,zoom};if(found)SAVE.found[L.id]=1;persist();
+  const dn0=5-[...mask].filter(c=>c==='1').length,prevBest=(SAVE.best=SAVE.best||{})[L.id]||0;if(dn0>prevBest)SAVE.best[L.id]=dn0;const gotI=earnItems(L,dn0===5&&prevBest<5,found&&!hadFound);const bk=SAVE.bestShot=SAVE.bestShot||{};if(!bk[L.id]||dn0>=bk[L.id].n)bk[L.id]={mask,found,zoom,n:dn0};persist();const tier=dn0===5?3:dn0>=3?2:dn0>=1?1:0;$('polaroid').className='t'+tier;$('pAfter').hidden=dn0!==5;if(dn0===5){const firstP=!SAVE.seen||!SAVE.seen[L.id];$('pAfter').innerHTML=`<b>小镇日记 · 解锁</b>${L.after[0]}<small>${L.after[1]}</small><button id="reStory" type="button">看小故事</button>`;const stg=L;$('reStory').onclick=()=>openStory(stg);tone('good');setTimeout(()=>tone('good'),260);confetti();if(firstP){SAVE.seen=SAVE.seen||{};SAVE.seen[L.id]=1;persist();setTimeout(()=>{if(L===stg&&!$('result').hidden)openStory(stg);},2100);}}$('pTitle').textContent=t[0];$('pKo').textContent=t[1];$('pTag').textContent=`${first?'새 사진 기록!':'같은 사진 '+A[mask].n+'번째'} · 사진첩 ${Object.keys(A).length}/32${found?' · 숨은 스티커 획득':''}${dn0<5?` · ${5-dn0}개 더 해결하면 황금 사진!`:''}${gotI.length?' · 아이템 '+gotI.join(', '):''}`;$('next').textContent=S.i+1<STAGES.length?'下一关':'纪念馆';const dn=5-[...mask].filter(c=>c==='1').length,sd=$('stamp');sd.innerHTML=dn===5?'<b>完美</b>全家福':dn===0?'<b>翻车</b>也好看':`<b>${dn}/5</b>小惊喜`;sd.style.animation='none';void sd.offsetWidth;sd.style.animation='';const po=$('polaroid');po.style.animation='none';void po.offsetWidth;po.style.animation='';S.phase='result';$('result').hidden=false;AD.sinceI++;AD.launchFirst=false;const dn2=5-[...mask].filter(c=>c==='1').length;AD.miss=dn2<5?AD.miss+1:0;$('offer').hidden=true;$('plus').hidden=true;if(AD.miss>=3){AD.next.free=1;$('pTag').textContent+=' · 다음 촬영에 무료 힌트 1개 추가';if(!AD.offered.has(L.id)&&adAdapter.allowed()&&adAdapter.ready()){AD.offered.add(L.id);$('offerT').textContent='想发现更多小惊喜吗？看广告，下次拍照增加30秒和1条详细提示';$('offerAd').textContent='看广告';$('offer').hidden=false;}}window.__last={stage:L.id,mask,title:t,reason,n:(window.__last?.n||0)+1};},750);}
 function renderAlbum(st){const A=SAVE.alb[st.id]||{};$('albumHead').textContent=`相册 ${Object.keys(A).length}/32`;$('albumSub').textContent=st.title;const X=$('albumList');X.innerHTML='';for(const m of Object.keys(A).sort()){const d=document.createElement('div');d.className='al';d.textContent=(st.titles[m]?'★ ':'')+titleOf(st,m)[0];const s=document.createElement('span');s.textContent='×'+A[m].n;d.append(s);X.append(d);}}
 let STX=null;
 function openStory(st){STX={st,i:0};const c=$('stC').getContext('2d');c.clearRect(0,0,640,640);if(st.endArt&&ART[st.endArt])c.drawImage(ART[st.endArt],0,0,640,640);else{const v=blank(st);st.probs.forEach(p=>{v[p.id]=true;});photoInto(c,640,st,v,false,false);}$('story').hidden=false;storyLine();}
 function storyLine(){const q=STX.st.story[STX.i];$('stWho').textContent=q[0];$('stZh').textContent=q[1];$('stKo').textContent=q[2];$('stStep').textContent=`${STX.i+1}/${STX.st.story.length}`;$('stNext').textContent=STX.i+1<STX.st.story.length?'继续':'完成';const t=$('stTalk');t.style.animation='none';void t.offsetWidth;t.style.animation='';}
+/* ---------- intro ---------- */
+const INTRO=[{p:['lili_joy','tuantuan','cat_dry'],t:'欢迎来到团团小镇',z:'新来的栗栗总是闹出小乱子，团团会帮大家拍下每一刻。',k:'새로 온 리리는 늘 작은 소동을 일으키고, 퇀퇀은 그 순간을 사진으로 남겨요.'},
+ {p:['hanky','dundun','zhuozhuo'],t:'找到麻烦，动手解决',z:'点一点、拖一拖，用工具和朋友们的本领解决五个麻烦。',k:'누르고 끌어서, 도구와 친구들의 능력으로 문제 5개를 해결하세요. 숨어 있는 친구도 찾아 보세요.'},
+ {p:['flashlight','clock','fu'],t:'用道具帮帮忙',z:'手电筒指路，加时钟多20秒，福气贴解决一个麻烦。',k:'손전등은 다음 할 일을, 시계는 20초를, 복 스티커는 문제 하나를 해결해 줘요. 한 판에 종류별로 한 번씩만 쓸 수 있어요.'},
+ {p:['cam_clear','paw','lili_basic'],t:'什么时候拍都可以',z:'解决越多照片越好看，五个全解决就有金色照片和小故事！',k:'언제든 찍을 수 있어요. 많이 해결할수록 사진이 좋아지고, 5개를 모두 풀면 황금 사진과 이야기가 열려요. 작은 발자국의 비밀도 풀어 보세요.'}];
+let INI=0;function showIntro(i){INI=i;const q=INTRO[i];$('inPic').innerHTML=q.p.map(n=>`<img src="art/${n}.webp" alt="">`).join('');$('inT').textContent=q.t;$('inZh').textContent=q.z;$('inKo').textContent=q.k;$('inDots').innerHTML=INTRO.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('');$('inNext').textContent=i+1<INTRO.length?'继续':'开始';$('intro').hidden=false;}
+function closeIntro(){$('intro').hidden=true;SAVE.intro=1;persist();}
+$('inNext').onclick=()=>{if(INI+1<INTRO.length)showIntro(INI+1);else closeIntro();};$('inSkip').onclick=closeIntro;$('howto').onclick=()=>showIntro(0);
+/* ---------- items: earned by playing, never by a draw ---------- */
+const ITEM={light:{btn:'itLight',zh:'手电筒'},clock:{btn:'itClock',zh:'加时钟'},fu:{btn:'itFu',zh:'福气贴'}};
+function bag(){SAVE.items=SAVE.items||{light:2,clock:1,fu:1};return SAVE.items;}
+function updItems(){const b=bag();for(const k in ITEM){const e=$(ITEM[k].btn);e.querySelector('em').textContent=b[k];e.classList.toggle('off',b[k]<=0||!!(S&&S.used&&S.used[k]));}}
+function useItem(k){if(!S||S.phase!=='playing'||S.paused)return;const b=bag();if(b[k]<=0||S.used[k]){tone('nope');return;}if(k==='light'&&!nextRule().length){tone('nope');return;}if(k==='fu'&&probsDone(S.v)===5){tone('nope');return;}b[k]--;S.used[k]=1;persist();updItems();tone('good');if(k==='light')detailHint();else if(k==='clock'){S.t+=20;S.bubble={t:['时间多了20秒！','시간이 20초 늘었어!'],x:VW/2,y:SS*.2,life:1.3};}else{const p=L.probs.find(q=>!S.v[q.id]);runOp(['set',p.id]);S.bubble={t:['福气到，麻烦解决！','복이 왔다, 문제 해결!'],x:VW/2,y:SS*.2,life:1.4};}}
+for(const k in ITEM)$(ITEM[k].btn).onclick=()=>useItem(k);
+function earnItems(st,first5,firstFound){const b=bag(),got=[];if(first5){b.light++;got.push('손전등 +1');}if(firstFound){b.clock++;got.push('시계 +1');}const gold=Object.values(SAVE.best||{}).filter(x=>x===5).length;if(first5&&gold%5===0){b.fu++;got.push('복 스티커 +1');}persist();return got;}
 function confetti(){const P=['#ffd94a','#ff8fa3','#9fd3ff','#8fd19e','#ffb13b'];for(let i=0;i<34;i++){const e=document.createElement('i');e.className='conf';e.style.left=Math.random()*100+'vw';e.style.background=P[i%5];e.style.animationDelay=Math.random()*.7+'s';document.body.append(e);setTimeout(()=>e.remove(),2800);}}
 function renderHall(){const W=$('wall');W.innerHTML='';for(const st of STAGES){const d=document.createElement('div');const c=document.createElement('canvas');c.width=c.height=170;const l=(SAVE.bestShot||{})[st.id]||SAVE.last[st.id];const X=c.getContext('2d');if(l){const v=blank(st);st.probs.forEach((p,i)=>{v[p.id]=l.mask[i]==='0';});photoInto(X,170,st,v,l.found,l.zoom);}else{X.fillStyle='#ead7b6';X.fillRect(0,0,170,170);}d.append(c);d.append(String(st.id));W.append(d);}const D=$('diary');D.innerHTML='';let dn=0;for(const st of STAGES){const e=document.createElement('div');if(((SAVE.best||{})[st.id]||0)===5){dn++;e.innerHTML=`${st.id}. ${st.after[0]}<small>${st.after[1]} · 눌러서 이야기 보기</small>`;e.onclick=()=>openStory(st);}else{e.className='off';e.textContent=`${st.id}. ？？？ (5/5 사진을 찍으면 열립니다)`;}D.append(e);}$('diaryN').textContent=`${dn}/${STAGES.length} 열림`;}
 function renderHome(){const X=$('list');X.innerHTML='';let total=0,last=-1;STAGES.forEach((st,i)=>{const n=Object.keys(SAVE.alb[st.id]||{}).length;total+=n;if(n)last=i;});$('homeSub').textContent=`황금 사진 ${Object.values(SAVE.best||{}).filter(x=>x===5).length}/${STAGES.length} · 사진 ${total}/${STAGES.length*32} · 스티커 ${Object.keys(SAVE.found).length}/${STAGES.length}`;
@@ -343,7 +377,7 @@ let AC=null;function au(){try{if(!AC)AC=new (window.AudioContext||window.webkitA
 function beep(f,t,d,v0,ty){const v=Math.min(.5,v0*2.6),o=AC.createOscillator(),a=AC.createGain();o.type=ty||'sine';o.frequency.value=f;a.gain.setValueAtTime(.0001,AC.currentTime+t);a.gain.exponentialRampToValueAtTime(v,AC.currentTime+t+.01);a.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+t+d);o.connect(a);a.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+d+.03);}
 function tone(n,f){if(!AC)return;try{({tap:()=>beep(660,0,.07,.08),good:()=>[784,988,1319].forEach((q,i)=>beep(q,i*.07,.3,.09)),nope:()=>{beep(300,0,.12,.07,'triangle');beep(230,.08,.13,.06,'triangle');},shake:()=>{for(let i=0;i<6;i++)beep(170+i*25,i*.06,.05,.05,'triangle');},note:()=>beep(f||523,0,.45,.13),shutter:()=>{beep(1400,0,.03,.08,'square');beep(900,.05,.05,.07,'square');}})[n]();}catch(e){}}
 /* ---------- loop ---------- */
-function updHud(){const n=probsDone(S.v);$('prog').textContent=`已整理 ${n}/5`;$('pips').innerHTML=[0,1,2,3,4].map(i=>`<i class="${i<n?'on':''}"></i>`).join('');$('hintN').textContent=S.hints;$('hintBtn').classList.toggle('none',S.hints<=0);}
+function updHud(){if(S&&S.used)updItems();const n=probsDone(S.v);$('prog').textContent=`已整理 ${n}/5`;$('pips').innerHTML=[0,1,2,3,4].map(i=>`<i class="${i<n?'on':''}"></i>`).join('');$('hintN').textContent=S.hints;$('hintBtn').classList.toggle('none',S.hints<=0);}
 function fmt(t){const s=Math.ceil(t),m=Math.floor(s/60);return `还有 ${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')} 开拍！`;}
 let last=0;function frame(n){const dt=Math.min(.05,(n-(last||n))/1000);last=n;if(S){if(S.cardT>0){S.cardT-=dt;if(S.cardT<=0)$('card').hidden=true;}if(S.phase==='playing'){if(!(S.cardT>0)&&!S.paused)S.t-=dt;S.idle+=dt;$('plus').hidden=!(S.t<=30&&!S.timeAd&&adAdapter.allowed()&&adAdapter.ready());if(S.t<=0){S.t=0;capture('timeout');}const el=$('timer');el.textContent=fmt(S.t);el.classList.toggle('low',S.t<=20);if(L.diff.idle&&S.idle>L.diff.idle){S.idle=0;idleNudge();}pump(dt);
    const G=S.g;if(G&&G.ges&&G.ges.on==='hold'&&G.moved<12){const k=(performance.now()-G.t0)/1000/(G.ges.dur||1.1);if(S.hold)S.hold.k=k;if(k>=1){S.g=null;S.hold=null;fire(G.ges);}}}
@@ -351,7 +385,7 @@ let last=0;function frame(n){const dt=Math.min(.05,(n-(last||n))/1000);last=n;if
   for(const f of S.fly){f.t+=dt;if(f.mv){const k=Math.min(1,f.t/f.dur);S.tmp[f.mv]=Object.assign({},S.tmp[f.mv],{x:f.x0+(f.x1-f.x0)*k,y:f.y0+(f.y1-f.y0)*k-Math.sin(k*3.14)*f.arc});}}S.fly=S.fly.filter(f=>f.t<f.dur);
   for(const q of S.parts){q.life-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;if(q.g)q.vy+=q.g*dt;}S.parts=S.parts.filter(q=>q.life>0);if(S.bubble){S.bubble.life-=dt;if(S.bubble.life<=0)S.bubble=null;}if(S.flash>0)S.flash=Math.max(0,S.flash-dt);if(!$('play').hidden)draw();}requestAnimationFrame(frame);}
 STAGES.forEach(st=>st.rules.forEach((r,i)=>{r.id=i;}));
-renderHome();requestAnimationFrame(frame);
+renderHome();requestAnimationFrame(frame);if(!SAVE.intro)showIntro(0);
 window.__t={openStory,get SAVE(){return SAVE;},AD,adAdapter,canInterstitial,runOp,pv:()=>pvC.toDataURL('image/jpeg',.82),get S(){return S;},get L(){return L;},start,capture,SS:()=>SS,slots,titleOf,view,cond,STAGES,goHome};
 </script>
 
