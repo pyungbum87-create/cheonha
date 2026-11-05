@@ -30,6 +30,14 @@ body{color:var(--ink);font-family:var(--body);background-color:var(--paper);back
 #shoot svg{grid-row:1/3;width:34px;height:30px}
 #shoot small{display:block;font:500 10.5px/1.3 var(--body);margin-top:3px;opacity:.92}
 #shoot:active{transform:translateY(4px);box-shadow:0 2px 0 var(--redd)}
+#plus{border:0;border-radius:18px;width:66px;background:var(--cream);color:var(--ink);font:400 16px/1.1 var(--zh);box-shadow:0 5px 0 var(--line);cursor:pointer}
+#plus small{display:block;font:500 10px/1.2 var(--body);color:var(--soft)}
+#offer{width:min(86vw,340px);background:rgba(255,248,236,.96);border-radius:12px;padding:8px}
+#offer p{margin:0 0 7px;font:400 14px/1.3 var(--zh);text-align:center;text-wrap:balance}
+#offer .row{width:100%}
+#offer button{font-size:14px;padding:9px 3px}
+#adAsk,#adMock{z-index:8}
+#askYes::before,#offerAd::before{content:'';display:inline-block;width:0;height:0;border-left:11px solid var(--red);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-right:6px;vertical-align:-1px}
 #comp{border:0;border-radius:18px;width:78px;background:var(--gold);color:var(--ink);font:400 17px/1.1 var(--zh);box-shadow:0 5px 0 var(--goldd);cursor:pointer}
 button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .over{position:fixed;inset:0;background:rgba(70,38,20,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));z-index:5;box-sizing:border-box}
@@ -96,14 +104,17 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 <div id="play" class="screen" hidden>
  <div id="hud"><button id="back" class="mini" type="button" aria-label="返回">‹</button><div id="ribbon"><div id="goal"></div><div id="pips"></div><div id="timer"></div></div><button id="hintBtn" class="mini" type="button">提示<em id="hintN">3</em></button><div id="prog"></div></div>
  <div id="wrap"><canvas id="cv"></canvas></div>
- <div id="foot"><button id="comp" type="button" hidden>全景</button><button id="shoot" type="button"><svg viewBox="0 0 34 30" aria-hidden="true"><path fill="#fff" d="M11 3h12l2 4h5a3 3 0 0 1 3 3v15a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3h5z"/><circle cx="17" cy="17" r="7" fill="#d8473a"/><circle cx="17" cy="17" r="4" fill="#ffe29a"/></svg><span>现在拍照<small>지금 촬영 · 언제든 찍을 수 있어요</small></span></button></div>
+ <div id="foot"><button id="plus" type="button" hidden>+30秒<small>广告</small></button><button id="comp" type="button" hidden>全景</button><button id="shoot" type="button"><svg viewBox="0 0 34 30" aria-hidden="true"><path fill="#fff" d="M11 3h12l2 4h5a3 3 0 0 1 3 3v15a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3h5z"/><circle cx="17" cy="17" r="7" fill="#d8473a"/><circle cx="17" cy="17" r="4" fill="#ffe29a"/></svg><span>现在拍照<small>지금 촬영 · 언제든 찍을 수 있어요</small></span></button></div>
 </div>
 <div id="card" hidden><div id="cardIn"><span id="cardN"></span><b id="cardT"></b><small id="cardK"></small></div></div>
 <div id="result" class="over" hidden>
  <div id="polaroid"><canvas id="pc" width="640" height="640"></canvas><div id="stamp"></div><div id="pTitle"></div><div id="pKo"></div></div>
  <div id="pTag"></div>
+ <div id="offer" hidden><p id="offerT"></p><div class="row"><button id="offerAd" class="alt" type="button"></button><button id="offerNo" class="alt" type="button">不用了</button></div></div>
  <div class="row"><button id="again" class="alt" type="button">再拍一次</button><button id="next" class="main" type="button">下一关</button><button id="toAlbum" class="alt" type="button">相册</button></div>
 </div>
+<div id="adAsk" class="over" hidden><div class="box"><h2 id="askT"></h2><p id="askK"></p><div class="row" style="width:100%"><button id="askYes" class="alt" type="button">看广告</button><button id="askNo" class="alt" type="button">不用了</button></div></div></div>
+<div id="adMock" class="over" hidden><div class="box" style="text-align:center"><h2>广告</h2><p>시험용 가짜 광고입니다. 실제 광고는 재생되지 않습니다.</p><p id="adSec" style="font-size:24px"></p><div class="row" style="width:100%"><button id="adClose" class="alt" type="button">中途关闭</button></div></div></div>
 <div id="pv" class="over" hidden><div id="pvBox"><canvas id="pvBig" width="480" height="480"></canvas><div id="pvCap">现在拍，会是什么样呢？</div><div id="pvKo">지금 찍으면 어떤 사진이 나올까? · 눌러서 닫기</div></div></div>
 <div id="album" class="over" hidden><div class="box"><h2 id="albumHead">相册</h2><p id="albumSub"></p><div id="albumList"></div></div><div class="row"><button id="albumBack" type="button">返回</button></div></div>
 <div id="hall" class="over" hidden><div class="box"><h2>小镇纪念馆</h2><p>각 단계에서 마지막으로 찍은 사진이 벽에 걸립니다.</p><div id="wall"></div></div><div class="row"><button id="hallBack" type="button">返回</button></div></div>
@@ -126,7 +137,7 @@ const obj=id=>L.objs.find(o=>o.id===id);
 function view(o,v,tmp){let r={img:o.img,x:o.x,y:o.y,w:o.w,h:o.h,rot:o.rot||0,hide:false};if(o.show&&!cond(o.show,v))r.hide=true;for(const a of o.alt||[])if(cond(a.if,v)){for(const k of ['img','x','y','w','h','rot'])if(a[k]!==undefined)r[k]=a[k];if(a.hide)r.hide=true;}const t=tmp&&tmp[o.id];if(t){Object.assign(r,t);if(t.hide===undefined&&t.show)r.hide=false;}return r;}
 const probsDone=v=>L.probs.filter(p=>v[p.id]).length;
 function blank(st){const v={};for(const p of st.probs)v[p.id]=false;return v;}
-function start(i){if(STAGES[i].wall)buildWall();L=STAGES[i];S={i,v:blank(L),found:false,phase:'playing',t:L.time||120,tmp:{},fx:{},rub:{},rot:{},q:[],qw:0,qBusy:false,parts:[],fly:[],bubble:null,drag:null,g:null,flash:0,mood:'worry',idle:0,hint:0,hintR:null,zone:null,comp:false,hints:L.diff.hints};
+function start(i){if(STAGES[i].wall)buildWall();L=STAGES[i];S={i,v:blank(L),found:false,phase:'playing',t:L.time||120,tmp:{},fx:{},rub:{},rot:{},q:[],qw:0,qBusy:false,parts:[],fly:[],bubble:null,drag:null,g:null,flash:0,mood:'worry',idle:0,hint:0,hintR:null,zone:null,comp:false,hints:L.diff.hints,paused:false,timeAd:false,hintAd:false,adRound:false};if(AD.missStage!==L.id){AD.miss=0;AD.missStage=L.id;AD.next={time:0,detail:0,free:0};}S.t+=AD.next.time;S.hints+=AD.next.free;S.detailReady=AD.next.detail;AD.next={time:0,detail:0,free:0};AD.played++;
  music('play');$('home').hidden=true;$('play').hidden=false;$('result').hidden=true;$('goal').textContent=L.goal;$('comp').hidden=!L.comp;$('comp').textContent='全景';fit();updHud();refreshPV();S.cardT=1.5;$('cardN').textContent=`第 ${L.id} 关`;$('cardT').textContent=L.title;$('cardK').textContent=L.ko;const cd=$('card');cd.hidden=true;void cd.offsetWidth;cd.hidden=false;const ci=$('cardIn');ci.style.animation='none';void ci.offsetWidth;ci.style.animation='';S.q.push(['wait',1.4]);enqueue(L.open||[]);}
 function goHome(){music('menu');S=null;L=null;$('play').hidden=true;$('result').hidden=true;$('home').hidden=false;renderHome();}
 function enqueue(ops){S.q.push(...ops);}
@@ -217,7 +228,7 @@ for(const ev of ['pointerup','pointercancel'])cv.addEventListener(ev,e=>{if(!S||
  const d=S.drag;if(!d)return;S.drag=null;const o=objAt(d.x/SS,d.y/SS,d.id);if(!o)return;const r=find('use',o.id,d.id);if(r){fire(r);return;}if(performance.now()-(S.rubbed||0)<400)return;if(!find('rub',o.id,d.id)){const t=L.tools.find(q=>q.id===d.id);S.fx[o.id]=.6;tone('nope');if(t.miss)S.bubble={t:t.miss,x:view(o,S.v,S.tmp).x*SS,y:(view(o,S.v,S.tmp).y-.13)*SS,life:1.5};}});
 /* ---------- hint: the next rule that changes something ---------- */
 function nextRule(){const shown=r=>{const o=obj(r.t);return !o||!o.show||cond(o.show,S.v);};return L.rules.filter(r=>cond(r.if,S.v)&&shown(r)&&(!r.tool||cond(L.tools.find(t=>t.id===r.tool).have,S.v))&&r.do.some(d=>d[0]==='set'&&!S.v[d[1]]));}
-function useHint(){if(S.hints<=0){tone('nope');return;}const rs=nextRule();const unsolved=rs.filter(r=>r.do.some(d=>d[0]==='set'&&L.probs.some(p=>p.id===d[1])));const r=unsolved[0]||rs[0];if(!r)return;S.hints--;updHud();const o=obj(r.t),w=view(o,S.v,S.tmp);S.fx[o.id]=1.4;if(L.diff.ring){S.hintR={x:w.x,y:w.y,r:o.r||Math.max(.07,(w.w||.1)*.6)};S.hint=2.8;S.hintTool=L.diff.toolRing?(r.tool||null):null;}}
+function useHint(){if(S.detailReady){S.detailReady=0;detailHint();return;}if(S.hints<=0){if(S.hintAd){tone('nope');return;}ask('看广告，获得详细提示','광고를 보면 다음에 할 일을 자세히 알려 줍니다',async()=>{await requestRewarded('hint',()=>{S.hintAd=true;detailHint();});});return;}const rs=nextRule();const unsolved=rs.filter(r=>r.do.some(d=>d[0]==='set'&&L.probs.some(p=>p.id===d[1])));const r=unsolved[0]||rs[0];if(!r)return;S.hints--;updHud();const o=obj(r.t),w=view(o,S.v,S.tmp);S.fx[o.id]=1.4;if(L.diff.ring){S.hintR={x:w.x,y:w.y,r:o.r||Math.max(.07,(w.w||.1)*.6)};S.hint=2.8;S.hintTool=L.diff.toolRing?(r.tool||null):null;}}
 function idleNudge(){const rs=nextRule();if(!rs.length)return;const r=rs[Math.floor(Math.random()*rs.length)];S.fx[r.t]=.8;}
 /* ---------- photo ---------- */
 const pvC=document.createElement('canvas');pvC.width=pvC.height=480;
@@ -231,14 +242,14 @@ function maskOf(st,v){return st.probs.map(p=>v[p.id]?'0':'1').join('');}
 function capture(reason){if(!S||S.phase!=='playing')return;S.phase='capturing';S.g=null;S.drag=null;S.hold=null;S.q=[];S.tmp={};$('pv').hidden=true;const v=JSON.parse(JSON.stringify(S.v)),mask=maskOf(L,v),found=S.found,zoom=S.comp,rots=Object.assign({},S.rot);
  S.bubble={t:reason==='timeout'?['时间到！就拍现在的样子！','시간 됐다! 지금 모습 그대로 찰칵!']:['就是现在！咔嚓！','지금 이 순간이 좋아! 찰칵!'],x:VW/2,y:SS/2,life:1.2};tone('shutter');S.flash=.55;
  setTimeout(()=>{if(!S)return;photoInto($('pc').getContext('2d'),640,L,v,found,zoom,rots);const t=titleOf(L,mask),A=SAVE.alb[L.id]=SAVE.alb[L.id]||{};const first=!A[mask];A[mask]=A[mask]||{n:0};A[mask].n++;SAVE.last[L.id]={mask,found,zoom};if(found)SAVE.found[L.id]=1;persist();
-  $('pTitle').textContent=t[0];$('pKo').textContent=t[1];$('pTag').textContent=`${first?'새 사진 기록!':'같은 사진 '+A[mask].n+'번째'} · 이 단계 사진첩 ${Object.keys(A).length}/32${found?' · 숨은 스티커 획득':''}`;$('next').textContent=S.i+1<STAGES.length?'下一关':'纪念馆';const dn=5-[...mask].filter(c=>c==='1').length,sd=$('stamp');sd.innerHTML=dn===5?'<b>完美</b>全家福':dn===0?'<b>翻车</b>也好看':`<b>${dn}/5</b>已整理`;sd.style.animation='none';void sd.offsetWidth;sd.style.animation='';const po=$('polaroid');po.style.animation='none';void po.offsetWidth;po.style.animation='';S.phase='result';$('result').hidden=false;window.__last={stage:L.id,mask,title:t,reason,n:(window.__last?.n||0)+1};},750);}
+  $('pTitle').textContent=t[0];$('pKo').textContent=t[1];$('pTag').textContent=`${first?'새 사진 기록!':'같은 사진 '+A[mask].n+'번째'} · 이 단계 사진첩 ${Object.keys(A).length}/32${found?' · 숨은 스티커 획득':''}`;$('next').textContent=S.i+1<STAGES.length?'下一关':'纪念馆';const dn=5-[...mask].filter(c=>c==='1').length,sd=$('stamp');sd.innerHTML=dn===5?'<b>完美</b>全家福':dn===0?'<b>翻车</b>也好看':`<b>${dn}/5</b>小惊喜`;sd.style.animation='none';void sd.offsetWidth;sd.style.animation='';const po=$('polaroid');po.style.animation='none';void po.offsetWidth;po.style.animation='';S.phase='result';$('result').hidden=false;AD.sinceI++;AD.launchFirst=false;const dn2=5-[...mask].filter(c=>c==='1').length;AD.miss=dn2<5?AD.miss+1:0;$('offer').hidden=true;$('plus').hidden=true;if(AD.miss>=3){AD.next.free=1;$('pTag').textContent+=' · 다음 촬영에 무료 힌트 1개 추가';if(!AD.offered.has(L.id)&&adAdapter.allowed()&&adAdapter.ready()){AD.offered.add(L.id);$('offerT').textContent='想发现更多小惊喜吗？看广告，下次拍照增加30秒和1条详细提示';$('offerAd').textContent='看广告';$('offer').hidden=false;}}window.__last={stage:L.id,mask,title:t,reason,n:(window.__last?.n||0)+1};},750);}
 function renderAlbum(st){const A=SAVE.alb[st.id]||{};$('albumHead').textContent=`相册 ${Object.keys(A).length}/32`;$('albumSub').textContent=st.title;const X=$('albumList');X.innerHTML='';for(const m of Object.keys(A).sort()){const d=document.createElement('div');d.className='al';d.textContent=(st.titles[m]?'★ ':'')+titleOf(st,m)[0];const s=document.createElement('span');s.textContent='×'+A[m].n;d.append(s);X.append(d);}}
 function renderHall(){const W=$('wall');W.innerHTML='';for(const st of STAGES){const d=document.createElement('div');const c=document.createElement('canvas');c.width=c.height=170;const l=SAVE.last[st.id];const X=c.getContext('2d');if(l){const v=blank(st);st.probs.forEach((p,i)=>{v[p.id]=l.mask[i]==='0';});photoInto(X,170,st,v,l.found,l.zoom);}else{X.fillStyle='#ead7b6';X.fillRect(0,0,170,170);}d.append(c);d.append(String(st.id));W.append(d);}}
 function renderHome(){const X=$('list');X.innerHTML='';let total=0,last=-1;STAGES.forEach((st,i)=>{const n=Object.keys(SAVE.alb[st.id]||{}).length;total+=n;if(n)last=i;});$('homeSub').textContent=`사진 ${total}/${STAGES.length*32} · 숨은 스티커 ${Object.keys(SAVE.found).length}/${STAGES.length}`;
  STAGES.forEach((st,i)=>{const n=Object.keys(SAVE.alb[st.id]||{}).length,open=TEST_OPEN_ALL||i<=last+1;const b=document.createElement('button');b.type='button';b.className='lv'+(open?'':' lock');b.innerHTML=`<i style="background-image:url(art/${st.bg}.webp)"></i><em>${st.id}</em><b>${st.title}</b><span>${st.ko} · 사진 ${n}/32${SAVE.found[st.id]?' · 스티커':''}</span><u><s style="width:${n/32*100}%"></s></u>`;b.onclick=()=>{if(open){au();start(i);}};X.append(b);});}
 $('shoot').onclick=()=>{au();capture('manual');};
-$('again').onclick=()=>{start(S.i);};
-$('next').onclick=()=>{if(S.i+1<STAGES.length)start(S.i+1);else{renderHall();$('hall').hidden=false;}};
+$('again').onclick=()=>{const i=S.i;transition(()=>start(i));};
+$('next').onclick=()=>{const i=S.i;if(i+1<STAGES.length)transition(()=>start(i+1));else{renderHall();$('hall').hidden=false;}};
 $('toAlbum').onclick=()=>{renderAlbum(L);$('album').hidden=false;};
 $('albumBack').onclick=()=>{$('album').hidden=true;};
 $('toHall').onclick=()=>{renderHall();$('hall').hidden=false;};
@@ -247,6 +258,22 @@ $('pv').onclick=()=>{$('pv').hidden=true;};
 $('back').onclick=()=>{goHome();};
 $('hintBtn').onclick=()=>{if(S&&S.phase==='playing')useHint();};
 $('comp').onclick=()=>{S.comp=!S.comp;$('comp').textContent=S.comp?'近景':'全景';refreshPV();};
+/* ---------- ads: rewarded first, interstitial off until tested. Replace adAdapter for WeChat/Douyin. ---------- */
+const INTERSTITIAL_ON=false;
+const adAdapter={allowed(){return true;},ready(){return true;},showRewarded(){return mockAd();},showInterstitial(){return mockAd();}};
+function mockAd(){return new Promise(res=>{let n=3;$('adSec').textContent=n;$('adMock').hidden=false;const done=e=>{clearInterval(t);$('adMock').hidden=true;res({isEnded:e});};const t=setInterval(()=>{n--;$('adSec').textContent=n;if(n<=0)done(true);},1000);$('adClose').onclick=()=>done(false);});}
+const AD={state:'IDLE',lastI:0,lastR:0,played:0,sinceI:0,launchFirst:true,paid:new Set(),seq:0,offered:new Set(),miss:0,missStage:0,next:{time:0,detail:0,free:0}};
+async function requestRewarded(type,grant){if(!adAdapter.allowed()||!adAdapter.ready())return 'unavailable';if(AD.state!=='IDLE')return 'busy';const id=++AD.seq;AD.state='SHOWING';if(S)S.paused=true;let out='unavailable';
+ try{const r=await Promise.race([adAdapter.showRewarded(),new Promise((_,x)=>setTimeout(()=>x(new Error('timeout')),60000))]);if(r&&r.isEnded===true){if(!AD.paid.has(id)){AD.paid.add(id);grant();AD.lastR=Date.now();if(S)S.adRound=true;}out='completed';}else out='cancelled';}catch(e){out='unavailable';}finally{if(S)S.paused=false;AD.state='IDLE';$('adMock').hidden=true;}return out;}
+let askCb=null;function ask(zh,ko,fn){if(AD.state!=='IDLE'||!adAdapter.allowed()||!adAdapter.ready())return;S.paused=true;$('askT').textContent=zh;$('askK').textContent=ko;$('adAsk').hidden=false;askCb=fn;}
+$('askNo').onclick=()=>{$('adAsk').hidden=true;askCb=null;if(S)S.paused=false;};
+$('askYes').onclick=async()=>{$('adAsk').hidden=true;const f=askCb;askCb=null;if(f)await f();if(S&&AD.state==='IDLE')S.paused=false;};
+function canInterstitial(){const n=Date.now();return INTERSTITIAL_ON&&adAdapter.allowed()&&!AD.launchFirst&&L&&L.id>=5&&AD.sinceI>=3&&n-AD.lastI>=180000&&n-AD.lastR>=60000&&!(S&&S.adRound);}
+async function transition(go){if(canInterstitial()&&AD.state==='IDLE'){AD.state='SHOWING';try{await adAdapter.showInterstitial();AD.lastI=Date.now();AD.sinceI=0;}catch(e){}AD.state='IDLE';$('adMock').hidden=true;}go();}
+function detailHint(){const rs=nextRule();const un=rs.filter(r=>r.do.some(d=>d[0]==='set'&&L.probs.some(p=>p.id===d[1])));const r=un[0]||rs[0];if(!r)return;const o=obj(r.t),w=view(o,S.v,S.tmp);S.fx[o.id]=1.4;S.hintR={x:w.x,y:w.y,r:o.r||Math.max(.07,(w.w||.1)*.6)};S.hint=4;S.hintTool=r.tool||null;}
+$('plus').onclick=()=>{if(!S||S.timeAd||S.phase!=='playing')return;ask('看广告，增加30秒','광고를 보면 이번 판 시간이 30초 늘어납니다',async()=>{const r=await requestRewarded('time',()=>{S.t+=30;S.timeAd=true;$('plus').hidden=true;});});};
+$('offerNo').onclick=()=>{$('offer').hidden=true;};
+$('offerAd').onclick=async()=>{const r=await requestRewarded('next',()=>{AD.next.time=30;AD.next.detail=1;});$('offer').hidden=true;if(r==='completed')$('pTag').textContent='다음 촬영에 30초와 자세한 힌트가 추가됩니다';};
 /* ---------- sound ---------- */
 const BGM={menu:new Audio('music/menu.mp3'),play:new Audio('music/play.mp3')};for(const k in BGM){BGM[k].loop=true;BGM[k].volume=k==='menu'?.72:.8;BGM[k].preload='auto';}let bgmNow='menu',bgmOn=SAVE.music!==false;
 function music(n){if(n)bgmNow=n;for(const k in BGM){if(k===bgmNow&&bgmOn&&!document.hidden){if(BGM[k].paused){const p=BGM[k].play();if(p&&p.catch)p.catch(()=>{});}}else if(!BGM[k].paused)BGM[k].pause();}}
@@ -258,12 +285,12 @@ function tone(n,f){if(!AC)return;try{({tap:()=>beep(660,0,.07,.08),good:()=>[784
 /* ---------- loop ---------- */
 function updHud(){const n=probsDone(S.v);$('prog').textContent=`已整理 ${n}/5`;$('pips').innerHTML=[0,1,2,3,4].map(i=>`<i class="${i<n?'on':''}"></i>`).join('');$('hintN').textContent=S.hints;$('hintBtn').classList.toggle('none',S.hints<=0);}
 function fmt(t){const s=Math.ceil(t),m=Math.floor(s/60);return `还有 ${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')} 开拍！`;}
-let last=0;function frame(n){const dt=Math.min(.05,(n-(last||n))/1000);last=n;if(S){if(S.cardT>0){S.cardT-=dt;if(S.cardT<=0)$('card').hidden=true;}if(S.phase==='playing'){if(!(S.cardT>0))S.t-=dt;S.idle+=dt;if(S.t<=0){S.t=0;capture('timeout');}const el=$('timer');el.textContent=fmt(S.t);el.classList.toggle('low',S.t<=20);if(L.diff.idle&&S.idle>L.diff.idle){S.idle=0;idleNudge();}pump(dt);
+let last=0;function frame(n){const dt=Math.min(.05,(n-(last||n))/1000);last=n;if(S){if(S.cardT>0){S.cardT-=dt;if(S.cardT<=0)$('card').hidden=true;}if(S.phase==='playing'){if(!(S.cardT>0)&&!S.paused)S.t-=dt;S.idle+=dt;$('plus').hidden=!(S.t<=30&&!S.timeAd&&adAdapter.allowed()&&adAdapter.ready());if(S.t<=0){S.t=0;capture('timeout');}const el=$('timer');el.textContent=fmt(S.t);el.classList.toggle('low',S.t<=20);if(L.diff.idle&&S.idle>L.diff.idle){S.idle=0;idleNudge();}pump(dt);
    const G=S.g;if(G&&G.ges&&G.ges.on==='hold'&&G.moved<12){const k=(performance.now()-G.t0)/1000/(G.ges.dur||1.1);if(S.hold)S.hold.k=k;if(k>=1){S.g=null;S.hold=null;fire(G.ges);}}}
   for(const k in S.fx)S.fx[k]=Math.max(0,S.fx[k]-dt);if(S.hint>0)S.hint-=dt;if(S.zone)S.zone.t-=dt;
   for(const f of S.fly){f.t+=dt;if(f.mv){const k=Math.min(1,f.t/f.dur);S.tmp[f.mv]=Object.assign({},S.tmp[f.mv],{x:f.x0+(f.x1-f.x0)*k,y:f.y0+(f.y1-f.y0)*k-Math.sin(k*3.14)*f.arc});}}S.fly=S.fly.filter(f=>f.t<f.dur);
   for(const q of S.parts){q.life-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;if(q.g)q.vy+=q.g*dt;}S.parts=S.parts.filter(q=>q.life>0);if(S.bubble){S.bubble.life-=dt;if(S.bubble.life<=0)S.bubble=null;}if(S.flash>0)S.flash=Math.max(0,S.flash-dt);if(!$('play').hidden)draw();}requestAnimationFrame(frame);}
 STAGES.forEach(st=>st.rules.forEach((r,i)=>{r.id=i;}));
 renderHome();requestAnimationFrame(frame);
-window.__t={runOp,pv:()=>pvC.toDataURL('image/jpeg',.82),get S(){return S;},get L(){return L;},start,capture,SS:()=>SS,slots,titleOf,view,cond,STAGES,goHome};
+window.__t={AD,adAdapter,canInterstitial,runOp,pv:()=>pvC.toDataURL('image/jpeg',.82),get S(){return S;},get L(){return L;},start,capture,SS:()=>SS,slots,titleOf,view,cond,STAGES,goHome};
 </script>
