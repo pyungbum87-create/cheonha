@@ -234,11 +234,12 @@ function gate(s,tool,img,x,y,w,zh,ko){const flag='has_'+tool,id='peek_'+tool;s.t
 /* an object starts hidden under another one */
 function under(s,t,img,dir,w,zh,ko){const o=s.objs.find(q=>q.id===t),flag='open_'+t,id='cover_'+t;o.show=o.show?o.show+'&'+flag:flag;const dx={left:-.11,right:.11}[dir]||0,dy={up:-.1,down:.1}[dir]||0;s.objs.push({id,img,x:o.x,y:o.y,w,z:(o.z||3)+1,r:w*.7,alt:[{if:flag,x:o.x+dx,y:o.y+dy}]});s.rules.push(swipe(id,dir,'!'+flag,set(flag),say(zh,ko,[o.x,Math.max(.25,o.y-.04)],1.4)));}
 function decoy(s,img,x,y,w,zh,ko){const id='decoy'+(++uid);s.objs.push({id,img,x,y,w,z:2,r:Math.max(.05,w*.65)});s.rules.push(tap(id,'',['wig',id,.5],say(zh,ko,[x,Math.max(.22,y)],1.4)));}
+/* an object you pick up: it flies to the shelf and becomes a tool */
+function pick(s,tool,img,x,y,w,zh,ko,miss){const flag='got_'+tool,id='item_'+tool;let t=s.tools.find(q=>q.id===tool);if(!t){t={id:tool,img,miss};s.tools.push(t);}t.have=flag;s.objs.push({id,img,x,y,w,z:3,show:'!'+flag,r:Math.max(.06,w*.75)});s.rules.push(tap(id,'',['fly',img,[x,y],'tray',.4,.05,.09],set(flag),['tone','good'],say(zh,ko,[.5,.86],1.5)));}
 const at=n=>ST[n-1];
 decoy(at(2),'tea',.10,.545,.06,'茶还热着呢','차가 아직 따뜻해');
 decoy(at(3),'tissue',.11,.60,.07,'这不是垃圾','이건 쓰레기가 아니야');
 gate(at(4),'shan','shanshan',.10,.45,.07,'闪闪躲在架子上！','반짝이 선반에 숨어 있었네!');
-{const s=at(5);s.objs.push({id:'stall',hot:1,x:.93,y:.46,r:.08});s.rules.push(tap('stall','!out',set('out'),say('糖葫芦做好啦！','탕후루 완성!','haw')));const h=s.objs.find(o=>o.id==='haw');h.show='out';}
 gate(at(6),'dun','dundun',.93,.34,.07,'墩墩在树后面玩！','둥둥이 나무 뒤에서 놀고 있었네!');decoy(at(6),'pail',.10,.60,.06,'这个小桶是别人的','이 양동이는 다른 사람 거야');
 gate(at(7),'zhuo','zhuozhuo',.10,.60,.07,'啄啄在树丛里找信','쫑쫑이 덤불에서 편지를 찾고 있었네');decoy(at(7),'kite',.68,.20,.06,'这只风筝不用管','이 연은 그냥 둬');
 gate(at(8),'didi','didi',.94,.60,.06,'滴滴在花丛里乘凉','방울이가 꽃덤불에서 쉬고 있었네');decoy(at(8),'shell',.60,.52,.05,'这是装饰品','이건 장식품이야');
@@ -280,5 +281,10 @@ const STORY=[
 [[T_,'今天是小镇最热闹的一天。','오늘은 동네에서 가장 신나는 날이야.'],[L_,'小猫，你愿意一起拍照吗？','고양이야, 같이 사진 찍을래?'],[M_,'喵！','야옹! (작은 상자를 밀어 준다)']],
 [[L_,'盒子里全是我们的照片！','상자에 우리 사진이 가득해!'],[T_,'原来它一直在帮我们收藏回忆。','계속 우리 추억을 모아 주고 있었구나.'],[M_,'喵～全镇合影，算我一个！','야옹~ 동네 사진, 나도 끼워 줘!']]];
 ST.forEach((s,i)=>{s.after=AFTER[i];s.story=STORY[i];const a='end_'+String(i+1).padStart(2,'0');if(require('fs').existsSync(require('path').join(__dirname,'../art',a+'.webp')))s.endArt=a;});
+/* bag items, stages 2-5 */
+{const s=at(2);need(s,'shutter','handle');s.rules.push(tap('shutter','!handle',['wig','shutter',.5],['tone','nope'],say('门卡住了，少个把手','문이 걸렸어, 손잡이가 없네','shutter',1.5)));pick(s,'knobT','knob',.16,.74,.06,'捡到一个门把手！','문 손잡이를 주웠어!',['这里用不上把手','여긴 손잡이가 필요 없어']);s.rules.push(use('knobT','shutter','!handle&!shutter',set('handle'),['tone','good'],say('装好了，往上推推看','달았어, 위로 밀어 봐','shutter',1.5)));}
+{const s=at(3);s.rules=s.rules.filter(q=>!(q.t==='rug'&&q.on==='swipe'));pick(s,'dusterT','duster',.95,.50,.07,'找到掸子啦！','먼지떨이를 찾았어!',['这里不用掸','여긴 털 필요 없어']);s.rules.push(rub('dusterT','rug','!rug',set('rug'),say('地毯平整啦','양탄자가 평평해졌어','rug')));}
+pick(at(4),'duster','duster',.60,.62,.08,'旧掸子还能用！','낡은 먼지떨이도 쓸 만해!');
+{const s=at(5);s.objs=s.objs.filter(o=>o.id!=='haw');s.rules=s.rules.filter(q=>q.t!=='haw');s.objs.push({id:'stall',hot:1,x:.93,y:.46,r:.08});s.tools.push({id:'hawT',img:'hawthorn',have:'out',miss:['这个是给墩墩的','이건 둥둥 줄 거야']});s.rules.push(tap('stall','!out',['fly','hawthorn',[.93,.46],'tray',.4,.05,.05],set('out'),['tone','good'],say('买到糖葫芦啦！','탕후루를 샀어!',[.5,.86],1.5)));s.rules.push(use('hawT','dun','!haw',set('haw'),say('甜甜的！','달콤해!','dun')));}
 for(const s of ST){s.diff=diff(s.id);s.time=time(s.id);}
 module.exports=ST;
