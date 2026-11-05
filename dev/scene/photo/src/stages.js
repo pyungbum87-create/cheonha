@@ -226,7 +226,7 @@ stage({id:20,title:'小镇纪念照',ko:'동네 기념사진',goal:'全镇大合
 
 /* ---------- difficulty: stage 1 is the gentle one, then help shrinks and puzzles deepen ---------- */
 const diff=id=>({hints:id===1?3:id<=5?2:1,idle:id===1?8:id<=5?15:id<=10?25:0,zones:id<=2,ring:id<=12,toolRing:id<=5,slack:id<=5?.03:id<=12?.015:0,rub:id<=5?150:id<=12?185:225});
-const time=id=>id===1?120:id<=5?110:id<=10?100:id<=15?90:80;
+const time=id=>id===1?150:id<=5?140:id<=10?130:id<=15?125:120;
 let uid=0;
 function need(s,t,flag){for(const q of s.rules)if(q.t===t&&!q.do.some(d=>d[0]==='found'))q.if=(q.if||'').split('|').map(a=>a?a+'&'+flag:flag).join('|');}
 /* a friend stays locked until found in the scene */
@@ -281,10 +281,27 @@ const STORY=[
 [[T_,'今天是小镇最热闹的一天。','오늘은 동네에서 가장 신나는 날이야.'],[L_,'小猫，你愿意一起拍照吗？','고양이야, 같이 사진 찍을래?'],[M_,'喵！','야옹! (작은 상자를 밀어 준다)']],
 [[L_,'盒子里全是我们的照片！','상자에 우리 사진이 가득해!'],[T_,'原来它一直在帮我们收藏回忆。','계속 우리 추억을 모아 주고 있었구나.'],[M_,'喵～全镇合影，算我一个！','야옹~ 동네 사진, 나도 끼워 줘!']]];
 ST.forEach((s,i)=>{s.after=AFTER[i];s.story=STORY[i];const a='end_'+String(i+1).padStart(2,'0');if(require('fs').existsSync(require('path').join(__dirname,'../art',a+'.webp')))s.endArt=a;});
+/* side missions: stage 1-5 have 3, 6-12 have 4, 13-20 have 5, so a stage has 8 to 10 problems.
+   f find · u find under a cover · g bring to Lili · h hold to blow up · b pick a tool, use it on a mess */
+const NAME={hargow:['虾饺','새우만두'],siumai:['烧卖','샤오마이'],charsiu:['叉烧包','차슈바오'],xiaolong:['小笼包','샤오롱바오'],eggtart:['蛋挞','에그타르트'],sesame:['芝麻球','깨찰볼'],tea:['热茶','따뜻한 차'],shell:['贝壳','조개껍데기'],hat:['小帽子','작은 모자'],envelope:['小信封','작은 편지'],gift:['小礼物','작은 선물'],candle2:['小蜡烛','작은 초'],panda:['熊猫玩偶','판다 인형'],shoe:['小鞋子','작은 신발'],clock:['小闹钟','작은 시계'],jar:['玻璃瓶','유리병'],hawthorn:['糖葫芦','탕후루'],kite:['小风筝','작은 연'],sdragon:['糖画','설탕 그림'],tissue:['纸巾','휴지'],lantern:['小灯笼','작은 등롱'],plantern:['小花灯','작은 꽃등'],muffs:['耳罩','귀마개'],lunch:['点心盒','간식 상자'],thermo:['温度计','온도계'],flashlight:['小手电','작은 손전등']};
+const PAIR={broom2:['paper','扫把','빗자루','纸团扫干净了','종이뭉치를 쓸었어'],duster:['web','掸子','먼지떨이','蜘蛛网没有了','거미줄이 사라졌어'],hanky:['tissue','手帕','손수건','擦干净了','깨끗하게 닦았어']};
+function spots(s){const a=[[s.lili[0],s.lili[1],.13]];for(const o of s.objs){a.push([o.x,o.y,o.r||Math.max(.06,(o.w||.1)*.6)]);for(const q of o.alt||[])a.push([q.x??o.x,q.y??o.y,.07]);}for(const r of s.rules)if(r.to)a.push([r.to[0],r.to[1],.07]);return a;}
+function free(s,seed){const a=spots(s);let best=null,bs=-9;for(let x=.08;x<.93;x+=.05)for(let y=.14;y<.93;y+=.05){let d=9;for(const q of a)d=Math.min(d,Math.hypot(x-q[0],y-q[1])-q[2]);const j=Math.abs(Math.sin(x*91+y*37+seed*13))*.035;if(d+j>bs){bs=d+j;best=[x,y];}}return best;}
+function side(s,list){const hard=s.id>=13?.052:s.id>=6?.06:.07,n0=s.rules.length;s.extra=[];list.forEach((e,i)=>{const id='x'+(i+1),[k,img,arg]=e,[x,y]=free(s,s.id+i),nm=NAME[img]||['',''];s.extra.push({id});
+  if(k==='f'||k==='u'){s.objs.push({id,img,x,y,w:hard,z:2,show:'!'+id,r:Math.max(.05,hard*.8)});s.rules.push(tap(id,'',['fly',img,[x,y],'tray',.35,.05,.05],set(id),say('找到'+nm[0]+'啦！',nm[1]+' 찾았다!',[x,Math.max(.25,y)],1.2)));if(k==='u')under(s,id,arg,x<.5?'right':'left',.1,'下面有东西！','밑에 뭔가 있어!');}
+  else if(k==='g'){s.objs.push({id,img,x,y,w:hard+.015,z:3,show:'!'+id,r:.065});s.rules.push(drag(id,[s.lili[0],s.lili[1],.11],'!'+id,set(id),say('谢谢！这个'+nm[0]+'正好！','고마워! '+nm[1]+' 딱 좋아!','lili',1.3)));}
+  else if(k==='h'){s.objs.push({id,img:'balloon_d',x,y,w:.08,z:3,r:.07,alt:[{if:id,img:'balloon',w:.09,y:Math.max(.16,y-.06)}]});s.rules.push(hold(id,'!'+id,set(id)));}
+  else if(k==='b'){const [mess,tz,tk,dz,dk]=PAIR[img],t='t'+id,got='got_'+id;s.tools.push({id:t,img,have:got,miss:['这里用不上'+tz,'여긴 '+tk+'가 필요 없어']});s.objs.push({id:'p'+id,img,x,y,w:.08,z:3,show:'!'+got,r:.065});s.rules.push(tap('p'+id,'',['fly',img,[x,y],'tray',.35,.05,.08],set(got),['tone','good'],say('捡到'+tz+'！',tk+' 주웠다!',[.5,.86],1.2)));const [mx,my]=free(s,s.id+i+40);s.objs.push({id,img:mess,x:mx,y:my,w:.09,z:2,show:'!'+id,r:.075});s.rules.push(use(t,id,'!'+id,set(id),say(dz,dk,[mx,Math.max(.25,my)],1.2)));}});
+ for(const r of s.rules.slice(n0))r.x=1;}
+const SIDE=[[['f','eggtart'],['f','sesame'],['g','tea']],[['f','hargow'],['g','lunch'],['f','xiaolong']],[['f','hat'],['g','tea'],['u','panda','pillow']],[['f','candle2'],['g','tea'],['u','hat','cushion']],[['f','kite'],['h'],['g','sdragon']],
+[['f','hat'],['g','tea'],['u','hargow','cushion'],['h']],[['f','hat'],['u','shoe','pillow'],['g','tea'],['b','broom2']],[['f','gift'],['g','tea'],['u','hat','cushion'],['b','hanky']],[['f','tissue'],['g','tea'],['u','shoe','pillow'],['b','broom2']],[['f','xiaolong'],['g','gift'],['u','hat','pillow'],['h']],
+[['f','tissue'],['g','tea'],['u','hat','pillow'],['b','hanky']],[['f','xiaolong'],['g','tea'],['u','hat','cushion'],['b','broom2']],
+[['f','hat'],['g','tea'],['u','shoe','pillow'],['u','candle2','cushion'],['b','duster']],[['f','hat'],['g','sdragon'],['u','tea','cushion'],['h'],['b','broom2']],[['f','hat'],['g','tea'],['u','lantern','pillow'],['u','tissue','cushion'],['b','hanky']],[['f','tissue'],['g','tea'],['u','hat','cushion'],['u','shoe','pillow'],['h']],[['f','gift'],['g','tea'],['u','hat','cushion'],['u','tissue','pillow'],['b','broom2']],[['f','hat'],['g','tea'],['u','shoe','pillow'],['u','candle2','cushion'],['h']],[['f','hat'],['g','tea'],['u','gift','pillow'],['u','tissue','cushion'],['h']],[['f','hat'],['g','tea'],['u','gift','pillow'],['u','shoe','cushion'],['h']]];
 /* bag items, stages 2-5 */
 {const s=at(2);need(s,'shutter','handle');s.rules.push(tap('shutter','!handle',['wig','shutter',.5],['tone','nope'],say('门卡住了，少个把手','문이 걸렸어, 손잡이가 없네','shutter',1.5)));pick(s,'knobT','knob',.16,.74,.06,'捡到一个门把手！','문 손잡이를 주웠어!',['这里用不上把手','여긴 손잡이가 필요 없어']);s.rules.push(use('knobT','shutter','!handle&!shutter',set('handle'),['tone','good'],say('装好了，往上推推看','달았어, 위로 밀어 봐','shutter',1.5)));}
 {const s=at(3);s.rules=s.rules.filter(q=>!(q.t==='rug'&&q.on==='swipe'));pick(s,'dusterT','duster',.95,.50,.07,'找到掸子啦！','먼지떨이를 찾았어!',['这里不用掸','여긴 털 필요 없어']);s.rules.push(rub('dusterT','rug','!rug',set('rug'),say('地毯平整啦','양탄자가 평평해졌어','rug')));}
 pick(at(4),'duster','duster',.60,.62,.08,'旧掸子还能用！','낡은 먼지떨이도 쓸 만해!');
 {const s=at(5);s.objs=s.objs.filter(o=>o.id!=='haw');s.rules=s.rules.filter(q=>q.t!=='haw');s.objs.push({id:'stall',hot:1,x:.93,y:.46,r:.08});s.tools.push({id:'hawT',img:'hawthorn',have:'out',miss:['这个是给墩墩的','이건 둥둥 줄 거야']});s.rules.push(tap('stall','!out',['fly','hawthorn',[.93,.46],'tray',.4,.05,.05],set('out'),['tone','good'],say('买到糖葫芦啦！','탕후루를 샀어!',[.5,.86],1.5)));s.rules.push(use('hawT','dun','!haw',set('haw'),say('甜甜的！','달콤해!','dun')));}
+ST.forEach((s,i)=>side(s,SIDE[i]));
 for(const s of ST){s.diff=diff(s.id);s.time=time(s.id);}
 module.exports=ST;

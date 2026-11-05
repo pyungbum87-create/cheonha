@@ -28,3 +28,6 @@ node play.js <저장폴더>      # iPhone 13 실제 터치로 20단계 완주
 ## 광고
 `src/engine.html` 의 `adAdapter` 만 위챗(`wx`)·더우인(`tt`) 광고로 바꾸면 된다. 지금은 시험용 가짜 광고다.
 보상형 우선, 전면 광고는 `INTERSTITIAL_ON=false`. 광고 없이도 사진 저장과 다음 단계는 항상 가능. 연령 확인 전에는 `adAdapter.allowed()` 를 false 로 둔다.
+
+## 문제 수
+단계마다 사진 제목을 정하는 기본 문제 5개(`probs`)에 추가 미션(`extra`, `SIDE` 표)을 더해 8~10개다. 황금 사진은 전부 해결해야 하고, 사진첩은 기본 문제 기준 32종을 유지한다.
