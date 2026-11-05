@@ -24,3 +24,7 @@ node play.js <저장폴더>      # iPhone 13 실제 터치로 20단계 완주
 
 ## 난이도
 `src/stages.js` 끝의 `diff`, `time`, `gate`(친구 찾기), `under`(가려진 물건), `decoy`(방해물)로 조절한다. 1단계만 쉽고 이후 힌트·자동 흔들림·허용 범위가 줄어든다.
+
+## 광고
+`src/engine.html` 의 `adAdapter` 만 위챗(`wx`)·더우인(`tt`) 광고로 바꾸면 된다. 지금은 시험용 가짜 광고다.
+보상형 우선, 전면 광고는 `INTERSTITIAL_ON=false`. 광고 없이도 사진 저장과 다음 단계는 항상 가능. 연령 확인 전에는 `adAdapter.allowed()` 를 false 로 둔다.
