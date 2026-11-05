@@ -21,3 +21,6 @@ node play.js <저장폴더>      # iPhone 13 실제 터치로 20단계 완주
 |---|---|---|---|---|---|
 | `music/menu.mp3` | Childish Magic (ID 530140) | shanghaistoneman | pixabay.com/music | 2026-11-04 | 목록에 AI 표시. 곡 페이지 주소와 라이선스 화면 저장 필요 |
 | `music/play.mp3` | Playful Flute Strings (ID 602299) | JorisVermeer | pixabay.com/music | 2026-11-04 | 곡 페이지 주소와 라이선스 화면 저장 필요 |
+
+## 난이도
+`src/stages.js` 끝의 `diff`, `time`, `gate`(친구 찾기), `under`(가려진 물건), `decoy`(방해물)로 조절한다. 1단계만 쉽고 이후 힌트·자동 흔들림·허용 범위가 줄어든다.

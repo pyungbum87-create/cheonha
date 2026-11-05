@@ -14,10 +14,10 @@ const rub=(tool,t,iff,...d)=>Object.assign(r('rub',t,iff,...d),{tool});
 const P=(id,fz,fk,sz,sk,at)=>({id,f:[fz,fk],s:[sz,sk],at});
 const DIDI={id:'didi',img:'didi',miss:['这里不用水呀','여긴 물이 필요 없어']},SHAN={id:'shan',img:'shanshan',miss:['这里已经很亮啦','여긴 이미 밝아']},DUN={id:'dun',img:'dundun',miss:['这个不能用球碰哦','이건 공으로 건드리면 안 돼']},ZHUO={id:'zhuo',img:'zhuozhuo',miss:['这个我拿不动！','이건 내가 못 들어!']},PENG={id:'peng',img:'pengpeng',miss:['这里不用撒彩纸','여긴 색종이가 필요 없어']},TUAN={id:'tuan',img:'tt_cheer',miss:['这里没人闻到香味','여긴 아무도 냄새를 못 맡아']};
 const CLOTH={id:'cloth',img:'hanky',miss:['擦不动呀','닦이지 않아']},BROOM={id:'broom',img:'broom2',miss:['这里不用扫','여긴 안 쓸어도 돼']},DUSTER={id:'duster',img:'duster',miss:['这里没有灰','여긴 먼지가 없어']},PAIL={id:'pail',img:'pail',miss:['这里挖不动','여긴 못 파']};
-function stage(o){o.time=o.time||120;o.titles=o.titles||{};o.probs.forEach((p,i)=>{const m=o.probs.map((_,k)=>k===i?'1':'0').join('');o.titles[m]=p.s;});o.titles['00000']=o.all;o.titles['11111']=o.none;o.titles[o.pair[0]]=[o.pair[1],o.pair[2]];delete o.all;delete o.none;delete o.pair;for(const q of o.probs)delete q.s;return o;}
+function stage(o){o.tools=o.tools.map(t=>Object.assign({},t));o.time=o.time||120;o.titles=o.titles||{};o.probs.forEach((p,i)=>{const m=o.probs.map((_,k)=>k===i?'1':'0').join('');o.titles[m]=p.s;});o.titles['00000']=o.all;o.titles['11111']=o.none;o.titles[o.pair[0]]=[o.pair[1],o.pair[2]];delete o.all;delete o.none;delete o.pair;for(const q of o.probs)delete q.s;return o;}
 const LILI_SAD=['mood','worry'];
 
-module.exports=[
+const ST=[
 /* 1 ---------------------------------------------------------------- */
 stage({id:1,title:'春节合照大翻车',ko:'설날 가족사진',goal:'春节全家福',bg:'spring_bg',lili:[.53,.51,.21],hid:'paw',fog:'camera',
  open:[say('哎呀！大家还没准备好呢！','앗! 다들 아직 준비가 안 됐잖아!','lili',2),['wait',2],say('没关系，什么时候拍都好玩！','괜찮아, 언제 찍어도 재미있을 거야!','tuan',2.2)],
@@ -223,3 +223,36 @@ stage({id:20,title:'小镇纪念照',ko:'동네 기념사진',goal:'全镇大合
  objs:[{id:'tuan',img:'cam_clear',x:.88,y:.82,w:.18,z:6,r:.10},{id:'dun',img:'dundun',x:.14,y:.90,w:.15,z:5,r:.09,alt:[{if:'dun',x:.22,y:.62}]},{id:'zhuo',img:'zhuozhuo',x:.34,y:.88,w:.13,z:5,r:.08,alt:[{if:'zhuo',x:.34,y:.52}]},{id:'shan',img:'shanshan',x:.54,y:.90,w:.13,z:5,r:.08,alt:[{if:'shan',x:.66,y:.52}]},{id:'peng',img:'pengpeng',x:.70,y:.88,w:.14,z:5,r:.08,alt:[{if:'peng',x:.78,y:.62}]},{id:'didi',img:'didi',x:.44,y:.76,w:.12,z:4,r:.08,alt:[{if:'didi',x:.36,y:.67}]},{id:'hidL',hot:1,x:.08,y:.24,r:.07}],
  rules:[drag('dun',[.22,.62,.12],'!dun',set('dun')),drag('zhuo',[.34,.52,.11],'!zhuo',set('zhuo')),drag('shan',[.66,.52,.11],'!shan',set('shan')),drag('didi',[.36,.67,.10],'!didi',set('didi')),Object.assign(drag('peng',[.78,.62,.12],'!peng&!tw',set('tw'),['fx','confetti','peng'],['tone','note',880],say('砰砰太开心，先撒了彩纸！','펑펑이 신나서 색종이부터 뿌렸어!',[.6,.4],1.7)),{}),drag('peng',[.78,.62,.12],'!peng&tw',set('peng')),tap('hidL','!found',set('found'),['found'],say('灯笼后面有小脚印！','등롱 뒤에 작은 발자국이!','hidL'))]}),
 ];
+
+/* ---------- difficulty: stage 1 is the gentle one, then help shrinks and puzzles deepen ---------- */
+const diff=id=>({hints:id===1?3:id<=5?2:1,idle:id===1?8:id<=5?15:id<=10?25:0,zones:id<=2,ring:id<=12,toolRing:id<=5,slack:id<=5?.03:id<=12?.015:0,rub:id<=5?150:id<=12?185:225});
+const time=id=>id===1?120:id<=5?110:id<=10?100:id<=15?90:80;
+let uid=0;
+function need(s,t,flag){for(const q of s.rules)if(q.t===t&&!q.do.some(d=>d[0]==='found'))q.if=(q.if||'').split('|').map(a=>a?a+'&'+flag:flag).join('|');}
+/* a friend stays locked until found in the scene */
+function gate(s,tool,img,x,y,w,zh,ko){const flag='has_'+tool,id='peek_'+tool;s.tools.find(t=>t.id===tool).have=flag;s.objs.push({id,img,x,y,w,z:2,show:'!'+flag,r:Math.max(.06,w*.7)});s.rules.push(tap(id,'',set(flag),['tone','good'],say(zh,ko,[x,Math.max(.2,y)])));}
+/* an object starts hidden under another one */
+function under(s,t,img,dir,w,zh,ko){const o=s.objs.find(q=>q.id===t),flag='open_'+t,id='cover_'+t;o.show=o.show?o.show+'&'+flag:flag;const dx={left:-.11,right:.11}[dir]||0,dy={up:-.1,down:.1}[dir]||0;s.objs.push({id,img,x:o.x,y:o.y,w,z:(o.z||3)+1,r:w*.7,alt:[{if:flag,x:o.x+dx,y:o.y+dy}]});s.rules.push(swipe(id,dir,'!'+flag,set(flag),say(zh,ko,[o.x,Math.max(.25,o.y-.04)],1.4)));}
+function decoy(s,img,x,y,w,zh,ko){const id='decoy'+(++uid);s.objs.push({id,img,x,y,w,z:2,r:Math.max(.05,w*.65)});s.rules.push(tap(id,'',['wig',id,.5],say(zh,ko,[x,Math.max(.22,y)],1.4)));}
+const at=n=>ST[n-1];
+decoy(at(2),'tea',.10,.545,.06,'茶还热着呢','차가 아직 따뜻해');
+decoy(at(3),'tissue',.11,.60,.07,'这不是垃圾','이건 쓰레기가 아니야');
+gate(at(4),'shan','shanshan',.10,.45,.07,'闪闪躲在架子上！','반짝이 선반에 숨어 있었네!');
+{const s=at(5);s.objs.push({id:'stall',hot:1,x:.93,y:.46,r:.08});s.rules.push(tap('stall','!out',set('out'),say('糖葫芦做好啦！','탕후루 완성!','haw')));const h=s.objs.find(o=>o.id==='haw');h.show='out';}
+gate(at(6),'dun','dundun',.93,.34,.07,'墩墩在树后面玩！','둥둥이 나무 뒤에서 놀고 있었네!');decoy(at(6),'pail',.10,.60,.06,'这个小桶是别人的','이 양동이는 다른 사람 거야');
+gate(at(7),'zhuo','zhuozhuo',.10,.60,.07,'啄啄在树丛里找信','쫑쫑이 덤불에서 편지를 찾고 있었네');decoy(at(7),'kite',.68,.20,.06,'这只风筝不用管','이 연은 그냥 둬');
+gate(at(8),'didi','didi',.94,.60,.06,'滴滴在花丛里乘凉','방울이가 꽃덤불에서 쉬고 있었네');decoy(at(8),'shell',.60,.52,.05,'这是装饰品','이건 장식품이야');
+gate(at(9),'dun','dundun',.72,.29,.06,'墩墩在亭子里躲风','둥둥이 정자에서 바람을 피하고 있었네');decoy(at(9),'paper',.20,.66,.05,'风吹来的纸团','바람에 날아온 종이뭉치');decoy(at(9),'hat',.92,.68,.06,'谁的帽子？','누구 모자지?');
+under(at(10),'cand','cushion','right',.10,'蜡烛藏在靠垫下','초가 쿠션 밑에 있었어');decoy(at(10),'lantern',.74,.84,.07,'这盏灯不用挂','이 등은 안 걸어도 돼');
+decoy(at(11),'clock',.09,.42,.06,'还早呢','아직 이른걸');decoy(at(11),'hat',.88,.30,.05,'小熊的帽子','곰돌이 모자');
+{const s=at(12);s.objs.push({id:'lid',img:'lid',x:.80,y:.42,w:.15,z:5,r:.08,show:'!open'});s.rules.push(swipe('lid','up','!open',set('open'),['fx','steam','lid']));for(const t of ['har','siu','cha','eg'])need(s,t,'open');gate(s,'tuan','tt_cheer',.92,.70,.08,'团团在柜台后面！','퇀퇀이 카운터 뒤에 있었네!');}
+gate(at(13),'shan','shanshan',.94,.25,.06,'闪闪在书架上看书','반짝이 책장에서 책을 읽고 있었네');decoy(at(13),'envelope',.86,.60,.05,'这是旧信封，空的','이건 빈 봉투야');decoy(at(13),'tissue',.14,.82,.06,'不是这个','이건 아니야');
+{const s=at(14);s.tools[0].have='awake';s.rules.push(tap('zh','!awake',set('awake'),say('我醒啦，要我帮忙吗？','깼어, 도와줄까?','zh')));}under(at(14),'haw','cushion','left',.09,'糖葫芦在这里！','탕후루가 여기 있네!');decoy(at(14),'lantern',.08,.82,.07,'这是别家的灯','이건 다른 집 등이야');
+under(at(15),'shoe','cushion','left',.10,'鞋子躲在靠垫下','신발이 쿠션 밑에 있었어');decoy(at(15),'hat',.88,.62,.06,'帽子湿透了','모자가 흠뻑 젖었어');decoy(at(15),'paper',.34,.74,.05,'纸团软软的','종이뭉치가 흐물흐물해');
+gate(at(16),'peng','pengpeng',.92,.46,.07,'砰砰躲在梯子后！','펑펑이 사다리 뒤에 있었네!');gate(at(16),'didi','didi',.06,.62,.06,'滴滴在树丛里','방울이가 덤불에 있었네');under(at(16),'gift','pillow','right',.11,'礼物藏好啦','선물이 숨어 있었네');
+gate(at(17),'shan','shanshan',.34,.70,.07,'闪闪也怕黑呢','반짝도 어둠이 무서웠구나');decoy(at(17),'hat',.86,.66,.05,'摊主的帽子','주인 아저씨 모자');decoy(at(17),'paper',.48,.88,.05,'看不清是什么','뭔지 안 보여');
+under(at(18),'muffs','cushion','right',.10,'耳罩找到了！','귀마개를 찾았어!');under(at(18),'jar','pillow','left',.10,'玻璃瓶在这里','유리병이 여기 있네');decoy(at(18),'hat',.14,.46,.06,'这不是乐器','이건 악기가 아니야');
+gate(at(19),'zhuo','zhuozhuo',.70,.09,.06,'啄啄在树上休息','쫑쫑이 나무에서 쉬고 있었네');gate(at(19),'peng','pengpeng',.07,.62,.07,'砰砰在台子后面','펑펑이 무대 뒤에 있었네');under(at(19),'lion','blanket','left',.15,'舞狮藏在被子下！','사자가 이불 밑에 숨었네!');decoy(at(19),'paper',.60,.60,.05,'纸团不用管','종이뭉치는 그냥 둬');
+under(at(20),'shan','cushion','right',.11,'闪闪在这里！','반짝이 여기 있네!');under(at(20),'didi','pillow','left',.11,'滴滴在枕头下睡觉','방울이가 베개 밑에서 자고 있었네');
+for(const s of ST){s.diff=diff(s.id);s.time=time(s.id);}
+module.exports=ST;
