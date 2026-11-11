@@ -18,11 +18,11 @@ function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('c
 const imgs={},tints={};
 const WPN_ART=['gatling','tesla','mortar','flame','cryo'];
 const CREW6=['hanna','junho','mio','rena','sera','doyun'];const PORTRAITS=CREW6.map(n=>'p_'+n).concat(CREW6.map(n=>'s_'+n),['bg1','bg2','bg3','bg4','bg5','bg6','bg_base','bg_map','o_barrel','o_crate','o_heli','o_bomber','z_boomer','z_queen']);
-const IMG_LIST=['cover_v8','story_v8','city','tower_hd','z_runner','z_scout','z_helmet','z_charger','z_shield','z_shield_broken','z_spitter','z_brute','z_hound','z_boss',
+const IMG_LIST=['cover_v8','story_v8','tower_hd','z_runner','z_scout','z_helmet','z_charger','z_shield','z_shield_broken','z_spitter','z_brute','z_hound','z_boss',
  'ui_card','ui_card_sel','ui_skill','ui_hud','ui_warn'].concat(WPN_ART.map(n=>n+'_base'),WPN_ART.map(n=>n+'_barrel'),PORTRAITS);
 function tintOf(im,col){const cv=mkCanvas(im.width,im.height),x=cv.getContext('2d');x.drawImage(im,0,0);x.globalCompositeOperation='source-atop';x.fillStyle=col;x.fillRect(0,0,im.width,im.height);return cv}
-function loadImg(name){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im;if(name.indexOf('z_')===0){try{tints[name]={w:tintOf(im,'#ffe9cf'),ice:tintOf(im,'#9ff0ff'),fire:tintOf(im,'#ff6a1a'),char:tintOf(im,'#211816'),zap:tintOf(im,'#9fe8ff'),purp:tintOf(im,'#c43cff')}}catch(e){}}};im.onerror=()=>{};
- im.src='res/'+name+(name==='cover_v8'||name==='story_v8'||name==='city'||name.indexOf('bg')===0?'.jpg':'.png')}
+function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im;if(name.indexOf('z_')===0){try{tints[name]={w:tintOf(im,'#ffe9cf'),ice:tintOf(im,'#9ff0ff'),fire:tintOf(im,'#ff6a1a'),char:tintOf(im,'#211816'),zap:tintOf(im,'#9fe8ff'),purp:tintOf(im,'#c43cff')}}catch(e){}}};im.onerror=()=>{if(tries<5)setTimeout(()=>loadImg(name,tries+1),500+tries*700)};
+ im.src='res/'+name+(name==='cover_v8'||name==='story_v8'||name==='city'||name.indexOf('bg')===0?'.jpg':'.png')+(API?'':'?v=12'+(tries?'r'+tries:''))}
 IMG_LIST.forEach(loadImg);
 // soft sprites rendered once (glow / smoke) — reused by every effect instead of shadowBlur
 const GLOW_COL={w:[255,248,220],y:[255,214,110],o:[255,138,46],r:[255,68,36],b:[80,180,255],c:[150,240,255],g:[150,240,100],p:[200,150,255]};
@@ -348,7 +348,7 @@ function drawTurret(i){const m=MOUNTS[i],t=tur[i],a=m.art,bi=imgs[m.key+'_base']
   g.restore()}}
 
 // ---------------------------------------------------------------- 스테이지 흐름
-const STAGE_K=[1,1.2,1,1.3,1.25,1,1.3,1.05,1.05,1.12,1,1.5].concat([1.9,1.85,2.35,2.45,2.55,2.65,2.75,2.95,2.9,3.0,3.0,3.25].map(v=>+(v*(v>2.3?.96:1.03)).toFixed(3)));
+const STAGE_K=[1,1.2,1,1.3,1.25,1,1.3,1.05,1.05,1.12,1,1.24].concat([1.9,1.85,2.35,2.45,2.55,2.65,2.75,2.95,2.9,3.0,3.0,3.25].map(v=>+(v*(v>2.3?.96:1.03)).toFixed(3)));
 const DIFF={hpL:.6,hpQ:.035,cntQ:.05,startS:30,hpS:.23,hpW:.06,cntB:6,cntS:1.5,cntW:2.4,gap:1,upA:.8,upB:.7,lvD:.3,lvR:.08,tier:.12,zdmg:.7,scrap:1};
 function costOf(i){return levels[i]<1?weapon[i].cost:Math.round(weapon[i].cost*(DIFF.upA+DIFF.upB*levels[i]))}
 function crewNow(){return CREW_ORDER.filter(k=>save.cleared>=SURV[k].from||(k==='rena'&&stageIdx>=3)||(k==='sera'&&stageIdx>=9)||(k==='doyun'&&stageIdx>=11))}
@@ -375,7 +375,7 @@ function pickType(){const p=SD().pool;return POOLMAP[p[Math.floor(Math.random()*
 function bridgeY(x){return 362-(x-207)*.443}
 function spawn(type,mode,o){o=o||{};const s=effS();type=type||pickType();
  const lane=o.lane!==undefined?o.lane:Math.floor(rand(0,4));
- const scale=(lane===0?.58:lane===1?.7:lane===2?.82:.92)*(type==='brute'?1.25:type==='boss'?2.25:type==='shield'?1.1:type==='hound'?.78:1);
+ const scale=(lane===0?.7:lane===1?.83:lane===2?.96:1.08)*(type==='brute'?1.25:type==='boss'?2.25:type==='shield'?1.1:type==='hound'?.78:1);
  const sq=Math.min(s,15);const hm=(1+s*DIFF.hpS+sq*sq*DIFF.hpQ+Math.max(0,s-15)*DIFF.hpL+wave*DIFF.hpW)*(endless?1.35:STAGE_K[s]),sm=1+s*.012+wave*.008;const hp0=ZBASE[type]*hm,sh=type==='shield'?52*hm:0;
  const y=o.y!==undefined?o.y:631+lane*72+rand(-18,18);
  const z={x:o.x!==undefined?o.x:rand(-205,-35),lane,y,type,hp:hp0,mhp:hp0,sp:ZSPD[type]*sm*(o.spd||1),scale,phase:rand(0,7),hurt:0,slow:0,stun:0,burn:0,burnClock:0,shield:sh,shieldMax:sh,charge:rand(.3,1.2),attackT:rand(1.8,3.2),marked:0,
@@ -704,7 +704,7 @@ function stageWin(){if(stageDone)return;stageDone=true;const s=stageIdx;const ra
  sc='clear';clearT=0;AudioFx.cue('win')}
 function revive(){if(!failInfo||failInfo.endless&&false)return;save.mat-=failInfo.mat;save.parts-=failInfo.prt;persist();revived=true;stageDone=false;failInfo=null;sc='battle';hp=Math.ceil(maxHP*.5);
  for(const z of zs)if(z.x>380&&z.type!=='boss'){z.hp=0;kill(z,'blast')}zs=zs.filter(z=>z.hp>0);for(const z of zs){z.kbv+=600;z.stun=Math.max(z.stun,2)}explode(560,760,1.6,true);screenFlash=.6;screenFlashCol='255,240,200';message(L('부활! 탑 내구도 50% 복구','复活！塔耐久恢复50%'),2);AudioFx.cue('power',1,0)}
-function stageFail(){if(stageDone)return;stageDone=true;if(endless){const best=wave>save.endlessBest;save.endlessBest=Math.max(save.endlessBest,wave);failInfo={endless:true,best,mat:Math.floor(wave*2.4)+loot.mat,prt:Math.floor(wave*1.4)+loot.parts,wave};save.mat+=failInfo.mat;save.parts+=failInfo.prt;persist();sc='fail';clearT=0;return}failInfo={mat:Math.floor(loot.mat*.5),prt:Math.floor(loot.parts*.5),wave};save.mat+=failInfo.mat;save.parts+=failInfo.prt;persist();sc='fail';clearT=0}
+function stageFail(){if(stageDone)return;stageDone=true;if(endless){const best=wave>save.endlessBest;save.endlessBest=Math.max(save.endlessBest,wave);failInfo={endless:true,best,mat:Math.floor(wave*2.4)+loot.mat,prt:Math.floor(wave*1.4)+loot.parts,wave};save.mat+=failInfo.mat;save.parts+=failInfo.prt;persist();sc='fail';clearT=0;return}failInfo={mat:Math.max(Math.floor(loot.mat*.5),wave>=2?Math.round((wave-1)/wavesTotal*(6+stageIdx*1.5)):0),prt:Math.max(Math.floor(loot.parts*.5),wave>=2?Math.round((wave-1)/wavesTotal*(3+stageIdx)):0),wave};save.mat+=failInfo.mat;save.parts+=failInfo.prt;persist();sc='fail';clearT=0}
 function openCrate(c){c.got=true;mission('crate');const s=effS();spawnDrop('scrap',30+s*3,c.x,c.y-14,c.y);spawnDrop('energy',18,c.x,c.y-14,c.y);spawnDrop('mat',2+Math.floor(s/4),c.x,c.y-14,c.y);if(s>=4)spawnDrop('parts',1+Math.floor(s/5),c.x,c.y-14,c.y);sparks(c.x,c.y-14,'#bfffd0',12,300);AudioFx.cue('power')}
 // 자동 플레이(밸런스 시뮬레이션용)
 let botT=0;function botStep(dt){botT-=dt;if(botT>0)return;botT=.4;
