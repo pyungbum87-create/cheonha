@@ -1998,7 +1998,7 @@ let v30Last=performance.now();
 window.render=(orig=>function(){orig();const t=performance.now(),dt=Math.min(.1,(t-v30Last)/1000);v30Last=t;try{v30DrawCine(dt);}catch(e){}})(render);
 window.announce=(orig=>function(u){orig(u);try{if(u&&u.d&&u.d.g>=3)v30Cine(G.slots.indexOf(u),u.d.g>=4?'myth':'legend',u);}catch(e){}})(announce);
 /* 쇼츠 녹화 모드: 세로 화면에서도 진행, 위·아래 띠에 로고와 실시간 자막 */
-(function(){const t=document.querySelector('#title .inner');if(t){const b=document.createElement('button');b.className='btn';b.style.cssText='margin-top:6px;font-size:13px;padding:6px 12px';
+(function(){const t=document.querySelector('#title .inner');if(t&&V30REC){const b=document.createElement('button');b.className='btn';b.style.cssText='margin-top:6px;font-size:13px;padding:6px 12px';
     b.textContent=V30REC?(V30ZH?'🎬 关闭录制模式':'🎬 녹화 모드 끄기'):(V30ZH?'🎬 短视频录制模式（竖屏）':'🎬 쇼츠 녹화 모드 (세로)');
     b.onclick=()=>{try{localStorage.setItem('cheonha-rec',V30REC?'0':'1');}catch(e){}location.href=location.pathname;};t.append(b);}
   if(!V30REC)return;document.body.classList.add('v30rec');
@@ -2079,6 +2079,42 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
   addEventListener('pointerdown',()=>{if(unl)return;unl=true;for(const k in A){const a=A[k];a.muted=true;try{const p=a.play();if(p&&p.then)p.then(()=>{a.pause();a.muted=false;}).catch(()=>{a.muted=false;});}catch(e){a.muted=false;}}},{capture:true});
   window.__bgmCur=()=>cur;BGM.start=function(){};BGM.stop=function(){};   // 코드 합성 BGM 대신 음원 사용
   setInterval(()=>{const ok=!!(SAVE.opt.bgm&&unl&&!document.hidden);const inGame=!!(G&&!G.over);set(!ok?null:inGame?(G.enemies.some(e=>e.boss)&&A.bgm_boss?'bgm_boss':'bgm_battle'):'bgm_menu');},400);})();
+
+/* v30.1 출시 정리: 타이틀 압축, 테스트 표시 제거, 로딩 막대·버전, 진동·공유 */
+(function(){const ZH=V30ZH,T=(k,z)=>ZH?z:k;
+  const inner=document.querySelector('#title .inner');if(inner){const tags=inner.querySelectorAll(':scope>p.tag');if(tags[1])tags[1].classList.add('tl');
+    const ri=inner.querySelector('.reward-intro');if(ri)ri.remove();const cb=document.getElementById('bCamp');if(cb&&cb.parentElement)cb.parentElement.classList.add('sub');
+    // loading bar under the version line
+    const bar=document.createElement('div');bar.id='ldBar';bar.innerHTML='<i></i>';const ver=document.getElementById('ver');if(ver)ver.after(bar);}
+  const st=document.createElement('style');st.textContent=`#ldBar{width:min(260px,60%);height:5px;margin:-4px auto 0;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}#ldBar i{display:block;height:100%;width:0;background:var(--gold);transition:width .3s}#ldBar.done{visibility:hidden}
+  #title .row.sub .btn{font-size:14px;padding:7px 14px}
+  @media (max-height:440px){#title .logo{font-size:52px;line-height:1.05}#title .tl{display:none}#title .inner{gap:6px}#title .row .btn{padding:6px 16px;font-size:15px}#title .row .btn small{font-size:11px}#title .row.sub .btn{font-size:12px;padding:4px 11px}#title .tag{margin:0}}
+  @media (max-height:340px){#title .logo{font-size:42px}#meritTop{display:none}}`;document.head.append(st);
+  // loading progress (portrait/mob atlases + SD bodies) with slow-network notice and refresh hint
+  const t0=Date.now();let total=0;const seen=new Set();
+  const tick=()=>{const v=document.getElementById('ver'),b=document.getElementById('ldBar');if(!v||!b)return;
+    for(const s in ATL.pending)if(!seen.has(s)){seen.add(s);total++;}
+    const pend=Object.keys(ATL.pending).length,sd=window.SDV&&SDV.progress?SDV.progress():null;
+    const el=(Date.now()-t0)/1000,all=total+(sd?sd[1]:0),done=total-pend+(sd?sd[0]:0);let p=all?done/all:1;if(!window.SDV&&el<25)p=Math.min(p,.1);
+    b.firstChild.style.width=Math.round(p*100)+'%';
+    let s=window.__verTxt;if(p<1){s+=' · '+T('그림 불러오는 중 ','加载中 ')+Math.round(p*100)+'%';if(el>25)s+=' · '+T('안 되면 새로고침해 주세요','如长时间未完成请刷新');else if(el>6)s+=' · '+T('인터넷이 느려 시간이 걸리고 있어요','网络较慢，请稍候');}
+    v.textContent=s;if(p>=1){b.classList.add('done');clearInterval(iv);}};
+  window.__verTxt='v30.1 · 1112-0050';window.artStatus=tick;const iv=setInterval(tick,300);tick();
+  // vibration (option, rate-limited)
+  if(SAVE.opt.vib===undefined)SAVE.opt.vib=1;OPTS.push(['vib',T('진동','震动'),T('합성·성벽 피해·보스 등장','合成·城墙受损·敌将出现'),[[T('끔','关'),0],[T('켬','开'),1]]]);
+  let lastV=0;window.vib=p=>{if(!SAVE.opt.vib||!navigator.vibrate)return;const n=Date.now();if(n-lastV<90)return;lastV=n;try{navigator.vibrate(p);}catch(e){}};
+  window.doMerge=(o=>function(){const r=o.apply(this,arguments);vib(25);return r;})(doMerge);
+  window.doHidden=(o=>function(){const r=o.apply(this,arguments);vib([40,50,60]);return r;})(doHidden);
+  window.defeat=(o=>function(){const r=o.apply(this,arguments);vib(220);return r;})(defeat);
+  window.victory=(o=>function(){const r=o.apply(this,arguments);vib([50,60,50,60,120]);return r;})(victory);
+  let lw=null,lb=0,lg=null;setInterval(()=>{if(!G||G.over){lw=null;lg=G;return;}if(lg!==G){lg=G;lw=G.walls;lb=0;}
+    if(lw!=null&&G.walls<lw)vib(120);lw=G.walls;const nb=G.enemies.filter(e=>e.boss).length;if(nb>lb)vib([30,40,30]);lb=nb;},120);
+  // share button on the result screen
+  window.showResult=(o=>function(){const r=o.apply(this,arguments);const row=document.getElementById('rRow');if(row&&!row.querySelector('.shareB')){const b=document.createElement('button');b.className='btn shareB';b.textContent=T('친구에게 공유','分享给好友');
+    b.onclick=async()=>{const url=location.origin+location.pathname.replace(/[^/]*$/,'')+(ZH?'zh.html':'index.html');const text=T('천하등용 — 장수를 등용하고 합쳐서 성을 지키는 삼국 디펜스','天下登用 — 招募武将、合成升级的三国塔防');
+      try{if(navigator.share){await navigator.share({title:T('천하등용','天下登用'),text,url});return;}}catch(e){return;}
+      try{await navigator.clipboard.writeText(text+' '+url);flash(T('링크를 복사했어요','链接已复制'));}catch(e){flash(url);}};row.append(b);}return r;})(showResult);
+})();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
 document.getElementById('pOpts').onclick=()=>openOpts('pause');
@@ -2101,7 +2137,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 resize();updateTitle();applyOpts();requestAnimationFrame(frame);
-document.getElementById('title').classList.remove('wait');window.__verTxt='v30 · TEST';artStatus();
+document.getElementById('title').classList.remove('wait');artStatus();
 window.__dmg=(e,v)=>dmgEnemy(e,v,false);window.__sg={get G(){return G;},newGame,update,recruit,doMerge,mergeOptions,hiddenOption,doHidden,upgrade,upCost,UID,U,SAVE,render,placeUnit,sell,canReward,rewardRemaining,openRewardModal,rewardGrant,closeRewardModal,DIFF,scnTierOpen,scnStarsAt,SCN,openStory,renderDiff,victory,defeat,earnMerit,v28ScenarioEvent,V28_SCENE_EVENTS};
 </script>
 

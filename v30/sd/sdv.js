@@ -46,7 +46,8 @@ const MYTH=['m_gwanu','m_jegal','m_jojo','m_sonchaek','m_yeopo','m_joun','m_jang
 const names=['pad_1','pad_2','pad_3','decor','fx_slash','fx_thrust','fx_arrow_trail','fx_fan_wind','fx_mythic_aura'].concat(FACFX,Object.keys(SOL).map(k=>'sd_'+k+'_body'),MYTH.map(k=>'sd_'+k+'_body'),...Object.keys(CH).map(k=>['sd_'+k+'_body','sd_'+k+'_weapon']),Object.keys(GEN2).map(k=>'sd_'+k+'_body'),Object.values(SW).map(w=>w.img));
 ATK.forEach(id=>names.push('sd_'+id+'_atk'));let left=names.length;
 function done(){if(--left>0)return;ready=true;try{bgCache=null;}catch(e){}}
-if(on)names.forEach(n=>{const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=done;im.src=BASE+n+'.webp';});
+function ld(n,k){const im=new Image();im.onload=()=>{IMG[n]=im;done();};im.onerror=()=>{if(k<4)setTimeout(()=>ld(n,k+1),1200*(k+1));else done();};im.src=BASE+n+'.webp'+(k?'?r='+k:'');}
+if(on)names.forEach(n=>ld(n,0));
 const R=Math.PI/180,ease=q=>q<.5?2*q*q:1-Math.pow(-2*q+2,2)/2;
 const rnd=i=>{const s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s);};
 /* ---- empty slot → small stone/straw platform (drawn once into the cached background) ---- */
@@ -93,5 +94,5 @@ function unit(ctx,u,x,y){if(!on||!ready)return false;const id=ALIAS[u.d.id]||u.d
     ctx.drawImage(fx,hx+(c.move==='slash'?2:14),hy-fs/2-(c.move==='slash'?6:0),fs,fs);ctx.globalAlpha=1;}
   ctx.restore();
   return true;}
-window.SDV={pad,unit,get on(){return on;},CH};
+window.SDV={pad,unit,progress:()=>on?[names.length-left,names.length]:[0,0],get on(){return on;},CH};
 })();
