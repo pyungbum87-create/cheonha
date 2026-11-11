@@ -385,9 +385,11 @@ function startWave(){wave++;if(!endless&&stageIdx===2&&wave===2)tip('perk',[['2�
 function laterSpawn(t,fn){pending++;after(t,()=>{pending--;if(!stageDone)fn()})}
 function pickType(){const p=SD().pool;return POOLMAP[p[Math.floor(Math.random()*p.length)]]}
 function bridgeY(x){return 362-(x-207)*.443}
+// 탑이 높아질수록 화면 속 좀비 비율도 키움 (지하 벙커만 있을 때 0.95 → 옥상까지 1.26)
+const ZFLOOR=[.95,1.05,1.13,1.2,1.26];
 function spawn(type,mode,o){o=o||{};const s=effS();type=type||pickType();
  const lane=o.lane!==undefined?o.lane:Math.floor(rand(0,4));
- const scale=(lane===0?.7:lane===1?.83:lane===2?.96:1.08)*(type==='brute'?1.25:type==='boss'?2.25:type==='shield'?1.1:type==='hound'?.78:1);
+ const scale=(lane===0?.58:lane===1?.7:lane===2?.82:.92)*ZFLOOR[Math.min(4,floorsBuilt)]*(type==='brute'?1.25:type==='boss'?2.25:type==='shield'?1.1:type==='hound'?.78:1);
  const sq=Math.min(s,15);const hm=(1+s*DIFF.hpS+sq*sq*DIFF.hpQ+Math.max(0,s-15)*DIFF.hpL+wave*DIFF.hpW)*(endless?1.35:STAGE_K[s]),sm=1+s*.012+wave*.008;const hp0=ZBASE[type]*hm,sh=type==='shield'?52*hm:0;
  const y=o.y!==undefined?o.y:631+lane*72+rand(-18,18);
  const z={x:o.x!==undefined?o.x:rand(-205,-35),lane,y,type,hp:hp0,mhp:hp0,sp:ZSPD[type]*sm*(o.spd||1),scale,phase:rand(0,7),hurt:0,slow:0,stun:0,burn:0,burnClock:0,shield:sh,shieldMax:sh,charge:rand(.3,1.2),attackT:rand(1.8,3.2),marked:0,
