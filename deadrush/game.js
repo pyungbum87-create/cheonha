@@ -21,9 +21,10 @@ const CREW6=['hanna','junho','mio','rena','sera','doyun'];const PORTRAITS=CREW6.
 const IMG_LIST=['cover_v8','story_v8','tower_hd','z_runner','z_scout','z_helmet','z_charger','z_shield','z_shield_broken','z_spitter','z_brute','z_hound','z_boss',
  'ui_card','ui_card_sel','ui_skill','ui_hud','ui_warn'].concat(WPN_ART.map(n=>n+'_base'),WPN_ART.map(n=>n+'_barrel'),PORTRAITS);
 function tintOf(im,col){const cv=mkCanvas(im.width,im.height),x=cv.getContext('2d');x.drawImage(im,0,0);x.globalCompositeOperation='source-atop';x.fillStyle=col;x.fillRect(0,0,im.width,im.height);return cv}
-function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im;if(name.indexOf('z_')===0){try{tints[name]={w:tintOf(im,'#ffe9cf'),ice:tintOf(im,'#9ff0ff'),fire:tintOf(im,'#ff6a1a'),char:tintOf(im,'#211816'),zap:tintOf(im,'#9fe8ff'),purp:tintOf(im,'#c43cff')}}catch(e){}}};im.onerror=()=>{if(tries<5)setTimeout(()=>loadImg(name,tries+1),500+tries*700)};
- im.src='res/'+name+(name==='cover_v8'||name==='story_v8'||name==='city'||name.indexOf('bg')===0?'.jpg':'.png')+(API?'':'?v=12'+(tries?'r'+tries:''))}
-IMG_LIST.forEach(loadImg);
+const BUILD='1111-2340';
+function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im;if(name.indexOf('z_')===0){try{tints[name]={w:tintOf(im,'#ffe9cf'),ice:tintOf(im,'#9ff0ff'),fire:tintOf(im,'#ff6a1a'),char:tintOf(im,'#211816'),zap:tintOf(im,'#9fe8ff'),purp:tintOf(im,'#c43cff')}}catch(e){}}};im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(name,tries+1),600+tries*900);else imgFail[name]=1};
+ im.src='res/'+name+(name==='cover_v8'||name==='story_v8'||name==='city'||name.indexOf('bg')===0?'.jpg':'.png')+(API?'':'?v='+BUILD+(tries?'r'+tries:''))}
+const imgFail={};IMG_LIST.forEach(n=>loadImg(n));
 // soft sprites rendered once (glow / smoke) — reused by every effect instead of shadowBlur
 const GLOW_COL={w:[255,248,220],y:[255,214,110],o:[255,138,46],r:[255,68,36],b:[80,180,255],c:[150,240,255],g:[150,240,100],p:[200,150,255]};
 const glow={};let smokeSpr=null,dustSpr=null;
@@ -42,16 +43,16 @@ const Music={el:null,cur:'',on:true,vol:.55,src:null,gain:null,bufs:{},pend:null
    try{if(this.nat)this.nat.stop();if(!this.natPool)this.natPool={};let a=this.natPool[key];if(!a){a=API.createInnerAudioContext();a.src=(API.loadSubpackage?'audio/':'res/')+'bgm_'+key+'.mp3';a.loop=loop;this.natPool[key]=a}a.volume=this.vol;a.seek&&a.seek(0);a.play();this.nat=a}catch(e){}return}
   const ctx=AudioFx.ctx;
   if(ctx&&typeof fetch==='function'&&location.protocol!=='file:'){this._stopWeb();const go=b=>{if(this.cur!==key||!this.on)return;try{const s2=ctx.createBufferSource(),gn=ctx.createGain();s2.buffer=b;s2.loop=loop;gn.gain.setValueAtTime(0,ctx.currentTime);gn.gain.linearRampToValueAtTime(this.vol,ctx.currentTime+.8);s2.connect(gn);gn.connect(ctx.destination);s2.start();this.src=s2;this.gain=gn}catch(e){}};
-   if(this.bufs[key])go(this.bufs[key]);else fetch('res/bgm_'+key+'.mp3').then(r=>r.arrayBuffer()).then(ab=>ctx.decodeAudioData(ab,b=>{this.bufs[key]=b;go(b)},()=>{})).catch(()=>{});return}
+   if(this.bufs[key])go(this.bufs[key]);else fetch('res/bgm_'+key+'.mp3?v='+BUILD).then(r=>r.arrayBuffer()).then(ab=>ctx.decodeAudioData(ab,b=>{this.bufs[key]=b;go(b)},()=>{})).catch(()=>{});return}
   if(typeof Audio!=='undefined'){try{if(this.el)this.el.pause();this.el=new Audio('res/bgm_'+key+'.mp3');this.el.loop=loop;this.el.volume=this.vol;const pr=this.el.play();if(pr&&pr.catch)pr.catch(()=>{})}catch(e){}}},
  _stopWeb(){if(this.src&&this.gain&&AudioFx.ctx){const ctx=AudioFx.ctx,s2=this.src,gn=this.gain;try{gn.gain.cancelScheduledValues(ctx.currentTime);gn.gain.setValueAtTime(gn.gain.value,ctx.currentTime);gn.gain.linearRampToValueAtTime(0,ctx.currentTime+.6);s2.stop(ctx.currentTime+.65)}catch(e){}}this.src=null;this.gain=null},
  stop(){this._stopWeb();if(this.el){try{this.el.pause()}catch(e){}}if(this.nat){try{this.nat.stop()}catch(e){}}},
  toggle(){this.on=!this.on;if(!this.on)this.stop();else{const k=this.cur;this.cur='';this.play(k||'menu')}},
  kick(){if(this.on&&this.cur&&!this.src&&!(this.el&&!this.el.paused)&&!this.nat){const k=this.cur;this.cur='';this.play(k)}}};
-function wantMusic(){let k='menu';if(sc==='battle'||sc==='clear'||sc==='fail'){if(sc==='clear')k='win';else if(sc==='fail')k='lose';else k=zs.some(z=>z.type==='boss')||cine?'boss':'battle'}else if(sc==='ending')k='win';Music.play(k)}
+function wantMusic(){if(sc==='loading')return;let k='menu';if(sc==='battle'||sc==='clear'||sc==='fail'){if(sc==='clear')k='win';else if(sc==='fail')k='lose';else k=zs.some(z=>z.type==='boss')||cine?'boss':'battle'}else if(sc==='ending')k='win';Music.play(k)}
 const AudioFx={ctx:null,enabled:true,buf:{},last:{},native:{},
  init(){if(!this.enabled||this.ctx||API)return;try{const A=typeof AudioContext!=='undefined'?AudioContext:typeof webkitAudioContext!=='undefined'?webkitAudioContext:null;if(A){this.ctx=new A();this.master=this.ctx.createGain();this.master.gain.value=.8;this.master.connect(this.ctx.destination);this.load()}}catch(e){}},
- load(){if(typeof fetch!=='function'||typeof location==='undefined'||location.protocol==='file:')return;for(const k of SFX){fetch('res/sfx_'+k+'.wav').then(r=>r.arrayBuffer()).then(b=>this.ctx.decodeAudioData(b,d=>{this.buf[k]=d},()=>{})).catch(()=>{})}},
+ load(){if(typeof fetch!=='function'||typeof location==='undefined'||location.protocol==='file:')return;for(const k of SFX){fetch('res/sfx_'+k+'.wav?v='+BUILD).then(r=>r.arrayBuffer()).then(b=>this.ctx.decodeAudioData(b,d=>{this.buf[k]=d},()=>{})).catch(()=>{})}},
  beep(freq=440,duration=.07,kind='square',vol=.025,fall=0){if(!this.ctx)return;try{const t=this.ctx.currentTime,o=this.ctx.createOscillator(),v=this.ctx.createGain();o.type=kind;o.frequency.setValueAtTime(freq,t);if(fall)o.frequency.exponentialRampToValueAtTime(Math.max(40,freq*fall),t+duration);v.gain.setValueAtTime(vol,t);v.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(v);v.connect(this.master);o.start(t);o.stop(t+duration+.01)}catch(e){}},
  cue(key,vol=1,gap=.05){if(!this.enabled)return;const now=Date.now()/1000;if(this.last[key]&&now-this.last[key]<gap)return;this.last[key]=now;
   if(API&&typeof API.createInnerAudioContext==='function'){try{let pool=this.native[key];if(!pool){pool={i:0,a:[0,1].map(()=>{const a=API.createInnerAudioContext();a.autoplay=false;a.src='res/sfx_'+key+'.wav';return a})};this.native[key]=pool}const a=pool.a[pool.i++%2];a.volume=Math.min(1,vol);a.stop();a.play()}catch(e){}return}
@@ -263,7 +264,7 @@ else if(typeof document!=='undefined'){document.addEventListener('visibilitychan
 if(API&&API.getUpdateManager){try{const um=API.getUpdateManager();um.onUpdateReady(()=>{API.showModal?API.showModal({title:L('새 버전','新版本'),content:L('새 버전이 준비됐습니다. 다시 시작할까요?','新版本已准备好，是否重启？'),success:r=>{if(r.confirm)um.applyUpdate()}}):um.applyUpdate()})}catch(e){}}
 if(API){try{API.showShareMenu&&API.showShareMenu({withShareTicket:true});API.onShareAppMessage&&API.onShareAppMessage(()=>({title:L('DEAD RUSH: 마지막 신호 — 탑을 쌓아 살아남아라','末日尸潮：最后的信号——筑塔求生'),imageUrl:'res/cover_v8.jpg'}))}catch(e){}}
 // ---------------------------------------------------------------- battle state
-let frame=0,last=0,sc='title',paused=false,speed=1,screenShake=0,hitStop=0,screenFlash=0,screenFlashCol='255,255,255';
+let frame=0,last=0,sc='loading',paused=false,speed=1,screenShake=0,hitStop=0,screenFlash=0,screenFlashCol='255,255,255';
 let stageIdx=0,wave=0,wavesTotal=5,waveT=0,nextSpawn=0,toSpawn=0,pending=0,breakT=0,waveDone=false,stageDone=false;
 let kills=0,coins=0,energy=0,hp=100,maxHP=100,signal=0,damageTaken=0,eliteKills=0,combo=0,comboT=0;
 let zs=[],floaters=[],flash=[0,0,0,0,0],cooldown=[0,0,0,0,0],levels=[0,0,0,0,0],weaponSlot=-1;
@@ -1015,6 +1016,11 @@ function drawPauseMenu(){g.fillStyle='#05080fd8';g.fillRect(0,0,750,1334);panel(
  button(130,898,235,66,L('작전 안내서','作战指南'),'blue',20);button(385,898,235,66,L('효과음: ','音效：')+onoff(AudioFx.enabled),'gray',20)}
 
 // ---------------------------------------------------------------- 화면: 타이틀 · 스토리 · 지도 · 기지 · 결과 · 건설 · 엔딩
+const MUST=['tower_hd','bg1','cover_v8','gatling_base','gatling_barrel','z_runner','ui_hud'];let loadT=0;
+function loadingScreen(){loadT+=1/60;frame+=1/60;g.fillStyle='#0b0e18';g.fillRect(0,0,750,1334);const done=IMG_LIST.filter(n=>imgs[n]).length,tot=IMG_LIST.length,mustOk=MUST.every(n=>imgs[n]||imgFail[n]);
+ txt('DEAD RUSH',375,560,80,'#ffcf6a','center');txt(L('마지막 신호','最后的信号'),375,640,36,'#fff','center');rr(165,720,420,18,9,'#1a1e28','#3a4250',2);rr(167,722,416*done/tot,14,7,'#ffb84a',null);
+ txt(L('불러오는 중… ','加载中… ')+Math.round(done/tot*100)+'%',375,780,20,'#c9d2de','center',false);if(loadT>6&&!mustOk)txt(L('인터넷이 느려 시간이 걸리고 있어요','网络较慢，请稍候'),375,820,17,'#ffcf7a','center',false);
+ if((mustOk&&(done>=tot||loadT>2.5))||loadT>25)sc='title'}
 function title(){g.fillStyle='#0b0e18';g.fillRect(0,0,750,1334);img('cover_v8',0,0,750,700,1);g.fillStyle=grad(0,380,0,1000,[[0,'#0b0e1800'],[.55,'#0b0e18f0'],[1,'#0b0e18']]);g.fillRect(0,360,750,974);
  g.save();g.globalCompositeOperation='lighter';drawGlow(375,690,260,'o',.25+.08*Math.sin(frame*2));g.restore();
  txt('DEAD RUSH',375,660,92,'#ffcf6a','center');txt(L('마지막 신호','最后的信号'),375,745,42,'#ffffff','center');txt(L('생존자들과 함께, 한 층씩 탑을 쌓아 구조 신호를 보내라','与幸存者一起，一层层建塔，发出求救信号'),375,800,19,'#c9d2de','center',false);
@@ -1022,7 +1028,7 @@ function title(){g.fillStyle='#0b0e18';g.fillRect(0,0,750,1334);img('cover_v8',0
  button(150,982,450,76,L('기지 · 탑 건설','基地 · 建塔'),'blue',26);button(150,1074,218,70,L('작전 안내서','作战指南'),'gray',21);button(382,1074,218,70,L('설정','设置'),'gray',21);
  rr(560,24,170,54,12,'#151a28d8','#9fb4e8',2);txt(LANG==='zh'?'🌐 한국어':'🌐 中文',645,51,21,'#fff','center');
  if(LANG==='zh'){txt('抵制不良游戏，拒绝盗版游戏。注意自我保护，谨防受骗上当。',375,1196,15,'#8a96a8','center',false);txt('适度游戏益脑，沉迷游戏伤身。合理安排时间，享受健康生活。',375,1222,15,'#8a96a8','center',false)}
- txt('v12 · '+L('진행 ','进度 ')+save.cleared+' / '+STAGES.length,375,1300,14,'#5f6a7a','center',false)}
+ if(Object.keys(imgFail).length)txt(L('일부 그림을 받지 못했어요 · 새로고침 해 주세요','部分图片加载失败 · 请刷新'),375,1270,15,'#ff9a8a','center',false);txt('v12 · '+BUILD+' · '+L('진행 ','进度 ')+save.cleared+' / '+STAGES.length,375,1300,14,'#5f6a7a','center',false)}
 let storyIndex=0;
 function story(){g.fillStyle='#111322';g.fillRect(0,0,750,1334);img(storyIndex%2?'story_v8':'cover_v8',0,0,750,700,.92);g.fillStyle=grad(0,370,0,1000,[[0,'#10162300'],[.65,'#0b101eef'],[1,'#0b101eff']]);g.fillRect(0,350,750,900);
  const S=STORY[storyIndex];rr(35,750,680,420,18,'#111a2be9','#c68f54',4);txt(L('기록 ','记录 ')+(storyIndex+1)+' / '+STORY.length,61,790,20,'#e5ad69');txt(LL(S[0]),62,850,42,'#ffe4a2');
@@ -1215,7 +1221,7 @@ function afterClear(){const s=stageIdx,S=STAGES[s];sc='battle';stageDone=true;di
 function tryBuild(f){if(f!==save.floors+1||f>4)return;if(save.cleared<FLOORS[f].gate){message(L('스토리 진행이 더 필요하다','需要推进剧情'),1);return}if(save.mat<FLOORS[f].cost){AudioFx.cue('ui');return}
  save.mat-=FLOORS[f].cost;save.floors=f;autoEquip();persist();buildAnim={from:FLOORS[f-1].cut,to:FLOORS[f].cut,cur:FLOORS[f-1].cut,t:0,f};parts.n=0;sc='build';AudioFx.cue('power')}
 function cycleEquip(i){const cur=save.equip.indexOf(i);const n=save.floors+1;if(cur>=0&&n===1)return;const nf=cur<0?0:(cur+1)%n;const other=save.equip[nf];save.equip[nf]=i;if(cur>=0)save.equip[cur]=other;persist();AudioFx.cue('ui')}
-function touch(x,y){AudioFx.init();Music.kick();
+function touch(x,y){AudioFx.init();Music.kick();if(sc==='loading')return;
  if(adShow)return;if(guideTip){guideTip=null;return}
  if(dialog){advanceDialog();return}
  if(sc==='battle'&&perkPick){if(perkPick.t<.35)return;if(!rerolled&&hit_(x,y,215,800,320,70)){showAd('reroll',()=>{rerolled=true;perkPick=makePerks()});return}for(let i=0;i<perkPick.opts.length;i++)if(hit_(x,y,40+i*230,430,210,330)){applyPerk(perkPick.opts[i]);return}return}
@@ -1269,7 +1275,7 @@ function draw(dt){if(API){g.setTransform(1,0,0,1,0,0);g.fillStyle='#05070c';g.fi
  g.clearRect(0,0,W,H);if(dialog){dialog.t+=Math.min(dt,.05)}
  if(sc!=='battle'&&sc!=='build'&&sc!=='ending')frame+=Math.min(dt,.05);
  if(sc==='title')title();else if(sc==='story')story();else if(sc==='map')mapScreen();else if(sc==='base')baseScreen();else if(sc==='settings')settingsScreen();else if(sc==='guide')guideScreen();else if(sc==='privacy')privacyScreen();else if(sc==='reward')rewardScreen();
- else if(sc==='battle'){tick(dt);drawBattle()}else if(sc==='clear'){clearT+=Math.min(dt,.05);clearScreen()}else if(sc==='fail'){clearT+=Math.min(dt,.05);failScreen()}else if(sc==='build')buildScreen();else if(sc==='ending')endingScreen();
+ else if(sc==='loading')loadingScreen();else if(sc==='battle'){tick(dt);drawBattle()}else if(sc==='clear'){clearT+=Math.min(dt,.05);clearScreen()}else if(sc==='fail'){clearT+=Math.min(dt,.05);failScreen()}else if(sc==='build')buildScreen();else if(sc==='ending')endingScreen();
  if(dialog&&sc!=='battle')drawDialog();if(guideTip)drawGuideTip();if(adShow)drawAd();drawBanner();wantMusic()}
 if(!API&&typeof location!=='undefined'&&location.search.indexOf('debug=1')>=0){globalThis.__bepaDebug={STAGES,revive,get guideTip(){return guideTip},set guideTip(v){guideTip=v},set guidePage(v){guidePage=v},showAd,mission,DIFF,STAGE_K,touch,startStage,startWave,spawn,hit,useSkill,attack,muzzle,drawBattle,runEvent,save,persist,
  botPerk,get perk(){return perkPick},placeBarrels,get endless(){return endless},
