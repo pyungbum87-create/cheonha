@@ -21,7 +21,10 @@ const CREW6=['hanna','junho','mio','rena','sera','doyun'];const PORTRAITS=CREW6.
 const IMG_LIST=['cover_v8','story_v8','tower_hd','z_runner','z_scout','z_helmet','z_charger','z_shield','z_shield_broken','z_spitter','z_brute','z_hound','z_boss',
  'ui_card','ui_card_sel','ui_skill','ui_hud','ui_warn'].concat(WPN_ART.map(n=>n+'_base'),WPN_ART.map(n=>n+'_barrel'),PORTRAITS);
 function tintOf(im,col){const cv=mkCanvas(im.width,im.height),x=cv.getContext('2d');x.drawImage(im,0,0);x.globalCompositeOperation='source-atop';x.fillStyle=col;x.fillRect(0,0,im.width,im.height);return cv}
-const BUILD='1111-2340';
+const BUILD='1112-0032';
+(function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
+ if(oa)P.arc=function(x,y,r,a0,a1,ccw){return oa.call(this,x,y,r>0&&isFinite(r)?r:0,a0,a1,ccw)};
+ if(oe)P.ellipse=function(x,y,rx,ry,rot,a0,a1,ccw){return oe.call(this,x,y,rx>0&&isFinite(rx)?rx:0,ry>0&&isFinite(ry)?ry:0,rot,a0,a1,ccw)}})();
 function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im;if(name.indexOf('z_')===0){try{tints[name]={w:tintOf(im,'#ffe9cf'),ice:tintOf(im,'#9ff0ff'),fire:tintOf(im,'#ff6a1a'),char:tintOf(im,'#211816'),zap:tintOf(im,'#9fe8ff'),purp:tintOf(im,'#c43cff')}}catch(e){}}};im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(name,tries+1),600+tries*900);else imgFail[name]=1};
  im.src='res/'+name+(name==='cover_v8'||name==='story_v8'||name==='city'||name.indexOf('bg')===0?'.jpg':'.png')+(API?'':'?v='+BUILD+(tries?'r'+tries:''))}
 const imgFail={};IMG_LIST.forEach(n=>loadImg(n));
@@ -748,7 +751,7 @@ function walkDraw(im,x0,y0,w,h,ph,quad){const hip=quad?.55:.6,iw=im.width,ih=im.
  g.save();g.translate(0,-Math.abs(sw)*h*.012);g.drawImage(im,0,0,iw,sy+ov,x0,y0,w,dy+ov*h/ih);g.restore()}
 function drawZombie(z){const d=zDims(z);const im=d.im;
  const gait=Math.sin(z.phase*(z.type==='hound'?1.3:1)),bob=Math.abs(gait)*(z.type==='hound'?3:2.6)*z.scale;
- const lift=-z.zh;g.save();g.globalAlpha=Math.max(.08,.28-lift/600);g.fillStyle='#110e1a';g.beginPath();g.ellipse(z.x,z.y,Math.max(15,d.w*.35)*(1-lift/500),Math.max(3,6*z.scale),0,0,TAU);g.fill();g.restore();
+ const lift=-z.zh;g.save();g.globalAlpha=Math.max(.08,.28-lift/600);g.fillStyle='#110e1a';g.beginPath();g.ellipse(z.x,z.y,Math.max(4,Math.max(15,d.w*.35)*(1-Math.min(lift,440)/500)),Math.max(3,6*z.scale),0,0,TAU);g.fill();g.restore();
  if(z.type==='boss'&&z.wind>0){g.save();g.globalCompositeOperation='lighter';g.globalAlpha=z.wind;g.strokeStyle='#ff4a3a';g.lineWidth=4;g.beginPath();g.ellipse(z.x,z.y,60+z.wind*90,(60+z.wind*90)*.36,0,0,TAU);g.stroke();drawGlow(z.x,z.y-d.h*.5,d.h*.7,'r',.3*z.wind);g.restore()}
  if(!im){ellipse(z.x,z.y-30,18,30,'#6a7a5a');return}
  g.save();g.translate(z.x,z.y+z.zh-bob);if(z.emerge>0){const k=z.emerge/z.emergeMax;g.beginPath();g.rect(-d.w*1.2,-d.h*1.4,d.w*2.4,d.h*1.4);g.clip();g.translate(0,d.h*k*.95);g.rotate(Math.sin(frame*30)*.05*k)}
@@ -1282,6 +1285,6 @@ if(!API&&typeof location!=='undefined'&&location.search.indexOf('debug=1')>=0){g
  get state(){return {fever:feverT>0,civSaved,sc,stageIdx,wave,wavesTotal,toSpawn,pending,zs:zs.length,hp,maxHP,coins,energy,kills,loot,parts:parts.n,projs:projs.n,drops:drops.length,dialog:!!dialog,stageDone,signal,floorsBuilt,levels}},get enemies(){return zs},
  setLevels(a){levels=a.slice()},setRes(c2,e2){coins=c2;energy=e2},set sc(v){sc=v},get sc(){return sc},setQuality(v){qualityLow=v},set freeze(v){dbgFreeze=v},set bot(v){autoBot=v},skipDialog(){while(dialog){dialog.t=99;advanceDialog()}},
  step(n,dt=1/60){dbgFreeze=false;for(let i=0;i<n;i++){if(dialog){dialog.t=99;advanceDialog()}guideTip=null;if(perkPick&&autoBot)botPerk();tick(dt)}dbgFreeze=true},afterClear,tryBuild,setMounts,get clearInfo(){return clearInfo},setHP(v){hp=v}};}
-function loop(now){let dt=last?(now-last)/1000:0;last=now;perf(Math.min(dt,.25));draw(Math.min(dt,.1));if(API){if(typeof requestAnimationFrame==='function')requestAnimationFrame(loop);else if(c.requestAnimationFrame)c.requestAnimationFrame(loop)}else requestAnimationFrame(loop)}
+let drawErr=0;function loop(now){let dt=last?(now-last)/1000:0;last=now;perf(Math.min(dt,.25));try{draw(Math.min(dt,.1))}catch(e){drawErr++;try{g.restore();g.restore();g.restore()}catch(e2){}if(drawErr<5&&typeof console!=='undefined')console.error('draw error',e);if(drawErr===1)track('draw_error',{m:String(e&&e.message||e).slice(0,80),sc})}if(API){if(typeof requestAnimationFrame==='function')requestAnimationFrame(loop);else if(c.requestAnimationFrame)c.requestAnimationFrame(loop)}else requestAnimationFrame(loop)}
 if(API){if(typeof requestAnimationFrame==='function')requestAnimationFrame(loop);else if(c.requestAnimationFrame)c.requestAnimationFrame(loop)}else requestAnimationFrame(loop);
 })();
