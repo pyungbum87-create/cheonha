@@ -61,7 +61,13 @@ const AudioFx={ctx:null,enabled:true,buf:{},last:{},native:{},
 
 // ---------------------------------------------------------------- i18n
 let LANG='ko';
-try{const sl=(API&&API.getSystemInfoSync?(API.getSystemInfoSync().language||''):(typeof navigator!=='undefined'?navigator.language||'':'')).toLowerCase();if(sl.indexOf('zh')===0)LANG='zh'}catch(e){}
+// 첫 실행 언어: 위챗·더우인은 중국어 기본(기기 언어가 한국어일 때만 한국어). 웹은 기기 언어 또는 중국 시간대면 중국어
+try{if(API){const sl=((API.getSystemInfoSync&&API.getSystemInfoSync().language)||'').toLowerCase();LANG=sl.indexOf('ko')===0?'ko':'zh'}
+ else{const langs=(typeof navigator!=='undefined'?(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'']):[]).map(x=>(x||'').toLowerCase());
+  let tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){}
+  const zhTZ=/^Asia\/(Shanghai|Chongqing|Chungking|Harbin|Urumqi|Kashgar|Hong_Kong|Macau|Taipei)$/.test(tz)||tz==='PRC';
+  if(langs[0]&&langs[0].indexOf('zh')===0)LANG='zh';else if(zhTZ&&!(langs[0]&&langs[0].indexOf('ko')===0))LANG='zh';else if(zhTZ)LANG='zh'}}catch(e){}
+let LANG_FORCED=null;try{if(!API&&typeof location!=='undefined'){const m=location.search.match(/[?&]lang=(ko|zh)/);if(m)LANG_FORCED=m[1]}}catch(e){}if(LANG_FORCED)LANG=LANG_FORCED;
 const L=(ko,zh)=>LANG==='zh'?zh:ko;
 const TIER_MAX=8,SUP_MAX=8;
 const LL=p=>Array.isArray(p)?(LANG==='zh'?p[1]:p[0]):(p||'');
@@ -73,7 +79,7 @@ const SAVE_KEY='bepa_dr_v9_save';
 const save={tips:{},daily:null,att:{last:'',streak:0},chest:[],stats:{kills:0},prep:0,endlessBest:0,cleared:0,stars:[],mat:0,parts:0,floors:0,armor:0,tier:[0,0,0,0,0],equip:[0,-1,-1,-1,-1],sup:{air:0,energy:0,medic:0,scrap:0},seenIntro:false,lang:null,qualityLow:false,qualityManual:false,shake:true,ended:false};
 let qualityLow=false,qualityManual=false,shakeReduced=false;
 try{const raw=API&&API.getStorageSync?API.getStorageSync(SAVE_KEY):typeof localStorage!=='undefined'?localStorage.getItem(SAVE_KEY):null;const v=raw?JSON.parse(raw):null;if(v){for(const k in save)if(v[k]!==undefined)save[k]=v[k];if(v.sup)save.sup=Object.assign({air:0,energy:0,medic:0,scrap:0},v.sup)}}catch(e){}
-if(save.lang==='ko'||save.lang==='zh')LANG=save.lang;if(save.music===false)Music.on=false;qualityLow=!!save.qualityLow;qualityManual=!!save.qualityManual;shakeReduced=!save.shake;
+if(!LANG_FORCED&&(save.lang==='ko'||save.lang==='zh'))LANG=save.lang;if(save.music===false)Music.on=false;qualityLow=!!save.qualityLow;qualityManual=!!save.qualityManual;shakeReduced=!save.shake;
 function todayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
 const MISSIONS=[{k:'kill',goal:150,name:['좀비 150마리 처치','击杀150只僵尸'],r:{mat:20}},{k:'clear',goal:2,name:['스테이지 2회 클리어','通关2次'],r:{parts:12}},{k:'skill',goal:6,name:['스킬 6회 사용','使用技能6次'],r:{mat:15}},
  {k:'crate',goal:2,name:['보급 상자 2개 회수','回收2个补给箱'],r:{parts:10}},{k:'upgrade',goal:15,name:['전투 중 무기 강화 15회','战斗中强化武器15次'],r:{mat:15}},{k:'stars3',goal:1,name:['별 3개로 클리어','三星通关'],r:{parts:15}},
