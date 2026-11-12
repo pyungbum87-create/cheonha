@@ -238,7 +238,7 @@ window.DX = window.DX || {};
       const pulse = inv ? 0.5 + 0.5 * Math.sin(t * 14) : 0;
       const jit = inv ? (Math.random() - 0.5) * 0.08 : Math.sin(t * 9 + p.z0) * 0.012;
       const tint = ghost ? GHOST_TINT : null, add = ghost ? GHOST_ADD : inv ? [0.55 * pulse, 0.02, 0.02] : null;
-      if (!ghost) E.box('cube', xo, p.top / 2 + 0.15, cz, W * 0.9, p.top - 0.3, Lq * 0.88, 0, '#2a2c33');
+      if (!ghost) E.box('cube', xo, p.top / 2 + 0.05, cz, W * 0.9, p.top - 0.3, Lq * 0.88, 0, '#2a2c33');  // 지붕 그림보다 0.1 낮게 (겹쳐서 깜빡이지 않게)
       if (fs) {
         const hS = Lq / fs.aspect, sx = W / 2 - 0.04;
         E.quad(fs, xo + sx + jit, 0.12, cz, [0, 0, -Lq], [0, hS, 0], 0.5, 0, tint, add, false, ghost ? 8 : 5);
