@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>둠스데이 익스프레스: 병맛 에디션</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@500;700;900&family=Noto+Sans+SC:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=1112-1200">
+</head>
+<body>
+<div id="app">
+  <canvas id="gl"></canvas>
+  <canvas id="fx"></canvas>
+
+  <!-- ============ 로딩 ============ -->
+  <section id="loading" class="screen">
+    <div class="ld-logo"><span class="l1">DOOMSDAY</span><span class="l2">EXPRESS</span></div>
+    <div class="ld-bar"><i id="ldBar"></i></div>
+    <div class="ld-txt" id="ldTxt">불러오는 중...</div>
+    <div class="ld-slow hidden" id="ldSlow">인터넷이 느려 시간이 걸리고 있어요</div>
+  </section>
+
+  <!-- ============ 인트로 스토리 ============ -->
+  <section id="intro" class="screen hidden">
+    <div class="story-frame"><img id="storyImg" alt=""><div id="storyText" class="story-text"></div></div>
+    <div class="story-dots" id="storyDots"></div>
+    <div class="story-hint">화면을 터치하세요</div>
+    <button class="btn-ghost" id="storySkip">SKIP ▶▶</button>
+  </section>
+
+  <!-- ============ 로비 ============ -->
+  <section id="lobby" class="screen hidden">
+    <div class="topbar">
+      <button class="icon-btn" id="btnSettings" aria-label="설정">⚙</button>
+      <button class="icon-btn" id="btnShare" aria-label="공유">📤</button>
+      <button class="supply" id="btnSupply">🎁 보급 <b id="supplyN"></b></button>
+      <div class="currency"><span class="cur-ico coin" data-slot="coin"></span><b id="lobGold">0</b></div>
+    </div>
+    <div class="logo" data-slot="logo"><div class="logo-fallback"><span class="l1">DOOMSDAY</span><span class="l2">EXPRESS</span><span class="l3" id="logoSub"></span></div></div>
+
+    <div class="sheet">
+      <div class="tabs">
+        <button class="tab on" data-tab="stage">스테이지</button>
+        <button class="tab" data-tab="meta">열차 강화</button>
+        <button class="tab" data-tab="reward">보상<i class="dot hidden" id="rewardDot"></i></button>
+      </div>
+      <div class="tab-body" id="tab-stage">
+        <div class="stage-card">
+          <button class="arrow" id="stPrev">‹</button>
+          <div class="stage-info">
+            <div class="stage-thumb"><img id="stThumb" alt=""><span class="badge" id="stBadge"></span></div>
+            <div class="stage-text">
+              <div class="stage-name" id="stName"></div>
+              <div class="stage-desc" id="stDesc"></div>
+              <div class="stage-best" id="stBest"></div>
+            </div>
+          </div>
+          <button class="arrow" id="stNext">›</button>
+        </div>
+      </div>
+      <div class="tab-body hidden" id="tab-meta"><div class="list" id="metaList"></div></div>
+      <div class="tab-body hidden" id="tab-reward"><div class="list" id="rewardList"></div></div>
+      <div class="next-goal" id="nextGoal"></div>
+      <button class="btn-start" id="btnStart" data-slot="startButton"><span>출발</span></button>
+      <div class="lob-foot"><div class="health" id="healthTxt"></div><div class="ver" id="verTxt"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ 인게임 HUD ============ -->
+  <section id="hud" class="hidden">
+    <div class="hud-top">
+      <button class="icon-btn small" id="btnPause" aria-label="일시정지">❚❚</button>
+      <button class="cam-btn" id="btnCam">📷 <span id="camLabel">원거리</span></button>
+      <div class="wave-box"><div class="wave-label" id="hudWave">WAVE 1</div><div class="bar thin"><i id="hudWaveBar"></i></div></div>
+      <div class="currency small"><span class="cur-ico coin" data-slot="coin"></span><b id="hudGold">0</b></div>
+    </div>
+    <div class="hp-row"><span class="hp-ico">🚂</span><div class="bar hp"><i id="hudHp"></i><em id="hudHpTxt"></em></div></div>
+    <div class="xp-row"><span class="lv" id="hudLv">Lv 1</span><div class="bar xp"><i id="hudXp"></i></div></div>
+    <div class="boss-row hidden" id="bossRow"><div class="boss-name" id="bossName"></div><div class="bar boss"><i id="bossHp"></i></div></div>
+    <div class="combo hidden" id="combo"><b id="comboN">0</b><span>COMBO</span></div>
+    <div class="hud-bottom">
+      <div class="owned" id="owned"></div>
+      <button class="ult" id="btnUlt" data-slot="ultimate"><svg viewBox="0 0 100 100"><circle class="ult-bg" cx="50" cy="50" r="44"/><circle class="ult-fill" id="ultRing" cx="50" cy="50" r="44"/></svg><span class="ult-ico">🥬</span><span class="ult-name">대파 폭격</span></button>
+      <button class="gsync" id="btnHorn"><span class="horn-ico">📯</span><span class="horn-name">비상 경적</span><span class="gs-cd" id="hornCd"></span></button>
+    </div>
+  </section>
+
+  <div id="banner" class="banner hidden"><div class="b-title" id="bTitle"></div><div class="b-sub" id="bSub"></div></div>
+
+  <!-- ============ 레벨업 ============ -->
+  <section id="levelup" class="modal hidden">
+    <div class="lv-title">LEVEL UP!</div>
+    <div class="lv-sub">카드를 하나 고르세요</div>
+    <div class="cards" id="cards"></div>
+    <button class="btn ad" id="btnReroll">🎬 광고 보고 다시 뽑기 <small id="rerollN"></small></button>
+  </section>
+
+  <!-- ============ 일시정지 / 설정 ============ -->
+  <section id="pause" class="modal hidden">
+    <div class="panel">
+      <div class="panel-title" id="pauseTitle">일시정지</div>
+      <div class="opts">
+      <label class="opt"><span>배경음악</span><input type="checkbox" id="optMusic"></label>
+      <label class="opt"><span>효과음</span><input type="checkbox" id="optSound"></label>
+      <label class="opt"><span>화면 흔들림</span><input type="checkbox" id="optShake"></label>
+      <label class="opt"><span>진동</span><input type="checkbox" id="optVib"></label>
+      <label class="opt"><span>순화 연출 (잔혹 표현 줄이기)</span><input type="checkbox" id="optMild"></label>
+      <label class="opt"><span>저사양 모드 (폰이 느릴 때)</span><input type="checkbox" id="optLow"></label>
+      <div class="opt"><span>언어 / 语言</span><button class="lang-btn" id="btnLang">한국어 ⇄ 中文</button></div>
+      </div>
+      <div class="fps" id="fpsTxt"></div>
+      <button class="btn" id="btnResume">계속하기</button>
+      <button class="btn dark" id="btnQuit">로비로 나가기</button>
+      <div class="btn-row">
+        <button class="btn dark" id="btnGuide">작전 안내서</button>
+        <button class="btn dark" id="btnPrivacy">개인정보 처리방침</button>
+      </div>
+      <button class="btn dark hidden" id="btnIntro">스토리 다시 보기</button>
+      <button class="btn danger hidden" id="btnReset">저장 데이터 초기화</button>
+    </div>
+  </section>
+
+  <!-- ============ 결과 ============ -->
+  <section id="result" class="modal hidden" data-slot="resultBg">
+    <div class="panel result">
+      <div class="r-title" id="rTitle"></div>
+      <div class="r-sub" id="rSub"></div>
+      <div class="r-stats" id="rStats"></div>
+      <div class="r-dmg" id="rDmg"></div>
+      <div class="r-reward"><span class="cur-ico coin" data-slot="coin"></span><b id="rGold">0</b></div>
+      <button class="btn gold hidden" id="btnRevive">🎬 광고 보고 부활</button>
+      <button class="btn ad" id="btnDouble">🎬 광고 보고 골드 2배</button>
+      <div class="btn-row">
+        <button class="btn dark" id="btnShareR">📤 자랑하기</button>
+        <button class="btn dark" id="btnLobby">로비로</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 작전 안내서 / 개인정보 / 팁 ============ -->
+  <section id="guide" class="modal hidden">
+    <div class="panel guide">
+      <div class="panel-title" id="guideTitle"></div>
+      <div class="guide-body" id="guideBody"></div>
+      <div class="guide-dots" id="guideDots"></div>
+      <div class="btn-row">
+        <button class="btn dark" id="guidePrev">◀ 이전</button>
+        <button class="btn" id="guideNext">다음 ▶</button>
+      </div>
+    </div>
+  </section>
+  <section id="privacy" class="modal hidden">
+    <div class="panel">
+      <div class="panel-title">개인정보 처리방침</div>
+      <div class="privacy-body" id="privacyBody"></div>
+      <button class="btn" id="privacyClose">닫기</button>
+    </div>
+  </section>
+  <section id="tip" class="modal hidden">
+    <div class="panel tip">
+      <div class="tip-head">💡 TIP</div>
+      <div class="tip-body" id="tipBody"></div>
+      <button class="btn" id="tipClose">알겠어요</button>
+    </div>
+  </section>
+  <div id="finger" class="finger hidden">👆</div>
+
+  <!-- ============ 대화 컷신 ============ -->
+  <section id="dialog" class="hidden">
+    <button class="btn-ghost" id="dlgSkip">SKIP ▶▶</button>
+    <div class="dlg-stage" id="dlgStage"></div>
+    <div class="dlg-box">
+      <div class="dlg-face"><img id="dlgFace" alt=""></div>
+      <div class="dlg-main"><div class="dlg-name" id="dlgName"></div><div class="dlg-text" id="dlgText"></div></div>
+      <div class="dlg-next">▼</div>
+    </div>
+  </section>
+
+  <!-- ============ 엔딩 ============ -->
+  <section id="ending" class="modal hidden">
+    <div class="end-title" id="endTitle"></div>
+    <div class="end-sub" id="endSub"></div>
+    <div class="end-faces" id="endFaces"></div>
+    <div class="end-thanks" id="endThanks"></div>
+    <button class="btn" id="btnEnd" style="max-width:320px">결과 보기</button>
+  </section>
+
+  <!-- ============ 실내 침입 전투 ============ -->
+  <div id="invMarks"></div>
+  <section id="fight" class="hidden"><canvas id="fightCv"></canvas></section>
+
+  <!-- ============ 광고 (테스트용 가짜 광고 화면) ============ -->
+  <section id="adScreen" class="hidden">
+    <div class="ad-box"><div class="ad-tag">AD · 테스트 광고</div><div class="ad-txt">여기에 실제 보상형 광고가 재생됩니다</div><div class="ad-txt hidden" id="adFail">광고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div><div class="ad-cd" id="adCd">2</div></div>
+  </section>
+
+  <div id="err" class="hidden"></div>
+</div>
+
+<script src="js/config.js?v=1112-1200"></script>
+<script src="js/i18n.js?v=1112-1200"></script>
+<script src="js/platform.js?v=1112-1200"></script>
+<script src="js/engine.js?v=1112-1200"></script>
+<script src="js/models.js?v=1112-1200"></script>
+<script src="js/sprites.js?v=1112-1200"></script>
+<script src="js/fight.js?v=1112-1200"></script>
+<script src="js/game.js?v=1112-1200"></script>
+<script src="js/ui.js?v=1112-1200"></script>
+</body>
+</html>

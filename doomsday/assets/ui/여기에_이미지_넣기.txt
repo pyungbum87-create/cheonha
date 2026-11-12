@@ -1,0 +1,9 @@
+이 폴더에 아래 이름으로 이미지를 넣으면 자동 적용됩니다 (없으면 기본 디자인).
+logo.png        로비 로고 (800x400, 투명 PNG)
+lobby_bg.jpg    로비 배경 (1080x1920)
+btn_start.png   출발 버튼 (600x180)
+card_frame.png  레벨업 카드 배경 (600x220)
+result_bg.jpg   결과 화면 배경 (1080x1920)
+ultimate.png    필살기 버튼 (256x256)
+coin.png        골드 아이콘 (64x64)
+자세한 내용은 수정가이드.md 참고
