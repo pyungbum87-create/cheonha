@@ -41,7 +41,7 @@ const PKEYS=["gwanu", "jangbi", "joun", "jegal", "jojo", "samaui", "heojeo", "so
 const PALIAS={w_sp:'sol_w',w_ar:'sol_w',s_sp:'sol_s',s_ar:'sol_s',o_sp:'sol_o',o_ar:'sol_o',q_sp:'sol_q',q_ar:'sol_q',m_gwanu:'gwanu',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo',m_joun:'joun'};
 const MRECT={"m0": [0, 0, 98, 112], "m1": [100, 0, 105, 112], "m2": [207, 0, 105, 112], "m3": [314, 0, 97, 112], "m4": [413, 0, 97, 112], "m5": [512, 0, 88, 112], "m6": [602, 0, 72, 112], "m7": [676, 0, 91, 112]};
 </script>
-<script src="legion_core.js"></script>
+<script src="platform.js"></script><script src="legion_core.js"></script>
 <script src="legion_orders.js"></script>
 <script src="sd/sdv.js"></script><script src="legion_ui.js"></script>
 <script>
@@ -62,7 +62,8 @@ let game,goDone=0;function go(){if(goDone)return;goDone=1;game=LEGION.mount({can
  load:()=>{try{return JSON.parse(localStorage.getItem('cheonha_legion_v2'))}catch(e){return null}},
  store:o=>{try{localStorage.setItem('cheonha_legion_v2',JSON.stringify(o))}catch(e){}},
  onExit:()=>location.href='index.html',
- ads:{rewarded:(kind,done)=>{if(confirm('광고 테스트: 실제 광고가 아닙니다. 보상을 지급할까요?'))done();}}});}
+ track:(e,p)=>{if(window.CH_TRACK)CH_TRACK(e,p);},
+ ads:{rewarded:(kind,done)=>{if(!window.CH_AD){done();return;}CH_AD.rewarded(kind,{group:'legion',cap:5}).then(ok=>{if(ok)done();});}}});}
 const P=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
 cv.addEventListener('pointerdown',e=>game&&game.touch('down',...P(e)));cv.addEventListener('pointerup',e=>game&&game.touch('up',...P(e)));
 </script></body></html>

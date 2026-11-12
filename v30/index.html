@@ -174,7 +174,7 @@ h3{font-family:var(--brush);font-weight:normal;font-size:20px;margin:6px 0 2px;c
 #mDaily{display:none!important}
 </style>
 
-<script src="sd/sdv.js"></script>
+<script src="platform.js"></script><script src="sd/sdv.js"></script>
 <script>
 /* on-screen error reporter: shows any script error so it can be photographed on a phone */
 (function(){var shown=0;function show(msg){try{if(shown>3)return;shown++;var b=document.getElementById('errbox');
@@ -2079,7 +2079,7 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
   RECIPES.push({out:'m_jangbi',in:['jangbi','gwanpyeong','madae']},{out:'m_samaui',in:['samaui','join','jangryo']},{out:'m_juyu',in:['juyu','yukson','hwanggae']},{out:'m_wonso',in:['wonso','anryang','munchu']});
   RECIPES.slice(-4).forEach(R=>R.in.forEach(id=>KEEP.add(id)));})();
 /* v30h: 시나리오·끝없는 전장 음원 (보스가 나오면 보스 BGM). 설정의 배경음 끄기·멈춤·결과 화면에서는 꺼짐 */
-(function(){if(!window.Audio)return;const A={};const VOL={bgm_battle:.38,bgm_boss:.5,bgm_menu:.5};['bgm_battle','bgm_boss','bgm_menu'].forEach(k=>{try{const a=new Audio('audio/'+k+'.mp3');a.loop=true;a.preload=k==='bgm_menu'?'auto':'auto';a.volume=VOL[k];A[k]=a;}catch(e){}});let cur=null,unl=false;
+(function(){if(!window.Audio)return;const A={};const VOL={bgm_battle:.38,bgm_boss:.5,bgm_menu:.5};['bgm_battle','bgm_boss','bgm_menu'].forEach(k=>{try{const a=new Audio('audio/'+k+'.mp3');a.loop=true;a.preload=k==='bgm_menu'?'auto':'metadata';a.volume=VOL[k];A[k]=a;}catch(e){}});let cur=null,unl=false;
   const set=w=>{if(cur===w)return;if(cur&&A[cur])try{A[cur].pause();}catch(e){}cur=w;if(w&&A[w]){try{A[w].currentTime=0;const p=A[w].play();if(p&&p.catch)p.catch(()=>{cur=null;});}catch(e){cur=null;}}};
   addEventListener('pointerdown',()=>{if(unl)return;unl=true;for(const k in A){const a=A[k];a.muted=true;try{const p=a.play();if(p&&p.then)p.then(()=>{a.pause();a.muted=false;}).catch(()=>{a.muted=false;});}catch(e){a.muted=false;}}},{capture:true});
   window.__bgmCur=()=>cur;BGM.start=function(){};BGM.stop=function(){};   // 코드 합성 BGM 대신 음원 사용
@@ -2119,6 +2119,22 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
     b.onclick=async()=>{const url=location.origin+location.pathname.replace(/[^/]*$/,'')+(ZH?'zh.html':'index.html');const text=T('천하등용 — 장수를 등용하고 합쳐서 성을 지키는 삼국 디펜스','天下登用 — 招募武将、合成升级的三国塔防');
       try{if(navigator.share){await navigator.share({title:T('천하등용','天下登用'),text,url});return;}}catch(e){return;}
       try{await navigator.clipboard.writeText(text+' '+url);flash(T('링크를 복사했어요','链接已复制'));}catch(e){flash(url);}};row.append(b);}return r;})(showResult);
+})();
+/* v30.2: 통계(CH_TRACK) · 광고 기록 · 약관/개인정보 링크 · 健康游戏忠告 (platform.js) */
+(function(){if(!window.CH_TRACK)return;const ZH=V30ZH,T=(k,z)=>ZH?z:k;
+  const sc=()=>G&&G.scn?G.scnI:-1,dur=()=>Math.round((Date.now()-((G&&G.__t0)||Date.now()))/1000);
+  window.newGame=(o=>function(mode){const r=o.apply(this,arguments);if(G){G.__t0=Date.now();CH_TRACK('game_start',{mode,scn:sc(),tier:G.scnTier|0});}return r;})(newGame);
+  const end=win=>{if(!G||G.__tr)return;G.__tr=1;CH_TRACK('game_end',{mode:G.mode,win,round:G.round,last:G.last,scn:sc(),tier:G.scnTier|0,dur:dur(),earned:G.earned|0});};
+  window.defeat=(o=>function(){const r=o.apply(this,arguments);end(0);return r;})(defeat);
+  window.victory=(o=>function(){const r=o.apply(this,arguments);end(1);return r;})(victory);
+  window.toTitle=(o=>function(){if(G&&!G.over&&!G.__tr){G.__tr=1;CH_TRACK('game_quit',{mode:G.mode,round:G.round,scn:sc(),tier:G.scnTier|0,dur:dur()});}return o.apply(this,arguments);})(toTitle);
+  window.openRewardModal=(o=>function(kind){const was=rewardPending;const r=o.apply(this,arguments);if(!was&&rewardPending)CH_TRACK('ad_offer',{placement:kind});return r;})(openRewardModal);
+  window.rewardGrant=(o=>function(kind){const ok=o.apply(this,arguments);if(ok)CH_TRACK('ad_reward',{placement:kind,real:!!rewardProvider()});return ok;})(rewardGrant);
+  // 약관·개인정보 (설정 화면)
+  const ob=document.getElementById('optBack');if(ob&&!document.getElementById('optLegal')){const b=document.createElement('button');b.className='btn';b.id='optLegal';b.textContent=T('약관·개인정보','用户协议·隐私');b.onclick=()=>{location.href=ZH?'legal-zh.html':'legal.html';};ob.before(b);}
+  // 健康游戏忠告 (중국어판 첫 화면)
+  if(ZH){const inner=document.querySelector('#title .inner');if(inner&&!document.getElementById('hAdv')){const p=document.createElement('p');p.id='hAdv';p.className='tag';p.style.cssText='font-size:9px;opacity:.55;margin:2px 0 0;line-height:1.3';p.textContent='抵制不良游戏，拒绝盗版游戏。注意自我保护，谨防受骗上当。适度游戏益脑，沉迷游戏伤身。合理安排时间，享受健康生活。';inner.append(p);}}
+  window.__verTxt='v30.2 · 1112-1100';
 })();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};

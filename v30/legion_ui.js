@@ -179,7 +179,7 @@ function mount(ad){
       else if(s.sel<s.team.length)s.team[s.sel]=id;else s.team.push(id);s.sel=-1;return;}
     if(at>=0)s.team.splice(at,1);else if(s.team.length<TS+(s.rs||0))s.team.push(id);else toast(L.full);}
   /* ---------- battle ---------- */
-  function startBattle(boost){sfx('gong');const s=scr.k==='form'?scr:scr.from;S.team=s.team.slice();S.form=s.form;save();
+  function startBattle(boost){sfx('gong');const s=scr.k==='form'?scr:scr.from;trk.t0=Date.now();trk('legion_start',{n:s.n!==undefined?s.n:(s.G&&s.G.n),boost:boost?1:0});S.team=s.team.slice();S.form=s.form;save();
     const team=s.team.slice(0,TS).map(id=>({u:UID[id],lv:S.gens[id].lv})),resA=s.team.slice(TS,TS+(s.rs||0)).map(id=>({u:UID[id],lv:S.gens[id].lv}));
     const selected=ORDERS.find(o=>o.id===s.order);
     S.order=selected?selected.id:S.order;save();
@@ -228,7 +228,7 @@ function mount(ad){
     let tx0=70;for(const t of G.traits){const nm=tx(D.traits[t].n);g.font=`bold 10px ${FONT}`;const w=g.measureText(nm).width+12;rr(tx0,42,w,18,9,'#000a');text(nm,tx0+w/2,51,10,COL.gold,'center',true);tx0+=w+4;}
     const sa=bt.synA.map(x=>tx(x.n)).join(' · '),sb=bt.synB.map(x=>tx(x.n)).join(' · ');
     if(sa){rr(4,H-22,Math.min(300,sa.length*11+14),18,9,'#000a');text(sa,10,H-13,10,'#9fe8a8','left',true,290);}if(sb){rr(W-4-Math.min(300,sb.length*11+14),H-22,Math.min(300,sb.length*11+14),18,9,'#000a');text(sb,W-10,H-13,10,'#ffb0a0','right',true,290);}
-    if(bt.done){s.end+=dt;if(!s.res){s.res=C.settle(S,G,s.from.team,bt);save();}if(s.end>.6&&!ov)ov={k:'result'};}}
+    if(bt.done){s.end+=dt;if(!s.res){s.res=C.settle(S,G,s.from.team,bt);save();trk('legion_end',{n:G.n,win:s.res.win?1:0,stars:s.res.stars|0,dur:Math.round((Date.now()-(trk.t0||Date.now()))/1000),manual:bt.manual?1:0});}if(s.end>.6&&!ov)ov={k:'result'};}}
   /* reinforcements waiting, manual skill buttons, strategy (군략) cards */
   function battleCtl(s,bt){const man=!!bt.manual,pulse=.5+.5*Math.sin(last*.01);
     btn(W-204,40,64,22,man?'✋ '+L.manual:'⚙ '+L.auto,()=>{bt.manual=!bt.manual;S.manual=bt.manual;save();toast(bt.manual?L.manTip:L.auto);},{size:10,fill:man?'#5a2a1a':'#3a2716',stroke:man?COL.gold:COL.dim});
@@ -376,6 +376,7 @@ function mount(ad){
     if(r.win)btn(196,by+38,248,26,used?L.done:L.adDouble,used?null:()=>rewarded('legion_double',()=>{s.adUsed=1;S.gold+=r.gold;for(const id of s.from.team)C.addExp(S.gens[id],r.exp);save();}),{size:12,dis:used});
     else btn(196,by+38,248,26,L.adRetry,()=>rewarded('legion_retry',()=>{scr=s.from;startBattle(1.2);}),{size:12});
     btn(196,by+70,248,24,L.map,()=>openMap(Math.floor((G.n-1)/D.curve.gatesPerChapter)),{size:12});}
+  function trk(e,p){try{if(ad.track)ad.track(e,p);}catch(x){}}
   function rewarded(kind,done){if(ad.ads&&ad.ads.rewarded)ad.ads.rewarded(kind,done);else done();}
   /* ---------- loop + input ---------- */
   function frame(t){if(!alive)return;const dt=Math.min(.1,last?(t-last)/1000:0);last=t;
