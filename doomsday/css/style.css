@@ -296,3 +296,9 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .bs-list { list-style: none; margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,.28); text-align: left; }
 .bs-list li { padding: 5px 0; font-size: 15px; }
 .bs-panel .btn { width: 100%; margin-top: 8px; }
+
+/* 경적 버튼 그림 */
+.gsync[data-slot] { background-size: cover; background-position: center; }
+.gsync.has-img .horn-ico { display: none; }
+.gsync.has-img .horn-name { position: absolute; left: 0; right: 0; bottom: 2px; font-size: 11px; text-shadow: 0 1px 0 #000, 0 0 4px #000; }
+.ult.has-img .ult-name { text-shadow: 0 1px 0 #000, 0 0 4px #000; }

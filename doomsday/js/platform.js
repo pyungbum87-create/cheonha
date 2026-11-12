@@ -10,7 +10,7 @@ window.DX = window.DX || {};
   const API = DX.API, PF = DX.PLATFORM;
 
   // ★ 빌드 번호 (월일-시분). 화면 아래에 표시 → 휴대폰에서 최신판인지 확인용
-  DX.BUILD = '1113-0025';
+  DX.BUILD = '1113-0112';
 
   /* ---------------- 저장소 (위챗·더우인은 플랫폼 저장소, 웹은 localStorage) ---------------- */
   DX.store = {
@@ -50,7 +50,7 @@ window.DX = window.DX || {};
     DX.track('share', { where: where || '' });
     const title = text || L('출근길 좀비 떼를 뚫어뻥으로 막아라! 둠스데이 익스프레스', '用马桶塞挡住通勤尸潮！末日快车');
     try {
-      if (API && API.shareAppMessage) { API.shareAppMessage({ title, imageUrl: 'assets/stages/stage1.jpg' }); return 'ok'; }
+      if (API && API.shareAppMessage) { API.shareAppMessage({ title, imageUrl: 'assets/ui/share.jpg' }); return 'ok'; }
       if (navigator.share) { navigator.share({ title, text: title, url: location.href }).catch(() => {}); return 'ok'; }
       if (navigator.clipboard) { navigator.clipboard.writeText(title + ' ' + location.href).catch(() => {}); return 'copied'; }
     } catch (e) {}

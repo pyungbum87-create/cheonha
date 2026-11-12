@@ -17,15 +17,18 @@ window.DX = window.DX || {};
   function loadSlots() {
     const ui = C.assets.ui;
     for (const key in ui) {
+      if (key === 'logoZh') continue;
+      const src = key === 'logo' && DX.lang() === 'zh' && ui.logoZh ? ui.logoZh : ui[key];
       const img = new Image();
       img.onload = () => {
-        document.querySelectorAll('[data-slot="' + key + '"]').forEach(el => { el.style.backgroundImage = 'url("' + ui[key] + '")'; el.classList.add('has-img'); });
+        document.querySelectorAll('[data-slot="' + key + '"]').forEach(el => { el.style.backgroundImage = 'url("' + src + '")'; el.classList.add('has-img'); });
         if (key === 'lobbyBg') { $('lobby').style.backgroundImage = 'url("' + ui[key] + '")'; $('lobby').classList.add('has-bg'); }
         if (key === 'cardFrame') document.documentElement.style.setProperty('--card-img', 'url("' + ui[key] + '")');
       };
-      img.src = ui[key];
+      img.src = src;
     }
   }
+  UI.loadSlots = loadSlots;
   function iconHtml(src, emoji) {
     if (src) return '<img src="' + src + '" alt="" onerror="this.replaceWith(document.createTextNode(\'' + (emoji || '★') + '\'))">';
     return emoji || '★';
@@ -102,7 +105,7 @@ window.DX = window.DX || {};
     const best = DX.save.best[st.id];
     $('stBest').textContent = L('최고 기록 : ', '最高纪录：') + (best ? 'WAVE ' + best + ' / ' + st.waves.length : '-');
     const th = $('stThumb');
-    th.onerror = () => { th.onerror = null; th.src = C.assets.story[i % 2 === 0 ? 2 : 1]; };
+    th.onerror = () => { if (st.thumbFallback && th.src.indexOf(st.thumbFallback) < 0) { th.src = st.thumbFallback; return; } th.onerror = null; th.src = C.assets.story[i % 2 === 0 ? 2 : 1]; };
     th.src = st.thumb || C.assets.story[2];
     $('stBadge').textContent = !stageUnlocked(i) ? T('🔒 잠김') : DX.save.cleared[st.id] ? 'CLEAR' : '';
     $('btnStart').disabled = !stageUnlocked(i);
@@ -453,6 +456,7 @@ window.DX = window.DX || {};
   UI.pauseGame = function () { if (DX.state !== 'play') return; prevState = 'play'; DX.state = 'paused'; openPause(false); };
   function relang() {
     DX.applyHtml();
+    loadSlots();
     refreshLobby();
     if (!$('pause').classList.contains('hidden')) openPause(inLobbyPanel);
     if (DX.getG()) $('camLabel').textContent = T(C.camera[DX.save.cam].label);
@@ -518,7 +522,7 @@ window.DX = window.DX || {};
     });
     $('btnShare').addEventListener('click', () => { lastResult = null; share('lobby'); });
     $('btnShareR').addEventListener('click', () => share('result'));
-    $('fight').addEventListener('pointerdown', e => { e.preventDefault(); DX.FIGHT.tap(); });
+    $('fight').addEventListener('pointerdown', e => { e.preventDefault(); const r = $('fightCv').getBoundingClientRect(); DX.FIGHT.tap(e.clientX - r.left); });
     $('btnUlt').addEventListener('click', () => { const G = DX.getG(); if (G && G.ult >= 1) hintDone('ult'); if (!DX.useUltimate()) DX.S.click(); });
     $('btnHorn').addEventListener('click', () => { hintDone('horn'); if (!DX.useHorn()) DX.S.click(); });
     // 일시정지 / 설정

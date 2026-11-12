@@ -188,6 +188,10 @@ window.DX = window.DX || {};
         const x = Math.random() < 0.5 ? th.walls[0] + 0.5 : th.walls[1] - 0.5, z = rand(-40, L);
         for (let i = 0; i < 10; i++) part({ mesh: 'cube', x, y: 9, z, vx: rand(-3, 3), vy: rand(-2, 2), vz: rand(-3, 3), g: -25, s: 0.1, s1: 0.03, max: rand(0.6, 1.1), col: pick(['#ffd23d', '#ff9a2a', '#ffffff']), emi: 2, pass: 2, alpha: 1, bounce: true });
       }
+    } else if (th.weather === 'snow') {
+      for (let i = 0; i < 3 * n; i++) part({ mesh: 'cube', x: rand(-24, 14), y: rand(10, 18), z: rand(-50, L + 8), vy: -4, vx: rand(-4, -1), s: 0.12, s1: 0.1, max: 3, col: '#ffffff', emi: 0.6, alpha: 0.85, pass: 1, drift: 0.4 });
+    } else if (th.weather === 'confetti') {
+      if (Math.random() < 0.6 * n) part({ mesh: 'cube', x: rand(-18, 12), y: rand(9, 14), z: rand(-40, L), vy: -2.5, vx: rand(-1, 1), s: 0.16, s1: 0.16, max: 3.5, col: pick(th.neon), emi: 1.2, alpha: 0.9, pass: 2, drift: 0.5 });
     } else if (th.weather === 'wind') {
       if (Math.random() < 0.3 * n) part({ mesh: 'cube', x: rand(-25, -5), y: rand(1, 10), z: rand(-60, L), vx: 30, s: 0.05, s1: 0.05, sx: 2.5, sy: 0.05, max: 0.8, col: '#ffffff', emi: 0.5, alpha: 0.25, pass: 1, drift: 0.3, streak: true });
     }
@@ -273,8 +277,17 @@ window.DX = window.DX || {};
     const free = G.layout.cars.map((c, i) => i).filter(i => !G.inv[i]);
     if (!free.length) return;
     const idx = pick(free), cfg = C.invasion;
-    const types = Object.keys(SPR.fight).filter(k => k !== 'bg' && k !== 'jack');
-    G.inv[idx] = { n: Math.floor(rand(cfg.count[0], cfg.count[1] + 1)), t: 0, types };
+    // 침입 좀비 종류 = 지금 웨이브에 나오는 좀비 중 전투 그림이 있는 것
+    let types = Object.keys(G.wave.mix || {}).filter(k => SPR.fight[k] && k !== 'bomber');
+    if (!types.length) types = ['office'];
+    // 장면: 기관차 칸 → 기관실 / 그 외 → 객차 또는 지붕
+    const sc = cfg.scenes || {}, sn = G.stageIdx + 1, kind = G.layout.cars[idx] && G.layout.cars[idx].kind;
+    let scene = 'car';
+    if (sc.engine && sn >= (sc.engine.fromStage || 1) && ((idx === 0 && Math.random() < 0.6) || Math.random() < 0.2)) scene = 'engine';
+    else if (sc.roof && sn >= (sc.roof.fromStage || 1) && Math.random() < (sc.roof.chance || 0.4)) scene = 'roof';
+    const heroes = (cfg.heroes || ['jack']).filter(h => SPR.fight[h]);
+    const hero = heroes.length ? heroes[idx % heroes.length] : 'jack';
+    G.inv[idx] = { n: Math.floor(rand(cfg.count[0], cfg.count[1] + 1)) + (sn >= 5 ? 1 : 0), t: 0, types, scene, hero };
     const c = G.layout.cars[idx];
     FX.text(0, 5, c.cz, '🚨 침입!!', '#ff4a4a', 26, 1.4, true);
     for (let i = 0; i < 6; i++) part({ mesh: 'cube', x: rand(-1, 1), y: TOP_CAR + 0.5, z: c.cz + rand(-2, 2), vx: rand(-5, 5), vy: rand(4, 9), vz: rand(-3, 3), g: -25, s: 0.25, max: 1, col: pick(['#7a5236', '#555']), bounce: true });
@@ -286,7 +299,7 @@ window.DX = window.DX || {};
     if (!G || DX.state !== 'play' || !G.inv[idx] || !DX.FIGHT) return false;
     const inv = G.inv[idx], cfg = C.invasion;
     DX.state = 'fight';
-    DX.FIGHT.start({ count: inv.n, types: inv.types, time: cfg.fightTime, hits: cfg.hitsToKill }, res => {
+    DX.FIGHT.start({ count: inv.n, types: inv.types, time: cfg.fightTime, hits: cfg.hitsToKill, scene: inv.scene, hero: inv.hero, theme: G.stg.theme }, res => {
       delete G.inv[idx];
       DX.track(res.win ? 'invasion_win' : 'invasion_fail', { stage: G.stageIdx + 1 });
       if (res.win) {
@@ -430,6 +443,7 @@ window.DX = window.DX || {};
     G.zs.push(b); G.boss = b; G.bossSpawned = true;
     S.roar(); G.shake = Math.max(G.shake, 0.8);
     if (DX.UI) DX.UI.bossBar(true, DX.T(cfg.name), 1);
+    if (DX.UI && cfg.quote) DX.UI.banner(cfg.name, '“' + DX.T(cfg.quote) + '”', 'boss');
   }
   function updWave(dt) {
     const w = G.wave; if (!w || G.endT >= 0) return;
@@ -677,7 +691,8 @@ window.DX = window.DX || {};
     vib([60, 40, 120]);
     // 보스 시체: 크게 날아감
     const bch = artOf(b);
-    if (bch) burstParts(b, bch, 'leek', 0, -1, 20, true);
+    if (bch && Object.keys(bch.parts).length) burstParts(b, bch, 'leek', 0, -1, 20, true);
+    else if (bch) G.corpses.push({ ch: bch, cfg: b.cfg, art: true, x: b.x, y: 0, z: b.z, s: b.s, face: b.face, kind: 'shot', t: 0, rot: 0, rotT: rand(-1.6, 1.6), vy: 9, vx: rand(-3, 3), vr: rand(-4, 4), alpha: 1, burn: 0, sq: 1, flash: 0.3, swell: 0, boss: true });
     else G.corpses.push({ type: 'boss', boss: true, giant: b.giant, model: b.model, cfg: b.cfg, x: b.x, y: 0, z: b.z, yaw: b.yaw, ph: b.ph, s: b.s, kind: 'blast', t: 0, tx: 0, tz: 0, vtx: rand(-3, 3), vtz: rand(2, 4), vx: 0, vy: 14, vz: -3, burn: 0, flash: 0, dead: true, grounded: false, rest: 0, squash: 1, alpha: 1 });
     // 주변 좀비 전부 날려버림
     SRC = 'misc';

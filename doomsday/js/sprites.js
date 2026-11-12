@@ -246,9 +246,21 @@ window.DX = window.DX || {};
     for (const key in fa) {
       try {
         const d = await getPixels(fa[key]); removeBg(d);
-        if (key === 'bg') { SPR.fight.bg = crop(d, null, null, bboxAlpha(d)); continue; }
+        if (key.indexOf('bg') === 0) { SPR.fight[key] = crop(d, null, null, bboxAlpha(d)); continue; }
         SPR.fight[key] = splitPoses(d, 3).map(c => scaled(c, Math.min(1, 340 / c.height)));
       } catch (e) { console.warn('fight art fail', key, e); }
+    }
+    // 포즈 그림이 없는 캐릭터: 전신 그림 1장을 대신 사용
+    const ff = (DX.CONFIG && DX.CONFIG.fightFallback) || {};
+    for (const key in ff) {
+      if (SPR.fight[key]) continue;
+      try {
+        const d = await getPixels(ff[key].src); removeBg(d);
+        let c = scaled(crop(d, null, null, bboxAlpha(d)), 1);
+        c = scaled(c, Math.min(1, 340 / c.height));
+        if (ff[key].flip) { const f = document.createElement('canvas'); f.width = c.width; f.height = c.height; const x = f.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); c = f; }
+        const arr = [c, c, c]; arr.single = true; SPR.fight[key] = arr;
+      } catch (e) { console.warn('fight fallback fail', key, e); }
     }
     if (!items.length) return false;
     const atlas = pack(items, 2048);
