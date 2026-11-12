@@ -355,7 +355,29 @@ window.DX = window.DX || {};
     if (G.waveIdx > 0) { G.hp = Math.min(G.hpMax, G.hp + G.hpMax * 0.1); collectAllOrbs(); }
     if (DX.UI) DX.UI.banner('WAVE ' + (G.waveIdx + 1), w.boss ? C.texts.bossAlert : pick(C.texts.waveSubs), w.boss ? 'boss' : 'wave');
     if (w.boss) S.alarm();
+    // 보스 직전 보급 제안 (선택형 광고) — 고르는 동안 게임 멈춤
+    const bs = C.ads.bossSupply;
+    if (w.boss && bs && bs.on && (!bs.finalOnly || G.waveIdx === G.stg.waves.length - 1) && G.hp < G.hpMax * (bs.askBelow || 1) && (G.supplyN || 0) < bs.perRun && DX.UI && DX.UI.bossSupply) {
+      G.supplyN = (G.supplyN || 0) + 1;
+      DX.state = 'supply';
+      DX.track('boss_supply_offer', { stage: G.stageIdx + 1, wave: G.waveIdx + 1 });
+      DX.UI.bossSupply(bs, G);
+    }
   }
+  // 보급 결과: take=true 면 광고 시청 완료 → 보상 지급, false 면 그냥 진행
+  DX.bossSupplyDone = function (take) {
+    if (!G || DX.state !== 'supply') return;
+    const bs = C.ads.bossSupply;
+    if (take) {
+      G.hp = Math.min(G.hpMax, G.hp + G.hpMax * bs.heal);
+      if (bs.ult) G.ult = 1;
+      G.shield = Math.max(G.shield, bs.shield);
+      DX.track('boss_supply_take', { stage: G.stageIdx + 1, wave: G.waveIdx + 1 });
+      if (DX.UI) DX.UI.banner('보급 도착!', DX.L('체력 회복 · 대파 폭격 충전 · 방어막 ' + bs.shield + '초', '生命恢复 · 大招充满 · 护盾 ' + bs.shield + ' 秒'), 'win');
+      S.level();
+    }
+    DX.state = 'play';
+  };
   function pickType(mix) {
     let tot = 0; for (const k in mix) tot += mix[k];
     let r = Math.random() * tot;

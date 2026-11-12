@@ -289,3 +289,10 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .finger { position: absolute; z-index: 60; font-size: 42px; pointer-events: none; transform: translate(-30%, 10%); animation: finger 0.9s ease-in-out infinite; filter: drop-shadow(0 3px 3px #000); }
 @keyframes finger { 0%,100% { margin-top: 0; } 50% { margin-top: 14px; } }
 #adFail { color: #ff9a9a; }
+
+/* 보스 직전 보급 (선택형 광고) */
+.bs-panel { text-align: center; }
+.bs-sub { opacity: .85; margin-bottom: 10px; }
+.bs-list { list-style: none; margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,.28); text-align: left; }
+.bs-list li { padding: 5px 0; font-size: 15px; }
+.bs-panel .btn { width: 100%; margin-top: 8px; }

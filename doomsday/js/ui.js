@@ -295,6 +295,14 @@ window.DX = window.DX || {};
   };
   UI.hideLevelUp = function () { show($('levelup'), false); };
 
+  /* ---------------- 보스 직전 보급 (선택형 광고) ---------------- */
+  UI.bossSupply = function (bs) {
+    $('bsHeal').textContent = L('열차 체력 ' + Math.round(bs.heal * 100) + '% 회복', '列车生命恢复 ' + Math.round(bs.heal * 100) + '%');
+    $('bsShield').textContent = L('방어막 ' + bs.shield + '초', '护盾 ' + bs.shield + ' 秒');
+    show($('bsUlt'), !!bs.ult);
+    show($('bossSupply'), true);
+  };
+
   /* ---------------- 결과 ---------------- */
   const wn = (k, d) => (C.weapons[k] && C.weapons[k].name) || d;
   const SRC_NAME = { mg: wn('mg', '기관총'), flame: '화염방사', tesla: wn('tesla', '테슬라 코일'), drone: wn('drone', '드론 폭탄'), cannon: wn('cannon', '캐논 터렛'), barrel: '드럼통', ult: C.ultimate.name, horn: C.horn.name, bomber: '회식 좀비 폭발', fall: '낭떠러지', misc: '기타' };
@@ -378,15 +386,15 @@ window.DX = window.DX || {};
   /* ---------------- 보상형 광고 ----------------
      ★ 광고 ID는 config.js 의 ads.unit 에 넣으면 끝. 비어 있으면 2초 테스트 광고.
      cb()는 광고를 '끝까지' 봤을 때만 호출. 중간에 닫으면 보상 없음. 강제 광고 없음. */
-  let adObj = null, adCb = null, adKind = '', adWasPlaying = false;
+  let adObj = null, adCb = null, adFail = null, adKind = '', adWasPlaying = false;
   function realAd() {
     const API = DX.API, unit = C.ads.unit && C.ads.unit[DX.PLATFORM];
     if (!API || !unit || !API.createRewardedVideoAd) return null;
     if (!adObj) {
       adObj = API.createRewardedVideoAd({ adUnitId: unit });
       adObj.onClose(res => {
-        const cb = adCb; adCb = null; resumeAfterAd();
-        if (res && res.isEnded === false) { toast(L('끝까지 봐야 보상을 받아요', '看完广告才能获得奖励')); return; }
+        const cb = adCb, fb = adFail; adCb = null; adFail = null; resumeAfterAd();
+        if (res && res.isEnded === false) { toast(L('끝까지 봐야 보상을 받아요', '看完广告才能获得奖励')); if (fb) fb(); return; }
         DX.track('ad_reward', { kind: adKind }); if (cb) cb();
       });
       if (adObj.onError) adObj.onError(() => {});
@@ -394,15 +402,16 @@ window.DX = window.DX || {};
     return adObj;
   }
   function resumeAfterAd() { if (adWasPlaying && DX.state === 'paused') DX.state = 'play'; adWasPlaying = false; if (DX.Music) DX.Music.hidden = false; }
-  DX.showAd = function (kind, cb) {
+  // onFail(선택): 광고 실패·중간에 닫음 → 호출 (멈춘 화면을 풀어야 할 때 사용)
+  DX.showAd = function (kind, cb, onFail) {
     adKind = kind; DX.track('ad_open', { kind });
     adWasPlaying = DX.state === 'play'; if (adWasPlaying) DX.state = 'paused';
     if (DX.Music) { DX.Music.hidden = true; DX.Music.stop(); }
     const ad = realAd();
     if (ad) {
-      adCb = cb;
+      adCb = cb; adFail = onFail || null;
       ad.show().catch(() => ad.load().then(() => ad.show())).catch(() => {
-        adCb = null; resumeAfterAd(); DX.track('ad_fail', { kind });
+        adCb = null; adFail = null; resumeAfterAd(); DX.track('ad_fail', { kind }); if (onFail) onFail();
         toast(L('광고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요', '广告加载失败，请稍后再试'));
       });
       return;
@@ -500,6 +509,8 @@ window.DX = window.DX || {};
     $('dialog').addEventListener('click', e => { if (e.target.id === 'dlgSkip') return; nextDlg(false); });
     $('dlgSkip').addEventListener('click', e => { e.stopPropagation(); nextDlg(true); });
     $('btnCam').addEventListener('click', () => { DX.S.click(); $('camLabel').textContent = T(DX.toggleCam()); });
+    $('btnBsTake').addEventListener('click', () => { show($('bossSupply'), false); DX.showAd('boss_supply', () => DX.bossSupplyDone(true), () => DX.bossSupplyDone(false)); });
+    $('btnBsSkip').addEventListener('click', () => { show($('bossSupply'), false); DX.track('boss_supply_skip', {}); DX.bossSupplyDone(false); });
     $('btnReroll').addEventListener('click', () => { const G = DX.getG(); if (!G || G.rerolls <= 0) return; DX.showAd('reroll', () => DX.rerollCards()); });
     $('btnSupply').addEventListener('click', () => {
       if (supplyLeft() <= 0) return;

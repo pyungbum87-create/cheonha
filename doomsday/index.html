@@ -6,7 +6,7 @@
 <title>둠스데이 익스프레스: 병맛 에디션</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@500;700;900&family=Noto+Sans+SC:wght@700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=1112-1205">
+<link rel="stylesheet" href="css/style.css?v=1113-0025">
 </head>
 <body>
 <div id="app">
@@ -94,6 +94,21 @@
     <div class="lv-sub">카드를 하나 고르세요</div>
     <div class="cards" id="cards"></div>
     <button class="btn ad" id="btnReroll">🎬 광고 보고 다시 뽑기 <small id="rerollN"></small></button>
+  </section>
+
+  <!-- ============ 보스 직전 보급 (선택형 광고) ============ -->
+  <section id="bossSupply" class="modal hidden">
+    <div class="panel bs-panel">
+      <div class="panel-title">📦 보스 출현 직전!</div>
+      <div class="bs-sub">보급을 받고 싸울까요?</div>
+      <ul class="bs-list">
+        <li>🍱 <span id="bsHeal">열차 체력 25% 회복</span></li>
+        <li id="bsUlt">🥬 <span>대파 폭격 즉시 충전</span></li>
+        <li>🛡️ <span id="bsShield">방어막 3초</span></li>
+      </ul>
+      <button class="btn ad" id="btnBsTake">🎬 광고 보고 보급 받기</button>
+      <button class="btn dark" id="btnBsSkip">괜찮아, 그냥 싸운다</button>
+    </div>
   </section>
 
   <!-- ============ 일시정지 / 설정 ============ -->
@@ -198,14 +213,14 @@
   <div id="err" class="hidden"></div>
 </div>
 
-<script src="js/config.js?v=1112-1205"></script>
-<script src="js/i18n.js?v=1112-1205"></script>
-<script src="js/platform.js?v=1112-1205"></script>
-<script src="js/engine.js?v=1112-1205"></script>
-<script src="js/models.js?v=1112-1205"></script>
-<script src="js/sprites.js?v=1112-1205"></script>
-<script src="js/fight.js?v=1112-1205"></script>
-<script src="js/game.js?v=1112-1205"></script>
-<script src="js/ui.js?v=1112-1205"></script>
+<script src="js/config.js?v=1113-0025"></script>
+<script src="js/i18n.js?v=1113-0025"></script>
+<script src="js/platform.js?v=1113-0025"></script>
+<script src="js/engine.js?v=1113-0025"></script>
+<script src="js/models.js?v=1113-0025"></script>
+<script src="js/sprites.js?v=1113-0025"></script>
+<script src="js/fight.js?v=1113-0025"></script>
+<script src="js/game.js?v=1113-0025"></script>
+<script src="js/ui.js?v=1113-0025"></script>
 </body>
 </html>

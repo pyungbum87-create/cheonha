@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.5',
+    version: 'v0.6',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -35,6 +35,8 @@ DX.CONFIG = {
     rerollPerRun: 2,            // 레벨업 카드 '광고 보고 다시 뽑기' 판당 횟수
     supplyGold: 40,             // 로비 '보급 상자' 광고 1회당 골드
     supplyPerDay: 3,            // 보급 상자 하루 횟수
+    // 보스 등장 직전 '보급 받기' (선택형 광고). perRun = 한 판에 몇 번까지, finalOnly = 마지막 보스 직전에만 (true면 1번)
+    bossSupply: { on: true, perRun: 1, finalOnly: true, askBelow: 0.9, heal: 0.25, ult: false, shield: 3 },  // askBelow = 열차 체력이 이 비율 미만일 때만 물어봄
     // ★ 광고 단위 ID: 위챗/더우인 관리자 화면에서 받은 '보상형 영상 광고' ID를 넣으세요. 비어 있으면 2초 테스트 광고.
     unit: { wx: '', tt: '' },
   },
@@ -193,10 +195,10 @@ DX.CONFIG = {
   /* ------------------------------------------------------------- 로비 영구 강화 (골드로 구매)
      레벨당 효과는 아주 작게, 대신 단계가 많음. 가격 = costBase × costGrow^현재레벨 */
   meta: {
-    hp: { name: '열차 장갑판', icon: '🛡️', desc: '열차 체력 +12', per: 12, max: 30, costBase: 60, costGrow: 1.13 },
-    dmg: { name: '사격 훈련', icon: '🎯', desc: '모든 피해 +1.5%', per: 0.015, max: 30, costBase: 80, costGrow: 1.14 },
-    xp: { name: '야간 자율학습', icon: '📚', desc: '경험치 +2%', per: 0.02, max: 20, costBase: 70, costGrow: 1.14 },
-    magnet: { name: '자석 코팅', icon: '🧲', desc: '경험치 흡수 범위 +3%', per: 0.03, max: 20, costBase: 50, costGrow: 1.12 },
+    hp: { name: '열차 장갑판', icon: '🛡️', desc: '열차 체력 +25', per: 25, max: 24, costBase: 60, costGrow: 1.13 },
+    dmg: { name: '사격 훈련', icon: '🎯', desc: '모든 피해 +4%', per: 0.04, max: 20, costBase: 80, costGrow: 1.14 },
+    xp: { name: '야간 자율학습', icon: '📚', desc: '경험치 +4%', per: 0.04, max: 20, costBase: 70, costGrow: 1.14 },
+    magnet: { name: '자석 코팅', icon: '🧲', desc: '경험치 흡수 범위 +5%', per: 0.05, max: 20, costBase: 50, costGrow: 1.12 },
   },
 
   /* ------------------------------------------------------------- 스테이지 & 웨이브
@@ -224,16 +226,13 @@ DX.CONFIG = {
         props: 'desert', weather: 'dust', rock: ['#c27a45', '#b06a3a', '#d48b52', '#9e5d33'], plant: '#5f8f3a',
       },
       waves: [
-        { time: 24, rate: 2.2, hordes: 1, hordeSize: 20, mix: { office: 1 }, hp: 1.0 },
-        { time: 28, rate: 2.8, hordes: 1, hordeSize: 26, mix: { office: 0.8, box: 0.2 }, hp: 1.1 },
-        { time: 30, rate: 3.2, hordes: 2, hordeSize: 30, mix: { office: 0.7, box: 0.2, dancer: 0.1 }, hp: 1.2 },
-        { time: 34, rate: 3.8, hordes: 2, hordeSize: 38, mix: { office: 0.6, box: 0.2, dancer: 0.12, bomber: 0.08 }, hp: 1.55 },
-        { time: 30, rate: 2.6, hordes: 1, hordeSize: 30, mix: { office: 0.7, box: 0.3 }, hp: 1.72, boss: 'bujang', bossHp: 1.0 },
-        { time: 34, rate: 4.4, hordes: 2, hordeSize: 46, mix: { office: 0.5, box: 0.25, dancer: 0.12, riot: 0.06, bomber: 0.07 }, hp: 2.15 },
-        { time: 38, rate: 5.0, hordes: 3, hordeSize: 50, mix: { office: 0.5, box: 0.2, dancer: 0.15, riot: 0.08, bomber: 0.07 }, hp: 2.46 },
-        { time: 40, rate: 5.6, hordes: 3, hordeSize: 58, mix: { office: 0.45, box: 0.2, dancer: 0.15, riot: 0.12, bomber: 0.08 }, hp: 2.85 },
-        { time: 42, rate: 6.2, hordes: 3, hordeSize: 66, mix: { office: 0.42, box: 0.2, dancer: 0.15, riot: 0.15, bomber: 0.08 }, hp: 3.22 },
-        { time: 40, rate: 4.0, hordes: 2, hordeSize: 50, mix: { office: 0.5, box: 0.2, dancer: 0.15, riot: 0.15 }, hp: 3.54, boss: 'bujang', bossHp: 2.6 },
+        { time: 20, rate: 2.6, hordes: 1, hordeSize: 22, mix: { office: 1 }, hp: 1.6 },
+        { time: 24, rate: 3.2, hordes: 1, hordeSize: 28, mix: { office: 0.8, box: 0.2 }, hp: 1.84 },
+        { time: 26, rate: 3.8, hordes: 2, hordeSize: 32, mix: { office: 0.7, box: 0.2, dancer: 0.1 }, hp: 2.16 },
+        { time: 26, rate: 2.8, hordes: 1, hordeSize: 30, mix: { office: 0.7, box: 0.3 }, hp: 2.4, boss: 'bujang', bossHp: 0.8 },
+        { time: 26, rate: 4.4, hordes: 2, hordeSize: 40, mix: { office: 0.55, box: 0.22, dancer: 0.13, bomber: 0.1 }, hp: 2.88 },
+        { time: 28, rate: 5.0, hordes: 2, hordeSize: 46, mix: { office: 0.5, box: 0.2, dancer: 0.15, riot: 0.06, bomber: 0.09 }, hp: 3.36 },
+        { time: 30, rate: 3.6, hordes: 2, hordeSize: 40, mix: { office: 0.5, box: 0.2, dancer: 0.15, riot: 0.08, bomber: 0.07 }, hp: 3.84, boss: 'bujang', bossHp: 1.6 },
       ],
     },
     {
@@ -256,16 +255,13 @@ DX.CONFIG = {
         props: 'city', weather: 'rain', spriteTint: [0.85, 0.85, 0.97], building: ['#5a6378', '#66708a', '#525a6e', '#6a5a78', '#586868'], neon: ['#ff4fa3', '#3df2ff', '#ffd23d', '#7dff6b'],
       },
       waves: [
-        { time: 26, rate: 3.0, hordes: 1, hordeSize: 30, mix: { office: 0.8, box: 0.2 }, hp: 1.3 },
-        { time: 30, rate: 3.6, hordes: 2, hordeSize: 36, mix: { office: 0.6, box: 0.2, dancer: 0.12, bomber: 0.08 }, hp: 1.5 },
-        { time: 32, rate: 4.2, hordes: 2, hordeSize: 42, mix: { office: 0.5, box: 0.2, dancer: 0.18, riot: 0.05, bomber: 0.07 }, hp: 1.75 },
-        { time: 36, rate: 4.8, hordes: 2, hordeSize: 50, mix: { office: 0.45, box: 0.2, dancer: 0.2, riot: 0.08, bomber: 0.07 }, hp: 2.2 },
-        { time: 30, rate: 3.4, hordes: 2, hordeSize: 40, mix: { office: 0.55, box: 0.2, dancer: 0.15, bomber: 0.1 }, hp: 2.35, boss: 'bujang', bossHp: 1.6 },
-        { time: 36, rate: 5.4, hordes: 3, hordeSize: 56, mix: { office: 0.4, box: 0.2, dancer: 0.2, riot: 0.12, bomber: 0.08 }, hp: 2.7 },
-        { time: 40, rate: 6.0, hordes: 3, hordeSize: 62, mix: { office: 0.4, box: 0.2, dancer: 0.17, riot: 0.15, bomber: 0.08 }, hp: 3.0 },
-        { time: 42, rate: 6.6, hordes: 3, hordeSize: 70, mix: { office: 0.36, box: 0.2, dancer: 0.18, riot: 0.18, bomber: 0.08 }, hp: 3.35 },
-        { time: 44, rate: 7.2, hordes: 4, hordeSize: 76, mix: { office: 0.36, box: 0.2, dancer: 0.18, riot: 0.18, bomber: 0.08 }, hp: 3.8 },
-        { time: 40, rate: 5.0, hordes: 3, hordeSize: 60, mix: { office: 0.4, box: 0.2, dancer: 0.15, riot: 0.15, bomber: 0.1 }, hp: 4.25, boss: 'gwajang', bossHp: 2.6 },
+        { time: 20, rate: 3.2, hordes: 1, hordeSize: 30, mix: { office: 0.8, box: 0.2 }, hp: 3.6 },
+        { time: 24, rate: 3.8, hordes: 2, hordeSize: 36, mix: { office: 0.6, box: 0.2, dancer: 0.12, bomber: 0.08 }, hp: 4.14 },
+        { time: 26, rate: 4.4, hordes: 2, hordeSize: 42, mix: { office: 0.5, box: 0.2, dancer: 0.18, riot: 0.05, bomber: 0.07 }, hp: 4.86 },
+        { time: 26, rate: 3.2, hordes: 2, hordeSize: 40, mix: { office: 0.55, box: 0.2, dancer: 0.15, bomber: 0.1 }, hp: 5.4, boss: 'bujang', bossHp: 1.2 },
+        { time: 26, rate: 5.0, hordes: 2, hordeSize: 50, mix: { office: 0.45, box: 0.2, dancer: 0.2, riot: 0.08, bomber: 0.07 }, hp: 6.48 },
+        { time: 28, rate: 5.6, hordes: 3, hordeSize: 56, mix: { office: 0.4, box: 0.2, dancer: 0.2, riot: 0.12, bomber: 0.08 }, hp: 7.56 },
+        { time: 30, rate: 4.2, hordes: 2, hordeSize: 50, mix: { office: 0.4, box: 0.2, dancer: 0.15, riot: 0.15, bomber: 0.1 }, hp: 8.64, boss: 'gwajang', bossHp: 1.7 },
       ],
     },
     {
@@ -288,16 +284,13 @@ DX.CONFIG = {
         props: 'bridge', weather: 'wind', deck: [-11, 4], river: '#3f7fb0', cliff: ['#8a6a52', '#9a7a5a', '#7a5a46', '#a88a6a'], steel: '#8a4a3a',
       },
       waves: [
-        { time: 26, rate: 3.2, hordes: 1, hordeSize: 32, mix: { office: 0.75, box: 0.25 }, hp: 1.3 },
-        { time: 30, rate: 3.8, hordes: 2, hordeSize: 38, mix: { office: 0.55, box: 0.2, dancer: 0.15, bomber: 0.1 }, hp: 1.55 },
-        { time: 32, rate: 4.4, hordes: 2, hordeSize: 44, mix: { office: 0.5, box: 0.2, dancer: 0.15, riot: 0.08, bomber: 0.07 }, hp: 1.85 },
-        { time: 36, rate: 5.0, hordes: 2, hordeSize: 52, mix: { office: 0.45, box: 0.2, dancer: 0.17, riot: 0.1, bomber: 0.08 }, hp: 2.3 },
-        { time: 30, rate: 3.6, hordes: 2, hordeSize: 42, mix: { office: 0.55, box: 0.2, dancer: 0.15, bomber: 0.1 }, hp: 3.1, boss: 'gwajang', bossHp: 1.6 },
-        { time: 36, rate: 5.6, hordes: 3, hordeSize: 58, mix: { office: 0.4, box: 0.2, dancer: 0.18, riot: 0.14, bomber: 0.08 }, hp: 3.5 },
-        { time: 40, rate: 6.2, hordes: 3, hordeSize: 64, mix: { office: 0.38, box: 0.2, dancer: 0.18, riot: 0.16, bomber: 0.08 }, hp: 3.9 },
-        { time: 42, rate: 6.8, hordes: 3, hordeSize: 72, mix: { office: 0.35, box: 0.2, dancer: 0.18, riot: 0.18, bomber: 0.09 }, hp: 4.4 },
-        { time: 44, rate: 7.4, hordes: 4, hordeSize: 78, mix: { office: 0.35, box: 0.2, dancer: 0.18, riot: 0.18, bomber: 0.09 }, hp: 4.9 },
-        { time: 40, rate: 5.2, hordes: 3, hordeSize: 62, mix: { office: 0.4, box: 0.2, dancer: 0.15, riot: 0.15, bomber: 0.1 }, hp: 5.4, boss: 'isa', bossHp: 2.4 },
+        { time: 20, rate: 3.4, hordes: 1, hordeSize: 32, mix: { office: 0.75, box: 0.25 }, hp: 5.3 },
+        { time: 24, rate: 4.0, hordes: 2, hordeSize: 38, mix: { office: 0.55, box: 0.2, dancer: 0.15, bomber: 0.1 }, hp: 6.09 },
+        { time: 26, rate: 4.6, hordes: 2, hordeSize: 44, mix: { office: 0.5, box: 0.2, dancer: 0.15, riot: 0.08, bomber: 0.07 }, hp: 7.16 },
+        { time: 26, rate: 3.4, hordes: 2, hordeSize: 42, mix: { office: 0.55, box: 0.2, dancer: 0.15, bomber: 0.1 }, hp: 7.95, boss: 'gwajang', bossHp: 1.2 },
+        { time: 26, rate: 5.2, hordes: 2, hordeSize: 52, mix: { office: 0.45, box: 0.2, dancer: 0.17, riot: 0.1, bomber: 0.08 }, hp: 9.54 },
+        { time: 28, rate: 5.8, hordes: 3, hordeSize: 58, mix: { office: 0.4, box: 0.2, dancer: 0.18, riot: 0.14, bomber: 0.08 }, hp: 11.13 },
+        { time: 30, rate: 4.4, hordes: 2, hordeSize: 52, mix: { office: 0.4, box: 0.2, dancer: 0.15, riot: 0.15, bomber: 0.1 }, hp: 12.72, boss: 'isa', bossHp: 1.7 },
       ],
     },
     {
@@ -321,16 +314,13 @@ DX.CONFIG = {
         props: 'tunnel', weather: 'sparks', spriteTint: [0.85, 0.74, 0.76], walls: [-12.5, 5.5], wall: '#3a3840', alarm: '#ff2a2a',
       },
       waves: [
-        { time: 26, rate: 3.4, hordes: 1, hordeSize: 34, mix: { office: 0.7, box: 0.2, bomber: 0.1 }, hp: 1.5 },
-        { time: 30, rate: 4.0, hordes: 2, hordeSize: 40, mix: { office: 0.5, box: 0.2, dancer: 0.15, bomber: 0.15 }, hp: 1.8 },
-        { time: 32, rate: 4.6, hordes: 2, hordeSize: 46, mix: { office: 0.45, box: 0.2, dancer: 0.15, riot: 0.1, bomber: 0.1 }, hp: 2.15 },
-        { time: 36, rate: 5.2, hordes: 3, hordeSize: 52, mix: { office: 0.4, box: 0.2, dancer: 0.17, riot: 0.13, bomber: 0.1 }, hp: 2.7 },
-        { time: 30, rate: 3.8, hordes: 2, hordeSize: 44, mix: { office: 0.5, box: 0.2, dancer: 0.15, bomber: 0.15 }, hp: 4.1, boss: 'isa', bossHp: 1.8 },
-        { time: 36, rate: 5.8, hordes: 3, hordeSize: 60, mix: { office: 0.38, box: 0.2, dancer: 0.17, riot: 0.15, bomber: 0.1 }, hp: 4.6 },
-        { time: 40, rate: 6.4, hordes: 3, hordeSize: 66, mix: { office: 0.36, box: 0.2, dancer: 0.17, riot: 0.17, bomber: 0.1 }, hp: 5.1 },
-        { time: 42, rate: 7.0, hordes: 4, hordeSize: 72, mix: { office: 0.34, box: 0.2, dancer: 0.18, riot: 0.18, bomber: 0.1 }, hp: 5.7 },
-        { time: 44, rate: 7.6, hordes: 4, hordeSize: 80, mix: { office: 0.34, box: 0.2, dancer: 0.18, riot: 0.18, bomber: 0.1 }, hp: 6.3 },
-        { time: 40, rate: 5.4, hordes: 3, hordeSize: 64, mix: { office: 0.4, box: 0.2, dancer: 0.15, riot: 0.15, bomber: 0.1 }, hp: 7.0, boss: 'ceo', bossHp: 2.2 },
+        { time: 20, rate: 3.6, hordes: 1, hordeSize: 34, mix: { office: 0.7, box: 0.2, bomber: 0.1 }, hp: 6.4 },
+        { time: 24, rate: 4.2, hordes: 2, hordeSize: 40, mix: { office: 0.5, box: 0.2, dancer: 0.15, bomber: 0.15 }, hp: 7.36 },
+        { time: 26, rate: 4.8, hordes: 2, hordeSize: 46, mix: { office: 0.45, box: 0.2, dancer: 0.15, riot: 0.1, bomber: 0.1 }, hp: 8.64 },
+        { time: 26, rate: 3.6, hordes: 2, hordeSize: 44, mix: { office: 0.5, box: 0.2, dancer: 0.15, bomber: 0.15 }, hp: 9.6, boss: 'isa', bossHp: 1.2 },
+        { time: 26, rate: 5.4, hordes: 3, hordeSize: 54, mix: { office: 0.4, box: 0.2, dancer: 0.17, riot: 0.13, bomber: 0.1 }, hp: 11.52 },
+        { time: 28, rate: 6.0, hordes: 3, hordeSize: 60, mix: { office: 0.38, box: 0.2, dancer: 0.17, riot: 0.15, bomber: 0.1 }, hp: 13.44 },
+        { time: 30, rate: 4.6, hordes: 2, hordeSize: 54, mix: { office: 0.4, box: 0.2, dancer: 0.15, riot: 0.15, bomber: 0.1 }, hp: 15.36, boss: 'ceo', bossHp: 1.6 },
       ],
     },
   ],
