@@ -245,7 +245,7 @@ window.DX = window.DX || {};
     SPR.fight = {};
     for (const key in fa) {
       try {
-        const d = await getPixels(fa[key]); removeBg(d);
+        const d = await getPixels(fa[key]); if (!/\.jpe?g($|\?)/i.test(fa[key])) removeBg(d);   // jpg = 배경까지 그린 그림 → 흰색 안 지움
         if (key.indexOf('bg') === 0) { SPR.fight[key] = crop(d, null, null, bboxAlpha(d)); continue; }
         SPR.fight[key] = splitPoses(d, 3).map(c => scaled(c, Math.min(1, 340 / c.height)));
       } catch (e) { console.warn('fight art fail', key, e); }

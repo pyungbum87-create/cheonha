@@ -151,14 +151,14 @@ window.DX = window.DX || {};
       const el = st.maxTime - st.time;
       for (const q of st.queue) { q.at -= dt; if (q.at <= 0 && !q.spawned) { q.spawned = true; spawn(q, L); } }
       // 지붕: 표지판 경보 (경고 1.1초 → 위험 0.5초). 위험 순간 서 있는 좀비는 표지판에 맞고 날아감
-      if (st.scene === 'roof' && !st.signDone && el > st.signAt) { st.signDone = true; st.sign = { phase: 'warn', t: 1.1 }; text(L.w / 2, L.floor - L.ch * 1.75, DX.T('⚠️ 표지판 접근! 손 떼!'), '#ff4a4a', 30, 1.2); DX.S && DX.S.alarm && DX.S.alarm(); }
+      if (st.scene === 'roof' && !st.signDone && el > st.signAt) { st.signDone = true; st.sign = { phase: 'warn', t: 1.1 }; text(L.w / 2, L.by + L.bh * 0.14, DX.T('⚠️ 표지판 접근! 손 떼!'), '#ff4a4a', 30, 1.2); DX.S && DX.S.alarm && DX.S.alarm(); }
       if (st.sign) {
         st.sign.t -= dt;
         if (st.sign.phase === 'warn' && st.sign.t <= 0) {
           st.sign = { phase: 'hit', t: 0.5, x: L.w + 60 };
           let n = 0;
           for (const z of st.zs) if (z.state === 'walk' || z.state === 'lunge') { knockOut(z, L, -1, DX.T('표지판 직격!')); n++; }
-          if (n) text(L.w / 2, L.floor - L.ch * 1.75, DX.T('표지판이 좀비를 쓸어갔다!'), '#ffd23d', 24, 1.2);
+          if (n) text(L.w / 2, L.by + L.bh * 0.14, DX.T('표지판이 좀비를 쓸어갔다!'), '#ffd23d', 24, 1.2);
         } else if (st.sign.phase === 'hit') { st.sign.x -= L.w * 3.2 * dt; if (st.sign.t <= 0) st.sign = null; }
       }
       for (const z of st.zs) {
@@ -282,7 +282,13 @@ window.DX = window.DX || {};
     g.fillStyle = 'rgba(5,7,12,0.88)'; g.fillRect(0, 0, L.w, L.h);
     g.save();
     if (st.shake > 0 && DX.save.shake !== false) g.translate(rand(-st.shake, st.shake), rand(-st.shake, st.shake));
-    if (L.bg) g.drawImage(L.bg, L.bx, L.by, L.bw, L.bh);
+    if (L.bg) {
+      g.drawImage(L.bg, L.bx, L.by, L.bw, L.bh);
+      if (st.scene === 'roof') {   // 지붕 그림 위에 바람 선
+        g.strokeStyle = 'rgba(255,255,255,0.6)'; g.lineWidth = 2;
+        for (let i = 0; i < 12; i++) { const y = L.by + ((i * 47) % (L.bh * 0.6)) + 10, x = L.w - ((st.t * 900 + i * 197) % (L.w + 300)); g.beginPath(); g.moveTo(x, y); g.lineTo(x + 60 + (i % 3) * 30, y); g.stroke(); }
+      }
+    }
     else if (st.scene === 'engine') drawEngineRoom(L);
     else if (st.scene === 'roof') drawRoof(L);
     // 생존자

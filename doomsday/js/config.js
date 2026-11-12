@@ -72,7 +72,8 @@ DX.CONFIG = {
     riot: { full: 'assets/chars/riot_full.png', parts: 'assets/chars/riot_parts.png', height: 2.4, face: 1 },
     bujang: { full: 'assets/chars/bujang_full.png', height: 2.3, face: 1 },   // 거미 보스 (부위 그림 없음 → 통째로 날아감)
     ceo: { full: 'assets/chars/ceo_full.png', height: 2.7, face: 1 },
-    // 민호·소피 지붕 사수(뒷모습) 그림이 오면: minho: { full: 'assets/chars/minho_back.png', height: 1.55, face: 1 }, 추가 후 survivors 의 art 를 바꾸기
+    minho: { full: 'assets/chars/minho_back.png', height: 1.55, face: 1 },    // 지붕 사수 (뒷모습)
+    sophie: { full: 'assets/chars/sophie_back.png', height: 1.55, face: 1 },
   },
 
   /* ------------------------------------------------------------- 열차 그림
@@ -93,13 +94,12 @@ DX.CONFIG = {
     jack: 'assets/fight/jack_fight.png',
     office: 'assets/fight/office_fight.png',
     box: 'assets/fight/box_fight.png',
-    // ★ 새 그림이 오면 주석(//)을 지우고 파일을 넣으세요
-    // bgEngine: 'assets/fight/engine_inside.png',   // 기관실 배경
-    // bgRoof: 'assets/fight/roof.png',              // 열차 지붕 배경
-    // minho: 'assets/fight/minho_fight.png',        // 민호 포즈 3개 (준비/휘두르기/맞음)
-    // sophie: 'assets/fight/sophie_fight.png',
-    // dancer: 'assets/fight/dancer_fight.png',      // 좀비 포즈 3개 (걷기/공격/날아감)
-    // riot: 'assets/fight/riot_fight.png',
+    bgEngine: 'assets/fight/engine_inside.png',   // 기관실 배경
+    bgRoof: 'assets/fight/roof.jpg',              // 열차 지붕 배경
+    minho: 'assets/fight/minho_fight.png',        // 생존자 포즈 3개 (준비/휘두르기/맞음, 오른쪽 보기)
+    sophie: 'assets/fight/sophie_fight.png',
+    dancer: 'assets/fight/dancer_fight.png',      // 좀비 포즈 3개 (걷기/공격/날아감, 왼쪽 보기)
+    riot: 'assets/fight/riot_fight.png',          // 경찰: 가운데(공격) 포즈 = 방패 열린 모습
   },
   // 포즈 그림이 아직 없을 때 전신 그림 1장으로 대신 씀 (flip = 좌우 뒤집기)
   fightFallback: {
@@ -139,8 +139,8 @@ DX.CONFIG = {
   /* ------------------------------------------------------------- 생존자 (열차 위 사수 + 대화 캐릭터) */
   survivors: [
     { name: '잭', art: 'jack', portrait: 'assets/portraits/survivor1.png', jacket: '#2b3a55', helmet: '#ff5a36', skin: '#c99872' },
-    { name: '민호', art: 'jack', portrait: 'assets/portraits/survivor2.png', jacket: '#4a3b2f', helmet: '#29c7ff', skin: '#e0b48e' },
-    { name: '소피', art: 'jack', portrait: 'assets/portraits/survivor3.png', jacket: '#5a2f45', helmet: '#ffd400', skin: '#f2c7a0' },
+    { name: '민호', art: 'minho', portrait: 'assets/portraits/survivor2.png', jacket: '#4a3b2f', helmet: '#29c7ff', skin: '#e0b48e' },
+    { name: '소피', art: 'sophie', portrait: 'assets/portraits/survivor3.png', jacket: '#5a2f45', helmet: '#ffd400', skin: '#f2c7a0' },
   ],
 
   /* ------------------------------------------------------------- 열차 */
