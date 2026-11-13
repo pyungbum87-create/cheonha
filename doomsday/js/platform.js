@@ -10,7 +10,7 @@ window.DX = window.DX || {};
   const API = DX.API, PF = DX.PLATFORM;
 
   // ★ 빌드 번호 (월일-시분). 화면 아래에 표시 → 휴대폰에서 최신판인지 확인용
-  DX.BUILD = '1114-0330';
+  DX.BUILD = '1114-0530';
 
   /* ---------------- 저장소 (위챗·더우인은 플랫폼 저장소, 웹은 localStorage) ---------------- */
   DX.store = {
@@ -92,7 +92,8 @@ window.DX = window.DX || {};
     const on = DX.save && DX.save.music !== false && !Music.hidden;
     if (!on) mode = '';
     const f = mode ? fileFor(mode) || (mode === 'battle2' || mode === 'boss' || mode === 'mini' ? fileFor('battle') : null) : null;
-    if (f !== Music.file) { if (Music.file) Music.file.pause(); Music.file = f; if (f) { f.loop = true; f.volume = 0.5; f.currentTime = 0; f.play().catch(() => {}); } }
+    if ((mode === 'win' || mode === 'lose') && !f) mode = '';
+    if (f !== Music.file) { if (Music.file) Music.file.pause(); Music.file = f; if (f) { f.loop = !(mode === 'win' || mode === 'lose'); f.volume = mode === 'lose' || mode === 'win' ? 0.7 : 0.45; f.currentTime = 0; f.play().catch(() => {}); } }
     if (f) mode = '';   // 파일이 나오면 코드 음악은 끔
     else if (mode && !PAT[mode]) mode = 'battle';
     if (mode === Music.mode) return;
@@ -127,7 +128,16 @@ window.DX = window.DX || {};
     { k: 'horn', goal: 3, name: ['비상 경적 3회 사용', '使用紧急鸣笛3次'], gold: 30 },
     { k: 'run', goal: 3, name: ['출발 3회', '出发3次'], gold: 30 },
     { k: 'boss', goal: 1, name: ['보스 1마리 처치', '击败1个BOSS'], gold: 50 },
+    { k: 'skill', goal: 5, name: ['액티브 스킬 5번 쓰기', '使用主动技能5次'], gold: 40 },
+    { k: 'react', goal: 3, name: ['원소 반응 3번 일으키기', '触发元素反应3次'], gold: 50 },
+    { k: 'rescue', goal: 3, name: ['시민 3명 구출', '营救3名市民'], gold: 50 },
+    { k: 'mini', goal: 1, name: ['미니게임 A등급 이상', '小游戏获得A级以上'], gold: 50 },
+    { k: 'evo', goal: 1, name: ['무기 진화 1번', '武器进化1次'], gold: 60 },
+    { k: 'combo2', goal: 1, name: ['무기 조합 발동 1번', '触发武器组合1次'], gold: 50 },
   ];
+  // 활동 점수: 미션 1개 완료 = 25점 → 25/50/100점 상자 (골드·보석)
+  DX.MISSION_PTS = 25;
+  DX.CHESTS = [{ pts: 25, gold: 60 }, { pts: 50, gold: 120, gems: 3 }, { pts: 100, gold: 250, gems: 8 }];
   DX.ATT = [30, 40, 50, 60, 80, 100, 200];
   DX.today = function () { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
   DX.dailyInit = function () {
@@ -135,8 +145,8 @@ window.DX = window.DX || {};
     if (s.daily && s.daily.day === t) return;
     let h = 0; for (const ch of t) h = (h * 31 + ch.charCodeAt(0)) | 0;
     const pool = DX.MISSIONS.map((m, i) => i), pick = [];
-    while (pick.length < 3 && pool.length) { h = (h * 1103515245 + 12345) | 0; pick.push(pool.splice(Math.abs(h) % pool.length, 1)[0]); }
-    s.daily = { day: t, m: pick.map(i => ({ i, p: 0, c: false })) };
+    while (pick.length < 4 && pool.length) { h = (h * 1103515245 + 12345) | 0; pick.push(pool.splice(Math.abs(h) % pool.length, 1)[0]); }
+    s.daily = { day: t, m: pick.map(i => ({ i, p: 0, c: false })), pts: 0, ch: [] };
     DX.persist();
   };
   DX.mission = function (k, n, setMax) {
@@ -151,6 +161,7 @@ window.DX = window.DX || {};
   DX.rewardDot = function () {
     const s = DX.save; DX.dailyInit();
     if (DX.attCan()) return true;
+    if ((DX.CHESTS || []).some((c, i) => (s.daily.pts || 0) >= c.pts && !(s.daily.ch || [])[i])) return true;
     return s.daily.m.some(m => !m.c && m.p >= DX.MISSIONS[m.i].goal);
   };
 

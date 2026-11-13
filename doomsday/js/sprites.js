@@ -241,7 +241,8 @@ window.DX = window.DX || {};
       if (x + w + 2 > size) { x = 2; y += rowH + 4; rowH = 0; }
       if (y + h + 2 > size || w + 4 > size) { left.push(it); continue; }
       g.drawImage(it.canvas, x, y);
-      SPR.frames[it.name] = { u0: x / size, v0: y / size, u1: (x + w) / size, v1: (y + h) / size, aspect: w / h, meta: it.meta, t: page };
+      const ins = it.name.startsWith('gimg') ? 1.5 : 0;   // 바닥 그림은 가장자리를 살짝 안쪽으로 (옆 그림 색이 번지는 줄 방지)
+      SPR.frames[it.name] = { u0: (x + ins) / size, v0: (y + ins) / size, u1: (x + w - ins) / size, v1: (y + h - ins) / size, aspect: w / h, meta: it.meta, t: page };
       x += w + 4; rowH = Math.max(rowH, h);
     }
     return { atlas, left };

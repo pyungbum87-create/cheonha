@@ -11,11 +11,13 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.14',
+    version: 'v0.15',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
     trainSpeed: 16,             // 열차 속도 (배경이 흘러가는 속도)
+    timeScale: 0.82,            // 게임 전체 속도 (1 = 원래, 낮을수록 느리고 글을 읽을 여유)
+    textLife: 1.5,              // 화면 글자·알림이 떠 있는 시간 배율
     startGold: 100,             // 처음 시작할 때 주는 골드
   },
 
@@ -146,13 +148,13 @@ DX.CONFIG = {
     on: true,
     // 스토리: 장마다 1번, 중간보스 다음(5번째 웨이브 전). 다시 하기: pool 중 무작위(직전 것 제외)
     byStage: [
-      [[5, 'boiler']], [[5, 'rescue']], [[5, 'sniper']], [[5, 'parcel']],
+      [[5, 'gates']], [[5, 'rescue']], [[5, 'sniper']], [[5, 'parcel']],
       [[5, 'rescue']], [[5, 'boiler', { hard: true }]], [[5, 'sniper', { dark: true }]], [[5, 'golf']],
     ],
-    pool: [['boiler', 'rescue', 'parcel'], ['rescue', 'parcel', 'boiler'], ['sniper', 'rescue', 'parcel'], ['parcel', 'golf', 'sniper'],
-      ['rescue', 'sniper', 'boiler'], ['boiler', 'rescue', 'sniper'], ['sniper', 'boiler', 'parcel'], ['golf', 'parcel', 'sniper']],
+    pool: [['gates', 'boiler', 'rescue'], ['rescue', 'gates', 'parcel'], ['sniper', 'gates', 'rescue'], ['parcel', 'golf', 'gates'],
+      ['gates', 'rescue', 'sniper'], ['boiler', 'gates', 'sniper'], ['sniper', 'gates', 'parcel'], ['golf', 'gates', 'parcel']],
     // 미니게임 시작 대사 (게임 설명 말고 사건으로)
-    lines: { boiler: '열차가 멈췄다! 좀비가 다가온다!', rescue: '사람들이 쫓기고 있어! 업고 뛰어!', sniper: '옥상의 사람들이 위험해! 엄호해!', parcel: '택배 폭탄이 날아온다! 받아쳐!', golf: '사장님이 골프채를 들었다!', hack: '문 암호를 풀어야 해!' },
+    lines: { gates: '갈림길이다! 좋은 문을 골라 화력을 키워!', boiler: '열차가 멈췄다! 좀비가 다가온다!', rescue: '사람들이 쫓기고 있어! 업고 뛰어!', sniper: '옥상의 사람들이 위험해! 엄호해!', parcel: '택배 폭탄이 날아온다! 받아쳐!', golf: '사장님이 골프채를 들었다!', hack: '문 암호를 풀어야 해!' },
     bg: ['assets/story/ch1_side.jpg', 'assets/story/ch2_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch1_side.jpg', 'assets/story/ch1_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch3_side.jpg'],
     tint: [null, null, null, 'rgba(160,40,140,0.28)', 'rgba(60,40,20,0.25)', 'rgba(170,200,255,0.45)', 'rgba(0,0,0,0.45)', 'rgba(20,120,40,0.3)'],
     reward: { gold: 60, goldPerStage: 0.35, heal: 0.15, ult: 0.35 },
@@ -482,6 +484,9 @@ DX.CONFIG = {
       desc: ['좀비를 한곳으로 빨아들이는 회오리 (불붙은 좀비가 들어가면 불회오리)', '회오리 피해 증가', '회오리 크기 두 배!', '쿨타임 감소', '회오리가 좀비를 따라다님!'],
       cd: [15, 14, 13.5, 12, 11], dps: [10, 13, 16, 19, 24], radius: [5, 5, 8, 8, 9], pull: [7, 8, 10, 10, 12], dur: [4, 4.5, 4.5, 5, 6], follow: [0, 0, 0, 0, 1] },
   },
+  // 천천히 늘어나게: 새 무기 칸은 이 레벨부터 (2번째·3번째·4번째 무기), 액티브 스킬은 skillLv부터
+  //   ramp = 판 시작 후 rampSec초 동안 좀비 수를 rampMin배 → 1배로 서서히
+  growth: { newWeaponLv: [0, 3, 7, 12], skillLv: 6, rampSec: 100, rampMin: 0.45 },
   // 무기 조합: 두 무기를 함께 가지면 켜짐 (화면에 '조합 발동!' + 카드에 미리 표시)
   combos: [
     { id: 'oil', a: 'flame', b: 'barrel', name: '기름바다', desc: '드럼통 터진 자리에 불이 번짐' },

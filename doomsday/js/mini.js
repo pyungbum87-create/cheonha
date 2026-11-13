@@ -13,6 +13,7 @@ window.DX = window.DX || {};
   const pick = a => a[Math.floor(Math.random() * a.length)];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const FONT = "'Black Han Sans', 'Noto Sans SC', sans-serif";
+  const MINI_SPEED = 0.85;   // 미니게임 전체 속도 (낮을수록 느림)
   const L = (ko, zh) => (DX.L ? DX.L(ko, zh) : ko);
   let cv, g, st = null, raf = 0, last = 0, st0kind = '';
 
@@ -23,6 +24,7 @@ window.DX = window.DX || {};
     boiler: [L('🔥 보일러를 살려라!', '🔥 救活锅炉！'), L('바늘이 초록 칸에 올 때 탭!', '指针进入绿色区域时点击！')],
     hack: [L('💻 문 암호 해킹!', '💻 破解门锁密码！'), L('바늘이 초록 칸에 올 때 탭!', '指针进入绿色区域时点击！')],
     sniper: [L('🎯 옥상 엄호 저격!', '🎯 屋顶掩护狙击！'), L('사람들에게 다가가는 좀비를 탭!', '点击接近市民的僵尸！')],
+    gates: [L('🚂 운명의 갈림길!', '🚂 命运岔路！'), L('좌우로 끌어서 좋은 문을 통과! 숫자를 키워 보스를 이겨라', '左右拖动穿过好门！把数字变大打败首领')],
   });
   // 필요한 그림 (assets 경로). 없으면 코드 도형으로 대신 그림
   const CH = n => 'assets/chars/' + n + '.png';
@@ -39,6 +41,10 @@ window.DX = window.DX || {};
       n.train = 'assets/train/train_engine_side.png';
       ['w0', 'w1', 'w2', 'w3'].forEach(k => n['z_' + k] = CH('anim/office_' + k));
       n.h0 = CH('jack/side_defend_0'); n.h1 = CH('jack/side_cheer_0'); n.s0 = CH('sophie/side_attack_0'); n.s1 = CH('sophie/side_cheer_0');
+    } else if (kind === 'gates') {
+      n.bg = null; n.train = 'assets/train/train_engine_top.png'; n.car = 'assets/train/car_gun_top.png';
+      ['w0', 'w1', 'w2', 'w3'].forEach(k => n['z_' + k] = CH('anim/office_' + k));
+      n.boss = CH('anim/bujang_a0');
     } else if (kind === 'sniper') {
       ['w0', 'w1', 'w2', 'w3', 'a2', 'a3'].forEach(k => n['z_' + k] = CH('anim/office_' + k));
       for (const c of ['man', 'woman', 'clerk']) { n['c_' + c + '0'] = 'assets/npc/citizen_' + c + '_0.png'; n['c_' + c + '3'] = 'assets/npc/citizen_' + c + '_3.png'; }
@@ -57,14 +63,16 @@ window.DX = window.DX || {};
     const out = {}, SPR = DX.SPR;
     await Promise.all(Object.keys(n).map(async k => {
       if (!n[k] || !SPR.cut) return;
-      const isBg = k === 'bg', isFx = k === 'crate' || k === 'train';
+      const isBg = k === 'bg', isFx = k === 'crate' || k === 'train' || k === 'car';
       out[k] = await (isFx ? SPR.cut(n[k], k === 'train' ? 260 : 120, false) : SPR.cut(n[k], isBg ? 0 : 300, isBg));
     }));
     return out;
   }
 
   /* ---------------- 시작 / 종료 ---------------- */
+  const queue = [];
   M.start = async function (kind, opt, done) {
+    if (st) { queue.push([kind, opt, done]); return; }   // 앞 미니게임이 끝난 뒤 시작 (화면 겹침 방지)
     opt = opt || {};
     cv = document.getElementById('miniCv'); g = cv.getContext('2d');
     const sec = document.getElementById('mini');
@@ -72,11 +80,11 @@ window.DX = window.DX || {};
     if (kind === 'boiler' && opt.hack) st0kind = 'hack'; else st0kind = kind;
     st = { kind, tk: st0kind, done, opt, t: 0, phase: 'load', phaseT: 0, img: {}, score: 0, max: 1, combo: 0, maxCombo: 0, hp: 3, texts: [], parts: [], shake: 0, flash: 0, result: null };
     drawLoading();
-    let bgUrl = opt.bg || 'assets/story/ch2_side.jpg';
-    if (opt.bgNew && DX.SPR.probe && await DX.SPR.probe(opt.bgNew)) { bgUrl = opt.bgNew; opt.tint = null; }   // 새 옆 배경 그림이 있으면 그걸로
+    let bgUrl = kind === 'gates' ? null : (opt.bg || 'assets/story/ch2_side.jpg');
+    if (bgUrl && opt.bgNew && DX.SPR.probe && await DX.SPR.probe(opt.bgNew)) { bgUrl = opt.bgNew; opt.tint = null; }   // 새 옆 배경 그림이 있으면 그걸로
     const img = await loadAll(need(kind, bgUrl));
     if (!st) return;
-    st.img = img; st.phase = 'intro'; st.phaseT = opt.line ? 2.2 : 1.6;
+    st.img = img; st.phase = 'intro'; st.phaseT = opt.line ? 3.2 : 2.6;
     SETUP[kind](st);
     last = performance.now();
     cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
@@ -86,7 +94,7 @@ window.DX = window.DX || {};
     if (st.phase === 'end') return;
     const rate = clamp(st.score / st.max, 0, 1);
     const grade = rate >= 0.9 ? 'S' : rate >= 0.7 ? 'A' : rate >= 0.45 ? 'B' : 'C';
-    st.phase = 'end'; st.phaseT = 2.0; st.result = { kind: st.kind, rate, grade, score: st.score, max: st.max, maxCombo: st.maxCombo, saved: st.saved || 0, dogs: st.dogs || 0 };
+    st.phase = 'end'; st.phaseT = 3.2; st.result = { kind: st.kind, rate, grade, score: st.score, max: st.max, maxCombo: st.maxCombo, saved: st.saved || 0, dogs: st.dogs || 0 };
     if (rate >= 0.45 && DX.S) DX.S.win(); else if (DX.S) DX.S.lose();
   }
   function close() {
@@ -94,10 +102,11 @@ window.DX = window.DX || {};
     document.getElementById('mini').classList.add('hidden');
     const r = st.result, d = st.done; st = null;
     if (d) d(r);
+    if (queue.length) { const q = queue.shift(); setTimeout(() => M.start(q[0], q[1], q[2]), 300); }
   }
   function loop(ts) {
     if (!st) return;
-    const dt = Math.min(0.05, (ts - last) / 1000 || 0.016); last = ts;
+    const dt = Math.min(0.05, (ts - last) / 1000 || 0.016) * MINI_SPEED; last = ts;
     if (st.phase !== 'load') try { update(dt); if (st) draw(); } catch (e) { console.error(e); }
     if (st) raf = requestAnimationFrame(loop);
   }
@@ -114,11 +123,12 @@ window.DX = window.DX || {};
   }
   function down(x, y) {
     if (!st) return;
-    if (st.phase === 'end' && st.phaseT < 1.2) { close(); return; }
+    if (st.phase === 'end' && st.phaseT < 2.0) { close(); return; }
     if (st.phase !== 'play') return;
     TAP[st.kind](st, x, y);
   }
   M.down = down;
+  M.move = function (x) { if (st && st.phase === 'play' && MOVE[st.kind]) MOVE[st.kind](st, x); };
   M.active = () => !!st;
   M._step = function (n, dt, auto) { for (let i = 0; i < n && st && st.phase !== 'load'; i++) { update(dt || 1 / 30); if (auto && st && st.phase === 'play' && auto(st)) down(1, 1); } if (st && st.phase !== 'load') draw(); };
   M._st = () => st;
@@ -130,12 +140,12 @@ window.DX = window.DX || {};
     if (cv.width !== Math.round(w * d) || cv.height !== Math.round(h * d)) { cv.width = Math.round(w * d); cv.height = Math.round(h * d); }
     g.setTransform(d, 0, 0, d, 0, 0);
     // 무대: 가운데 띠 (세로 화면에서도 가로 무대). 바닥선 = floor
-    const sh = Math.min(h * 0.6, w * 1.0), sy = h * 0.46 - sh / 2;
-    return { w, h, sy, sh, floor: sy + sh * 0.86, unit: sh / 100 };
+    const tall = st && st.kind === 'gates', sh = tall ? h * 0.8 : Math.min(h * 0.6, w * 1.0), sy = tall ? h * 0.13 : h * 0.46 - sh / 2;
+    return { w, h, sy, sh, floor: sy + sh * 0.86, unit: tall ? Math.min(sh, w * 1.3) / 100 : sh / 100 };
   }
   function drawLoading() {
     const Z = size();
-    g.fillStyle = 'rgba(5,7,12,0.92)'; g.fillRect(0, 0, Z.w, Z.h);
+    g.clearRect(0, 0, Z.w, Z.h); g.fillStyle = '#05070c'; g.fillRect(0, 0, Z.w, Z.h);
     txt(L('준비 중...', '准备中...'), Z.w / 2, Z.h / 2, 26, '#fff');
   }
   function txt(s, x, y, sz, col, al, stroke) {
@@ -198,13 +208,13 @@ window.DX = window.DX || {};
       txt(tt[0], Z.w / 2, Z.h * 0.42, Math.min(40, Z.w / 10), '#ffd34a');
       txt(tt[1], Z.w / 2, Z.h * 0.42 + 46, Math.min(22, Z.w / 18), '#fff');
       g.globalAlpha = 1;
-    } else if (st.phase === 'play' && st.t < 3.5) txt(tt[1], Z.w / 2, Z.sy + Z.sh + Math.min(60, (Z.h - Z.sy - Z.sh) * 0.3), 18, '#cfe8ff');
+    } else if (st.phase === 'play' && st.t < 6) txt(tt[1], Z.w / 2, Z.sy + Z.sh + Math.min(60, (Z.h - Z.sy - Z.sh) * 0.3), 18, '#cfe8ff');
     if (st.phase === 'end') {
       const r = st.result;
       g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(0, 0, Z.w, Z.h);
       txt(r.grade, Z.w / 2, Z.h * 0.38, 96, { S: '#ffd34a', A: '#7dff8a', B: '#5fe1ff', C: '#ff8a8a' }[r.grade]);
       txt(r.rate >= 0.45 ? (st.opt.op ? L('구조 성공!!', '营救成功！！') : L('성공!!', '成功！！')) : L('아쉽다...', '可惜...'), Z.w / 2, Z.h * 0.38 + 76, 30, '#fff');
-      if (st.phaseT < 1.2) txt(L('터치해서 계속', '点击继续'), Z.w / 2, Z.h * 0.38 + 124, 16, '#cfe8ff');
+      if (st.phaseT < 2.0) txt(L('터치해서 계속', '点击继续'), Z.w / 2, Z.h * 0.38 + 124, 16, '#cfe8ff');
     }
   }
   function draw() {
@@ -217,11 +227,11 @@ window.DX = window.DX || {};
     drawCommon(Z);
   }
 
-  const SETUP = {}, UPD = {}, TAP = {}, DRAW = {};
+  const SETUP = {}, UPD = {}, TAP = {}, DRAW = {}, MOVE = {};
 
   /* ================= 1) 택배 쳐내기 =================
      상자는 포물선으로 날아와 T초에 민호 앞 '타격 원'에 도착. 원 근처에서 탭하면 되받아침 */
-  const PARCEL_N = 10;
+  const PARCEL_N = 16;
   SETUP.parcel = s => {
     s.hearts = true; s.max = PARCEL_N; s.hitN = 0; s.scoreLabel = () => '📦 ' + s.hitN + ' / ' + PARCEL_N; s.thrown = 0; s.next = 0.8; s.crates = []; s.swing = 0; s.hurt = 0; s.zAct = null; s.zT = 0; s.zHurt = 0;
   };
@@ -235,10 +245,10 @@ window.DX = window.DX || {};
       s.next -= dt;
       if (s.next <= 0) {
         s.thrown++; s.zAct = 'throw'; s.zT = 0;
-        const lvl = s.thrown / PARCEL_N, fly = rand(1.15, 1.35) - lvl * 0.45;
+        const lvl = s.thrown / PARCEL_N, fly = rand(1.35, 1.6) - lvl * 0.5;
         const gold = Math.random() < 0.18;
         s.crates.push({ t: -0.45, T: fly, gold, st: 'fly', x: P.zx, y: Z.floor - Z.unit * 50, rot: 0 });
-        s.next = rand(1.25, 1.7) - lvl * 0.55 + (Math.random() < 0.25 ? -0.45 : 0);   // 가끔 연속 투척
+        s.next = rand(1.5, 2.0) - lvl * 0.6 + (Math.random() < 0.25 ? -0.5 : 0);   // 가끔 연속 투척
       }
     }
     for (const c of s.crates) {
@@ -314,9 +324,9 @@ window.DX = window.DX || {};
      박자표(beat): 정해진 리듬으로 공이 날아옴. 아래 박자 줄의 동그라미가 선에 닿을 때 탭 */
   const GOLF_PATTERNS = [[0, 1, 2, 3], [0, 1, 1.5, 2, 3], [0, 0.5, 1, 2, 2.5, 3], [0, 1, 2, 2.5, 3, 3.5], [0, 0.75, 1.5, 2, 3], [0, 0.5, 1, 1.5, 2, 3]];
   SETUP.golf = s => {
-    const bpm = 96, beat = 60 / bpm;
+    const bpm = 84, beat = 60 / bpm;
     s.beat = beat; s.notes = []; let t = 2.2;
-    const bars = [0, 1, 2, 3, 4].map(i => GOLF_PATTERNS[Math.min(GOLF_PATTERNS.length - 1, Math.floor(i * 1.3 + Math.random() * 1.5))]);
+    const bars = [0, 1, 2, 3, 4, 5, 6].map(i => GOLF_PATTERNS[Math.min(GOLF_PATTERNS.length - 1, Math.floor(i * 1.3 + Math.random() * 1.5))]);
     for (const b of bars) { for (const k of b) s.notes.push({ at: t + k * beat, st: 'wait' }); t += 4 * beat; }
     s.max = s.notes.length; s.fly = 1.0; s.swing = 0; s.hurt = 0; s.zHurt = 0; s.end = t + 0.6; s.balls = [];
     s.scoreLabel = () => Math.round(s.score / s.max * 100) + '%';
@@ -397,10 +407,10 @@ window.DX = window.DX || {};
      잭이 자동으로 달림. 탭 = 점프(좀비 넘기). 시민·강아지에 닿으면 업고 구출 */
   const CITIZENS = ['man', 'woman', 'clerk', 'cleaner'];
   SETUP.rescue = s => {
-    s.hearts = true; s.dur = 24; s.speed = 1; s.scroll = 0; s.objs = []; s.jy = 0; s.vy = 0; s.carry = 0; s.hurt = 0; s.inv = 0; s.saved = 0; s.dogs = 0;
+    s.hearts = true; s.dur = 40; s.speed = 1; s.scroll = 0; s.objs = []; s.jy = 0; s.vy = 0; s.carry = 0; s.hurt = 0; s.inv = 0; s.saved = 0; s.dogs = 0;
     // 미리 배치: 시민 8명 + 강아지 1 + 좀비들 (거리 단위 = 화면 높이 비율)
     let x = 1.2; const list = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 34; i++) {
       x += rand(0.55, 0.9);
       const r = Math.random();
       if (i === 11) list.push({ k: 'dog', x });
@@ -412,7 +422,7 @@ window.DX = window.DX || {};
   };
   UPD.rescue = (s, dt) => {
     const Z = size(), U = Z.unit;
-    s.speed = 0.62 + Math.min(0.35, s.t * 0.012);   // 화면 높이 기준 초당 이동
+    s.speed = 0.5 + Math.min(0.3, s.t * 0.008);   // 화면 높이 기준 초당 이동
     const dx = s.speed * dt;
     s.scroll += dx * Z.sh;
     for (const o of s.objs) if (!o.done) o.x -= dx;   // o.x = 잭과의 거리 (무대 높이 단위)
@@ -482,8 +492,8 @@ window.DX = window.DX || {};
      opt.hard = 칸 좁고 바늘 빠름(6장), opt.hack = 문 암호 해킹 화면(8장 연구원) */
   SETUP.boiler = s => {
     const hard = !!s.opt.hard;
-    s.need = hard ? 6 : 5; s.max = s.need; s.ok = 0; s.ang = 0; s.dir = 1; s.spd = hard ? 2.6 : 1.9; s.zw = hard ? 0.16 : 0.24;
-    s.zc = rand(0.3, 0.7); s.zDist = 1; s.zSpd = hard ? 0.085 : 0.07; s.puff = 0; s.win = 0; s.miss = 0;
+    s.need = hard ? 8 : 7; s.max = s.need; s.ok = 0; s.ang = 0; s.dir = 1; s.spd = hard ? 2.2 : 1.6; s.zw = hard ? 0.17 : 0.24;
+    s.zc = rand(0.3, 0.7); s.zDist = 1; s.zSpd = hard ? 0.05 : 0.04; s.puff = 0; s.win = 0; s.miss = 0;
     s.scoreLabel = () => (s.opt.hack ? '🔓 ' : '🔥 ') + s.ok + ' / ' + s.need;
   };
   UPD.boiler = (s, dt) => {
@@ -542,7 +552,7 @@ window.DX = window.DX || {};
   /* ================= 5) 옥상 엄호 저격 =================
      위쪽 옥상에 시민들, 아래에서 좀비가 기어오름 → 좀비를 탭해서 쏨. opt.dark = 어둠(탭한 곳에 조명탄) */
   SETUP.sniper = s => {
-    s.dur = s.opt.dark ? 22 : 20; s.cits = [0, 1, 2].map(i => ({ alive: true, c: ['man', 'woman', 'clerk'][i] })); s.zs = []; s.next = 0.5; s.shot = 0; s.spawned = 0; s.flares = []; s.muzzle = 0;
+    s.dur = s.opt.dark ? 36 : 32; s.cits = [0, 1, 2].map(i => ({ alive: true, c: ['man', 'woman', 'clerk'][i] })); s.zs = []; s.next = 0.5; s.shot = 0; s.spawned = 0; s.flares = []; s.muzzle = 0;
     s.max = 1; s.hearts = false;
     s.scoreLabel = () => '🙋 ' + s.cits.filter(c => c.alive).length + ' / 3  🎯 ' + s.shot;
   };
@@ -551,7 +561,7 @@ window.DX = window.DX || {};
     const Z = size(), U = Z.unit;
     s.next -= dt; s.muzzle = Math.max(0, s.muzzle - dt);
     if (s.next <= 0 && s.t < s.dur - 2) {
-      s.next = rand(0.7, 1.3) - Math.min(0.4, s.t * 0.015); s.spawned++;
+      s.next = rand(0.9, 1.5) - Math.min(0.5, s.t * 0.015); s.spawned++;
       const alive = s.cits.map((c, i) => c.alive ? i : -1).filter(i => i >= 0);
       if (alive.length) { const ti = pick(alive), side = Math.random() < 0.5 ? -1 : 1; s.zs.push({ ti, x: side < 0 ? -40 : Z.w + 40, y: Z.floor, k: 0, sp: rand(0.09, 0.14) * (1 + s.t * 0.02), dead: 0, side }); }
     }
@@ -606,5 +616,109 @@ window.DX = window.DX || {};
     if (s.aimX != null && s.muzzle > 0) { g.strokeStyle = '#ff3b3b'; g.lineWidth = 3; g.beginPath(); g.arc(s.aimX, s.aimY, 18, 0, 6.28); g.moveTo(s.aimX - 26, s.aimY); g.lineTo(s.aimX + 26, s.aimY); g.moveTo(s.aimX, s.aimY - 26); g.lineTo(s.aimX, s.aimY + 26); g.stroke(); }
     const r = clamp(1 - s.t / s.dur, 0, 1);
     g.fillStyle = 'rgba(0,0,0,0.5)'; g.fillRect(Z.w * 0.2, Z.sy + 8, Z.w * 0.6, 8); g.fillStyle = '#7dff8a'; g.fillRect(Z.w * 0.2, Z.sy + 8, Z.w * 0.6 * r, 8);
+  };
+
+  /* ================= 6) 운명의 갈림길 (게이트 러너) =================
+     열차를 좌우로 끌어 숫자 문을 통과 (+ / × 는 화력 증가, - / ÷ 는 감소). 좀비 무리는 자동 사격으로 줄이고,
+     부딪히면 그 수만큼 화력이 깎임. 마지막에 보스 무리와 화력 대결 */
+  const GATE_OPS = [['+', 5], ['+', 8], ['+', 12], ['×', 2], ['×', 3], ['-', 6], ['-', 10], ['÷', 2]];
+  SETUP.gates = s => {
+    s.P = 10; s.x = 0.5; s.tx = 0.5; s.objs = []; s.dist = 0; s.next = 1.2; s.shotT = 0; s.bul = []; s.bossDone = false; s.max = 1;
+    s.len = 42; s.seq = 0;
+    s.scoreLabel = () => '💪 ' + Math.max(0, Math.floor(s.P));
+  };
+  function gApply(P, op) { return op[0] === '+' ? P + op[1] : op[0] === '×' ? P * op[1] : op[0] === '-' ? P - op[1] : Math.ceil(P / op[1]); }
+  UPD.gates = (s, dt) => {
+    const Z = size(), sp = 0.32;   // 화면 높이 기준 초당 내려오는 속도
+    s.x += (s.tx - s.x) * Math.min(1, dt * 10);
+    if (s.t < s.len) {
+      s.next -= dt;
+      if (s.next <= 0) {
+        s.seq++;
+        if (s.seq % 3 === 0) { const n = Math.round(6 + s.t * 1.1 + Math.random() * 8); s.objs.push({ k: 'pack', x: rand(0.25, 0.75), y: -0.1, n, n0: n }); s.next = 2.2; }
+        else {
+          // 좋은 문 하나 + 나쁜 문 하나 (가끔 둘 다 좋거나 둘 다 나쁨)
+          const good = GATE_OPS.filter(o => o[0] === '+' || o[0] === '×'), bad = GATE_OPS.filter(o => o[0] === '-' || o[0] === '÷');
+          let a = pick(good), b = Math.random() < 0.75 ? pick(bad) : pick(good);
+          if (s.t > 20 && a[0] === '+') a = [a[0], a[1] + Math.round(s.t / 3)];
+          if (Math.random() < 0.5) [a, b] = [b, a];
+          s.objs.push({ k: 'gate', y: -0.1, l: a, r: b }); s.next = 2.4;
+        }
+      }
+    } else if (!s.bossDone && !s.objs.some(o => o.k === 'boss')) {
+      const N = Math.round(60 + s.t * 2.2);
+      s.objs.push({ k: 'boss', x: 0.5, y: -0.15, n: N, n0: N });
+    }
+    // 자동 사격: 화력이 클수록 빨리
+    s.shotT -= dt;
+    if (s.shotT <= 0) { s.shotT = Math.max(0.05, 0.22 - Math.min(0.17, s.P / 400)); s.bul.push({ x: s.x + rand(-0.03, 0.03), y: 0.74 }); DX.S && DX.S.shot && DX.S.shot(); }
+    for (const b of s.bul) b.y -= dt * 1.6;
+    for (const o of s.objs) {
+      o.y += sp * dt;
+      if (o.k !== 'gate') for (const b of s.bul) if (!b.hit && Math.abs(b.x - o.x) < (o.k === 'boss' ? 0.3 : 0.12) && Math.abs(b.y - o.y) < 0.05) { b.hit = true; o.n -= Math.max(1, Math.round(s.P / 40)); o.hitT = 0.08; if (o.n <= 0) { o.dead = true; burst(o.x * Z.w, Z.sy + o.y * Z.sh, '#8aff6a', 14); popText(L('전멸!', '全灭！'), o.x * Z.w, Z.sy + o.y * Z.sh, '#8aff6a', 26, 0.7); DX.S && DX.S.kill(); } }
+      if (o.hitT > 0) o.hitT -= dt;
+      // 통과 / 충돌
+      if (!o.done && o.y >= 0.72) {
+        o.done = true;
+        if (o.k === 'gate') {
+          const op = s.x < 0.5 ? o.l : o.r, before = s.P;
+          s.P = Math.max(0, gApply(s.P, op)); o.pick = s.x < 0.5 ? 'l' : 'r';
+          const up = s.P >= before;
+          popText((up ? '+' : '') + Math.round(s.P - before), s.x * Z.w, Z.sy + Z.sh * 0.6, up ? '#7dff8a' : '#ff6a6a', 34, 0.9);
+          if (up) { burst(s.x * Z.w, Z.sy + Z.sh * 0.72, '#7dff8a', 16); DX.S && DX.S.level(); s.combo++; s.maxCombo = Math.max(s.maxCombo, s.combo); } else { s.shake = 6; s.combo = 0; DX.S && DX.S.click(); }
+        } else if (!o.dead) {
+          const n = Math.max(0, Math.ceil(o.n));
+          if (o.k === 'boss') {
+            s.bossDone = true; const win = s.P > n;
+            s.score = win ? Math.min(1, 0.6 + (s.P - n) / Math.max(1, n) * 0.8) : Math.min(0.44, s.P / Math.max(1, n) * 0.44);
+            s.shake = 14; s.flash = win ? 0 : 0.4; burst(Z.w / 2, Z.sy + Z.sh * 0.6, win ? '#ffd34a' : '#ff6a6a', 30, 600);
+            popText(win ? L('보스 격파!!', '击败首领！！') : L('화력 부족...', '火力不足...'), Z.w / 2, Z.sy + Z.sh * 0.45, win ? '#ffd34a' : '#ff6a6a', 40, 1.4);
+            s.P = Math.max(0, s.P - n); DX.S && DX.S.boom(true);
+            setTimeout(() => { if (st === s) finish(); }, 900);
+          } else if (Math.abs(o.x - s.x) > 0.2) { /* 옆으로 피함 */ } else { s.P = Math.max(0, s.P - n); s.shake = 8; s.flash = 0.25; popText('-' + n, s.x * Z.w, Z.sy + Z.sh * 0.6, '#ff6a6a', 30); DX.S && DX.S.boom(false); if (s.P <= 0) { s.score = 0; finish(); } }
+        }
+      }
+    }
+    s.objs = s.objs.filter(o => o.y < 1.2 && !(o.dead && o.y > 0.75));
+    s.bul = s.bul.filter(b => !b.hit && b.y > -0.1);
+  };
+  MOVE.gates = (s, x) => { const Z = size(); s.tx = clamp(x / Z.w, 0.12, 0.88); };
+  TAP.gates = (s, x) => MOVE.gates(s, x);
+  DRAW.gates = (s, Z) => {
+    const I = s.img, U = Z.unit;
+    g.fillStyle = '#07090f'; g.fillRect(0, 0, Z.w, Z.h);
+    // 도로
+    g.fillStyle = '#2b2f38'; g.fillRect(0, Z.sy, Z.w, Z.sh);
+    g.fillStyle = '#3a3f4a'; for (let i = 0; i < 14; i++) { const y = Z.sy + ((i / 14 + s.t * 0.32) % 1) * Z.sh; g.fillRect(Z.w / 2 - 3, y, 6, Z.sh / 28); }
+    g.fillStyle = '#ffd34a'; g.fillRect(Z.w * 0.06, Z.sy, 4, Z.sh); g.fillRect(Z.w * 0.94 - 4, Z.sy, 4, Z.sh);
+    for (const o of s.objs) {
+      const y = Z.sy + o.y * Z.sh;
+      if (o.k === 'gate') {
+        for (const side of ['l', 'r']) {
+          const op = o[side], good = op[0] === '+' || op[0] === '×', x0 = side === 'l' ? Z.w * 0.08 : Z.w * 0.52, w = Z.w * 0.4;
+          g.globalAlpha = o.pick && o.pick !== side ? 0.25 : 0.85;
+          g.fillStyle = good ? 'rgba(40,180,90,0.55)' : 'rgba(210,50,50,0.55)'; g.fillRect(x0, y - U * 7, w, U * 14);
+          g.strokeStyle = good ? '#7dff8a' : '#ff6a6a'; g.lineWidth = 4; g.strokeRect(x0, y - U * 7, w, U * 14);
+          txt(op[0] + op[1], x0 + w / 2, y, Math.round(U * 9), '#fff');
+          g.globalAlpha = 1;
+        }
+      } else {
+        const big = o.k === 'boss', cnt = Math.min(big ? 1 : 6, Math.ceil(o.n / 6) || 1);
+        for (let k = 0; k < cnt; k++) {
+          const zx = o.x * Z.w + (k - (cnt - 1) / 2) * U * 9, im = big ? I.boss : I['z_w' + (Math.floor(s.t * 7 + k) % 4)];
+          pose(im, zx, y + U * 6 + (k % 2) * U * 3, U * (big ? 46 : 18), false, 0, o.dead ? 0.3 : 1, o.hitT > 0 ? 0.1 : 0);
+        }
+        g.fillStyle = big ? '#7a1020' : '#4a1520'; const bw = U * (big ? 26 : 16); g.fillRect(o.x * Z.w - bw / 2, y - U * (big ? 48 : 22), bw, U * 9);
+        txt('' + Math.max(0, Math.ceil(o.n)), o.x * Z.w, y - U * (big ? 43.5 : 17.5), Math.round(U * 7), '#ff9a9a');
+      }
+    }
+    // 총알
+    g.fillStyle = '#ffe680'; for (const b of s.bul) g.fillRect(b.x * Z.w - 2, Z.sy + b.y * Z.sh - 8, 4, 12);
+    // 열차 (기관차 + 화력에 따라 칸이 늘어남)
+    const tx = s.x * Z.w, ty = Z.sy + Z.sh * 0.74, cars = Math.min(4, 1 + Math.floor(s.P / 40));
+    for (let k = cars; k >= 1; k--) if (I.car) pose(I.car, tx, ty + U * 14 * k + U * 12, U * 14, false);
+    if (I.train) pose(I.train, tx, ty + U * 12, U * 16, false);
+    g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(tx - U * 10, ty - U * 12, U * 20, U * 8);
+    txt('💪' + Math.max(0, Math.floor(s.P)), tx, ty - U * 8, Math.round(U * 6), '#7dff8a');
   };
 })(window.DX);

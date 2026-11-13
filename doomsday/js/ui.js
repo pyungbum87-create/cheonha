@@ -249,6 +249,10 @@ window.DX = window.DX || {};
     let h = '<div class="rw-head">' + L('7일 출석', '7日签到') + '</div><div class="att">' +
       DX.ATT.map((g, i) => '<div class="' + (i < day ? 'got' : i === day && can ? 'now' : '') + '">' + L((i + 1) + '일', '第' + (i + 1) + '天') + '<b>' + g + '</b></div>').join('') + '</div>';
     h += '<div class="row"><div class="r-ico">📅</div><div class="r-main"><div class="r-name">' + L('오늘 출석', '今日签到') + '</div><div class="r-desc">' + L('골드 ', '金币 ') + DX.ATT[day] + '</div></div><button class="r-btn" data-att="1"' + (can ? '' : ' disabled') + '>' + (can ? L('받기', '领取') : L('완료', '已领')) + '</button></div>';
+    // 활동 점수 상자
+    { const pts = s.daily.pts || 0, ch = s.daily.ch || [], max = DX.CHESTS[DX.CHESTS.length - 1].pts;
+      h += '<div class="rw-head">' + L('오늘의 활동 ', '今日活跃 ') + pts + ' / ' + max + '</div><div class="act"><div class="act-bar"><i style="width:' + Math.min(100, pts / max * 100) + '%"></i></div>' +
+        DX.CHESTS.map((c, i) => '<button class="act-ch' + (ch[i] ? ' got' : pts >= c.pts ? ' now' : '') + '" data-chest="' + i + '"' + (ch[i] || pts < c.pts ? ' disabled' : '') + ' style="left:' + (c.pts / max * 100) + '%">' + (ch[i] ? '✅' : '🎁') + '<small>' + c.pts + '</small></button>').join('') + '</div>'; }
     h += '<div class="rw-head">' + L('오늘의 미션', '今日任务') + '</div>';
     h += s.daily.m.map((m, j) => {
       const M = DX.MISSIONS[m.i], done = m.p >= M.goal;
@@ -369,17 +373,27 @@ window.DX = window.DX || {};
     d.innerHTML = '<div class="ec-band">' + (c.icon ? iconHtml(c.icon, c.emoji || '★') : (c.emoji || '★')) + '<div><b>' + L('진화!!', '进化！！') + '</b><span>' + esc(T(c.name)) + '</span></div></div>';
     document.body.appendChild(d); setTimeout(() => d.remove(), 1500);
   };
-  // 칸 배치 고르기
-  UI.askPlace = function (w, cb) {
-    $('sigFace').src = w.icon || ''; $('sigName').textContent = T(w.name);
-    $('sigLine').textContent = L('새 칸을 어디에 붙일까?', '新车厢接在哪里？');
-    $('sigGo').textContent = L('기관차 바로 뒤 (쿨타임↓)', '火车头后面（冷却↓）'); $('sigSkip').textContent = L('맨 뒤 (침입 방어↑)', '最后面（防入侵↑）');
-    $('signal').querySelector('.sig-head').textContent = L('🔧 칸 배치', '🔧 车厢配置');
-    $('signal').querySelector('.sig-time').style.display = 'none';
-    show($('signal'), true);
-    const end = f => { show($('signal'), false); $('sigGo').textContent = L('멈추고 구한다', '停车救人'); $('sigSkip').textContent = L('지나친다', '开过去'); $('signal').querySelector('.sig-head').textContent = L('🚨 구조 신호!', '🚨 求救信号！'); $('signal').querySelector('.sig-time').style.display = ''; cb(f); };
-    $('sigGo').onclick = () => { DX.S.click(); end(true); };
-    $('sigSkip').onclick = () => { DX.S.click(); end(false); };
+  // 칸 배치 고르기: 열차 칸 사이 아무 자리나 (기관차 바로 뒤 = 쿨타임↓, 맨 뒤 = 침입 방어↑, 가운데 = 보너스 없음)
+  UI.askPlace = function (w, cars, cb) {
+    $('plNew').innerHTML = iconHtml(w.icon, w.emoji || '🚃') + '<span>' + esc(T(w.name)) + '</span>';
+    const nm = k => { const id = Object.keys(C.weapons).find(x => C.weapons[x].car === k); return id ? C.weapons[id] : { name: k === 'safe' ? L('안전 칸', '安全车厢') : k, emoji: '🚃' }; };
+    let h = '<div class="pl-car">🚂 ' + L('기관차', '火车头') + '</div>';
+    for (let i = 0; i <= cars.length; i++) {
+      const tag = i === 0 ? L('⚡ 여기: 쿨타임 -15% (보일러 열)', '⚡ 这里：冷却 -15%（锅炉余热）') : i === cars.length ? L('🛡 여기: 맨 뒤 — 침입 50% 막음', '🛡 这里：最后 — 挡住50%入侵') : L('여기 (보너스 없음)', '这里（无加成）');
+      h += '<button class="pl-slot" data-pl="' + i + '">＋ ' + tag + '</button>';
+      if (i < cars.length) { const c = nm(cars[i]); h += '<div class="pl-car">' + iconHtml(c.icon, c.emoji || '🚃') + esc(T(c.name)) + '</div>'; }
+    }
+    $('plTrain').innerHTML = h;
+    show($('place'), true);
+    $('plTrain').onclick = e => { const b = e.target.closest('[data-pl]'); if (!b) return; DX.S.click(); show($('place'), false); cb(+b.dataset.pl); };
+  };
+  // 조합 발동 컷인: 두 무기가 날아와 합쳐지고 번쩍
+  UI.comboCut = function (cb) {
+    const A = C.weapons[cb.a], B = C.weapons[cb.b];
+    const d = document.createElement('div'); d.className = 'combo-cut';
+    d.innerHTML = '<div class="cc-wrap"><div class="cc-ic a">' + iconHtml(A.icon, A.emoji || '🔫') + '</div><div class="cc-ic b">' + iconHtml(B.icon, B.emoji || '🔫') + '</div><div class="cc-plus">+</div><div class="cc-flash"></div><div class="cc-title"><b>' + L('조합 발동!', '组合发动！') + ' ' + esc(T(cb.name)) + '</b><span>' + esc(T(cb.desc)) + '</span></div></div>';
+    document.body.appendChild(d); setTimeout(() => d.remove(), 2300);
+    try { navigator.vibrate && navigator.vibrate([30, 40, 60]); } catch (e) {}
   };
   UI.rescueSignal = function (o, cb) {
     $('sigFace').src = o.face || ''; $('sigName').textContent = T(o.name || '');
@@ -442,7 +456,7 @@ window.DX = window.DX || {};
     $('bTitle').textContent = T(title); $('bSub').textContent = T(sub || '');
     void b.offsetWidth;
     clearTimeout(bannerTimer);
-    bannerTimer = setTimeout(() => show(b, false), type === 'boss' ? 2600 : type === 'wave' ? 1300 : 1600);
+    bannerTimer = setTimeout(() => show(b, false), (type === 'boss' ? 2600 : type === 'wave' ? 1300 : 1600) * (C.game.textLife || 1));
   };
   UI.bossBar = function (on, name) { show($('bossRow'), on); if (name) $('bossName').textContent = T(name); };
   UI.comboPop = function (n) { if (n >= 100) UI.banner(n + ' COMBO!!', n >= 300 ? '미쳤다 이건...' : '골드 보너스 증가!', 'win'); };
@@ -754,6 +768,12 @@ window.DX = window.DX || {};
         if (b.dataset.idle === '2') DX.showAd('idle', () => give(2)); else give(1);
         return;
       }
+      if (b.dataset.chest != null) {
+        const i = +b.dataset.chest, c = DX.CHESTS[i]; s.daily.ch = s.daily.ch || [];
+        if (s.daily.ch[i] || (s.daily.pts || 0) < c.pts) return;
+        s.daily.ch[i] = true; s.gold += c.gold; if (c.gems) s.gems = (s.gems || 0) + c.gems; DX.persist(); DX.S.level();
+        toast(L('활동 상자! 골드 +', '活跃宝箱！金币 +') + c.gold + (c.gems ? ' 💎+' + c.gems : '')); refreshLobby(); return;
+      }
       if (b.dataset.codex) { const n = s.codexNew || 0; s.gold += n * C.codex.reward; s.codexNew = 0; DX.persist(); DX.S.level(); toast(L('도감 보상 골드 +', '图鉴奖励 金币 +') + n * C.codex.reward); refreshLobby(); return; }
       if (b.dataset.att) {
         if (!DX.attCan()) return;
@@ -763,7 +783,7 @@ window.DX = window.DX || {};
       } else if (b.dataset.mis != null) {
         const m = s.daily.m[+b.dataset.mis], M = DX.MISSIONS[m.i];
         if (m.c || m.p < M.goal) return;
-        m.c = true; s.gold += M.gold; DX.persist();
+        m.c = true; s.gold += M.gold; s.daily.pts = (s.daily.pts || 0) + DX.MISSION_PTS; DX.persist();
         toast(L('미션 보상! 골드 +', '任务奖励！金币 +') + M.gold); DX.track('mission_claim', { k: M.k });
       }
       DX.S.level(); DX.vib('light'); refreshLobby();
@@ -791,7 +811,8 @@ window.DX = window.DX || {};
       $('fight').addEventListener('pointermove', e => { const p = pos(e); DX.FIGHT.move(p[0], p[1]); });
       ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => $('fight').addEventListener(n, () => DX.FIGHT.up())); }
     { const pos = e => { const r = $('miniCv').getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-      $('mini').addEventListener('pointerdown', e => { e.preventDefault(); const p = pos(e); DX.MINI.down(p[0], p[1]); }); }
+      $('mini').addEventListener('pointerdown', e => { e.preventDefault(); const p = pos(e); DX.MINI.down(p[0], p[1]); });
+      $('mini').addEventListener('pointermove', e => { if (e.buttons || e.pointerType === 'touch') { const p = pos(e); DX.MINI.move(p[0], p[1]); } }); }
     $('btnUlt').addEventListener('click', () => { const G = DX.getG(); if (G && G.ult >= 1) hintDone('ult'); if (!DX.useUltimate()) DX.S.click(); });
     $('btnHorn').addEventListener('click', () => { hintDone('horn'); if (!DX.useHorn()) DX.S.click(); });
     // 일시정지 / 설정

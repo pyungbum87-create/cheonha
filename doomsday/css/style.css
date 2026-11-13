@@ -421,7 +421,7 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .sig-b { flex: 1; padding: 12px 6px; border-radius: 12px; font-weight: 900; font-size: 16px; background: #3a4150; color: #ddd; border: 2px solid #5a6273; }
 .sig-b.go { background: linear-gradient(180deg, #ff8a4a, #e0442a); color: #fff; border-color: #ffd0a0; }
 /* ---------- 진화 컷인 ---------- */
-.evo-cut { position: fixed; inset: 0; z-index: 60; pointer-events: none; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); animation: ecFade 1.5s forwards; }
+.evo-cut { position: fixed; inset: 0; z-index: 300; pointer-events: none; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); animation: ecFade 1.5s forwards; }
 .ec-band { display: flex; align-items: center; gap: 14px; width: 100%; padding: 18px 20px; background: linear-gradient(90deg, transparent, #4a2a00 15%, #b07a10 50%, #4a2a00 85%, transparent); transform: skewY(-4deg); animation: ecIn .3s ease-out; }
 .ec-band .ic, .ec-band img { width: 72px; height: 72px; font-size: 56px; }
 .ec-band b { display: block; font-family: var(--font-title); font-size: 38px; color: #ffe680; text-shadow: 0 3px 0 #000; }
@@ -443,3 +443,37 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 #tab-stage .stage-thumb { height: 78px; }
 #tab-stage .stage-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 #tab-stage .sub-row { margin-top: 6px; }
+
+/* ---------- 칸 배치 ---------- */
+#place .pl-box { width: min(92vw, 400px); background: #1b1f29; border: 3px solid #ffd23d; border-radius: 18px; padding: 14px; text-align: center; animation: cmIn .25s ease-out; }
+.pl-new { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 0; color: #fff; font-weight: 900; }
+.pl-new img, .pl-new .ic { width: 44px; height: 44px; font-size: 32px; }
+.pl-train { display: flex; flex-direction: column; gap: 4px; align-items: stretch; max-height: 52vh; overflow-y: auto; }
+.pl-car { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: #2a303d; color: #cfd6e2; font-weight: 800; font-size: 14px; }
+.pl-car img, .pl-car .ic { width: 30px; height: 30px; font-size: 22px; }
+.pl-slot { padding: 8px; border-radius: 10px; border: 2px dashed #ffd23d; background: rgba(255,210,61,.08); color: #ffd23d; font-weight: 900; font-size: 13px; }
+.pl-slot:active { background: rgba(255,210,61,.3); }
+.pl-tip { color: #9aa3b3; font-size: 12px; margin-top: 8px; }
+/* ---------- 조합 발동 컷인 ---------- */
+.combo-cut { position: fixed; inset: 0; z-index: 300; pointer-events: none; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(255,220,120,.25), rgba(0,0,0,.55)); animation: ecFade 2.2s forwards; }
+.cc-wrap { position: relative; width: 100%; height: 220px; }
+.cc-ic { position: absolute; top: 40px; width: 110px; height: 110px; border-radius: 22px; background: #232a38; border: 4px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 64px; box-shadow: 0 0 30px rgba(255,255,255,.5); }
+.cc-ic img { width: 86%; height: 86%; object-fit: contain; }
+.cc-ic.a { left: 50%; margin-left: -55px; animation: ccA .55s cubic-bezier(.2,1.4,.4,1) both; }
+.cc-ic.b { left: 50%; margin-left: -55px; animation: ccB .55s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes ccA { from { transform: translateX(-60vw) rotate(-30deg); } 70% { transform: translateX(-62px) rotate(0); } to { transform: translateX(-62px); } }
+@keyframes ccB { from { transform: translateX(60vw) rotate(30deg); } 70% { transform: translateX(62px) rotate(0); } to { transform: translateX(62px); } }
+.cc-flash { position: absolute; left: 50%; top: 95px; width: 20px; height: 20px; margin: -10px; border-radius: 50%; background: #fff; box-shadow: 0 0 60px 30px #ffe680; animation: ccFlash .9s .45s both; }
+@keyframes ccFlash { from { transform: scale(0); opacity: 1; } 40% { transform: scale(14); opacity: .9; } to { transform: scale(20); opacity: 0; } }
+.cc-plus { position: absolute; left: 50%; top: 70px; margin-left: -20px; font: 48px var(--font-title); color: #ffe680; text-shadow: 0 3px 0 #000; animation: ccPop .3s .4s both; }
+.cc-title { position: absolute; left: 0; right: 0; top: 160px; text-align: center; animation: ccPop .35s .6s both; }
+.cc-title b { display: block; font: 40px var(--font-title); color: #ffe680; text-shadow: 0 4px 0 #6b3a00, 0 0 18px #ffb300; }
+.cc-title span { display: inline-block; margin-top: 4px; padding: 4px 12px; border-radius: 10px; background: rgba(0,0,0,.6); color: #fff; font-weight: 900; font-size: 15px; }
+@keyframes ccPop { from { transform: scale(.3); opacity: 0; } 70% { transform: scale(1.15); } to { transform: scale(1); opacity: 1; } }
+.act { position: relative; height: 54px; margin: 4px 10px 6px; }
+.act-bar { position: absolute; left: 0; right: 0; top: 22px; height: 10px; border-radius: 5px; background: rgba(255,255,255,.12); overflow: hidden; }
+.act-bar i { display: block; height: 100%; background: linear-gradient(90deg, #ffd23d, #ff8a2a); }
+.act-ch { position: absolute; top: 4px; transform: translateX(-50%); width: 44px; height: 44px; border-radius: 12px; background: #2a303d; border: 2px solid #4a5263; font-size: 22px; line-height: 1; }
+.act-ch small { display: block; font-size: 10px; color: #cfd6e2; }
+.act-ch.now { border-color: #ffd23d; animation: skPulse .6s infinite alternate; }
+.act-ch.got { opacity: .6; }

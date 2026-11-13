@@ -50,11 +50,27 @@ window.DX = window.DX || {};
       s.connect(fl); fl.connect(g); g.connect(actx.destination); s.start(t, Math.random() * 0.5); s.stop(t + d);
     } catch (e) {}
   }
-  S.shot = () => { if (ok('shot', 45)) noise(0.06, 0.06, 2500); };
+  function bnoise(d, v, f0, f1, q, delay) {   // 띠 대역 잡음 (치익·화아악·촤악)
+    try {
+      if (!nbuf) noise(0.001, 0.0001);
+      const t = actx.currentTime + (delay || 0), s = actx.createBufferSource(); s.buffer = nbuf;
+      const fl = actx.createBiquadFilter(); fl.type = 'bandpass'; fl.Q.value = q || 1.2; fl.frequency.setValueAtTime(f0, t); fl.frequency.exponentialRampToValueAtTime(f1, t + d);
+      const g = actx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + Math.min(0.05, d * 0.3)); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      s.connect(fl); fl.connect(g); g.connect(actx.destination); s.start(t, Math.random() * 0.5); s.stop(t + d);
+    } catch (e) {}
+  }
+  // 무기마다 다른 소리: 기관총 '뽁', 화염 '화아악', 테슬라 '지지직', 물대포 '촤악', 냉동 '쨍', 환풍기 '휘이잉'
+  S.shot = () => { if (ok('shot', 55)) { tone(rand(520, 640), 0.05, 'square', 0.025, -380); noise(0.04, 0.04, 2200); } };
   S.boom = (big) => { if (ok('boom', 70)) { noise(big ? 1.0 : 0.5, big ? 0.32 : 0.2, big ? 1600 : 1100); tone(90, 0.4, 'sine', 0.15, -50); } };
-  S.zap = () => { if (ok('zap', 90)) { tone(900, 0.22, 'sawtooth', 0.04, -700); noise(0.2, 0.08, 5000); } };
-  S.flame = () => { if (ok('flame', 160)) noise(0.25, 0.05, 700); };
-  S.kill = () => { if (ok('kill', 55)) tone(rand(170, 260), 0.07, 'square', 0.025, -110); };
+  S.zap = () => { if (ok('zap', 90)) { for (let i = 0; i < 4; i++) tone(rand(700, 1500), 0.05, 'sawtooth', 0.03, -400, i * 0.045); bnoise(0.25, 0.07, 6000, 2500, 3); } };
+  S.flame = () => { if (ok('flame', 220)) { bnoise(0.45, 0.07, 400, 1400, 0.8); noise(0.3, 0.03, 600); } };
+  S.water = () => { if (ok('water', 200)) { bnoise(0.6, 0.12, 2500, 900, 0.7); bnoise(0.4, 0.05, 5000, 3000, 1.5, 0.05); } };
+  S.ice = () => { if (ok('ice', 200)) { [1760, 2350, 2960].forEach((f, i) => tone(f, 0.35, 'triangle', 0.035, 200, i * 0.04)); bnoise(0.3, 0.06, 7000, 4000, 2); } };
+  S.wind = () => { if (ok('wind', 300)) { bnoise(1.2, 0.09, 300, 1600, 2.5); bnoise(1.0, 0.05, 1600, 400, 3, 0.2); } };
+  S.combo = () => { if (ok('combo', 600)) { [392, 523, 659, 784, 1046].forEach((f, i) => tone(f, 0.18, 'square', 0.05, 0, i * 0.07)); tone(1568, 0.5, 'triangle', 0.06, 0, 0.38); bnoise(0.6, 0.08, 800, 6000, 1, 0.3); } };
+  S.evo = () => { if (ok('evo', 800)) { [262, 330, 392, 523, 659, 784, 1046].forEach((f, i) => tone(f, 0.22, 'sawtooth', 0.04, 0, i * 0.06)); tone(80, 0.8, 'sine', 0.2, -30, 0.4); } };
+  S.hit = () => { if (ok('hit', 110)) { tone(rand(140, 190), 0.08, 'square', 0.04, -60); noise(0.08, 0.06, 1200); } };
+  S.kill = () => { if (ok('kill', 60)) { tone(rand(170, 260), 0.07, 'square', 0.022, -110); if (Math.random() < 0.3) bnoise(0.12, 0.04, 900, 300, 1); } };
   S.pick = () => { if (ok('pick', 50)) tone(rand(880, 1100), 0.05, 'sine', 0.025, 200); };
   S.level = () => { if (ok('level', 300)) { tone(523, 0.12, 'triangle', 0.07); tone(659, 0.12, 'triangle', 0.07, 0, 0.1); tone(1046, 0.3, 'triangle', 0.07, 0, 0.2); } };
   S.alarm = () => { if (ok('alarm', 800)) { tone(440, 0.25, 'square', 0.05, 0); tone(330, 0.25, 'square', 0.05, 0, 0.28); tone(440, 0.25, 'square', 0.05, 0, 0.56); } };
@@ -205,7 +221,10 @@ window.DX = window.DX || {};
     const gi = SPR.frames['gimgc:' + world.stageId] || (th.groundImg && SPR.frames['gimg:' + th.groundImg]);
     if (gi) {   // 그림 바닥: 가로 26칸 폭 그림을 선로 중심에 깔고, 바깥은 좌우 뒤집어 이어 붙임
       const TW = 26, TH = TW / gi.aspect, off = world.scroll % TH, tn = th.groundTint ? null : null;
-      for (let z = -174 + off; z < 60; z += TH) for (let i = -2; i <= 2; i++) E.quad(gi, i * TW, 0.02, z, [TW, 0, 0], [0, 0, -TH], 0.5, 0.5, tn, null, i % 2 !== 0, 400);
+      // 위아래도 번갈아 뒤집어서 이음새(몇 초마다 지나가던 줄)가 안 보이게
+      const base = Math.floor(world.scroll / TH);
+      let n = 0;
+      for (let z = -174 + off; z < 60; z += TH, n++) { const fv = ((n - base) % 2 + 2) % 2 === 1; for (let i = -2; i <= 2; i++) E.quad(gi, i * TW, 0.02, z, [TW, 0, 0], [0, 0, fv ? TH : -TH], 0.5, 0.5, tn, null, i % 2 !== 0, 400); }
       return true;
     }
     const fr = SPR.frames['ground:' + (th.groundTex || GROUND_OF[th.props] || 'sand')]; if (!fr) return false;
@@ -495,7 +514,7 @@ window.DX = window.DX || {};
       kills: 0, gold: 0, combo: 0, comboT: 0, maxCombo: 0, rerolls: C.ads.rerollPerRun, stats: {}, inv: {}, invT: 8,
       weapons: { mg: 1 }, passives: {}, cars: ['gun'],
       zs: [], corpses: [], orbs: [], bullets: [], shells: [], bombs: [], drones: [], barrels: [], leeks: [], bolts: [], parts: [], sparts: [], decals: [], fires: [], ftexts: [], tele: [], bproj: [], sfx: [], planes: [],
-      tornados: [], rescued: 0, citizens: [], carFlash: {}, firePatches: [], comboOn: {}, placed: false, safeFleeT: 0, sk: {}, skReady: {}, autoSkill: DX.save.autoSkill !== false, evoN: 0, opOk: false, opSkip: false, bossWeak: false,
+      tornados: [], jets: [], rescued: 0, citizens: [], carFlash: {}, firePatches: [], comboOn: {}, placed: false, safeFleeT: 0, sk: {}, skReady: {}, autoSkill: DX.save.autoSkill !== false, evoN: 0, opOk: false, opSkip: false, bossWeak: false,
       tm: { mg: [0, 0.1, 0.2], flame: 0, tesla: 1, cannon: 0.5, barrel: 2, flameFx: 0 },
       ult: 0, ultQueue: [], hornCd: 5, shield: 0, emergencyUsed: false, revived: false,
       boss: null, bossSpawned: false, timeScale: 1, hitstop: 0, slowmo: 0, slowmoT: 0, shake: 0, t: 0, wa: 0,
@@ -686,6 +705,7 @@ window.DX = window.DX || {};
       const gold = Math.round(rw.gold * (1 + si * rw.goldPerStage) * rate);
       G.gold += gold; G.hp = Math.min(G.hpMax, G.hp + G.hpMax * rw.heal * rate); G.ult = Math.min(1, G.ult + rw.ult * rate);
       DX.track('minigame_end', { kind, stage: si + 1, grade: r ? r.grade : 'C' });
+      if (r && (r.grade === 'S' || r.grade === 'A')) DX.mission('mini');
       // 구한 시민 → '안전 칸'에 태움 (1명당 골드·경험치 보너스)
       if (kind === 'rescue' && r && r.saved > 0) {
         const first = !G.rescued;
@@ -773,14 +793,15 @@ window.DX = window.DX || {};
   function updWave(dt) {
     const w = G.wave; if (!w || G.endT >= 0) return;
     G.waveT += dt;
-    G.spawnAcc += w.rate * dt * (G.boss ? 0.6 : 1);
+    const gr = C.growth, ramp = G.prologue ? 1 : Math.min(1, gr.rampMin + (1 - gr.rampMin) * G.t / gr.rampSec);
+    G.spawnAcc += w.rate * dt * (G.boss ? 0.6 : 1) * ramp;
     while (G.spawnAcc >= 1) {
       G.spawnAcc -= 1;
       const p = spawnPoint();
       spawnZombie(pickType(w.mix), p[0], p[1]);
     }
     const hordeEvery = w.time / (w.hordes + 0.5);
-    if (G.hordeDone < w.hordes && G.waveT > hordeEvery * (G.hordeDone + 0.8)) { G.hordeDone++; spawnHorde(w.hordeSize); }
+    if (G.hordeDone < w.hordes && G.waveT > hordeEvery * (G.hordeDone + 0.8)) { G.hordeDone++; spawnHorde(Math.round(w.hordeSize * (G.prologue ? 1 : Math.min(1, C.growth.rampMin + (1 - C.growth.rampMin) * G.t / C.growth.rampSec)))); }
     if (w.boss) { if (!G.bossSpawned && G.waveT > 3) spawnBoss(); }
     else if (G.waveT >= w.time) nextWave();
   }
@@ -811,7 +832,7 @@ window.DX = window.DX || {};
     const v = Math.round(d); if (v < 1) return;
     G.ftexts.push({ x: z.x + rand(-0.5, 0.5), y: (z.y || 0) + 2.2 * (z.s || 1) + rand(0, 0.6), z: z.z, txt: crit ? v + '!' : '' + v, col: crit ? '#ffd23d' : z.boss ? '#ffb0a0' : '#ffffff', size: crit ? 24 : z.boss ? 19 : 15, t: 0, max: crit ? 0.8 : 0.55, dmg: true, crit });
   }
-  FX.text = function (x, y, z, txt, col, size, life, big) { txt = DX.T(txt); if (G.ftexts.length > 60) G.ftexts.shift(); G.ftexts.push({ x, y, z, txt, col: col || '#fff', size: size || 18, t: 0, max: life || 0.9, big }); };
+  FX.text = function (x, y, z, txt, col, size, life, big) { txt = DX.T(txt); if (G.ftexts.length > 60) G.ftexts.shift(); G.ftexts.push({ x, y, z, txt, col: col || '#fff', size: size || 18, t: 0, max: (life || 0.9) * (big ? (C.game.textLife || 1) : 1), big }); };
   FX.spark = function (x, y, z, n, col) {
     for (let i = 0; i < n; i++) part({ mesh: 'cube', x, y, z, vx: rand(-6, 6), vy: rand(1, 6), vz: rand(-6, 6), g: -20, s: rand(0.08, 0.16), s1: 0.02, max: rand(0.15, 0.3), col: col || '#fff2b0', emi: 1.6, pass: 2, alpha: 1 });
   };
@@ -1073,9 +1094,10 @@ window.DX = window.DX || {};
       else if (hh.w0) key = 'w' + (Math.floor((z.ph || 0) / (Math.PI / 2)) % 4 + 4) % 4;
       const af = key && SPR.frames['anim:' + ak + ':' + key];
       if (af) {
+        const flA = (z.face || 1) * (C.animFace || -1) < 0;   // 동작 그림은 왼쪽을 봄 → 걸어가는 쪽을 보게 (뒷걸음질 고침)
         const hk = (hh[key] || 1) * (z.boss && !hh.w0 ? 1 : 1);
         if (!corpse) { bob = hh.w0 && !z.atk ? Math.abs(Math.sin(z.ph * 2)) * 0.06 * H : 0; rot = (z.lean || 0) + (z.stun > 0 ? (Math.random() - 0.5) * 0.2 : 0); sq = 1; }
-        E.sprite(af, z.x, y + bob, z.z, H * hk * af.aspect, H * hk * sq, rot, 0.5, ay, tint, add, fl);
+        E.sprite(af, z.x, y + bob, z.z, H * hk * af.aspect, H * hk * sq, rot, 0.5, ay, tint, add, flA);
         return;
       }
     }
@@ -1240,14 +1262,17 @@ window.DX = window.DX || {};
   function buildCards() {
     const opts = [];
     const W = C.weapons, P = C.passives;
-    const owned = Object.keys(G.weapons).length, pOwned = Object.keys(G.passives).length, LM = C.limits;
+    // 무기 칸 4개(기관총 포함) + 액티브 스킬 칸 3개는 따로 셈
+    const owned = Object.keys(G.weapons).filter(k => !C.weapons[k].active).length, aOwned = Object.keys(G.weapons).filter(k => C.weapons[k].active).length, pOwned = Object.keys(G.passives).length, LM = C.limits;
     for (const id in W) {
       const lv = G.weapons[id] || 0;
       if (lv >= 5) continue;
       const w = W[id];
       const isNew = lv === 0;
-      if (isNew && owned >= LM.weapons) continue;
+      if (isNew && (w.active ? aOwned >= C.skills.max : owned >= LM.weapons)) continue;
       if (isNew && !weaponOpen(id)) continue;
+      if (isNew && !w.active && G.level < (C.growth.newWeaponLv[owned] || 99)) continue;   // 새 무기는 천천히
+      if (isNew && w.active && G.level < C.growth.skillLv + aOwned * 5) continue;   // 스킬은 6·11·16레벨부터 하나씩
       if (lv + 1 === 5 && w.evoWith) continue;   // 진화는 중간보스 보물상자에서만
       let desc = w.desc[lv];
       if (w.evoWith && lv + 1 === 4) desc += ' · ' + DX.L('진화 짝: ', '进化搭档：') + DX.T(P[w.evoWith].name);
@@ -1279,7 +1304,7 @@ window.DX = window.DX || {};
     return true;
   };
   DX.chooseCard = function (c) {
-    if (c && c.kind === 'weapon' && c.lv === 5 && C.weapons[c.id] && C.weapons[c.id].evoWith) G.evoN = (G.evoN || 0) + 1;
+    if (c && c.kind === 'weapon' && c.lv === 5 && C.weapons[c.id] && C.weapons[c.id].evoWith) { G.evoN = (G.evoN || 0) + 1; DX.mission('evo'); }
     let askPlace = null;
     if (c.kind === 'weapon') {
       const had = G.weapons[c.id] || 0;
@@ -1288,8 +1313,17 @@ window.DX = window.DX || {};
       if (!had && car && car !== 'gun' && G.cars.indexOf(car) < 0) { G.cars.push(car); if (unlocked('place') && G.cars.filter(k => k !== 'safe').length >= 2) askPlace = car; }
       // 조합 발동 알림
       for (const cb of (C.combos || [])) if (!G.comboOn[cb.id] && G.weapons[cb.a] && G.weapons[cb.b]) {
-        G.comboOn[cb.id] = true;
-        later(0.3, () => { if (DX.UI) DX.UI.banner(DX.L('조합 발동! ', '组合发动！') + DX.T(cb.name), DX.T(cb.desc), 'ult'); S.level(); });
+        G.comboOn[cb.id] = true; DX.mission('combo2');
+        later(0.3, () => {
+          if (!G) return;
+          if (DX.UI && DX.UI.comboCut) DX.UI.comboCut(cb); S.combo(); G.slowmo = 0.25; G.slowmoT = 1.2;
+          // 두 칸 사이에 번개 연결 + 두 칸 번쩍
+          const ca = G.layout.cars.find(k => k.kind === C.weapons[cb.a].car), cbb = G.layout.cars.find(k => k.kind === C.weapons[cb.b].car);
+          const za = ca ? ca.cz : 2, zb = cbb ? cbb.cz : G.layout.end;
+          G.bolts.push({ pts: [[0, 5, za], [rand(-1, 1), 6.5, (za + zb) / 2], [0, 5, zb]], t: 0, max: 0.9 });
+          flashCar(C.weapons[cb.a].car, 1.2); flashCar(C.weapons[cb.b].car, 1.2);
+          shockRing(0, za, 5, '#ffe680'); shockRing(0, zb, 5, '#ffe680');
+        });
       }
       // 고른 칸에 빛 + 진화 컷인
       later(0.05, () => cardFx(c));
@@ -1307,7 +1341,12 @@ window.DX = window.DX || {};
       else { DX.state = 'play'; DX.UI.hideLevelUp(); }
     };
     // 칸 배치 고르기 (7판째부터): 기관차 바로 뒤(쿨타임 감소) / 맨 뒤(침입 막기)
-    if (askPlace && DX.UI && DX.UI.askPlace) { DX.UI.hideLevelUp(); DX.state = 'place'; DX.UI.askPlace(C.weapons[c.id], front => { if (!G) return; G.placed = true; G.cars = G.cars.filter(k => k !== askPlace); if (front) G.cars.unshift(askPlace); else G.cars.push(askPlace); recalc(); go(); }); return; }
+    if (askPlace && DX.UI && DX.UI.askPlace) {
+      DX.UI.hideLevelUp(); DX.state = 'place';
+      const others = G.cars.filter(k => k !== askPlace);
+      DX.UI.askPlace(C.weapons[c.id], others, idx => { if (!G) return; G.placed = true; others.splice(idx, 0, askPlace); G.cars = others; recalc(); cardFx(c); go(); });
+      return;
+    }
     go();
   };
   function cardFx(c) {
@@ -1318,7 +1357,7 @@ window.DX = window.DX || {};
     shockRing(0, cz, 6, '#ffd23d');
     for (let i = 0; i < 16; i++) part({ mesh: 'ico', x: rand(-1.5, 1.5), y: rand(3, 9), z: cz + rand(-2, 2), vx: 0, vy: -rand(4, 9), vz: 0, s: 0.3, s1: 0.05, max: 0.8, col: '#ffe680', emi: 2, pass: 2, alpha: 0.9, drift: 0 });
     FX.text(0, 6, cz, (c.evo ? '★ ' : '') + DX.T(c.name) + (c.lv > 1 ? ' Lv' + c.lv : ''), c.evo ? '#ffd23d' : '#ffffff', c.evo ? 26 : 18, 1.2, true);
-    if (c.evo) { G.slowmo = 0.2; G.slowmoT = 1.0; G.shake = 0.8; if (DX.UI && DX.UI.evoCut) DX.UI.evoCut(c); }
+    if (c.evo) { S.evo(); G.slowmo = 0.2; G.slowmoT = 1.0; G.shake = 0.8; if (DX.UI && DX.UI.evoCut) DX.UI.evoCut(c); }
   }
 
   /* ================= 필살기 / 고스트 싱크 ================= */
@@ -1423,8 +1462,13 @@ window.DX = window.DX || {};
     return out;
   }
   // 화염 노즐: 기관차 + 모든 칸의 양옆 (열차 전체가 불을 뿜음)
+  // 화염: 1~2레벨 = 화염 칸만, 3~4레벨 = 화염 칸 + 양옆 칸(불길 두 배), 5레벨 = 열차 전체
   function flameNozzles() {
-    const zs = [3.6].concat(G.layout.cars.map(c => c.cz));
+    const lv = G.weapons.flame || 1, cars = G.layout.cars, fi = cars.findIndex(c => c.kind === 'flame');
+    let zs;
+    if (lv >= 5 || fi < 0) zs = [3.6].concat(cars.map(c => c.cz));
+    else if (lv >= 3) zs = [fi - 1, fi, fi + 1].filter(i => i >= 0 && i < cars.length).map(i => cars[i].cz);
+    else zs = [cars[fi].cz];
     const out = [];
     for (const z of zs) { out.push([-1, z]); out.push([1, z]); }
     return out;
@@ -1581,6 +1625,8 @@ window.DX = window.DX || {};
       if (was < 1 && G.sk[id] >= 1) { G.skReady[id] = G.t; if (DX.UI && DX.UI.skillReady) DX.UI.skillReady(id); vib(15); }
       if (G.sk[id] >= 1 && G.autoSkill && skillWorth(id)) castSkill(id, C.skills.auto);
     }
+    for (const j of G.jets) { j.t += dt; j.oz += world.speed * 0.32 * dt * 0; }
+    G.jets = G.jets.filter(j => j.t < j.max);
     SRC = 'fan';
     for (const t of G.tornados) {
       t.t += dt; t.tick -= dt; t.fx -= dt; t.z += world.speed * 0.32 * dt;
@@ -1629,14 +1675,15 @@ window.DX = window.DX || {};
   }
   function castSkill(id, mul) {
     if (!G || !G.weapons[id] || (G.sk[id] || 0) < 1 || invaded(id)) return false;
-    G.sk[id] = 0; flashCar(C.weapons[id].car, 0.5);
+    G.sk[id] = 0; flashCar(C.weapons[id].car, 0.5); DX.mission('skill');
     const lv = G.weapons[id], pm = G.pMul * (mul || 1), w = C.weapons[id];
     const c = carOf(id) || { cz: G.layout.end / 2 };
     SRC = id;
-    if (id === 'water') fireWater(c, w, lv, pm);
-    else if (id === 'freeze') { const n = lv >= 5 ? 3 : 1; for (let b = 0; b < n; b++) later(b * 0.3, () => freezeBurst(carOf('freeze') || c, w, lv, pm, b)); }
+    if (id === 'water') { fireWater(c, w, lv, pm); S.water(); }
+    else if (id === 'freeze') { S.ice(); const n = lv >= 5 ? 3 : 1; for (let b = 0; b < n; b++) later(b * 0.3, () => freezeBurst(carOf('freeze') || c, w, lv, pm, b)); }
     else if (id === 'fan') {
       const k = lv >= 5 ? 2 : 1;
+      S.wind();
       for (const t of densest(k, 8)) G.tornados.push({ x: t[0], z: t[1], t: 0, max: w.dur[lv - 1], r: w.radius[lv - 1], pull: w.pull[lv - 1], dps: w.dps[lv - 1] * pm, tick: 0, fx: 0, follow: w.follow[lv - 1] });
       S.horn();
     }
@@ -1691,6 +1738,7 @@ window.DX = window.DX || {};
         zb.wetT = w.wet;
         hit(zb, dmg, 'water', dx0, dz0, push, true);
       });
+      G.jets.push({ ox, oz, dx: dx0, dz: dz0, len: w.range + 1, t: 0, max: 1.0 });   // 굵은 물줄기 (잘 보이게)
       const rot = Math.atan2(-dz0, dx0);
       for (let k = 0; k < 5; k++) if (!fxSprite('water', ox + dx0 * (1 + k * 3), 1.5, oz + dz0 * (1 + k * 3), 2, 3.6, 0.45, { rot, vr: 0, vx: dx0 * 12, vz: dz0 * 12, alpha: 0.9 }))
         for (let j = 0; j < 5; j++) part({ mesh: 'ico', x: ox, y: 2.0, z: oz, vx: dx0 * rand(16, 28) + rand(-2, 2), vy: rand(0, 4), vz: dz0 * rand(16, 28) + rand(-2, 2), s: 0.4, s1: 1.0, max: 0.6, col: pick(['#7fd8ff', '#bfeeff', '#3fb4ff']), emi: 0.6, pass: 2, alpha: 0.85, drift: 0.2 });
@@ -1702,7 +1750,7 @@ window.DX = window.DX || {};
   function reaction(id, x, z) {
     const r = REACT[id]; if (!r) return;
     G.reacted = G.reacted || {};
-    const first = !G.reacted[id]; G.reacted[id] = (G.reacted[id] || 0) + 1;
+    const first = !G.reacted[id]; G.reacted[id] = (G.reacted[id] || 0) + 1; DX.mission('react');
     if (first) {
       FX.text(x, 6, z, r[0], r[1], 34, 1.4, true);
       DX.save.reactions = DX.save.reactions || {};
@@ -1725,6 +1773,7 @@ window.DX = window.DX || {};
   }
   DX.codexAdd = codexAdd;
   function addCitizens(list, quote) {
+    DX.mission('rescue', list.length);
     for (const c of list) { G.citizens.push(c); codexAdd('c', c.dog ? 'dog' : String(c.face)); if (c.face === 1) (DX.save.flags = DX.save.flags || {}).park = 1; if (c.face === 8 && G.stg.id === 'tunnel') (DX.save.flags = DX.save.flags || {}).secretary = 1; }
     const need = Math.max(1, Math.ceil(G.citizens.length / C.safeSeats));
     let have = G.cars.filter(k => k === 'safe').length;
@@ -1903,9 +1952,9 @@ window.DX = window.DX || {};
       b.t += dt; b.rot += dt * 9;
       if (b.t >= b.dur) {
         b.done = true;
-        damageTrain(b.dmg); G.hurt = 0.25; G.shake = Math.max(G.shake, 0.6);
-        fxSprite(b.kind === 'snow' ? 'iceburst' : 'explosion', b.tx, 1.2, b.tz, 1.6, 3.2, 0.4);
-        shockRing(b.tx, b.tz, 2, '#ffb36b');
+        damageTrain(b.dmg); G.hurt = b.small ? 0.1 : 0.25; G.shake = Math.max(G.shake, b.small ? 0.2 : 0.6);
+        fxSprite(b.kind === 'snow' ? 'iceburst' : 'explosion', b.tx, 1.2, b.tz, b.small ? 0.9 : 1.6, b.small ? 1.8 : 3.2, 0.4);
+        if (!b.small) shockRing(b.tx, b.tz, 2, '#ffb36b');
         S.boom(false);
       }
     }
@@ -1943,15 +1992,18 @@ window.DX = window.DX || {};
       const p = b.t / b.dur, x = lerp(b.sx, b.tx, p), z = lerp(b.sz, b.tz, p), y = lerp(b.sy, DECK, p) + Math.sin(Math.PI * p) * 7;
       T.reset().tr(x, 0.06, z).sc(1.2); E.draw('disc', '#000000', 0, 0.3, 1);
       const fr = SPR.frames['fx:' + (b.kind === 'crate' ? 'crate' : b.kind === 'barrel' ? 'barrel' : '')];
-      if (fr) E.sprite(fr, x, y, z, 1.8 * fr.aspect, 1.8, b.rot, 0.5, 0.5, null, null, false);
+      const bs = b.small ? 1.5 : 3.0;
+      if (fr) E.sprite(fr, x, y, z, bs * fr.aspect, bs, b.rot, 0.5, 0.5, null, [0.25, 0.15, 0], false);
+      if (Math.random() < 0.6) part({ mesh: 'ico', x, y, z, s: 0.6, s1: 0.1, max: 0.35, col: '#ffb36b', emi: 1.5, pass: 2, alpha: 0.7, drift: 0 });
       else if (b.kind === 'golf') { E.box('ico', x, y, z, 0.6, 0.6, 0.6, 0, '#ffffff', 0.6); part({ mesh: 'ico', x, y, z, s: 0.3, s1: 0.05, max: 0.3, col: '#ffffff', emi: 1, pass: 2, alpha: 0.6, drift: 0 }); }
       else if (b.kind === 'snow') E.box('ico', x, y, z, 1.4, 1.4, 1.4, b.rot, '#f4f8ff', 0.3);
-      else { T.reset().tr(x, y, z).ry(b.rot).rx(b.rot * 0.6).sc(1.3, 0.35, 1.0); E.draw('cube', '#f4f1e8', 0.2, 1, 0); T.reset().tr(x, y + 0.2, z).ry(b.rot).rx(b.rot * 0.6).sc(1.0, 0.1, 0.7); E.draw('cube', '#d23a3a', 0.4, 1, 0); }
+      else { T.reset().tr(x, y, z).ry(b.rot).rx(b.rot * 0.6).sc(2.2, 0.55, 1.7); E.draw('cube', '#f4f1e8', 0.4, 1, 0); T.reset().tr(x, y + 0.3, z).ry(b.rot).rx(b.rot * 0.6).sc(1.7, 0.15, 1.2); E.draw('cube', '#d23a3a', 0.6, 1, 0); }
     }
   }
 
   function updZombies(dt) {
     const S2 = world.speed, drift = S2 * 0.32 * dt, L = G.layout.end;
+    G.atkFx = 0;
     for (const z of G.zs) {
       if (z.dead) continue;
       z.flash = Math.max(0, z.flash - dt); if (z.hitT > 0) z.hitT -= dt;
@@ -2019,6 +2071,11 @@ window.DX = window.DX || {};
       }
       if (d > z.r + 0.12) {
         z.atk = false;
+        // 택배 좀비: 다가오면서 택배 상자를 던짐 (보이는 원거리 공격)
+        if (z.type === 'box' && d < 14 && d > 3 && z.stun <= 0) {
+          z.thT = (z.thT == null ? rand(1, 3) : z.thT) - dt;
+          if (z.thT <= 0) { z.thT = rand(3.2, 4.5); z.hitT = 0; z.throwPose = 0.4; G.bproj.push({ sx: z.x, sy: 1.8 * z.s, sz: z.z, tx: h.hx + rand(-0.5, 0.5), tz: h.hz + rand(-1, 1), t: 0, dur: 0.9, kind: 'crate', small: true, dmg: z.dps * 0.6, rot: 0 }); if (Math.random() < 0.3) FX.text(z.x, 3.4, z.z, '착불!', '#ffcf6b', 15, 0.7); }
+        }
         if (z.stun <= 0) { const st2 = Math.min(z.spd * (z.slowT > 0 ? C.weapons.freeze.slow : 1) * dt, md); z.x += mx / md * st2; z.z += mz / md * st2; }
         if (!z.boss) z.z += drift;
         // 댄서 점프 시작
@@ -2028,7 +2085,18 @@ window.DX = window.DX || {};
       } else {
         z.atk = true;
         if (z.type === 'bomber' && !z.popped) { z.popped = true; z.dead = true; bomberBoom(z, true); FX.goo(z.x, z.z, false); continue; }
-        if (z.stun <= 0) damageTrain(z.dps * dt);
+        if (z.stun <= 0) {
+          damageTrain(z.dps * dt);
+          // 붙어서 때리는 모습이 보이게: 할퀴기 불꽃 + 가끔 '퍽!'
+          z.atkT = (z.atkT || rand(0, 0.6)) - dt;
+          if (z.atkT <= 0 && G.atkFx < 6) {
+            z.atkT = rand(0.55, 0.8); G.atkFx++;
+            const hx = h.hx + (z.x - h.hx) * 0.3, hz = h.hz + (z.z - h.hz) * 0.3;
+            FX.spark(hx, 1.4, hz, 5, z.type === 'box' ? '#ffcf6b' : '#ff5a4a'); S.hit();
+            for (let i = 0; i < 3; i++) part({ mesh: 'cube', x: hx, y: 1.5, z: hz, vx: rand(-4, 4), vy: rand(2, 6), vz: rand(-3, 3), g: -25, s: rand(0.1, 0.2), max: 0.5, col: pick(['#9a9a9a', '#d9a35a', '#ffffff']), bounce: true });
+            if (Math.random() < 0.18) FX.text(hx, 2.6, hz, pick(['퍽!', '쾅!', '쿵!', '와직!']), '#ff8a6a', 15, 0.5);
+          }
+        }
       }
       if (z.type === 'bomber') z.swell = d < 7 ? (7 - d) / 7 * 0.3 : 0;
       // 지형 제약
@@ -2285,6 +2353,16 @@ window.DX = window.DX || {};
     if (SPR.hasTrain()) {
       DECK = TOP_CAR;
       drawTrainArt(layout, st, false);
+      // 물대포 물줄기
+      if (G && G.jets) for (const j of G.jets) {
+        const grow = Math.min(1, j.t / 0.12), fade = 1 - Math.max(0, (j.t - 0.35) / (j.max - 0.35)), N = 16;
+        for (let k = 0; k <= N; k++) {
+          const f = k / N * grow, x = j.ox + j.dx * j.len * f, z = j.oz + j.dz * j.len * f, y = 2.2 - f * 1.4 + Math.sin(G.t * 30 + k) * 0.08;
+          T.reset().tr(x, y, z).sc(0.7 + f * 1.3); E.draw('ico', '#2fa8ff', 1.0, 0.8 * fade, 2);
+          if (k % 3 === 0) { T.reset().tr(x, y + 0.15, z).sc(0.35 + f * 0.6); E.draw('ico', '#bfe8ff', 1.0, 0.45 * fade, 2); }
+        }
+        T.reset().tr(j.ox + j.dx * j.len * grow, 0.08, j.oz + j.dz * j.len * grow).sc(3.2 * grow); E.draw('disc', '#7fd8ff', 1, 0.35 * fade, 2);
+      }
       // 프롤로그 골프공
       if (G && G.golfHit && !G.golfHit.hit) { const k = Math.min(1, G.golfHit.t / 1.3), gx = 0, gz = -70 + k * 72, gy = 2 + Math.sin(k * Math.PI) * 26; T.reset().tr(gx, gy, gz).sc(2.2 + k * 2); E.draw('ico', '#ffffff', 0.4, 1, 0); }
       // 직접 조준 표시
@@ -2465,11 +2543,11 @@ window.DX = window.DX || {};
     fpsAcc += dt; fpsN++;
     if (fpsAcc > 1) { DX.fps = fpsN / fpsAcc; fpsAcc = 0; fpsN = 0; }
     try {
-      if (G && DX.state === 'play') update(dt);
+      if (G && DX.state === 'play') update(dt * (C.game.timeScale || 1));
       else if (!G) { world.speed = 8; updWorld(dt, 8); }
       render(dt);
       DX.perf(dt);
-      if (DX.Music) DX.Music.play(DX.state === 'lobby' || !G ? 'lobby' : DX.state === 'result' ? '' : DX.state === 'mini' ? 'mini' : G.boss ? 'boss' : G.stageIdx >= 4 ? 'battle2' : 'battle');
+      if (DX.Music) DX.Music.play(DX.state === 'lobby' || !G ? 'lobby' : DX.state === 'result' ? (G.outcome && G.outcome.win ? 'win' : 'lose') : DX.state === 'mini' ? 'mini' : G.boss ? 'boss' : G.stageIdx >= 4 ? 'battle2' : 'battle');
       if (DX.UI) DX.UI.frame(G, dt);
     } catch (e) { console.error(e); DX.track('draw_error', { m: String(e && e.message || e).slice(0, 80) }); if (DX.UI && DX.UI.error) DX.UI.error(e); }
     requestAnimationFrame(frame);
