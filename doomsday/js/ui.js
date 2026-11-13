@@ -152,6 +152,9 @@ window.DX = window.DX || {};
     DX.S.click(); refreshLobby(); renderSkins();
   }
   function refreshLobby() {
+    // 첫 10판 개방: 정비소(2판째), 보상(9판째)
+    { const m = document.querySelector('[data-tab=meta]'), r = document.querySelector('[data-tab=reward]');
+      if (m) show(m, DX.unlocked('meta')); if (r) show(r, DX.unlocked('reward')); }
     $('logoSub').textContent = T(C.game.subtitle);
     $('lobGold').textContent = DX.save.gold.toLocaleString();
     const sl = supplyLeft();
@@ -305,6 +308,29 @@ window.DX = window.DX || {};
   let skKey = null;
   UI.skillReady = function () {};
   /* ---------------- 구조 신호 (3초 안에 고르기, 안 고르면 구함) ---------------- */
+  UI.prologueEnd = function (cb) {
+    const el = $('banner');
+    UI.banner(L('월요일 아침 8시 50분...', '周一早上8点50分...'), L('기관차 한 칸만 남았다. 그 열차를 다시 만든다!', '只剩一节火车头。重新打造那辆列车！'), 'wave');
+    setTimeout(cb, 2600);
+  };
+  // 진화 컷인
+  UI.evoCut = function (c) {
+    const d = document.createElement('div'); d.className = 'evo-cut';
+    d.innerHTML = '<div class="ec-band">' + (c.icon ? iconHtml(c.icon, c.emoji || '★') : (c.emoji || '★')) + '<div><b>' + L('진화!!', '进化！！') + '</b><span>' + esc(T(c.name)) + '</span></div></div>';
+    document.body.appendChild(d); setTimeout(() => d.remove(), 1500);
+  };
+  // 칸 배치 고르기
+  UI.askPlace = function (w, cb) {
+    $('sigFace').src = w.icon || ''; $('sigName').textContent = T(w.name);
+    $('sigLine').textContent = L('새 칸을 어디에 붙일까?', '新车厢接在哪里？');
+    $('sigGo').textContent = L('기관차 바로 뒤 (쿨타임↓)', '火车头后面（冷却↓）'); $('sigSkip').textContent = L('맨 뒤 (침입 방어↑)', '最后面（防入侵↑）');
+    $('signal').querySelector('.sig-head').textContent = L('🔧 칸 배치', '🔧 车厢配置');
+    $('signal').querySelector('.sig-time').style.display = 'none';
+    show($('signal'), true);
+    const end = f => { show($('signal'), false); $('sigGo').textContent = L('멈추고 구한다', '停车救人'); $('sigSkip').textContent = L('지나친다', '开过去'); $('signal').querySelector('.sig-head').textContent = L('🚨 구조 신호!', '🚨 求救信号！'); $('signal').querySelector('.sig-time').style.display = ''; cb(f); };
+    $('sigGo').onclick = () => { DX.S.click(); end(true); };
+    $('sigSkip').onclick = () => { DX.S.click(); end(false); };
+  };
   UI.rescueSignal = function (o, cb) {
     $('sigFace').src = o.face || ''; $('sigName').textContent = T(o.name || '');
     $('sigLine').textContent = T(o.line) + (o.n > 1 ? ' (' + o.n + L('명)', '人)') : '');
@@ -341,7 +367,10 @@ window.DX = window.DX || {};
     { const ids = DX.activeIds(), key2 = ids.join(',');
       if (key2 !== skKey) { skKey = key2; $('skillBar').innerHTML = ids.map(id => '<button class="sk" data-sk="' + id + '"><i class="fill"></i>' + iconHtml(C.weapons[id].icon, C.weapons[id].emoji) + '</button>').join(''); show($('btnAuto'), ids.length > 0); }
       for (const b of $('skillBar').children) { const v = G.sk[b.dataset.sk] || 0; b.firstChild.style.height = (v * 100).toFixed(0) + '%'; b.classList.toggle('ready', v >= 1); }
-      $('btnAuto').classList.toggle('on', !!G.autoSkill); }
+      $('btnAuto').classList.toggle('on', !!G.autoSkill);
+      if (!DX.unlocked('autoBtn')) show($('btnAuto'), false);
+      show($('skillBar'), !G.prologue && DX.unlocked('skillManual') || ids.length && !G.autoSkill); }
+    show($('btnHorn'), DX.unlocked('horn') || !!G.prologue);
     $('ultRing').style.strokeDashoffset = (276.5 * (1 - G.ult)).toFixed(1);
     $('btnUlt').classList.toggle('ready', G.ult >= 1);
     $('hornCd').textContent = G.hornCd > 0 ? Math.ceil(G.hornCd) : '';
@@ -613,6 +642,12 @@ window.DX = window.DX || {};
 
   /* ---------------- 이벤트 ---------------- */
   function startStage(i) {
+    // 첫 판: 프롤로그(최강 열차 맛보기) 먼저
+    if (i === 0 && C.prologue && C.prologue.on && !DX.save.prologueDone && !Object.keys(DX.save.cleared || {}).length) {
+      show($('lobby'), false); show($('hud'), true);
+      DX.startPrologue(() => { show($('hud'), false); startStage(0); });
+      return;
+    }
     const st = C.stages[i];
     DX.save.seenStory = DX.save.seenStory || {};
     const cmc = C.comics && C.comics[st.id];
@@ -626,7 +661,12 @@ window.DX = window.DX || {};
       UI.dialogue(st.intro, 'STAGE ' + (i + 1) + ' · ' + T(st.name), () => DX.startRun(i));
     } else DX.startRun(i);
   }
-  function backToLobby() { show($('hud'), false); showLobby(); }
+  function backToLobby() {
+    show($('hud'), false); showLobby();
+    // 처음 정비소가 열리면 바로 안내 / 같은 장에서 2번 연속 지면 장갑 강화 도움말
+    if (DX.unlocked('meta') && !DX.save.metaGuided) { DX.save.metaGuided = true; DX.persist(); setTab('meta'); toast(L('정비소가 열렸어요! 열차를 강화하세요', '维修站开放了！强化列车吧')); }
+    else if ((DX.save.loseRow || 0) >= 2) { DX.save.loseRow = 0; DX.persist(); setTab('meta'); toast(L('정비소에서 장갑을 올려보세요', '去维修站强化装甲吧')); }
+  }
   function bind() {
     const unlock = () => DX.S.init();
     document.addEventListener('pointerdown', unlock, { capture: true });

@@ -320,6 +320,7 @@ window.DX = window.DX || {};
   // 열차 외형 단계: 열차 장갑판 강화 5단계마다 + 판 안의 '덕테이프 장갑' 카드 2장마다 1단계
   const TIER_NAMES = ['', '모래주머니 장착!', '앞범퍼 가시 쟁기 장착!', '경광등 드럼통 장착!', '황금 열차 각성!!'];
   function trainTier() {
+    if (G && G.prologue && !G.golfHit) return 4;
     const m = (DX.save.meta && DX.save.meta.hp) || 0, a = G && G.passives ? (G.passives.armor || 0) : 0;
     return Math.min(4, Math.floor(m / 5) + Math.floor(a / 2));
   }
@@ -337,7 +338,7 @@ window.DX = window.DX || {};
     if (tier >= 2 && sp) for (const x of [-1.05, 0, 1.05]) E.sprite(sp, x, 0.15, -0.35, 1.15 * sp.aspect, 1.15, 0, 0.5, 0, tint, null, x < 0);
     if (tier >= 4 && Math.random() < 0.3) { const L = layout.end; const pp = { mesh: 'ico', x: rand(-1.4, 1.4), y: rand(1, 3), z: rand(0, L), vy: 1.5, s: 0.18, s1: 0.02, max: 0.7, col: '#ffe066', emi: 2, pass: 2, alpha: 1, drift: 0.6 }; if (G) part(pp); else lobbyParts.push(Object.assign(pp, { life: 0, g: 0, rot: 0, vr: 0, vx: 0, vz: 0 })); }
   }
-  function trainSkin() { const id = DX.save.skin && DX.save.skin.train; if (!id || id === 'base') return null; return ((C.skins || {}).train || []).find(k => k.id === id) || null; }
+  function trainSkin() { if (G && G.prologue && !G.golfHit) return ((C.skins || {}).train || []).find(k => k.id === 'gold') || null; const id = DX.save.skin && DX.save.skin.train; if (!id || id === 'base') return null; return ((C.skins || {}).train || []).find(k => k.id === id) || null; }
   // 새 칸 그림이 없을 때 지붕 위에 코드로 그리는 장식 (물탱크·냉동기·환풍기·초록 십자)
   function carDeco(kind, top, cz, L, t) {
     if (kind === 'water') { E.box('cube', 0, top + 0.45, cz, 1.4, 0.8, L * 0.5, 0, '#d8343a', 0.15); E.box('cube', 0.75, top + 0.9, cz - L * 0.2, 0.25, 0.25, 1.2, 0, '#c9ced6', 0.2); }
@@ -363,7 +364,8 @@ window.DX = window.DX || {};
       const inv = !ghost && G && p.idx !== undefined && G.inv && G.inv[p.idx];
       const pulse = inv ? 0.5 + 0.5 * Math.sin(t * 14) : 0;
       const jit = inv ? (Math.random() - 0.5) * 0.08 : Math.sin(t * 9 + p.z0) * 0.012;
-      const tint = ghost ? GHOST_TINT : ktint ? [ktint[0], ktint[1], ktint[2], 1] : null, add = ghost ? GHOST_ADD : inv ? [0.55 * pulse, 0.02, 0.02] : null;
+      const cf = !ghost && G && G.carFlash ? (G.carFlash[p.kind] || 0) : 0;
+      const tint = ghost ? GHOST_TINT : ktint ? [ktint[0], ktint[1], ktint[2], 1] : null, add = ghost ? GHOST_ADD : inv ? [0.55 * pulse, 0.02, 0.02] : cf > 0 ? [cf * 1.6, cf * 1.3, cf * 0.4] : null;
       if (!ghost) E.box('cube', xo, p.top / 2 + 0.05, cz, W * 0.9, p.top - 0.3, Lq * 0.88, 0, '#2a2c33');  // 지붕 그림보다 0.1 낮게 (겹쳐서 깜빡이지 않게)
       if (fs) {
         const hS = Lq / fs.aspect, sx = W / 2 - 0.04;
@@ -400,7 +402,7 @@ window.DX = window.DX || {};
   /* ================= 실내 침입 ================= */
   function updInvasion(dt) {
     const cfg = C.invasion; if (!cfg || !SPR.hasFight()) return;
-    if (G.waveIdx + 1 >= cfg.firstWave && G.endT < 0 && G.layout.cars.length) {
+    if (G.waveIdx + 1 >= cfg.firstWave && G.endT < 0 && G.layout.cars.length && unlocked('invasion') && !G.prologue) {
       G.invT -= dt;
       if (G.invT <= 0) { G.invT = rand(cfg.every[0], cfg.every[1]); startInvasion(); }
     }
@@ -427,7 +429,10 @@ window.DX = window.DX || {};
     if (Math.random() < Math.min(0.6, jobCount('guard') * C.jobs.guard.inv)) { FX.text(0, 5, G.layout.end / 2, '경비원이 침입을 막았다!', '#7dff8a', 18, 1.4, true); return; }
     // 침입 좀비는 안전 칸(시민)을 먼저 노림
     const safeIdx = free.filter(i => G.layout.cars[i] && G.layout.cars[i].kind === 'safe');
-    const idx = safeIdx.length && Math.random() < 0.55 ? pick(safeIdx) : pick(free), cfg = C.invasion;
+    let idx = safeIdx.length && Math.random() < 0.55 ? pick(safeIdx) : pick(free);
+    // 맨 뒷칸 배치 보너스: 침입을 잘 막음
+    if (G.placed && idx === G.layout.cars.length - 1 && Math.random() < C.placement.rearGuard) { FX.text(0, 5, G.layout.cars[idx].cz, '뒷칸이 침입을 막았다!', '#7dff8a', 16, 1.2); return; }
+    const cfg = C.invasion;
     // 침입 좀비 종류 = 지금 웨이브에 나오는 좀비 중 전투 그림이 있는 것
     let types = Object.keys(G.wave.mix || {}).filter(k => SPR.fight[k] && k !== 'bomber');
     if (!types.length) types = ['office'];
@@ -480,7 +485,7 @@ window.DX = window.DX || {};
       kills: 0, gold: 0, combo: 0, comboT: 0, maxCombo: 0, rerolls: C.ads.rerollPerRun, stats: {}, inv: {}, invT: 8,
       weapons: { mg: 1 }, passives: {}, cars: ['gun'],
       zs: [], corpses: [], orbs: [], bullets: [], shells: [], bombs: [], drones: [], barrels: [], leeks: [], bolts: [], parts: [], sparts: [], decals: [], fires: [], ftexts: [], tele: [], bproj: [], sfx: [], planes: [],
-      tornados: [], rescued: 0, citizens: [], safeFleeT: 0, sk: {}, skReady: {}, autoSkill: DX.save.autoSkill !== false, evoN: 0, opOk: false, opSkip: false, bossWeak: false,
+      tornados: [], rescued: 0, citizens: [], carFlash: {}, firePatches: [], comboOn: {}, placed: false, safeFleeT: 0, sk: {}, skReady: {}, autoSkill: DX.save.autoSkill !== false, evoN: 0, opOk: false, opSkip: false, bossWeak: false,
       tm: { mg: [0, 0.1, 0.2], flame: 0, tesla: 1, cannon: 0.5, barrel: 2, flameFx: 0 },
       ult: 0, ultQueue: [], hornCd: 5, shield: 0, emergencyUsed: false, revived: false,
       boss: null, bossSpawned: false, timeScale: 1, hitstop: 0, slowmo: 0, slowmoT: 0, shake: 0, t: 0, wa: 0,
@@ -492,9 +497,35 @@ window.DX = window.DX || {};
     G.hp = G.hpMax;
     DX.state = 'play';
     DX.mission('run'); DX.track('run_start', { stage: stageIdx + 1 });
+    if (DX._prologueNext) {   // 프롤로그: 황금 열차 + 모든 무기 최고 단계
+      DX._prologueNext = false; G.prologue = true; G.proT = 0;
+      G.stg = Object.assign({}, G.stg, { waves: [C.prologue.wave] });
+      for (const id in C.weapons) { G.weapons[id] = 5; const car = C.weapons[id].car; if (car && car !== 'gun' && G.cars.indexOf(car) < 0) G.cars.push(car); }
+      G.passives = { power: 5, haste: 5 }; G.autoSkill = true; G.hpMaxBase *= 10; recalc(); G.hp = G.hpMax;
+      for (const id of activeIds()) G.sk[id] = 0.7;
+    }
+    if (!G.prologue) { DX.save.runs = (DX.save.runs || 0) + 1; DX.persist(); }
+    // 새로 열린 기능 안내 (한 번씩)
+    const hints = DX.save.unlockHint = DX.save.unlockHint || {};
+    [['aim', '화면을 끌어서 직접 조준! 기관총 피해 +30%, 보스 약점 저격'], ['skillManual', '스킬 버튼을 직접 누르면 100% + 타이밍 보너스!'], ['invasion', '침입 좀비가 나타나요! 빨간 칸을 터치'], ['combo', '두 무기를 함께 가지면 조합 발동!'], ['place', '새 칸을 어디에 붙일지 고를 수 있어요'], ['autoBtn', '이제 AUTO 버튼으로 스킬을 알아서 쓸 수 있어요']].forEach(([k, msg], i) => {
+      if (!G.prologue && unlocked(k) && !hints[k] && Object.keys(DX.save.cleared || {}).length < 2) { hints[k] = 1; DX.persist(); later(3 + i * 3, () => DX.UI && DX.UI.banner(DX.L('새 기능!', '新功能！'), DX.T(msg), 'win')); }
+    });
+    // 처음 3판은 스킬 자동, 4판째부터 직접(10판째에 자동 버튼)
+    if (!unlocked('skillManual')) G.autoSkill = true; else if (!unlocked('autoBtn')) G.autoSkill = false;
     nextWave();
     if (DX.UI) DX.UI.onRunStart(G);
   };
+  // 첫 10판 개방: 지금 판 번호가 n 이상이면 열림 (이미 2장 이상 깬 사람은 전부 열림)
+  function unlocked(key) {
+    const n = (C.unlocks || {})[key]; if (!n) return true;
+    const cl = Object.keys(DX.save.cleared || {}).length;
+    return cl >= 2 || (DX.save.runs || 0) >= n;
+  }
+  DX.unlocked = unlocked;
+  function combo(id) { if (!G) return false; const c = (C.combos || []).find(k => k.id === id); return !!(c && G.weapons[c.a] && G.weapons[c.b]); }
+  function flashCar(kind, v) { if (G) G.carFlash[kind] = Math.max(G.carFlash[kind] || 0, v || 0.25); }
+  // 칸 배치 보너스: 기관차 바로 뒤 칸은 쿨타임 감소
+  function ph(kind) { return G && G.cars[0] === kind && G.placed ? C.placement.frontHaste : 1; }
   function needXp(lv) { return (C.xpEarly && C.xpEarly[lv - 1]) || C.xpNeed(lv); }
   function recalc() {
     const p = G.passives;
@@ -582,6 +613,31 @@ window.DX = window.DX || {};
     const sp = spawnPoint(), z = spawnZombie('office', sp[0], sp[1]);
     if (z) { z.passed = ps.name; z.hp *= 3; z.maxHp = z.hp; z.s *= 1.15; FX.text(z.x, 3, z.z, '아까 그 ' + ps.name + '...?!', '#c6f08a', 18, 2, true); }
     DX.save.passed = null; DX.persist();
+  }
+  /* ---------- 첫 판 프롤로그 ---------- */
+  DX.startPrologue = function (done) { DX._prologueNext = true; DX._prologueDone = done; DX.startRun(0); if (DX.UI) DX.UI.banner(DX.L('둠스데이 익스프레스 출격!!', '末日快车出击！！'), DX.L('이게 바로 최강의 열차다', '这就是最强列车'), 'ult'); };
+  function updPrologue(dt) {
+    G.proT += dt;
+    if (!G.golfHit && G.proT >= C.prologue.time) {
+      G.golfHit = { t: 0, hit: false };
+      if (DX.UI) DX.UI.banner(DX.L('...골프공?!', '...高尔夫球？！'), DX.L('“나이스 샷~” — 좀비 사장님', '“好球~” — 僵尸老板'), 'boss');
+      S.alarm();
+    }
+    const gh = G.golfHit; if (!gh) return;
+    gh.t += dt;
+    if (!gh.hit && gh.t >= 1.3) {
+      gh.hit = true;
+      G.shake = 2; G.slowmo = 0.2; G.slowmoT = 1.5; vib([100, 60, 200]);
+      for (let i = 0; i < 8; i++) later(i * 0.12, () => { if (G) FX.explode(rand(-2, 2), rand(0, G.layout.end), rand(4, 7), 'fire'); });
+      FX.text(0, 8, 2, '콰광!!!', '#ff4040', 48, 1.6, true);
+      later(0.8, () => {
+        if (!G) return;
+        SRC = 'misc'; for (const z of G.zs) hit(z, 99999, 'blast', z.x, z.z, 12, false);
+        G.cars = []; G.weapons = { mg: 1 }; G.passives = {}; G.tornados = []; recalc();
+        G.stg = Object.assign({}, G.stg, { waves: [{ time: 999, rate: 0, hordes: 0, hordeSize: 0, mix: { office: 1 }, hp: 1 }] });
+      });
+      later(2.4, () => { if (DX.UI) DX.UI.prologueEnd(() => { DX.save.prologueDone = true; DX.persist(); const d = DX._prologueDone; DX._prologueDone = null; G = null; DX.state = 'lobby'; if (d) d(); }); });
+    }
   }
   function startMini(kind, extra, onDone) {
     const mg = C.minigame, si = G.stageIdx;
@@ -772,6 +828,7 @@ window.DX = window.DX || {};
         G._chain = false;
       }
     }
+    if (kind === 'shock' && z.burnT > 0 && combo('plasma')) { dmg *= 2; if (Math.random() < 0.08) FX.text(z.x, 2.6, z.z, '플라즈마!', '#ff8af7', 16, 0.6); }
     if (z.iceT > 0 && (kind === 'shot' || kind === 'blast')) {
       dmg *= C.combo.shatterMul; z.iceT = 0; z.stun = 0; reaction('shatter', z.x, z.z);
       fxSprite('iceburst', z.x, 1, z.z, 1.2, 2.4, 0.4);
@@ -1152,7 +1209,9 @@ window.DX = window.DX || {};
       if (lv + 1 === 5 && w.evoWith) continue;   // 진화는 중간보스 보물상자에서만
       let desc = w.desc[lv];
       if (w.evoWith && lv + 1 === 4) desc += ' · ' + DX.L('진화 짝: ', '进化搭档：') + DX.T(P[w.evoWith].name);
-      if (isNew) desc += reactHint(id);
+      if (isNew) { desc += reactHint(id); const cb = (C.combos || []).find(k => (k.a === id && G.weapons[k.b]) || (k.b === id && G.weapons[k.a])); if (cb) desc += ' · 🔗 ' + DX.L('조합: ', '组合：') + DX.T(cb.name); }
+      const completes = isNew && (C.combos || []).some(k => (k.a === id && G.weapons[k.b]) || (k.b === id && G.weapons[k.a]));
+      if (completes && (DX.save.runs || 0) === C.unlocks.combo && !G.comboForced) { G.comboForced = true; opts.push({ kind: 'weapon', id, lv: 1, name: w.name, desc: desc + ' · 🔗', icon: w.icon, emoji: w.emoji, isNew, evo: false, w: 999 }); continue; }
       opts.push({ kind: 'weapon', id, lv: lv + 1, name: lv + 1 === 5 ? w.evoName : w.name, desc, icon: lv + 1 === 5 && w.evoIcon ? w.evoIcon : w.icon, emoji: w.emoji, isNew, evo: lv + 1 === 5, w: isNew ? (owned < 3 ? 3.2 : 1.5) : 3 });
     }
     for (const id in P) {
@@ -1179,11 +1238,19 @@ window.DX = window.DX || {};
   };
   DX.chooseCard = function (c) {
     if (c && c.kind === 'weapon' && c.lv === 5 && C.weapons[c.id] && C.weapons[c.id].evoWith) G.evoN = (G.evoN || 0) + 1;
+    let askPlace = null;
     if (c.kind === 'weapon') {
       const had = G.weapons[c.id] || 0;
       G.weapons[c.id] = c.lv;
       const car = C.weapons[c.id].car;
-      if (!had && car && car !== 'gun' && G.cars.indexOf(car) < 0) G.cars.push(car);
+      if (!had && car && car !== 'gun' && G.cars.indexOf(car) < 0) { G.cars.push(car); if (unlocked('place') && G.cars.filter(k => k !== 'safe').length >= 2) askPlace = car; }
+      // 조합 발동 알림
+      for (const cb of (C.combos || [])) if (!G.comboOn[cb.id] && G.weapons[cb.a] && G.weapons[cb.b]) {
+        G.comboOn[cb.id] = true;
+        later(0.3, () => { if (DX.UI) DX.UI.banner(DX.L('조합 발동! ', '组合发动！') + DX.T(cb.name), DX.T(cb.desc), 'ult'); S.level(); });
+      }
+      // 고른 칸에 빛 + 진화 컷인
+      later(0.05, () => cardFx(c));
     } else if (c.kind === 'passive') {
       G.passives[c.id] = c.lv;
       if (c.id === 'armor') G.hp = Math.min(G.hpMax * 2, G.hp + G.hpMax * 0.3);
@@ -1193,9 +1260,24 @@ window.DX = window.DX || {};
     G.hp = Math.min(G.hp, G.hpMax);
     G.pendingLv--;
     S.click();
-    if (G.pendingLv > 0) { const ch = G.chest; G.chest = false; DX.UI.levelUp(ch ? chestCards() : buildCards(), G, ch); }
-    else { DX.state = 'play'; DX.UI.hideLevelUp(); }
+    const go = () => {
+      if (G.pendingLv > 0) { const ch = G.chest; G.chest = false; DX.UI.levelUp(ch ? chestCards() : buildCards(), G, ch); }
+      else { DX.state = 'play'; DX.UI.hideLevelUp(); }
+    };
+    // 칸 배치 고르기 (7판째부터): 기관차 바로 뒤(쿨타임 감소) / 맨 뒤(침입 막기)
+    if (askPlace && DX.UI && DX.UI.askPlace) { DX.UI.hideLevelUp(); DX.state = 'place'; DX.UI.askPlace(C.weapons[c.id], front => { if (!G) return; G.placed = true; G.cars = G.cars.filter(k => k !== askPlace); if (front) G.cars.unshift(askPlace); else G.cars.push(askPlace); recalc(); go(); }); return; }
+    go();
   };
+  function cardFx(c) {
+    if (!G || !G.layout) return;
+    const car = c.kind === 'weapon' ? C.weapons[c.id].car : null, cc = car && G.layout.cars.find(k => k.kind === car);
+    const cz = cc ? cc.cz : G.layout.end / 2;
+    if (car) flashCar(car, 1.0);
+    shockRing(0, cz, 6, '#ffd23d');
+    for (let i = 0; i < 16; i++) part({ mesh: 'ico', x: rand(-1.5, 1.5), y: rand(3, 9), z: cz + rand(-2, 2), vx: 0, vy: -rand(4, 9), vz: 0, s: 0.3, s1: 0.05, max: 0.8, col: '#ffe680', emi: 2, pass: 2, alpha: 0.9, drift: 0 });
+    FX.text(0, 6, cz, (c.evo ? '★ ' : '') + DX.T(c.name) + (c.lv > 1 ? ' Lv' + c.lv : ''), c.evo ? '#ffd23d' : '#ffffff', c.evo ? 26 : 18, 1.2, true);
+    if (c.evo) { G.slowmo = 0.2; G.slowmoT = 1.0; G.shake = 0.8; if (DX.UI && DX.UI.evoCut) DX.UI.evoCut(c); }
+  }
 
   /* ================= 필살기 / 고스트 싱크 ================= */
   DX.useUltimate = function () {
@@ -1321,7 +1403,7 @@ window.DX = window.DX || {};
         const tx = tg.x - s[0], tz = tg.z - s[2];
         G.aim[i] = Math.atan2(tx, tz);
         if (G.tm.mg[i] <= 0) {
-          G.tm.mg[i] = w.rate[ml - 1] * haste * rand(0.85, 1.15);
+          G.tm.mg[i] = w.rate[ml - 1] * haste * ph('gun') * rand(0.85, 1.15); flashCar('gun', 0.12);
           const d = Math.hypot(tx, tz) || 1, sp = 70;
           const a = G.aim[i] + rand(-0.04, 0.04);
           G.bullets.push({ x: s[0] + Math.sin(a) * 0.9, y: 2.6, z: s[2] + Math.cos(a) * 0.9, vx: Math.sin(a) * sp, vz: Math.cos(a) * sp, dmg: w.dmg[ml - 1] * pm * (man ? 1.3 : 1), life: man ? 0.75 : 0.6, pierce: w.pierce[ml - 1], gold: ml >= 5, man, hit: [] });
@@ -1375,7 +1457,7 @@ window.DX = window.DX || {};
       const w = W.tesla, c = carOf('tesla');
       G.tm.tesla -= dt;
       if (c && G.tm.tesla <= 0) {
-        G.tm.tesla = w.cd[tl - 1] * haste;
+        G.tm.tesla = w.cd[tl - 1] * haste * ph('tesla'); flashCar('tesla', 0.35);
         const strikes = tl >= 5 ? 2 : 1;
         let any = false;
         for (let s = 0; s < strikes; s++) {
@@ -1403,13 +1485,13 @@ window.DX = window.DX || {};
       const w = W.cannon, c = carOf('cannon');
       G.tm.cannon -= dt;
       if (c) {
-        const tg = nearest(0, c.cz - 6, w.range, zb => zb.z < c.cz);
+        const tg = (combo('focus') && nearest(0, c.cz - 6, w.range, zb => zb.z < c.cz && G.t - (zb.mgT || -9) < 1.2)) || nearest(0, c.cz - 6, w.range, zb => zb.z < c.cz);
         if (tg) {
           const want = Math.atan2(tg.x, tg.z - c.cz);
           let d = want - G.cannonYaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
           G.cannonYaw += d * Math.min(1, dt * 8);
           if (G.tm.cannon <= 0 && Math.abs(d) < 0.3) {
-            G.tm.cannon = w.rate[cl - 1] * haste;
+            G.tm.cannon = w.rate[cl - 1] * haste * ph('cannon'); flashCar('cannon', 0.3);
             const twin = cl >= 5;
             for (const bx of (twin ? [-0.32, 0.32] : [0])) {
               const sx = Math.sin(G.cannonYaw) * 2.6 + Math.cos(G.cannonYaw) * bx, sz = c.cz + Math.cos(G.cannonYaw) * 2.6 - Math.sin(G.cannonYaw) * bx;
@@ -1440,7 +1522,7 @@ window.DX = window.DX || {};
           d.tz += world.speed * dt * 0.3;
           if (dd < sp + 0.3) {
             G.bombs.push({ x: d.x, y: d.y, z: d.z, vy: 0, dmg: w.dmg[dl - 1] * pm, r: w.radius[dl - 1] });
-            d.st = 'back'; d.cd = w.cd[dl - 1] * haste;
+            d.st = 'back'; d.cd = w.cd[dl - 1] * haste * ph('drone'); flashCar('drone', 0.25);
           } else { d.x += dx / dd * sp; d.z += dz / dd * sp; d.y = lerp(d.y, 8, dt * 2); }
         } else {
           const hx = 0, hz = home, dx = hx - d.x, dz = hz - d.z, dd = Math.hypot(dx, dz), sp = 28 * dt;
@@ -1453,7 +1535,7 @@ window.DX = window.DX || {};
       if (invaded(id)) continue;
       const lv = G.weapons[id], w = W[id];
       const was = G.sk[id] || 0;
-      G.sk[id] = Math.min(1, was + dt / (w.cd[lv - 1] * haste * jobHaste()));
+      G.sk[id] = Math.min(1, was + dt / (w.cd[lv - 1] * haste * jobHaste() * ph(C.weapons[id].car)));
       if (was < 1 && G.sk[id] >= 1) { G.skReady[id] = G.t; if (DX.UI && DX.UI.skillReady) DX.UI.skillReady(id); vib(15); }
       if (G.sk[id] >= 1 && G.autoSkill && skillWorth(id)) castSkill(id, C.skills.auto);
     }
@@ -1485,9 +1567,9 @@ window.DX = window.DX || {};
       G.tm.barrel -= dt;
       if (G.tm.barrel <= 0 && G.zs.length) {
         G.tm.barrel = w.cd[bl - 1] * haste;
-        const ts = densest(w.count[bl - 1], 5);
-        G.planes.push({ t: 0, z: ts.reduce((a, t) => a + t[1], 0) / ts.length - 6 });   // 폭격기가 지나가며 투하
-        ts.forEach((t, i) => G.barrels.push({ x: t[0], z: t[1], y: 34 + i * 7, vy: -26, rot: rand(0, 6), dmg: w.dmg[bl - 1] * pm, r: w.radius[bl - 1] }));
+        const ts = densest(w.count[bl - 1], 5).sort((a, b) => b[0] - a[0]);   // 폭격기가 오른쪽→왼쪽으로 지나가며 차례로 투하
+        G.planes.push({ t: 0, z: ts.reduce((a, t) => a + t[1], 0) / ts.length - 6 });
+        ts.forEach((t, i) => G.barrels.push({ x: t[0], z: t[1], y: 30 + Math.max(0, (70 - t[0]) / 65 * 26), vy: -26, rot: rand(0, 6), dmg: w.dmg[bl - 1] * pm, r: w.radius[bl - 1] }));
       }
     }
   }
@@ -1505,7 +1587,7 @@ window.DX = window.DX || {};
   }
   function castSkill(id, mul) {
     if (!G || !G.weapons[id] || (G.sk[id] || 0) < 1 || invaded(id)) return false;
-    G.sk[id] = 0;
+    G.sk[id] = 0; flashCar(C.weapons[id].car, 0.5);
     const lv = G.weapons[id], pm = G.pMul * (mul || 1), w = C.weapons[id];
     const c = carOf(id) || { cz: G.layout.end / 2 };
     SRC = id;
@@ -1522,8 +1604,9 @@ window.DX = window.DX || {};
   // 버튼으로 쓰면 100% + 준비되자마자(1.5초 안) 쓰면 타이밍 보너스 +15%
   // 드래그 = 기관총 직접 조준 (손 떼면 자동). sx, sy = 화면 좌표
   DX.aim = function (on, sx, sy) {
-    if (!G) return;
+    if (!G || G.prologue) return;
     if (!on) { if (G.manual) G.manual.on = false; return; }
+    if (!unlocked('aim')) return;
     const p = E.unproject ? E.unproject(sx, sy) : null; if (!p) return;
     G.manual = { on: true, x: p[0], z: p[1] };
   };
@@ -1636,7 +1719,7 @@ window.DX = window.DX || {};
           if (dx * dx + dz * dz < rr * rr) {
             SRC = 'mg';
             // 직접 조준으로 보스를 맞히면 약점 저격 (1.5배)
-            const weak = b.man && zb.boss;
+            const weak = b.man && zb.boss; zb.mgT = G.t;
             hit(zb, b.dmg * (weak ? 1.5 : 1), 'shot', b.vx / sp, b.vz / sp, 2.2, true);
             if (weak && Math.random() < 0.12) FX.text(zb.x, 6, zb.z, '약점!', '#ff4040', 22, 0.6);
             b.hit.push(zb);
@@ -1656,15 +1739,36 @@ window.DX = window.DX || {};
     // 드론 폭탄
     for (const b of G.bombs) {
       b.vy -= 30 * dt; b.y += b.vy * dt; b.z += S2 * dt * 0.3;
-      if (b.y <= 0.3) { b.done = true; FX.explode(b.x, b.z, b.r, 'fire'); SRC = 'drone'; aoe(b.x, b.z, b.r, b.dmg, 'blast', 10); }
+      if (b.y <= 0.3) {
+        b.done = true; FX.explode(b.x, b.z, b.r, 'fire'); SRC = 'drone'; aoe(b.x, b.z, b.r, b.dmg, 'blast', 10);
+        if (combo('zapdrone')) {   // 번개 드론: 연쇄 번개
+          const pts = [[b.x, 1, b.z]], cf = C.comboFx; let n = 0;
+          near(b.x, b.z, 9, zb => { if (n >= cf.zapChain || zb.dead) return; n++; pts.push([zb.x, 1.3, zb.z]); hit(zb, b.dmg * cf.zapMul, 'shock', 0, 0, 0, false); zb.stun = Math.max(zb.stun, 0.5); });
+          if (pts.length > 1) G.bolts.push({ pts, t: 0, max: 0.3 });
+        }
+        if (combo('support')) {   // 지원 포격: 캐논 포탄 추가
+          const c = carOf('cannon'), cl2 = G.weapons.cannon;
+          if (c && cl2) { const bx = b.x, bz = b.z; later(0.5, () => { if (G) G.shells.push({ sx: 0, sy: 2.45, sz: c.cz, tx: bx + rand(-1, 1), tz: bz + rand(-1, 1), t: 0, dur: 0.45, dmg: C.weapons.cannon.dmg[cl2 - 1] * G.pMul * C.comboFx.supportMul, r: C.weapons.cannon.splash[cl2 - 1] }); }); }
+        }
+      }
     }
     G.bombs = G.bombs.filter(b => !b.done);
     // 드럼통
     for (const b of G.barrels) {
       b.vy -= 22 * dt; b.y += b.vy * dt; b.rot += dt * 6; b.z += S2 * dt * 0.3;
-      if (b.y <= 0.8) { b.done = true; FX.explode(b.x, b.z, b.r, 'fire'); SRC = 'barrel'; aoe(b.x, b.z, b.r, b.dmg, 'blast', 12); FX.text(b.x, 3, b.z, '쾅!', '#ffb000', 22, 0.6); }
+      if (b.y <= 0.8) {
+        b.done = true; FX.explode(b.x, b.z, b.r, 'fire'); SRC = 'barrel'; aoe(b.x, b.z, b.r, b.dmg, 'blast', 12); FX.text(b.x, 3, b.z, '쾅!', '#ffb000', 22, 0.6);
+        if (combo('oil')) G.firePatches.push({ x: b.x, z: b.z, r: b.r * 0.9, t: 0, tick: 0 });   // 기름바다
+      }
     }
     G.barrels = G.barrels.filter(b => !b.done);
+    // 기름바다 (화염 + 드럼통)
+    for (const f of G.firePatches) {
+      f.t += dt; f.tick -= dt; f.z += S2 * dt * 0.3;
+      if (f.tick <= 0) { f.tick = 0.3; SRC = 'barrel'; near(f.x, f.z, f.r, zb => { zb.burn = Math.min(1, zb.burn + 0.3); zb.burnT = 1.2; hit(zb, C.comboFx.oilDps * 0.3 * G.pMul, 'burn', 0, 0, 0, false); }); }
+      if (Math.random() < (lowQ() ? 0.25 : 0.6)) part({ mesh: 'ico', x: f.x + rand(-f.r, f.r) * 0.7, y: 0.4, z: f.z + rand(-f.r, f.r) * 0.7, vx: 0, vy: rand(2, 4), vz: 0, s: 0.5, s1: 0.1, max: 0.5, col: pick(['#ff7b00', '#ffb000', '#ff4d00']), emi: 1.5, pass: 2, alpha: 0.85, drift: 0.3 });
+    }
+    G.firePatches = G.firePatches.filter(f => f.t < C.comboFx.oilT);
     // 대파 (필살기)
     for (const q of G.ultQueue) {
       q.t += dt;
@@ -2019,6 +2123,7 @@ window.DX = window.DX || {};
     G.wa += dt * world.speed / 0.45;
     updWorld(dt, world.speed);
     G.shake = Math.max(0, G.shake - rawDt * 2.5);
+    for (const k in G.carFlash) G.carFlash[k] = Math.max(0, G.carFlash[k] - rawDt);
     if (G.safeFleeT > 0) { G.safeFleeT -= rawDt; if (G.safeFleeT <= 0) { G.safeFleeT = 0; recalc(); } }
     G.hurt = Math.max(0, (G.hurt || 0) - rawDt); G.ultFlash = Math.max(0, (G.ultFlash || 0) - rawDt);
     if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
@@ -2040,6 +2145,7 @@ window.DX = window.DX || {};
     updCorpses(dt);
     updOrbs(dt);
     updParts(dt);
+    if (G.prologue) { G.pendingLv = 0; updPrologue(dt); }
     if (G.pendingLv > 0 && DX.state === 'play' && G.endT < 0) { DX.state = 'levelup'; S.level(); const ch = G.chest; G.chest = false; DX.UI.levelUp(ch ? chestCards() : buildCards(), G, ch); }
   }
 
@@ -2070,6 +2176,8 @@ window.DX = window.DX || {};
       S.lose(); G.shake = 1.2; vib(200);
       for (let i = 0; i < 4; i++) later(i * 0.18, () => FX.explode(rand(-1.5, 1.5), rand(0, G.layout.end), rand(3, 5), 'fire'));
     }
+    if (win) DX.save.loseRow = 0; else DX.save.loseRow = (DX.save.loseStage === stg.id ? (DX.save.loseRow || 0) : 0) + 1;
+    DX.save.loseStage = stg.id;
     const best = DX.save.best[stg.id] || 0;
     if (out.wave > best) { DX.save.best[stg.id] = out.wave; out.newBest = true; }
     G.outcome = out;
@@ -2114,6 +2222,8 @@ window.DX = window.DX || {};
     if (SPR.hasTrain()) {
       DECK = TOP_CAR;
       drawTrainArt(layout, st, false);
+      // 프롤로그 골프공
+      if (G && G.golfHit && !G.golfHit.hit) { const k = Math.min(1, G.golfHit.t / 1.3), gx = 0, gz = -70 + k * 72, gy = 2 + Math.sin(k * Math.PI) * 26; T.reset().tr(gx, gy, gz).sc(2.2 + k * 2); E.draw('ico', '#ffffff', 0.4, 1, 0); }
       // 직접 조준 표시
       if (G && G.manual && G.manual.on) { const mx = G.manual.x, mz = G.manual.z, pu = 1 + Math.sin(G.t * 12) * 0.1; E.box('cube', mx, 0.2, mz, 2.2 * pu, 0.06, 0.16, 0, '#ff3b3b', 1.6); E.box('cube', mx, 0.2, mz, 0.16, 0.06, 2.2 * pu, 0, '#ff3b3b', 1.6); T.reset().tr(mx, 0.15, mz).sc(1.6 * pu, 1, 1.6 * pu); E.draw('disc', '#ff3b3b', 1.2, 0.25, 2); }
     } else {
@@ -2175,7 +2285,7 @@ window.DX = window.DX || {};
     }
     drawSparts();
     drawSfx();
-    { const fr = SPR.frames['prop:bomber']; if (fr) for (const pl of G.planes) { const x = -70 + pl.t * 65; E.sprite(fr, x, 24, pl.z, 13 * fr.aspect, 13, 0, 0.5, 0.5, [1, 1, 1, Math.min(1, (2.2 - pl.t) * 3)], null, false); T.reset().tr(x, 0.05, pl.z).sc(16, 1, 7); E.draw('disc', '#000000', 0, 0.18, 1); } }
+    { const fr = SPR.frames['prop:bomber']; if (fr) for (const pl of G.planes) { const x = 70 - pl.t * 65; E.sprite(fr, x, 24, pl.z, 13 * fr.aspect, 13, 0, 0.5, 0.5, [1, 1, 1, Math.min(1, (2.2 - pl.t) * 3)], null, false); T.reset().tr(x, 0.05, pl.z).sc(16, 1, 7); E.draw('disc', '#000000', 0, 0.18, 1); } }
     for (const c of G.corpses) { if (c.art) { drawZSprite(c, c.ch, true); continue; } if (c.boss && !c.giant) MD.boss(c, c.cfg); else { MD.zombie(c, c.cfg, true); if (c.cfg.crown) MD.crown(c); } }
     // 투사체
     for (const b of G.bullets) {

@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.12',
+    version: 'v0.13',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -431,6 +431,21 @@ DX.CONFIG = {
       desc: ['좀비를 한곳으로 빨아들이는 회오리 (불붙은 좀비가 들어가면 불회오리)', '회오리 피해 증가', '회오리 크기 두 배!', '쿨타임 감소', '회오리가 좀비를 따라다님!'],
       cd: [15, 14, 13.5, 12, 11], dps: [10, 13, 16, 19, 24], radius: [5, 5, 8, 8, 9], pull: [7, 8, 10, 10, 12], dur: [4, 4.5, 4.5, 5, 6], follow: [0, 0, 0, 0, 1] },
   },
+  // 무기 조합: 두 무기를 함께 가지면 켜짐 (화면에 '조합 발동!' + 카드에 미리 표시)
+  combos: [
+    { id: 'oil', a: 'flame', b: 'barrel', name: '기름바다', desc: '드럼통 터진 자리에 불이 번짐' },
+    { id: 'zapdrone', a: 'tesla', b: 'drone', name: '번개 드론', desc: '드론 폭탄이 연쇄 번개를 튀김' },
+    { id: 'focus', a: 'cannon', b: 'mg', name: '집중포화', desc: '기관총에 맞은 좀비를 캐논이 자동 조준' },
+    { id: 'plasma', a: 'flame', b: 'tesla', name: '플라즈마', desc: '불붙은 좀비에게 번개 피해 2배' },
+    { id: 'support', a: 'drone', b: 'cannon', name: '지원 포격', desc: '드론이 터뜨린 곳에 캐논 포탄 추가 낙하' },
+  ],
+  comboFx: { oilT: 4, oilDps: 30, zapChain: 4, zapMul: 0.45, supportMul: 0.6 },
+  // 칸 배치 보너스 (7판째부터 자리 고르기): 기관차 바로 뒤 = 쿨타임 감소, 맨 뒤 = 침입 막기
+  placement: { frontHaste: 0.85, rearGuard: 0.5 },
+  // 첫 10판 동안 하나씩 여는 순서 (판 번호). 이미 2장 이상 깬 사람은 전부 열림
+  unlocks: { meta: 2, horn: 3, aim: 4, skillManual: 4, invasion: 5, combo: 6, place: 7, reward: 9, autoBtn: 10 },
+  // 첫 판 프롤로그 (최초 1회): 황금 열차 최강 상태 → 사장님 골프공 → 기관차 하나로 시작
+  prologue: { on: true, time: 18, wave: { time: 999, rate: 16, hordes: 0, hordeSize: 0, mix: { office: 0.6, box: 0.2, dancer: 0.2 }, hp: 0.5 } },
   // 액티브 스킬: 화면 아래 버튼 최대 max개. auto = 자동 모드 효율
   skills: { max: 3, auto: 0.8 },
   // 원소 반응 (젖음·얼음·불·바람이 만나면)
