@@ -433,6 +433,8 @@ window.DX = window.DX || {};
     for (let k = 20; k < 28; k++) d[o + k] = 0;
     sn++;
   };
+  // 방금 그린 그림의 앞뒤 순서 보정 (클수록 먼저 = 뒤에 그려짐)
+  E.spriteBias = function (b) { if (sn) sdata[(sn - 1) * SST + 27] = b; };
   // 월드에 고정된 그림 사각형 (열차 지붕/옆면 등). ax, ay = 가로/세로 축 벡터(크기 포함), bias = 정렬 보정(클수록 먼저 그림)
   E.quad = function (frame, x, y, z, ax, ay, anx, any, tint, add, flip, bias) {
     E.sprite(frame, x, y, z, 1, 1, 0, anx, any, tint, add, flip);

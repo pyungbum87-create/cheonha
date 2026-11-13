@@ -262,8 +262,19 @@ window.DX = window.DX || {};
         const arr = [c, c, c]; arr.single = true; SPR.fight[key] = arr;
       } catch (e) { console.warn('fight fallback fail', key, e); }
     }
+    // 효과 그림 (폭발·번개·연기 등, 이미 투명 배경)
+    const fxa = (DX.CONFIG && DX.CONFIG.fxArt) || {};
+    for (const key in fxa) {
+      try {
+        const d = await getPixels(fxa[key]);
+        let cv = crop(d, null, null, bboxAlpha(d));
+        cv = scaled(cv, Math.min(1, 150 / Math.max(cv.width, cv.height)));
+        items.push({ name: 'fx:' + key, canvas: cv });
+      } catch (e) { console.warn('fx art fail', key, e); }
+    }
     if (!items.length) return false;
-    const atlas = pack(items, 2048);
+    let atlas;
+    try { atlas = pack(items, 2048); } catch (e) { console.warn('atlas 2048 full → 4096'); SPR.frames = {}; atlas = pack(items, 4096); }
     DX.E.setSpriteTexture(atlas);
     SPR.atlas = atlas;
     SPR.ready = true;

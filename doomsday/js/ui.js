@@ -522,7 +522,10 @@ window.DX = window.DX || {};
     });
     $('btnShare').addEventListener('click', () => { lastResult = null; share('lobby'); });
     $('btnShareR').addEventListener('click', () => share('result'));
-    $('fight').addEventListener('pointerdown', e => { e.preventDefault(); const r = $('fightCv').getBoundingClientRect(); DX.FIGHT.tap(e.clientX - r.left); });
+    { const pos = e => { const r = $('fightCv').getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+      $('fight').addEventListener('pointerdown', e => { e.preventDefault(); const p = pos(e); DX.FIGHT.down(p[0], p[1]); });
+      $('fight').addEventListener('pointermove', e => { const p = pos(e); DX.FIGHT.move(p[0], p[1]); });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => $('fight').addEventListener(n, () => DX.FIGHT.up())); }
     $('btnUlt').addEventListener('click', () => { const G = DX.getG(); if (G && G.ult >= 1) hintDone('ult'); if (!DX.useUltimate()) DX.S.click(); });
     $('btnHorn').addEventListener('click', () => { hintDone('horn'); if (!DX.useHorn()) DX.S.click(); });
     // 일시정지 / 설정
