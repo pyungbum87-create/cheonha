@@ -351,6 +351,7 @@ window.DX = window.DX || {};
     const xo = ghost ? GHOST_X : 0, zo = ghost ? (st.ghostZ || 0) : 0;
     // 꾸미기 열차: 그림이 있으면 기관차 모양 교체, 없으면 열차 전체에 색만 입힘
     const tsk = trainSkin(), tskArt = tsk && SPR.train['skin_' + tsk.id];
+    let safeN = 0;
     for (const p of pieces) {
       const own = (p.kind === 'engine' && tskArt) || SPR.train[p.kind] || {}, gunA = SPR.train.gun || {};
       const ft = SPR.frames[own.top || gunA.top]; if (!ft) continue;
@@ -371,6 +372,16 @@ window.DX = window.DX || {};
       }
       E.quad(ft, xo + jit, p.top, cz, [W, 0, 0], [0, 0, -Lq], 0.5, 0.5, tint, add, false, ghost ? 9 : 6);
       if (!ghost && stand) carDeco(p.kind, p.top, cz, Lq, t);
+      // 안전 칸 창문: 구한 시민 얼굴 (6명까지 2줄 × 3)
+      if (!ghost && p.kind === 'safe' && G && G.citizens) {
+        const si = safeN++, fled = G.safeFleeT > 0;
+        for (let k = 0; k < C.safeSeats; k++) {
+          const c = G.citizens[si * C.safeSeats + k]; if (!c) break;
+          const f = SPR.frames[c.dog ? 'face:dog' : 'face:' + c.face]; if (!f) continue;
+          const col = k % 2, row = Math.floor(k / 2), bob = Math.abs(Math.sin(t * 3 + k)) * 0.12;
+          E.sprite(f, (col - 0.5) * 0.9, p.top + 0.25 + bob, cz + (row - 1) * Lq * 0.28, 0.8, 0.8, 0, 0.5, 0, fled ? [0.45, 0.45, 0.45, 0.6] : null, null, false);
+        }
+      }
       if (!ghost && p.kind === 'tesla') { const pu = 1 + Math.sin(t * 9) * 0.15; T.reset().tr(0, p.top + 1.3, cz).sc(1.6 * pu); E.draw('ico', '#3df2ff', 1, 0.22, 2); }
       if (!ghost && p.kind === 'engine' && Math.random() < 0.25) {
         const pp = { mesh: 'ico', x: rand(-0.2, 0.2), y: p.top + 2.0, z: 1.6, vx: rand(-0.3, 0.3), vy: rand(2.5, 4), vz: 0, s: 0.45, s1: 1.4, max: 1.0, col: '#e8e2d8', alpha: 0.4, pass: 1, drift: 0.7 };
@@ -396,6 +407,13 @@ window.DX = window.DX || {};
     for (const k in G.inv) {
       const v = G.inv[k]; v.t += dt;
       damageTrain(cfg.dps * v.n * dt);
+      // 안전 칸을 오래 못 지키면 시민이 뒷칸으로 도망 → 보너스 잠시 꺼짐
+      const ck = G.layout.cars[k];
+      if (ck && ck.kind === 'safe' && v.t > 8 && !v.fled && G.citizens.length) {
+        v.fled = true; G.safeFleeT = C.safeFleeT; recalc();
+        FX.text(0, 5, ck.cz, '꺄아아! 시민들이 도망갔다', '#ff8a8a', 20, 1.6, true);
+        if (DX.UI) DX.UI.toast(DX.L('안전 칸 보너스가 잠시 꺼졌어요', '安全车厢加成暂时关闭'));
+      }
       if (v.t > cfg.autoClear) {
         delete G.inv[k];
         const c = G.layout.cars[k]; if (c) FX.text(0, 4, c.cz, '자력 격퇴! (보상 없음)', '#cccccc', 15, 1.2);
@@ -405,7 +423,11 @@ window.DX = window.DX || {};
   function startInvasion() {
     const free = G.layout.cars.map((c, i) => i).filter(i => !G.inv[i]);
     if (!free.length) return;
-    const idx = pick(free), cfg = C.invasion;
+    // 경비원·청소부 시민이 막아줌
+    if (Math.random() < Math.min(0.6, jobCount('guard') * C.jobs.guard.inv)) { FX.text(0, 5, G.layout.end / 2, '경비원이 침입을 막았다!', '#7dff8a', 18, 1.4, true); return; }
+    // 침입 좀비는 안전 칸(시민)을 먼저 노림
+    const safeIdx = free.filter(i => G.layout.cars[i] && G.layout.cars[i].kind === 'safe');
+    const idx = safeIdx.length && Math.random() < 0.55 ? pick(safeIdx) : pick(free), cfg = C.invasion;
     // 침입 좀비 종류 = 지금 웨이브에 나오는 좀비 중 전투 그림이 있는 것
     let types = Object.keys(G.wave.mix || {}).filter(k => SPR.fight[k] && k !== 'bomber');
     if (!types.length) types = ['office'];
@@ -454,11 +476,11 @@ window.DX = window.DX || {};
     G = {
       stageIdx, stg, waveIdx: -1, waveT: 0, spawnAcc: 0, hordeDone: 0, waveDone: false,
       hpMaxBase: C.train.baseHp + meta.hp * C.meta.hp.per, hp: 0, hpMax: 0,
-      level: 1, xp: 0, xpNeed: C.xpNeed(1), pendingLv: 0,
+      level: 1, xp: 0, xpNeed: needXp(1), pendingLv: 0,
       kills: 0, gold: 0, combo: 0, comboT: 0, maxCombo: 0, rerolls: C.ads.rerollPerRun, stats: {}, inv: {}, invT: 8,
       weapons: { mg: 1 }, passives: {}, cars: ['gun'],
       zs: [], corpses: [], orbs: [], bullets: [], shells: [], bombs: [], drones: [], barrels: [], leeks: [], bolts: [], parts: [], sparts: [], decals: [], fires: [], ftexts: [], tele: [], bproj: [], sfx: [], planes: [],
-      tornados: [], rescued: 0,
+      tornados: [], rescued: 0, citizens: [], safeFleeT: 0, sk: {}, skReady: {}, autoSkill: DX.save.autoSkill !== false, evoN: 0, opOk: false, opSkip: false, bossWeak: false,
       tm: { mg: [0, 0.1, 0.2], flame: 0, tesla: 1, cannon: 0.5, barrel: 2, flameFx: 0 },
       ult: 0, ultQueue: [], hornCd: 5, shield: 0, emergencyUsed: false, revived: false,
       boss: null, bossSpawned: false, timeScale: 1, hitstop: 0, slowmo: 0, slowmoT: 0, shake: 0, t: 0, wa: 0,
@@ -473,6 +495,7 @@ window.DX = window.DX || {};
     nextWave();
     if (DX.UI) DX.UI.onRunStart(G);
   };
+  function needXp(lv) { return (C.xpEarly && C.xpEarly[lv - 1]) || C.xpNeed(lv); }
   function recalc() {
     const p = G.passives;
     G.pMul = (1 + (p.power || 0) * C.passives.power.per) * G.dmgMul;
@@ -481,8 +504,9 @@ window.DX = window.DX || {};
     if (G.hpMax) G.hp += Math.max(0, nm - G.hpMax);
     G.hpMax = nm;
     G.magnet = C.magnetRange * (1 + (p.magnet || 0) * C.passives.magnet.per + (DX.save.meta.magnet || 0) * C.meta.magnet.per);
-    G.crit = (p.crit || 0) * C.passives.crit.per;
-    G.greed = (1 + (p.greed || 0) * C.passives.greed.per) * (1 + Math.min(G.rescued || 0, C.safeCar.maxPeople) * C.safeCar.goldPer);
+    G.rescued = G.citizens ? G.citizens.length : 0;
+    G.crit = (p.crit || 0) * C.passives.crit.per + jobCount('crit') * C.jobs.crit.crit;
+    G.greed = (1 + (p.greed || 0) * C.passives.greed.per) * (1 + Math.min(G.rescued, C.safeCar.maxPeople) * C.safeCar.goldPer + jobCount('gold') * C.jobs.gold.gold);
     G.layout = trainLayout(G.cars);
     // 드론 수
     const dl = G.weapons.drone;
@@ -495,13 +519,26 @@ window.DX = window.DX || {};
     if (G.waveIdx >= G.stg.waves.length) { endRun(true); return; }
     const w = G.stg.waves[G.waveIdx];
     G.wave = w; G.waveT = 0; G.hordeDone = 0; G.bossSpawned = false; G.waveDone = false;
-    if (G.waveIdx > 0) { G.hp = Math.min(G.hpMax, G.hp + G.hpMax * 0.1); collectAllOrbs(); }
+    if (G.waveIdx > 0) { G.hp = Math.min(G.hpMax, G.hp + G.hpMax * (0.1 + jobCount('cook') * C.jobs.cook.heal)); collectAllOrbs(); if (jobCount('cook')) FX.text(0, 5, G.layout.end / 2, '요리사의 도시락! 체력 회복', '#7dff8a', 16, 1.2); }
     if (DX.UI) DX.UI.banner('WAVE ' + (G.waveIdx + 1), w.boss ? C.texts.bossAlert : pick(C.texts.waveSubs), w.boss ? 'boss' : 'wave');
     if (w.boss) S.alarm();
     // 웨이브 사이 미니게임 (config.minigame) — 하는 동안 본게임 멈춤
+    // 구조 작전 (구조 신호)
+    const ro = C.rescueOps;
+    if (ro && DX.MINI && G.waveIdx + 1 === ro.at && !w.boss && (ro.byStage[G.stg.id] || []).length) { rescueSignal(); return; }
+    // 지나친 사람은 다음 장에서 좀비로
+    if (G.waveIdx === 0 && DX.save.passed && DX.save.passed.stage !== G.stg.id) later(4, spawnPassedZombie);
     const mg = C.minigame, mlist = mg && mg.on && DX.MINI && (mg.byStage[G.stageIdx] || []);
     const mm = mlist && mlist.find(m => m[0] === G.waveIdx + 1);
-    if (mm && !w.boss) { startMini(mm[1]); return; }
+    if (mm && !w.boss) {
+      let kind = mm[1];
+      if (DX.save.cleared[G.stg.id] && mg.pool && mg.pool[G.stageIdx]) {   // 다시 하기: 후보 중 무작위 (직전 것 제외)
+        DX.save.lastMini = DX.save.lastMini || {};
+        const c = mg.pool[G.stageIdx].filter(k => k !== DX.save.lastMini[G.stg.id]);
+        kind = pick(c.length ? c : mg.pool[G.stageIdx]); DX.save.lastMini[G.stg.id] = kind;
+      }
+      startMini(kind, kind === mm[1] ? mm[2] : null); return;
+    }
     // 보스 직전 보급 제안 (선택형 광고) — 고르는 동안 게임 멈춤
     const bs = C.ads.bossSupply;
     if (w.boss && bs && bs.on && (!bs.finalOnly || G.waveIdx === G.stg.waves.length - 1) && G.hp < G.hpMax * (bs.askBelow || 1) && (G.supplyN || 0) < bs.perRun && DX.UI && DX.UI.bossSupply) {
@@ -511,11 +548,48 @@ window.DX = window.DX || {};
       DX.UI.bossSupply(bs, G);
     }
   }
-  function startMini(kind) {
+  /* ---------- 구조 작전: 구조 신호 → 멈춘다 / 지나친다 ---------- */
+  function rescueSignal() {
+    const ro = C.rescueOps, list = ro.byStage[G.stg.id];
+    const op = DX.save.cleared[G.stg.id] ? pick(list) : list[0];
+    const npc = op.dog ? { name: DX.L('강아지 야근이', '狗狗加班'), face: 'assets/npc/dog_0.png' } : C.comicNpc[op.face] || {};
+    DX.state = 'signal';
+    S.alarm();
+    DX.UI.rescueSignal({ face: npc.face, name: npc.name, line: op.line, n: op.n, time: ro.decide }, go => {
+      if (!G) return;
+      if (!go) {   // 지나침: 안전하지만 보상 없음 + 다음 장에 그 사람이 좀비로
+        G.opSkip = true; DX.save.passed = { stage: G.stg.id, name: npc.name }; DX.persist();
+        DX.state = 'play'; FX.text(0, 6, G.layout.end / 2, '...미안해요', '#aaaaaa', 22, 1.6, true);
+        DX.track('rescue_skip', { stage: G.stageIdx + 1 });
+        return;
+      }
+      const kind = op.op === 'hack' ? 'boiler' : op.op;
+      startMini(kind, { title: npc.name, line: op.line, rescueN: op.n, hack: op.op === 'hack', dark: !!op.dark, op: true }, r => {
+        const ok = r && r.rate >= 0.45;
+        DX.track('rescue_op', { stage: G.stageIdx + 1, ok });
+        if (ok) {
+          G.opOk = true;
+          const list2 = op.dog ? [{ dog: true, job: 'scout' }] : [{ face: op.face, job: C.comicNpc[op.face].job }].concat(randomCitizens(Math.max(0, op.n - 1)));
+          addCitizens(list2, op.quote);
+          if (op.bossWeak) { G.bossWeak = true; later(2.5, () => DX.UI && DX.UI.banner(DX.L('약점 제보!', '弱点情报！'), DX.L('보스에게 주는 피해 +30%', '对首领伤害 +30%'), 'win')); }
+          if (DX.UI) DX.UI.banner(DX.L('구조 성공!', '营救成功！'), '“' + DX.T(op.quote) + '”', 'win');
+        } else if (DX.UI) DX.UI.banner(DX.L('구조 실패...', '营救失败...'), DX.L('다음엔 꼭 구하자', '下次一定要救出来'), 'wave');
+      });
+    });
+  }
+  function spawnPassedZombie() {
+    const ps = DX.save.passed; if (!G || !ps) return;
+    const sp = spawnPoint(), z = spawnZombie('office', sp[0], sp[1]);
+    if (z) { z.passed = ps.name; z.hp *= 3; z.maxHp = z.hp; z.s *= 1.15; FX.text(z.x, 3, z.z, '아까 그 ' + ps.name + '...?!', '#c6f08a', 18, 2, true); }
+    DX.save.passed = null; DX.persist();
+  }
+  function startMini(kind, extra, onDone) {
     const mg = C.minigame, si = G.stageIdx;
     DX.state = 'mini';
     const ca = (C.chapterArt || {})[G.stg.id] || {};
-    DX.MINI.start(kind, { bg: mg.bg && mg.bg[si], bgNew: ca.side, tint: mg.tint && mg.tint[si] }, r => {
+    const opt = Object.assign({ bg: mg.bg && mg.bg[si], bgNew: ca.side, tint: mg.tint && mg.tint[si], line: mg.lines && mg.lines[kind], stage: si }, extra || {});
+    if (onDone) { DX.MINI.start(kind, opt, r => { DX.state = 'play'; onDone(r); }); return; }
+    DX.MINI.start(kind, opt, r => {
       if (!G) return;
       const rate = r ? r.rate : 0, rw = mg.reward;
       const gold = Math.round(rw.gold * (1 + si * rw.goldPerStage) * rate);
@@ -523,9 +597,8 @@ window.DX = window.DX || {};
       DX.track('minigame_end', { kind, stage: si + 1, grade: r ? r.grade : 'C' });
       // 구한 시민 → '안전 칸'에 태움 (1명당 골드·경험치 보너스)
       if (kind === 'rescue' && r && r.saved > 0) {
-        const first = !G.rescued; G.rescued += r.saved + (r.dogs || 0);
-        if (G.cars.indexOf('safe') < 0) G.cars.push('safe');
-        recalc();
+        const first = !G.rescued;
+        addCitizens(randomCitizens(r.saved).concat(r.dogs ? [{ dog: true, job: 'scout' }] : []));
         later(2.2, () => DX.UI && DX.UI.banner(first ? DX.L('안전 칸 연결!', '安全车厢已连接！') : DX.L('안전 칸 탑승!', '安全车厢上车！'), DX.L('탑승 ' + G.rescued + '명 · 골드·경험치 보너스', '乘客 ' + G.rescued + ' 人 · 金币/经验加成'), 'win'));
       }
       if (DX.UI) DX.UI.banner((r ? r.grade : 'C') + DX.L(' 등급!', ' 级！'), DX.L('골드 +' + gold + ' · 체력 회복 · 필살기 충전', '金币 +' + gold + ' · 生命恢复 · 大招充能'), rate >= 0.45 ? 'win' : 'wave');
@@ -689,8 +762,23 @@ window.DX = window.DX || {};
   let SRC = 'mg';
   function hit(z, dmg, kind, dx, dz, force, canCrit) {
     if (z.dead) return 0;
-    // 무기 조합: 젖은 좀비 + 번개 = 감전 피해 증가
-    if (z.wetT > 0 && kind === 'shock') { dmg *= C.combo.shockMul; if (Math.random() < 0.15) FX.text(z.x, 2.6, z.z, '감전!!', '#8af7ff', 16, 0.7); }
+    // 원소 반응: 물+전기 = 감전(2배 + 젖은 좀비 전부 연쇄) / 얼음+물리 = 산산조각
+    if (z.wetT > 0 && kind === 'shock') {
+      dmg *= C.combo.shockMul; reaction('shock', z.x, z.z);
+      if (!G._chain) {
+        G._chain = true; const pts = [[z.x, 1.3, z.z]];
+        near(z.x, z.z, C.combo.shockChain, zb => { if (zb !== z && zb.wetT > 0 && !zb.dead) { hit(zb, dmg * 0.6, 'zap', 0, 0, 0, false); zb.stun = Math.max(zb.stun, 0.5); pts.push([zb.x, 1.3, zb.z]); } });
+        if (pts.length > 1) G.bolts.push({ pts, t: 0, max: 0.35 });
+        G._chain = false;
+      }
+    }
+    if (z.iceT > 0 && (kind === 'shot' || kind === 'blast')) {
+      dmg *= C.combo.shatterMul; z.iceT = 0; z.stun = 0; reaction('shatter', z.x, z.z);
+      fxSprite('iceburst', z.x, 1, z.z, 1.2, 2.4, 0.4);
+      for (let i = 0; i < 6; i++) part({ mesh: 'cube', x: z.x, y: 1.2, z: z.z, vx: rand(-6, 6), vy: rand(3, 8), vz: rand(-6, 6), g: -25, s: rand(0.15, 0.3), max: 0.8, col: pick(['#dff4ff', '#a8dcff']), emi: 0.4, bounce: true });
+    }
+    // 보스 약점: 직접 조준으로 맞히거나, 구한 비서가 약점을 알려줬을 때
+    if (z.boss && G.bossWeak) dmg *= 1.3;
     const hp0 = z.hp + Math.max(0, z.armor);
     let crit = false;
     if (canCrit && G.crit > 0 && Math.random() < G.crit) { dmg *= 2; crit = true; }
@@ -712,12 +800,12 @@ window.DX = window.DX || {};
       if (z.onTrain && force > 8) { z.onTrain = false; z.jump = null; }
     }
     if ((crit && dmg >= 25 || dmg >= 90) && Math.random() < 0.6) FX.text(z.x + rand(-0.3, 0.3), 2.4 * (z.boss ? 2.5 : 1), z.z, Math.round(dmg) + (crit ? '!' : ''), crit ? '#ffd23d' : '#ffffff', crit ? 20 : 15, 0.6);
-    // 무기 조합: 젖은 좀비 + 불 = 증기 폭발 (주변 피해)
+    // 원소 반응: 불+물 = 수증기 (주변 좀비가 헤매며 느려짐)
     if (z.wetT > 0 && kind === 'burn') {
-      z.wetT = 0; const cb = C.combo, sd = 40 * cb.steamDmg * G.pMul;
-      if (!fxSprite('steam', z.x, 1.2, z.z, 1.6, 3.6, 0.7, { rise: 1.5 })) fxSprite('smoke', z.x, 1.2, z.z, 1.6, 3.6, 0.7, { rise: 2, tint: [1.4, 1.4, 1.4], alpha: 0.8 });
-      if (Math.random() < 0.35) FX.text(z.x, 2.8, z.z, '증기 폭발!', '#ffffff', 17, 0.8);
-      near(z.x, z.z, cb.steamRadius, zb => { if (zb !== z && !zb.dead) hit(zb, sd, 'steam', zb.x - z.x, zb.z - z.z, 3, false); });
+      z.wetT = 0; const cb = C.combo;
+      if (!fxSprite('steam', z.x, 1.2, z.z, 1.6, 3.6, 0.8, { rise: 1.5 })) fxSprite('smoke', z.x, 1.2, z.z, 1.8, 3.8, 0.8, { rise: 2, tint: [1.5, 1.5, 1.5], alpha: 0.85 });
+      reaction('steam', z.x, z.z);
+      near(z.x, z.z, cb.steamRadius, zb => { zb.slowT = Math.max(zb.slowT || 0, cb.steamSlow); zb.confT = cb.steamSlow; });
     }
     if (z.hp <= 0) kill(z, kind, dx, dz, force);
     return dmg;
@@ -882,7 +970,7 @@ window.DX = window.DX || {};
       else if (z.hitT > 0 && hh.a2) key = 'a2';
       else if (z.boss && (z.bst === 'wind') && hh.a0) key = 'a0';
       else if (z.boss && (z.bst === 'strike' || z.bst === 'throw') && hh.a1) key = 'a1';
-      else if (z.raged && hh[z.cfg.rage.frame]) key = z.cfg.rage.frame;
+      else if (z.raged && z.cfg.rage && hh[z.cfg.rage.frame]) key = z.cfg.rage.frame;
       else if (z.atk && hh.a1) key = ((G ? G.t : 0) * 2.4 + (z.seed || 0)) % 1 < 0.5 ? 'a0' : 'a1';
       else if (hh.w0) key = 'w' + (Math.floor((z.ph || 0) / (Math.PI / 2)) % 4 + 4) % 4;
       const af = key && SPR.frames['anim:' + ak + ':' + key];
@@ -935,7 +1023,7 @@ window.DX = window.DX || {};
     G.combo++; G.comboT = 2.2; if (G.combo > G.maxCombo) G.maxCombo = G.combo;
     if ([100, 250, 500, 1000, 2000, 3000].indexOf(G.combo) >= 0 && DX.UI) DX.UI.comboPop(G.combo);
     G.gold += z.cfg.gold * G.greed * (1 + Math.min(0.5, G.combo / 400));
-    G.ult = Math.min(1, G.ult + (z.boss ? 1 : 1 / C.ultimate.killsToCharge));
+    G.ult = Math.min(1, G.ult + (z.boss ? 1 : (1 + jobCount('ult') * C.jobs.ult.ult) / C.ultimate.killsToCharge));
     dropOrb(z.x, z.z, z.cfg.xp);
     S.kill();
     if (z.boss) { bossDeath(z); return; }
@@ -999,6 +1087,8 @@ window.DX = window.DX || {};
     SRC = 'misc';
     for (const z of G.zs) if (!z.dead && Math.hypot(z.x - b.x, z.z - b.z) < 12) hit(z, 9999, 'blast', z.x - b.x, z.z - b.z, 20, false);
     G.waveDone = true;
+    // 중간보스 → 보물상자 (진화 기회)
+    if (G.waveIdx < G.stg.waves.length - 1) later(1.0, () => { if (G && G.endT < 0) { G.chest = true; G.pendingLv++; FX.text(b.x, 6, b.z, '🎁 보물상자!', '#ffd23d', 30, 1.6, true); } });
     later(1.6, () => { if (G.endT < 0) nextWave(); });
   }
   function bomberBoom(z, contact) {
@@ -1030,24 +1120,46 @@ window.DX = window.DX || {};
   }
   function collectAllOrbs() { for (const o of G.orbs) o.fly = true; }
   function gainXp(v) {
-    G.xp += v * G.xpMul * (1 + Math.min(G.rescued || 0, C.safeCar.maxPeople) * C.safeCar.xpPer);
-    while (G.xp >= G.xpNeed) { G.xp -= G.xpNeed; G.level++; G.xpNeed = C.xpNeed(G.level); G.pendingLv++; }
+    G.xp += v * G.xpMul * (1 + Math.min(G.rescued || 0, C.safeCar.maxPeople) * C.safeCar.xpPer + jobCount('scout') * C.jobs.scout.xp);
+    while (G.xp >= G.xpNeed) { G.xp -= G.xpNeed; G.level++; G.xpNeed = needXp(G.level); G.pendingLv++; }
+  }
+  // 카드에 '이것과 반응' 미리 표시
+  function reactHint(id) {
+    const has = k => !!G.weapons[k];
+    const m = { water: ['tesla', 'freeze', 'flame'], tesla: ['water'], freeze: ['water', 'mg', 'cannon'], flame: ['water', 'fan'], fan: ['flame'], mg: ['freeze'], cannon: ['freeze'] }[id] || [];
+    const hit = m.filter(has); if (!hit.length) return '';
+    return ' · ⚗️ ' + hit.map(k => DX.T(C.weapons[k].name)).join('·') + DX.L('와 반응', '可反应');
+  }
+  // 중간보스 보물상자: 진화(최고 레벨 + 짝 보조템) 우선, 없으면 좋은 카드 3장
+  function chestCards() {
+    const W = C.weapons, out = [];
+    if ((G.evoN || 0) < C.limits.evo) for (const id in G.weapons) {
+      const w = W[id]; if (G.weapons[id] === 4 && w.evoWith && G.passives[w.evoWith]) out.push({ kind: 'weapon', id, lv: 5, name: w.evoName, desc: w.desc[4], icon: w.evoIcon || w.icon, emoji: w.emoji, evo: true, chest: true });
+    }
+    if (out.length) return out.slice(0, 3);
+    return buildCards();
   }
   function buildCards() {
     const opts = [];
     const W = C.weapons, P = C.passives;
-    const owned = Object.keys(G.weapons).length;
+    const owned = Object.keys(G.weapons).length, pOwned = Object.keys(G.passives).length, LM = C.limits;
     for (const id in W) {
       const lv = G.weapons[id] || 0;
       if (lv >= 5) continue;
       const w = W[id];
       const isNew = lv === 0;
-      if (isNew && owned >= 6) continue;
-      opts.push({ kind: 'weapon', id, lv: lv + 1, name: lv + 1 === 5 ? w.evoName : w.name, desc: w.desc[lv], icon: lv + 1 === 5 && w.evoIcon ? w.evoIcon : w.icon, emoji: w.emoji, isNew, evo: lv + 1 === 5, w: isNew ? (owned < 4 ? 3.2 : 1.5) : 3 });
+      if (isNew && owned >= LM.weapons) continue;
+      if (lv + 1 === 5 && w.evoWith) continue;   // 진화는 중간보스 보물상자에서만
+      let desc = w.desc[lv];
+      if (w.evoWith && lv + 1 === 4) desc += ' · ' + DX.L('진화 짝: ', '进化搭档：') + DX.T(P[w.evoWith].name);
+      if (isNew) desc += reactHint(id);
+      opts.push({ kind: 'weapon', id, lv: lv + 1, name: lv + 1 === 5 ? w.evoName : w.name, desc, icon: lv + 1 === 5 && w.evoIcon ? w.evoIcon : w.icon, emoji: w.emoji, isNew, evo: lv + 1 === 5, w: isNew ? (owned < 3 ? 3.2 : 1.5) : 3 });
     }
     for (const id in P) {
       const lv = G.passives[id] || 0; if (lv >= 5) continue;
-      opts.push({ kind: 'passive', id, lv: lv + 1, name: P[id].name, desc: P[id].desc, emoji: P[id].icon, isNew: lv === 0, w: 1.4 });
+      if (lv === 0 && pOwned >= LM.passives) continue;
+      const pair = Object.keys(W).find(k => W[k].evoWith === id && G.weapons[k]);
+      opts.push({ kind: 'passive', id, lv: lv + 1, name: P[id].name, desc: P[id].desc + (pair ? ' · ★ ' + DX.T(W[pair].name) + DX.L(' 진화 짝', ' 进化搭档') : ''), emoji: P[id].icon, isNew: lv === 0, w: pair ? 2 : 1.4 });
     }
     const out = [];
     while (out.length < 3 && opts.length) {
@@ -1066,6 +1178,7 @@ window.DX = window.DX || {};
     return true;
   };
   DX.chooseCard = function (c) {
+    if (c && c.kind === 'weapon' && c.lv === 5 && C.weapons[c.id] && C.weapons[c.id].evoWith) G.evoN = (G.evoN || 0) + 1;
     if (c.kind === 'weapon') {
       const had = G.weapons[c.id] || 0;
       G.weapons[c.id] = c.lv;
@@ -1080,7 +1193,7 @@ window.DX = window.DX || {};
     G.hp = Math.min(G.hp, G.hpMax);
     G.pendingLv--;
     S.click();
-    if (G.pendingLv > 0) { DX.UI.levelUp(buildCards(), G); }
+    if (G.pendingLv > 0) { const ch = G.chest; G.chest = false; DX.UI.levelUp(ch ? chestCards() : buildCards(), G, ch); }
     else { DX.state = 'play'; DX.UI.hideLevelUp(); }
   };
 
@@ -1202,7 +1315,8 @@ window.DX = window.DX || {};
         const s = slots[i];
         G.tm.mg[i] -= dt;
         G.recoil[i] = Math.max(0, G.recoil[i] - dt * 8);
-        const tg = nearest(s[0], s[2], w.range);
+        const man = G.manual && G.manual.on;
+        const tg = man ? G.manual : nearest(s[0], s[2], w.range);
         if (!tg) continue;
         const tx = tg.x - s[0], tz = tg.z - s[2];
         G.aim[i] = Math.atan2(tx, tz);
@@ -1210,7 +1324,7 @@ window.DX = window.DX || {};
           G.tm.mg[i] = w.rate[ml - 1] * haste * rand(0.85, 1.15);
           const d = Math.hypot(tx, tz) || 1, sp = 70;
           const a = G.aim[i] + rand(-0.04, 0.04);
-          G.bullets.push({ x: s[0] + Math.sin(a) * 0.9, y: 2.6, z: s[2] + Math.cos(a) * 0.9, vx: Math.sin(a) * sp, vz: Math.cos(a) * sp, dmg: w.dmg[ml - 1] * pm, life: 0.6, pierce: w.pierce[ml - 1], gold: ml >= 5, hit: [] });
+          G.bullets.push({ x: s[0] + Math.sin(a) * 0.9, y: 2.6, z: s[2] + Math.cos(a) * 0.9, vx: Math.sin(a) * sp, vz: Math.cos(a) * sp, dmg: w.dmg[ml - 1] * pm * (man ? 1.3 : 1), life: man ? 0.75 : 0.6, pierce: w.pierce[ml - 1], gold: ml >= 5, man, hit: [] });
           G.recoil[i] = 1;
           if (!fxSprite('muzzle', s[0] + Math.sin(a) * 1.1, 2.6, s[2] + Math.cos(a) * 1.1, 1.1, 1.5, 0.07, { rot: Math.atan2(-Math.cos(a), Math.sin(a)), vr: 0 }))
             part({ mesh: 'ico', x: s[0] + Math.sin(a) * 1.0, y: 2.6, z: s[2] + Math.cos(a) * 1.0, s: 0.45, s1: 0.1, max: 0.06, col: '#ffe9a0', emi: 2, pass: 2, alpha: 1, drift: 0 });
@@ -1334,63 +1448,27 @@ window.DX = window.DX || {};
         }
       });
     }
-    // --- 물대포 (소방차 칸): 좀비가 많은 쪽으로 물줄기 → 밀어내고 적심
-    SRC = 'water';
-    const wl = invaded('water') ? 0 : (G.weapons.water || 0);
-    if (wl) {
-      const w = W.water, c = carOf('water');
-      G.tm.water = (G.tm.water || 0) - dt;
-      if (c && G.tm.water <= 0 && G.zs.length) {
-        G.tm.water = w.cd[wl - 1] * haste;
-        let lc = 0, rc = 0; near(0, c.cz, w.range + 2, zb => { if (zb.x < 0) lc++; else rc++; });
-        const sides = wl >= 5 ? [-1, 1] : [lc > rc ? -1 : 1];
-        for (const sd of sides) {
-          near(sd * w.range / 2, c.cz, w.range / 2 + w.width, zb => {
-            const dx = zb.x * sd; if (dx < 0.3 || dx > w.range + 1 || Math.abs(zb.z - c.cz) > w.width + dx * 0.2 || zb.onTrain) return;
-            zb.wetT = w.wet;
-            hit(zb, w.dmg[wl - 1] * pm, 'water', sd, (zb.z - c.cz) * 0.05, w.push[wl - 1], true);
-          });
-          for (let k = 0; k < 4; k++) if (!fxSprite('water', sd * (2.5 + k * 3), 1.5, c.cz + rand(-0.4, 0.4), 1.8, 3.4, 0.4, { rot: sd > 0 ? 0 : Math.PI, vr: 0, vx: sd * 12, alpha: 0.9 }))
-            for (let j = 0; j < 4; j++) part({ mesh: 'ico', x: sd * 1.8, y: 2.0, z: c.cz + rand(-0.6, 0.6), vx: sd * rand(16, 26), vy: rand(0, 4), vz: rand(-2, 2), s: 0.32, s1: 0.9, max: 0.6, col: pick(['#7fd8ff', '#bfeeff', '#3fb4ff']), emi: 0.6, pass: 2, alpha: 0.85, drift: 0.2 });
-        }
-        S.flame();
-      }
+    // --- 액티브 스킬 (물대포·냉동·환풍기): 쿨타임이 차면 버튼 번쩍 → 누르면 발동, 자동 모드면 알아서(효율 80%)
+    for (const id of activeIds()) {
+      if (invaded(id)) continue;
+      const lv = G.weapons[id], w = W[id];
+      const was = G.sk[id] || 0;
+      G.sk[id] = Math.min(1, was + dt / (w.cd[lv - 1] * haste * jobHaste()));
+      if (was < 1 && G.sk[id] >= 1) { G.skReady[id] = G.t; if (DX.UI && DX.UI.skillReady) DX.UI.skillReady(id); vib(15); }
+      if (G.sk[id] >= 1 && G.autoSkill && skillWorth(id)) castSkill(id, C.skills.auto);
     }
-    // --- 냉동 컨테이너: 주변 좀비를 얼려서 멈춤 (젖은 좀비 = 2배)
-    SRC = 'freeze';
-    const fzl = invaded('freeze') ? 0 : (G.weapons.freeze || 0);
-    if (fzl) {
-      const w = W.freeze, c = carOf('freeze');
-      G.tm.freeze = (G.tm.freeze || 0) - dt;
-      if (c && G.tm.freeze <= 0) {
-        let any = false; near(0, c.cz, w.radius[fzl - 1], () => { any = true; });
-        if (any) {
-          G.tm.freeze = w.cd[fzl - 1] * haste;
-          const n = fzl >= 5 ? 3 : 1;
-          for (let b = 0; b < n; b++) later(b * 0.35, () => freezeBurst(carOf('freeze'), w, fzl, G.pMul, b));
-        } else G.tm.freeze = 0.4;
-      }
-    }
-    // --- 환풍기: 좀비 떼에 회오리 → 끌어모으고 피해
     SRC = 'fan';
-    const fnl = invaded('fan') ? 0 : (G.weapons.fan || 0);
-    if (fnl) {
-      const w = W.fan, c = carOf('fan');
-      G.tm.fan = (G.tm.fan || 0) - dt;
-      if (c && G.tm.fan <= 0 && G.zs.length) {
-        G.tm.fan = w.cd[fnl - 1] * haste;
-        for (const t of densest(w.count[fnl - 1], 8)) G.tornados.push({ x: t[0], z: t[1], t: 0, max: w.dur[fnl - 1], r: w.radius[fnl - 1], pull: w.pull[fnl - 1], dps: w.dps[fnl - 1] * pm, tick: 0, fx: 0 });
-        S.horn();
-      }
-    }
     for (const t of G.tornados) {
       t.t += dt; t.tick -= dt; t.fx -= dt; t.z += world.speed * 0.32 * dt;
+      if (t.follow) { t.ft = (t.ft || 0) - dt; if (t.ft <= 0) { t.ft = 0.6; const d = densest(1, 6)[0]; if (d) { t.gx = d[0]; t.gz = d[1]; } } if (t.gx != null) { t.x += (t.gx - t.x) * Math.min(1, dt * 1.2); t.z += (t.gz - t.z) * Math.min(1, dt * 1.2); } }
       near(t.x, t.z, t.r, zb => {
+        if (zb.burnT > 0 && !t.fire) { t.fire = true; reaction('firewind', t.x, t.z); }
         if (zb.boss || zb.onTrain || zb.jump) return;
         const dx = t.x - zb.x, dz = t.z - zb.z, d = Math.hypot(dx, dz) || 1, k = t.pull * dt;
         zb.x += dx / d * k - dz / d * k * 0.7; zb.z += dz / d * k + dx / d * k * 0.7;
       });
-      if (t.tick <= 0) { t.tick = 0.25; near(t.x, t.z, t.r, zb => hit(zb, t.dps * 0.25, 'wind', 0, 0, 0, true)); }
+      if (t.tick <= 0) { t.tick = 0.25; near(t.x, t.z, t.r, zb => { hit(zb, t.dps * 0.25 * (t.fire ? 1 + C.combo.fireTornado : 1), 'wind', 0, 0, 0, true); if (t.fire) { zb.burn = Math.min(1, zb.burn + 0.2); zb.burnT = 1.2; } }); }
+      if (t.fire && t.fx <= 0.05) part({ mesh: 'ico', x: t.x + Math.cos(t.t * 11) * 1.2, y: rand(0.3, 4), z: t.z + Math.sin(t.t * 11) * 1.2, vx: -Math.sin(t.t * 11) * 5, vy: 3, vz: Math.cos(t.t * 11) * 5, s: 0.4, s1: 0.1, max: 0.5, col: pick(['#ff7b00', '#ffb000', '#ff4d00']), emi: 1.5, pass: 2, alpha: 0.9, drift: 0.3 });
       if (t.fx <= 0) {
         t.fx = lowQ() ? 0.16 : 0.09;
         if (!fxSprite('tornado', t.x, 0, t.z, 3.4, 4.2, 0.35, { rot: 0, vr: 0, alpha: 0.95 })) {
@@ -1414,17 +1492,130 @@ window.DX = window.DX || {};
     }
   }
 
+  /* ---------- 액티브 스킬 ---------- */
+  function activeIds() { return Object.keys(G.weapons).filter(id => C.weapons[id] && C.weapons[id].active).slice(0, C.skills.max); }
+  DX.activeIds = () => (G ? activeIds() : []);
+  function skillWorth(id) {
+    const c = carOf(id) || { cz: G.layout.end / 2 }, w = C.weapons[id], lv = G.weapons[id];
+    let n = 0;
+    if (id === 'freeze') near(0, c.cz, w.radius[lv - 1], () => n++);
+    else if (id === 'water') near(0, c.cz, w.range, () => n++);
+    else n = G.zs.length;
+    return n >= (id === 'fan' ? 6 : 3);
+  }
+  function castSkill(id, mul) {
+    if (!G || !G.weapons[id] || (G.sk[id] || 0) < 1 || invaded(id)) return false;
+    G.sk[id] = 0;
+    const lv = G.weapons[id], pm = G.pMul * (mul || 1), w = C.weapons[id];
+    const c = carOf(id) || { cz: G.layout.end / 2 };
+    SRC = id;
+    if (id === 'water') fireWater(c, w, lv, pm);
+    else if (id === 'freeze') { const n = lv >= 5 ? 3 : 1; for (let b = 0; b < n; b++) later(b * 0.3, () => freezeBurst(carOf('freeze') || c, w, lv, pm, b)); }
+    else if (id === 'fan') {
+      const k = lv >= 5 ? 2 : 1;
+      for (const t of densest(k, 8)) G.tornados.push({ x: t[0], z: t[1], t: 0, max: w.dur[lv - 1], r: w.radius[lv - 1], pull: w.pull[lv - 1], dps: w.dps[lv - 1] * pm, tick: 0, fx: 0, follow: w.follow[lv - 1] });
+      S.horn();
+    }
+    G.shake = Math.max(G.shake, 0.35);
+    return true;
+  }
+  // 버튼으로 쓰면 100% + 준비되자마자(1.5초 안) 쓰면 타이밍 보너스 +15%
+  // 드래그 = 기관총 직접 조준 (손 떼면 자동). sx, sy = 화면 좌표
+  DX.aim = function (on, sx, sy) {
+    if (!G) return;
+    if (!on) { if (G.manual) G.manual.on = false; return; }
+    const p = E.unproject ? E.unproject(sx, sy) : null; if (!p) return;
+    G.manual = { on: true, x: p[0], z: p[1] };
+  };
+  DX.castSkill = function (id) {
+    if (!G || DX.state !== 'play') return false;
+    const quick = G.t - (G.skReady[id] || -9) < 1.5;
+    const ok = castSkill(id, quick ? 1.15 : 1);
+    if (ok && quick && G.layout) FX.text(0, 6, (carOf(id) || { cz: 8 }).cz, '타이밍 보너스!', '#ffd23d', 18, 0.8);
+    return ok;
+  };
+  DX.setAutoSkill = v => { if (G) G.autoSkill = !!v; DX.save.autoSkill = !!v; DX.persist(); };
+  // (x,z) 근처 range 안에서 좀비가 가장 많이 뭉친 곳 n개
+  function nearCluster(x, z, range, n) {
+    const cand = []; near(x, z, range, zb => { if (!zb.dead && !zb.onTrain) cand.push(zb); });
+    const sc = cand.map(a => { let k = 0; for (const b of cand) if ((a.x - b.x) ** 2 + (a.z - b.z) ** 2 < 25) k++; return [k, a]; }).sort((p, q) => q[0] - p[0]);
+    const out = [];
+    for (const [, a] of sc) { if (out.length >= n) break; if (out.every(o => Math.hypot(o[0] - a.x, o[1] - a.z) > 6)) out.push([a.x, a.z]); }
+    return out;
+  }
+  function fireWater(c, w, lv, pm) {
+    let lc = 0, rc = 0; near(0, c.cz, w.range + 2, zb => { if (zb.x < 0) lc++; else rc++; });
+    const dmg = w.dmg[lv - 1] * pm, push = w.push[lv - 1];
+    if (lv >= 5) {   // 물회오리: 열차 주위를 한 바퀴
+      for (let k = 0; k < 24; k++) later(k * 0.04, () => {
+        const a = k / 24 * Math.PI * 2, x = Math.cos(a) * 7, z = c.cz + Math.sin(a) * 9;
+        near(x, z, 4.5, zb => { if (zb.onTrain) return; zb.wetT = w.wet; hit(zb, dmg / 6, 'water', zb.x - 0, zb.z - c.cz, push / 3, true); });
+        for (let j = 0; j < 3; j++) part({ mesh: 'ico', x, y: 1.5, z, vx: Math.cos(a + 1.6) * 10, vy: rand(1, 5), vz: Math.sin(a + 1.6) * 10, s: 0.4, s1: 1, max: 0.6, col: pick(['#7fd8ff', '#bfeeff', '#3fb4ff']), emi: 0.6, pass: 2, alpha: 0.85, drift: 0.2 });
+      });
+    }
+    // 좀비가 몰린 쪽으로 물줄기 (3레벨부터 두 줄기)
+    const tgs = nearCluster(0, c.cz, w.range + 4, lv >= 3 ? 2 : 1);
+    if (!tgs.length) tgs.push([lc > rc ? -10 : 10, c.cz]);
+    for (const tg of tgs) {
+      let dx0 = tg[0], dz0 = tg[1] - c.cz; const dl = Math.hypot(dx0, dz0) || 1; dx0 /= dl; dz0 /= dl;
+      const ox = dx0 * 1.8, oz = c.cz + dz0 * 1.8;
+      near(ox + dx0 * w.range / 2, oz + dz0 * w.range / 2, w.range / 2 + w.width, zb => {
+        if (zb.onTrain) return;
+        const rx = zb.x - ox, rz = zb.z - oz, t = rx * dx0 + rz * dz0, pd = Math.abs(rx * dz0 - rz * dx0);
+        if (t < 0 || t > w.range + 1 || pd > w.width + t * 0.15) return;
+        zb.wetT = w.wet;
+        hit(zb, dmg, 'water', dx0, dz0, push, true);
+      });
+      const rot = Math.atan2(-dz0, dx0);
+      for (let k = 0; k < 5; k++) if (!fxSprite('water', ox + dx0 * (1 + k * 3), 1.5, oz + dz0 * (1 + k * 3), 2, 3.6, 0.45, { rot, vr: 0, vx: dx0 * 12, vz: dz0 * 12, alpha: 0.9 }))
+        for (let j = 0; j < 5; j++) part({ mesh: 'ico', x: ox, y: 2.0, z: oz, vx: dx0 * rand(16, 28) + rand(-2, 2), vy: rand(0, 4), vz: dz0 * rand(16, 28) + rand(-2, 2), s: 0.4, s1: 1.0, max: 0.6, col: pick(['#7fd8ff', '#bfeeff', '#3fb4ff']), emi: 0.6, pass: 2, alpha: 0.85, drift: 0.2 });
+    }
+    S.flame();
+  }
+  /* ---------- 원소 반응: 처음 일어나면 크게 알리고 도감에 기록 ---------- */
+  const REACT = { shock: ['감전!!', '#8af7ff'], frost: ['즉시 빙결!', '#bfeeff'], shatter: ['산산조각!', '#dff4ff'], firewind: ['불회오리!!', '#ff8a2a'], steam: ['수증기!', '#ffffff'] };
+  function reaction(id, x, z) {
+    const r = REACT[id]; if (!r) return;
+    G.reacted = G.reacted || {};
+    const first = !G.reacted[id]; G.reacted[id] = (G.reacted[id] || 0) + 1;
+    if (first) {
+      FX.text(x, 6, z, r[0], r[1], 34, 1.4, true);
+      DX.save.reactions = DX.save.reactions || {};
+      if (!DX.save.reactions[id]) { DX.save.reactions[id] = 1; DX.persist(); if (DX.UI) DX.UI.toast(DX.L('원소 반응 발견: ', '发现元素反应：') + DX.T(r[0])); }
+    } else if (Math.random() < 0.12) FX.text(x, 3, z, r[0], r[1], 16, 0.7);
+  }
+  /* ---------- 안전 칸 시민 (직업 보너스) ---------- */
+  function jobCount(j) {
+    if (!G || G.safeFleeT > 0) return 0;
+    let n = 0; for (const c of G.citizens) if (c.job === j) n++;
+    return n >= 3 ? n * 2 : n;
+  }
+  function jobHaste() { return 1 / (1 + jobCount('mech') * C.jobs.mech.haste); }
+  function addCitizens(list, quote) {
+    for (const c of list) G.citizens.push(c);
+    const need = Math.max(1, Math.ceil(G.citizens.length / C.safeSeats));
+    let have = G.cars.filter(k => k === 'safe').length;
+    while (have < need) { G.cars.push('safe'); have++; }
+    recalc();
+    later(0.4, () => { if (!G) return; const c = G.layout.cars.find(k => k.kind === 'safe'); if (c) { FX.text(0, 6, c.cz, (quote ? '“' + quote + '”' : '탑승!'), '#ffffff', 18, 2.2, true); for (let i = 0; i < 10; i++) FX.spark(rand(-1, 1), 4, c.cz + rand(-2, 2), 2, '#7dff8a'); } });
+  }
+  DX.addCitizens = (l, q) => G && addCitizens(l, q);
+  function randomCitizens(n) {
+    const out = [];
+    for (let i = 0; i < n; i++) { const f = Math.floor(Math.random() * C.comicNpc.length); out.push({ face: f, job: C.comicNpc[f].job }); }
+    return out;
+  }
   function freezeBurst(c, w, lv, pm, b) {
     if (!c || !G) return;
-    const r = w.radius[lv - 1] * (1 + b * 0.15);
+    const r = w.radius[lv - 1] * (1 + b * 0.12);
     SRC = 'freeze';
     shockRing(0, c.cz, r, '#bfeeff');
     let n = 0;
     near(0, c.cz, r, zb => {
       const wet = zb.wetT > 0, t = w.freeze[lv - 1] * (wet ? 2 : 1) * (zb.boss ? 0.25 : 1);
       zb.stun = Math.max(zb.stun, t); zb.iceT = Math.max(zb.iceT || 0, t); zb.slowT = t + 2.5;
-      hit(zb, w.dmg[lv - 1] * pm * (wet ? 1.8 : 1), 'ice', 0, 0, 0, true);
-      if (wet) { zb.wetT = 0; if (Math.random() < 0.3) FX.text(zb.x, 2.6, zb.z, '얼음 조합!', '#bfeeff', 16, 0.8); }
+      hit(zb, w.dmg[lv - 1] * pm * (wet ? 1.8 : 1) / (lv >= 5 && b > 0 ? 2 : 1), 'ice', 0, 0, 0, true);
+      if (wet) { zb.wetT = 0; reaction('frost', zb.x, zb.z); }
       if (n++ < 10) fxSprite('freeze', zb.x, 0, zb.z, 1.2, 2.2, 0.5, { rot: 0, vr: 0 }) || fxSprite('iceburst', zb.x, 1, zb.z, 1.2, 2.4, 0.45);
     });
     S.zap();
@@ -1444,7 +1635,10 @@ window.DX = window.DX || {};
           const dx = zb.x - b.x, dz = zb.z - b.z, rr = zb.r + 0.35;
           if (dx * dx + dz * dz < rr * rr) {
             SRC = 'mg';
-            hit(zb, b.dmg, 'shot', b.vx / sp, b.vz / sp, 2.2, true);
+            // 직접 조준으로 보스를 맞히면 약점 저격 (1.5배)
+            const weak = b.man && zb.boss;
+            hit(zb, b.dmg * (weak ? 1.5 : 1), 'shot', b.vx / sp, b.vz / sp, 2.2, true);
+            if (weak && Math.random() < 0.12) FX.text(zb.x, 6, zb.z, '약점!', '#ff4040', 22, 0.6);
             b.hit.push(zb);
             FX.spark(b.x, 1.4 * zb.s, b.z, 2, b.ghost ? '#9ff6ff' : '#fff2b0');
             if (b.pierce-- <= 0) b.life = 0;
@@ -1529,7 +1723,7 @@ window.DX = window.DX || {};
     }
     z.atk = false;
     z.throwT -= dt;
-    if (z.throwT <= 0 && d < 34 && d > reach + 4) { z.throwT = rand(4, 5.5) * (z.raged ? z.cfg.rage.throwMul : 1); z.bst = 'throw'; z.bk = 0; z.bt = 0.55; return true; }
+    if (z.throwT <= 0 && d < 34 && d > reach + 4) { z.throwT = rand(4, 5.5) * (z.raged ? (z.cfg.rage || C.bossRage).throwMul : 1); z.bst = 'throw'; z.bk = 0; z.bt = 0.55; return true; }
     return false;
   }
   function bossStrike(z) {
@@ -1613,6 +1807,8 @@ window.DX = window.DX || {};
       z.ph += dt * (z.boss ? 4 : 11) * (z.spd / 6);
       if (z.stun > 0) z.stun -= dt;
       if (z.wetT > 0) z.wetT -= dt; if (z.iceT > 0) z.iceT -= dt; if (z.slowT > 0) z.slowT -= dt;
+      if (z.passed && Math.random() < dt * 0.35) FX.text(z.x, 3.2, z.z, z.passed + '...', '#c6f08a', 14, 1);
+      if (z.confT > 0) { z.confT -= dt; z.x += Math.sin(G.t * 7 + z.seed * 9) * 2.2 * dt; }
       z.x += z.kx * dt; z.z += z.kz * dt;
       const damp = Math.pow(0.02, dt); z.kx *= damp; z.kz *= damp;
       // 점프 (댄서)
@@ -1649,12 +1845,12 @@ window.DX = window.DX || {};
       z.yaw = d <= z.r + 0.12 ? Math.atan2(dx, dz) : Math.atan2(mx, mz);
       { const fx = d <= z.r + 0.12 ? dx : mx; if (Math.abs(fx) > 0.25) z.face = fx > 0 ? 1 : -1; }
       if (z.boss) {
-        const rg = z.cfg.rage;
+        const rg = z.cfg.rage || C.bossRage;
         if (rg && !z.raged && z.hp < z.maxHp * rg.at) {   // 분노 2단계
           z.raged = true; z.spd *= rg.speed; z.s *= rg.scale; z.r *= rg.scale; z.hitT = 0;
           G.shake = Math.max(G.shake, 1.2); S.roar(); vib([60, 40, 120]);
           shockRing(z.x, z.z, 9, '#ff3030'); FX.text(z.x, 7 * (z.s / 3), z.z, rg.quote, '#ff4040', 30, 1.8, true);
-          if (DX.UI) DX.UI.banner(DX.L('분노 2단계!!', '狂暴第二阶段！！'), '“' + DX.T(rg.quote) + '”', 'boss');
+          if (DX.UI) DX.UI.banner(DX.L('분노 2단계!!', '狂暴第二阶段！！'), '“' + DX.T(z.cfg.rageQuote || rg.quote) + '”', 'boss');
         }
         z.stompT -= dt;
         if (z.stompT <= 0) {
@@ -1823,6 +2019,7 @@ window.DX = window.DX || {};
     G.wa += dt * world.speed / 0.45;
     updWorld(dt, world.speed);
     G.shake = Math.max(0, G.shake - rawDt * 2.5);
+    if (G.safeFleeT > 0) { G.safeFleeT -= rawDt; if (G.safeFleeT <= 0) { G.safeFleeT = 0; recalc(); } }
     G.hurt = Math.max(0, (G.hurt || 0) - rawDt); G.ultFlash = Math.max(0, (G.ultFlash || 0) - rawDt);
     if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
     if (G.hornCd > 0) G.hornCd -= dt;
@@ -1843,7 +2040,7 @@ window.DX = window.DX || {};
     updCorpses(dt);
     updOrbs(dt);
     updParts(dt);
-    if (G.pendingLv > 0 && DX.state === 'play' && G.endT < 0) { DX.state = 'levelup'; S.level(); DX.UI.levelUp(buildCards(), G); }
+    if (G.pendingLv > 0 && DX.state === 'play' && G.endT < 0) { DX.state = 'levelup'; S.level(); const ch = G.chest; G.chest = false; DX.UI.levelUp(ch ? chestCards() : buildCards(), G, ch); }
   }
 
   function endRun(win) {
@@ -1857,6 +2054,13 @@ window.DX = window.DX || {};
     if (win) {
       out.gold += stg.clearGold;
       DX.save.cleared[stg.id] = true;
+      // 별 3개: 클리어 / 구조 작전 성공(지나치지 않음) / 열차 체력 50% 이상
+      const hasOp = !!(C.rescueOps && (C.rescueOps.byStage[stg.id] || []).length);
+      const st3 = [true, hasOp ? (G.opOk && !G.opSkip) : true, G.hp >= G.hpMax * 0.5];
+      DX.save.stars = DX.save.stars || {};
+      const old = DX.save.stars[stg.id] || [false, false, false];
+      DX.save.stars[stg.id] = old.map((v, i) => v || st3[i]);
+      out.stars = st3; out.citizens = G.citizens.length;
       collectAllOrbs();
       SRC = 'misc';
       for (const z of G.zs) hit(z, 99999, 'blast', z.x, z.z - 5, 10, false);
@@ -1910,6 +2114,8 @@ window.DX = window.DX || {};
     if (SPR.hasTrain()) {
       DECK = TOP_CAR;
       drawTrainArt(layout, st, false);
+      // 직접 조준 표시
+      if (G && G.manual && G.manual.on) { const mx = G.manual.x, mz = G.manual.z, pu = 1 + Math.sin(G.t * 12) * 0.1; E.box('cube', mx, 0.2, mz, 2.2 * pu, 0.06, 0.16, 0, '#ff3b3b', 1.6); E.box('cube', mx, 0.2, mz, 0.16, 0.06, 2.2 * pu, 0, '#ff3b3b', 1.6); T.reset().tr(mx, 0.15, mz).sc(1.6 * pu, 1, 1.6 * pu); E.draw('disc', '#ff3b3b', 1.2, 0.25, 2); }
     } else {
       DECK = 1.35;
       MD.engine(0, C.train.colors, G ? G.wa : world.t * 30, false);

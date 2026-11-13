@@ -96,6 +96,7 @@ window.DX = window.DX || {};
     setTimeout(() => tip('lobby'), 350);
   }
   UI.showLobby = showLobby;
+  function starHtml(a) { return (a || [false, false, false]).map(v => v ? '★' : '<i class="off">★</i>').join(''); }
   function stageUnlocked(i) { return C.game.unlockAllStages || i === 0 || DX.save.cleared[C.stages[i - 1].id]; }
   /* ---------------- 꾸미기 (열차·생존자 외형) ---------------- */
   const SKIN_CAT = [['train', '🚂 열차'], ['jack', '잭'], ['minho', '민호'], ['sophie', '소피']];
@@ -165,7 +166,7 @@ window.DX = window.DX || {};
     th.onerror = () => { if (st.thumbFallback && th.src.indexOf(st.thumbFallback) < 0) { th.src = st.thumbFallback; return; } th.onerror = null; th.src = C.assets.story[i % 2 === 0 ? 2 : 1]; };
     th.src = st.thumb || C.assets.story[2];
     { const ca = (C.chapterArt || {})[st.id]; if (ca && ca.thumb && DX.SPR.probe) DX.SPR.probe(ca.thumb).then(ok => { if (ok && (DX.save.stage || 0) === i) th.src = ca.thumb; }); }
-    $('stBadge').textContent = !stageUnlocked(i) ? T('🔒 잠김') : DX.save.cleared[st.id] ? 'CLEAR' : '';
+    $('stBadge').innerHTML = !stageUnlocked(i) ? T('🔒 잠김') : DX.save.cleared[st.id] ? '<span class="stars">' + starHtml((DX.save.stars || {})[st.id]) + '</span>' : '';
     $('btnStart').disabled = !stageUnlocked(i);
     $('btnStart').style.opacity = stageUnlocked(i) ? 1 : 0.5;
     // 강화
@@ -301,6 +302,19 @@ window.DX = window.DX || {};
     clearTimeout(UI._biT); UI._biT = setTimeout(() => el.classList.add('hidden'), 1900);
     if (navigator.vibrate) try { navigator.vibrate([40, 60, 80]); } catch (e) {}
   };
+  let skKey = null;
+  UI.skillReady = function () {};
+  /* ---------------- 구조 신호 (3초 안에 고르기, 안 고르면 구함) ---------------- */
+  UI.rescueSignal = function (o, cb) {
+    $('sigFace').src = o.face || ''; $('sigName').textContent = T(o.name || '');
+    $('sigLine').textContent = T(o.line) + (o.n > 1 ? ' (' + o.n + L('명)', '人)') : '');
+    show($('signal'), true);
+    let done = false; const t0 = performance.now(), dur = (o.time || 3) * 1000;
+    const end = go => { if (done) return; done = true; clearInterval(iv); show($('signal'), false); cb(go); };
+    const iv = setInterval(() => { const r = 1 - (performance.now() - t0) / dur; $('sigBar').style.width = Math.max(0, r * 100) + '%'; if (r <= 0) end(true); }, 50);
+    $('sigGo').onclick = () => { DX.S.click(); end(true); };
+    $('sigSkip').onclick = () => { DX.S.click(); end(false); };
+  };
   UI.frame = function (G, dt) {
     drawFx(G, dt);
     { const v = $('vignette'); if (v) { const hp = G ? G.hp / G.hpMax : 1; const low = G && hp < 0.3 && G.endT < 0; v.style.opacity = low ? (0.45 + Math.sin(performance.now() / 160) * 0.25) * (1 - hp / 0.3 * 0.6) : (G && G.hurt > 0 ? Math.min(0.5, G.hurt * 2) : 0); } }
@@ -323,6 +337,11 @@ window.DX = window.DX || {};
       if (G.combo !== lastCombo) { $('comboN').textContent = G.combo; const c = $('combo'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
     } else show($('combo'), false);
     lastCombo = G.combo;
+    // 액티브 스킬 버튼
+    { const ids = DX.activeIds(), key2 = ids.join(',');
+      if (key2 !== skKey) { skKey = key2; $('skillBar').innerHTML = ids.map(id => '<button class="sk" data-sk="' + id + '"><i class="fill"></i>' + iconHtml(C.weapons[id].icon, C.weapons[id].emoji) + '</button>').join(''); show($('btnAuto'), ids.length > 0); }
+      for (const b of $('skillBar').children) { const v = G.sk[b.dataset.sk] || 0; b.firstChild.style.height = (v * 100).toFixed(0) + '%'; b.classList.toggle('ready', v >= 1); }
+      $('btnAuto').classList.toggle('on', !!G.autoSkill); }
     $('ultRing').style.strokeDashoffset = (276.5 * (1 - G.ult)).toFixed(1);
     $('btnUlt').classList.toggle('ready', G.ult >= 1);
     $('hornCd').textContent = G.hornCd > 0 ? Math.ceil(G.hornCd) : '';
@@ -350,9 +369,10 @@ window.DX = window.DX || {};
   UI.comboPop = function (n) { if (n >= 100) UI.banner(n + ' COMBO!!', n >= 300 ? '미쳤다 이건...' : '골드 보너스 증가!', 'win'); };
 
   /* ---------------- 레벨업 ---------------- */
-  UI.levelUp = function (cards, G) {
+  UI.levelUp = function (cards, G, chest) {
     UI.lastCards = cards;
     show($('levelup'), true);
+    { const t = $('levelup').querySelector('.lv-title, h2, .title'); if (t) { if (!t.dataset.orig) t.dataset.orig = t.textContent; t.textContent = chest ? L('🎁 보물상자!', '🎁 宝箱！') : t.dataset.orig; } }
     $('rerollN').textContent = L('(' + G.rerolls + '회 남음)', '（剩余' + G.rerolls + '次）');
     $('btnReroll').disabled = G.rerolls <= 0;
     const el = $('cards');
@@ -402,7 +422,7 @@ window.DX = window.DX || {};
     t.textContent = T(o.win ? C.texts.victory : C.texts.defeat);
     t.classList.toggle('lose', !o.win);
     $('rSub').textContent = T(o.win ? C.texts.victorySub : C.texts.defeatSub);
-    $('rStats').innerHTML = [['도달 웨이브', o.wave + (o.newBest ? ' ★' : '')], ['처치', o.kills.toLocaleString()], ['최대 콤보', o.maxCombo || 0], ['레벨', o.level]].map(s => '<div><b>' + s[1] + '</b><span>' + T(s[0]) + '</span></div>').join('');
+    $('rStats').innerHTML = (o.stars ? '<div style="grid-column:1/-1"><b class="stars">' + starHtml(o.stars) + '</b><span>' + T('클리어 · 구조 성공 · 체력 50%') + (o.citizens ? ' · 🙋 ' + o.citizens : '') + '</span></div>' : '') + [['도달 웨이브', o.wave + (o.newBest ? ' ★' : '')], ['처치', o.kills.toLocaleString()], ['최대 콤보', o.maxCombo || 0], ['레벨', o.level]].map(s => '<div><b>' + s[1] + '</b><span>' + T(s[0]) + '</span></div>').join('');
     $('rGold').textContent = o.gold.toLocaleString();
     show($('btnRevive'), o.canRevive);
     show($('btnDouble'), C.ads.doubleGold);
@@ -679,6 +699,15 @@ window.DX = window.DX || {};
     $('btnLang').addEventListener('click', () => { const l = DX.lang() === 'zh' ? 'ko' : 'zh'; DX.setLang(l); DX.save.lang = l; DX.persist(); relang(); DX.track('lang', { l }); });
     $('btnGuide').addEventListener('click', openGuide);
     $('skinList').addEventListener('click', skinAction);
+    $('skillBar').addEventListener('pointerdown', e => { const b = e.target.closest('[data-sk]'); if (!b) return; e.stopPropagation(); e.preventDefault(); if (DX.castSkill(b.dataset.sk)) { b.classList.remove('ready'); try { navigator.vibrate && navigator.vibrate(25); } catch (e2) {} } });
+    $('btnAuto').addEventListener('pointerdown', e => { e.stopPropagation(); const G = DX.getG && DX.getG(); DX.setAutoSkill(!(G && G.autoSkill)); DX.S.click(); toast(G && G.autoSkill ? L('자동 스킬 켬 (효율 80%)', '自动技能开启（效率80%）') : L('직접 누르면 100% + 타이밍 보너스!', '手动释放100% + 时机加成！')); });
+    // 드래그 = 기관총 직접 조준 (게임 화면 빈 곳)
+    { const isField = e => DX.state === 'play' && (e.target.id === 'gl' || e.target.id === 'fx' || e.target.id === 'hud' || e.target.id === 'vignette');
+      let aiming = false;
+      document.addEventListener('pointerdown', e => { if (!isField(e)) return; aiming = true; DX.aim(true, e.clientX, e.clientY); });
+      document.addEventListener('pointermove', e => { if (aiming) DX.aim(true, e.clientX, e.clientY); });
+      const up = () => { if (aiming) { aiming = false; DX.aim(false); } };
+      document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up); }
     $('guidePrev').addEventListener('click', () => { if (gPage > 0) { gPage--; renderGuide(); } });
     $('guideNext').addEventListener('click', () => { if (gPage < DX.GUIDE.length - 1) { gPage++; renderGuide(); } else show($('guide'), false); });
     $('btnPrivacy').addEventListener('click', () => { $('privacyBody').textContent = L(DX.PRIVACY[0], DX.PRIVACY[1]); show($('privacy'), true); });

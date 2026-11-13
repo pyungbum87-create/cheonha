@@ -14,12 +14,15 @@ window.DX = window.DX || {};
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const FONT = "'Black Han Sans', 'Noto Sans SC', sans-serif";
   const L = (ko, zh) => (DX.L ? DX.L(ko, zh) : ko);
-  let cv, g, st = null, raf = 0, last = 0;
+  let cv, g, st = null, raf = 0, last = 0, st0kind = '';
 
   const TITLE = () => ({
     parcel: [L('📦 택배 쳐내기!', '📦 击飞快递！'), L('상자가 원에 닿을 때 탭!', '箱子碰到圆圈时点击！')],
     golf: [L('⛳ 사장님 골프공 받아치기!', '⛳ 反击老板的高尔夫球！'), L('아래 박자 줄에 맞춰 탭!', '跟着下方节拍点击！')],
     rescue: [L('🏃 시민 구출 작전!', '🏃 市民营救行动！'), L('탭 = 점프 · 시민에게 닿으면 구출', '点击=跳跃 · 碰到市民即可营救')],
+    boiler: [L('🔥 보일러를 살려라!', '🔥 救活锅炉！'), L('바늘이 초록 칸에 올 때 탭!', '指针进入绿色区域时点击！')],
+    hack: [L('💻 문 암호 해킹!', '💻 破解门锁密码！'), L('바늘이 초록 칸에 올 때 탭!', '指针进入绿色区域时点击！')],
+    sniper: [L('🎯 옥상 엄호 저격!', '🎯 屋顶掩护狙击！'), L('사람들에게 다가가는 좀비를 탭!', '点击接近市民的僵尸！')],
   });
   // 필요한 그림 (assets 경로). 없으면 코드 도형으로 대신 그림
   const CH = n => 'assets/chars/' + n + '.png';
@@ -32,6 +35,14 @@ window.DX = window.DX || {};
     } else if (kind === 'golf') {
       ['attack_0', 'attack_1', 'attack_2', 'defend_1', 'cheer_0'].forEach(k => n['h_' + k] = CH('sophie/side_' + k));
       ['a0', 'a1', 'a2'].forEach(k => n['z_' + k] = CH('anim/ceo_' + k));
+    } else if (kind === 'boiler') {
+      n.train = 'assets/train/train_engine_side.png';
+      ['w0', 'w1', 'w2', 'w3'].forEach(k => n['z_' + k] = CH('anim/office_' + k));
+      n.h0 = CH('jack/side_defend_0'); n.h1 = CH('jack/side_cheer_0'); n.s0 = CH('sophie/side_attack_0'); n.s1 = CH('sophie/side_cheer_0');
+    } else if (kind === 'sniper') {
+      ['w0', 'w1', 'w2', 'w3', 'a2', 'a3'].forEach(k => n['z_' + k] = CH('anim/office_' + k));
+      for (const c of ['man', 'woman', 'clerk']) { n['c_' + c + '0'] = 'assets/npc/citizen_' + c + '_0.png'; n['c_' + c + '3'] = 'assets/npc/citizen_' + c + '_3.png'; }
+      n.h0 = CH('minho/side_attack_0'); n.h1 = CH('minho/side_attack_2'); n.h2 = CH('minho/side_cheer_0');
     } else {
       [0, 1, 2, 3].forEach(i => { n['run' + i] = CH('jack/side_run_' + i); });
       [1, 2].forEach(i => { n['carry' + i] = CH('jack/side_carry_' + i); });
@@ -46,8 +57,8 @@ window.DX = window.DX || {};
     const out = {}, SPR = DX.SPR;
     await Promise.all(Object.keys(n).map(async k => {
       if (!n[k] || !SPR.cut) return;
-      const isBg = k === 'bg', isFx = k === 'crate';
-      out[k] = await (isFx ? SPR.cut(n[k], 120, false) : SPR.cut(n[k], isBg ? 0 : 300, isBg));
+      const isBg = k === 'bg', isFx = k === 'crate' || k === 'train';
+      out[k] = await (isFx ? SPR.cut(n[k], k === 'train' ? 260 : 120, false) : SPR.cut(n[k], isBg ? 0 : 300, isBg));
     }));
     return out;
   }
@@ -58,13 +69,14 @@ window.DX = window.DX || {};
     cv = document.getElementById('miniCv'); g = cv.getContext('2d');
     const sec = document.getElementById('mini');
     sec.classList.remove('hidden');
-    st = { kind, done, opt, t: 0, phase: 'load', phaseT: 0, img: {}, score: 0, max: 1, combo: 0, maxCombo: 0, hp: 3, texts: [], parts: [], shake: 0, flash: 0, result: null };
+    if (kind === 'boiler' && opt.hack) st0kind = 'hack'; else st0kind = kind;
+    st = { kind, tk: st0kind, done, opt, t: 0, phase: 'load', phaseT: 0, img: {}, score: 0, max: 1, combo: 0, maxCombo: 0, hp: 3, texts: [], parts: [], shake: 0, flash: 0, result: null };
     drawLoading();
     let bgUrl = opt.bg || 'assets/story/ch2_side.jpg';
     if (opt.bgNew && DX.SPR.probe && await DX.SPR.probe(opt.bgNew)) { bgUrl = opt.bgNew; opt.tint = null; }   // 새 옆 배경 그림이 있으면 그걸로
     const img = await loadAll(need(kind, bgUrl));
     if (!st) return;
-    st.img = img; st.phase = 'intro'; st.phaseT = 1.6;
+    st.img = img; st.phase = 'intro'; st.phaseT = opt.line ? 2.2 : 1.6;
     SETUP[kind](st);
     last = performance.now();
     cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
@@ -172,7 +184,7 @@ window.DX = window.DX || {};
       g.globalAlpha = clamp((1 - r) * 2.5, 0, 1); txt(t.s, t.x, t.y - r * 30, Math.round(t.sz * sc), t.col); g.globalAlpha = 1;
     }
     // 위쪽 정보: 제목 · 점수 · 하트
-    const tt = TITLE()[st.kind];
+    const tt = TITLE()[st.tk || st.kind];
     txt(tt[0], Z.w / 2, Math.max(28, Z.sy * 0.32), Math.min(30, Z.w / 13), '#ffd34a');
     txt(st.scoreLabel ? st.scoreLabel() : (st.score + ' / ' + st.max), Z.w / 2, Math.max(60, Z.sy * 0.7), 22, '#fff');
     if (st.hearts) { let s = ''; for (let i = 0; i < 3; i++) s += i < st.hp ? '❤️' : '🖤'; g.font = '20px sans-serif'; g.textAlign = 'right'; g.fillText(s, Z.w - 12, Math.max(60, Z.sy * 0.7)); }
@@ -182,6 +194,7 @@ window.DX = window.DX || {};
       g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(0, 0, Z.w, Z.h);
       const a = 1 - Math.max(0, st.phaseT - 1.3) / 0.3;
       g.globalAlpha = clamp(a, 0, 1);
+      if (st.opt.line) txt(st.opt.line, Z.w / 2, Z.h * 0.42 - 54, Math.min(20, Z.w / 19), '#ff9a6a');
       txt(tt[0], Z.w / 2, Z.h * 0.42, Math.min(40, Z.w / 10), '#ffd34a');
       txt(tt[1], Z.w / 2, Z.h * 0.42 + 46, Math.min(22, Z.w / 18), '#fff');
       g.globalAlpha = 1;
@@ -190,7 +203,7 @@ window.DX = window.DX || {};
       const r = st.result;
       g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(0, 0, Z.w, Z.h);
       txt(r.grade, Z.w / 2, Z.h * 0.38, 96, { S: '#ffd34a', A: '#7dff8a', B: '#5fe1ff', C: '#ff8a8a' }[r.grade]);
-      txt(r.rate >= 0.45 ? L('성공!!', '成功！！') : L('아쉽다...', '可惜...'), Z.w / 2, Z.h * 0.38 + 76, 30, '#fff');
+      txt(r.rate >= 0.45 ? (st.opt.op ? L('구조 성공!!', '营救成功！！') : L('성공!!', '成功！！')) : L('아쉽다...', '可惜...'), Z.w / 2, Z.h * 0.38 + 76, 30, '#fff');
       if (st.phaseT < 1.2) txt(L('터치해서 계속', '点击继续'), Z.w / 2, Z.h * 0.38 + 124, 16, '#cfe8ff');
     }
   }
@@ -462,5 +475,136 @@ window.DX = window.DX || {};
     const r = clamp(1 - s.t / s.dur, 0, 1);
     g.fillStyle = 'rgba(0,0,0,0.5)'; g.fillRect(Z.w * 0.2, Z.sy + 8, Z.w * 0.6, 8);
     g.fillStyle = r > 0.3 ? '#7dff8a' : '#ff6a6a'; g.fillRect(Z.w * 0.2, Z.sy + 8, Z.w * 0.6 * r, 8);
+  };
+
+  /* ================= 4) 보일러 (해킹) =================
+     바늘이 좌우로 흔들림 → 초록 칸에서 탭하면 압력 +1. 다 채우면 열차 출발. 좀비가 열차에 닿으면 실패
+     opt.hard = 칸 좁고 바늘 빠름(6장), opt.hack = 문 암호 해킹 화면(8장 연구원) */
+  SETUP.boiler = s => {
+    const hard = !!s.opt.hard;
+    s.need = hard ? 6 : 5; s.max = s.need; s.ok = 0; s.ang = 0; s.dir = 1; s.spd = hard ? 2.6 : 1.9; s.zw = hard ? 0.16 : 0.24;
+    s.zc = rand(0.3, 0.7); s.zDist = 1; s.zSpd = hard ? 0.085 : 0.07; s.puff = 0; s.win = 0; s.miss = 0;
+    s.scoreLabel = () => (s.opt.hack ? '🔓 ' : '🔥 ') + s.ok + ' / ' + s.need;
+  };
+  UPD.boiler = (s, dt) => {
+    if (s.win > 0) { s.win += dt; if (s.win > 1.4) finish(); return; }
+    s.ang += s.dir * s.spd * dt * (1 + s.ok * 0.08);
+    if (s.ang > 1) { s.ang = 1; s.dir = -1; } if (s.ang < 0) { s.ang = 0; s.dir = 1; }
+    s.zDist -= s.zSpd * dt; s.puff = Math.max(0, s.puff - dt);
+    if (s.zDist <= 0) { s.zDist = 0; s.shake = 10; s.flash = 0.4; DX.S && DX.S.boom(false); finish(); }
+  };
+  TAP.boiler = s => {
+    if (s.win > 0) return;
+    const Z = size();
+    if (Math.abs(s.ang - s.zc) < s.zw / 2) {
+      s.ok++; s.score = s.ok; s.combo++; s.maxCombo = Math.max(s.maxCombo, s.combo);
+      s.zDist = Math.min(1, s.zDist + 0.06);
+      popText(s.opt.hack ? L('딸깍!', '咔嗒！') : L('칙칙!', '嗤嗤！'), Z.w / 2, Z.sy + Z.sh * 0.25, '#7dff8a', 28);
+      burst(Z.w * 0.2, Z.floor - Z.unit * 40, s.opt.hack ? '#7dff8a' : '#ffffff', 12); DX.S && DX.S.kill();
+      s.zc = rand(0.15, 0.85);
+      if (s.ok >= s.need) { s.win = 0.01; popText(s.opt.hack ? L('문이 열렸다!', '门开了！') : L('출발!!', '出发！！'), Z.w / 2, Z.sy + Z.sh * 0.4, '#ffd34a', 40, 1.4); DX.S && DX.S.level(); }
+    } else {
+      s.combo = 0; s.miss++; s.puff = 0.5; s.zDist -= 0.05; s.shake = 5;
+      popText(L('삐익!', '哔！'), Z.w / 2, Z.sy + Z.sh * 0.25, '#ff6a6a', 24, 0.6); DX.S && DX.S.click();
+    }
+  };
+  DRAW.boiler = (s, Z) => {
+    drawBg(Z, s.win > 0 ? s.win * 400 : 0, s.opt.hack ? 0.55 : 0.2);
+    const I = s.img, U = Z.unit;
+    // 열차 (왼쪽) + 생존자
+    const tx = Z.w * 0.2 - (s.win > 0 ? s.win * Z.w * 0.5 : 0);
+    if (I.train && !s.opt.hack) pose(I.train, tx, Z.floor, U * 38, true);
+    if (s.opt.hack) { g.fillStyle = '#3a4250'; g.fillRect(Z.w * 0.06, Z.floor - U * 60, U * 30, U * 60); g.fillStyle = '#c8d0dc'; g.fillRect(Z.w * 0.06 + U * 4, Z.floor - U * 54, U * 22, U * 50); txt(L('실험실', '实验室'), Z.w * 0.06 + U * 15, Z.floor - U * 66, 14, '#7dff8a'); }
+    const hero = s.opt.hack ? (s.win > 0 ? I.s1 : I.s0) : (s.win > 0 ? I.h1 : I.h0);
+    pose(hero, Z.w * 0.38, Z.floor, U * 42, false);
+    // 다가오는 좀비 (오른쪽)
+    const zx = Z.w * 0.42 + (Z.w * 0.55) * s.zDist;
+    for (let k = 0; k < 3; k++) pose(I['z_w' + (Math.floor(s.t * 6 + k) % 4)], zx + k * U * 14, Z.floor + k * 2, U * (44 - k * 4), false, 0, 1 - k * 0.15);
+    // 계기판 (위쪽 가운데)
+    const cx = Z.w / 2, cy = Z.sy + Z.sh * 0.42, R = Math.min(Z.w * 0.32, Z.sh * 0.3);
+    g.save();
+    g.fillStyle = s.opt.hack ? 'rgba(10,30,15,0.9)' : 'rgba(30,25,20,0.88)'; g.strokeStyle = s.opt.hack ? '#7dff8a' : '#c9a35a'; g.lineWidth = 6;
+    g.beginPath(); g.arc(cx, cy, R + 10, Math.PI, 0); g.closePath(); g.fill(); g.stroke();
+    const A = v => Math.PI + v * Math.PI;
+    g.lineWidth = R * 0.22; g.strokeStyle = 'rgba(255,255,255,0.15)'; g.beginPath(); g.arc(cx, cy, R * 0.8, Math.PI, 0); g.stroke();
+    g.strokeStyle = '#3ddc6a'; g.beginPath(); g.arc(cx, cy, R * 0.8, A(s.zc - s.zw / 2), A(s.zc + s.zw / 2)); g.stroke();
+    g.strokeStyle = s.puff > 0 ? '#ff6a6a' : '#ffffff'; g.lineWidth = 5; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(A(s.ang)) * R * 0.95, cy + Math.sin(A(s.ang)) * R * 0.95); g.stroke();
+    g.fillStyle = '#ffd34a'; g.beginPath(); g.arc(cx, cy, 8, 0, 6.28); g.fill();
+    g.restore();
+    if (s.opt.hack) { let code = ''; for (let i = 0; i < s.need; i++) code += i < s.ok ? '' + ((i * 7 + 3) % 10) : '_'; txt(code.split('').join(' '), cx, cy + 26, 26, '#7dff8a'); }
+    // 압력 칸
+    for (let i = 0; i < s.need; i++) { g.fillStyle = i < s.ok ? '#ffd34a' : 'rgba(255,255,255,0.2)'; g.fillRect(cx - s.need * 14 + i * 28, cy + (s.opt.hack ? 46 : 18), 22, 12); }
+    if (s.puff > 0 && !s.opt.hack) for (let k = 0; k < 3; k++) { g.fillStyle = 'rgba(255,255,255,' + s.puff + ')'; g.beginPath(); g.arc(tx + U * 6 + k * 14, Z.floor - U * 42 - k * 10, 16 + k * 6, 0, 6.28); g.fill(); }
+    txt(L('좀비까지', '距僵尸') + ' ' + Math.round(s.zDist * 100) + 'm', Z.w * 0.78, Z.sy + 26, 16, s.zDist < 0.3 ? '#ff6a6a' : '#fff');
+  };
+
+  /* ================= 5) 옥상 엄호 저격 =================
+     위쪽 옥상에 시민들, 아래에서 좀비가 기어오름 → 좀비를 탭해서 쏨. opt.dark = 어둠(탭한 곳에 조명탄) */
+  SETUP.sniper = s => {
+    s.dur = s.opt.dark ? 22 : 20; s.cits = [0, 1, 2].map(i => ({ alive: true, c: ['man', 'woman', 'clerk'][i] })); s.zs = []; s.next = 0.5; s.shot = 0; s.spawned = 0; s.flares = []; s.muzzle = 0;
+    s.max = 1; s.hearts = false;
+    s.scoreLabel = () => '🙋 ' + s.cits.filter(c => c.alive).length + ' / 3  🎯 ' + s.shot;
+  };
+  function snPos(Z, i) { return { x: Z.w * (0.32 + i * 0.18), y: Z.sy + Z.sh * 0.3 }; }
+  UPD.sniper = (s, dt) => {
+    const Z = size(), U = Z.unit;
+    s.next -= dt; s.muzzle = Math.max(0, s.muzzle - dt);
+    if (s.next <= 0 && s.t < s.dur - 2) {
+      s.next = rand(0.7, 1.3) - Math.min(0.4, s.t * 0.015); s.spawned++;
+      const alive = s.cits.map((c, i) => c.alive ? i : -1).filter(i => i >= 0);
+      if (alive.length) { const ti = pick(alive), side = Math.random() < 0.5 ? -1 : 1; s.zs.push({ ti, x: side < 0 ? -40 : Z.w + 40, y: Z.floor, k: 0, sp: rand(0.09, 0.14) * (1 + s.t * 0.02), dead: 0, side }); }
+    }
+    for (const z of s.zs) {
+      if (z.dead) { z.dead += dt; continue; }
+      z.k += z.sp * dt;
+      const tp = snPos(Z, z.ti), sx = z.side < 0 ? -40 : Z.w + 40;
+      z.x = sx + (tp.x - sx) * Math.min(1, z.k); z.y = Z.floor + (tp.y - Z.floor) * Math.min(1, z.k);
+      if (z.k >= 1) { z.dead = 0.01; z.ate = true; const c = s.cits[z.ti]; if (c.alive) { c.alive = false; s.flash = 0.3; s.shake = 8; popText(L('으악!', '呜哇！'), tp.x, tp.y - U * 30, '#ff6a6a', 26); DX.S && DX.S.boom(false); } }
+    }
+    s.zs = s.zs.filter(z => !z.dead || z.dead < 0.8);
+    for (const f of s.flares) f.t += dt; s.flares = s.flares.filter(f => f.t < 2.6);
+    if (s.t >= s.dur || !s.cits.some(c => c.alive)) {
+      const alive = s.cits.filter(c => c.alive).length;
+      s.score = alive / 3 * 0.7 + Math.min(1, s.shot / Math.max(1, s.spawned)) * 0.3; s.max = 1;
+      s.saved = alive; finish();
+    }
+  };
+  TAP.sniper = (s, x, y) => {
+    const Z = size(), U = Z.unit;
+    s.muzzle = 0.12; DX.S && DX.S.shot && DX.S.shot();
+    if (s.opt.dark) s.flares.push({ x, y, t: 0 });
+    let best = null, bd = U * 16;
+    for (const z of s.zs) if (!z.dead) { const d = Math.hypot(z.x - x, z.y - U * 20 - y); if (d < bd) { bd = d; best = z; } }
+    if (best) { best.dead = 0.01; s.shot++; s.combo++; s.maxCombo = Math.max(s.maxCombo, s.combo); burst(best.x, best.y - U * 20, '#8aff6a', 10); popText(L('명중!', '命中！'), best.x, best.y - U * 40, '#ffd34a', 22, 0.6); DX.S && DX.S.kill(); }
+    else { s.combo = 0; }
+    s.aimX = x; s.aimY = y;
+  };
+  DRAW.sniper = (s, Z) => {
+    drawBg(Z, 0, s.opt.dark ? 0.2 : 0.1);
+    const I = s.img, U = Z.unit;
+    // 옥상
+    const ry = Z.sy + Z.sh * 0.3;
+    g.fillStyle = '#5b5f6b'; g.fillRect(Z.w * 0.22, ry, Z.w * 0.56, U * 6); g.fillStyle = '#3c3f48'; g.fillRect(Z.w * 0.24, ry + U * 6, Z.w * 0.52, Z.floor - ry - U * 6);
+    for (let k = 0; k < 4; k++) { g.fillStyle = 'rgba(255,220,120,0.5)'; g.fillRect(Z.w * 0.28 + k * Z.w * 0.12, ry + U * 14, U * 7, U * 9); g.fillRect(Z.w * 0.28 + k * Z.w * 0.12, ry + U * 30, U * 7, U * 9); }
+    s.cits.forEach((c, i) => { const p = snPos(Z, i); if (c.alive) pose(I['c_' + c.c + (s.phase === 'end' ? '3' : '0')], p.x, p.y + Math.sin(s.t * 9 + i) * 1.5, U * 24, i % 2 === 1); });
+    for (const z of s.zs) {
+      const a = z.dead ? 1 - z.dead / 0.8 : 1;
+      const im = z.dead ? (z.ate ? I.z_w0 : I.z_a3) : I['z_w' + (Math.floor(s.t * 7 + z.ti) % 4)];
+      pose(im, z.x, z.y + (z.dead && !z.ate ? z.dead * 60 : 0), U * 30, z.side > 0, z.dead && !z.ate ? z.dead * 2 : 0, a);
+      if (s.opt.dark && !z.dead) { g.fillStyle = '#ff2a2a'; g.fillRect(z.x - 5, z.y - U * 26, 3, 3); g.fillRect(z.x + 2, z.y - U * 26, 3, 3); }
+    }
+    // 어둠 + 조명탄
+    if (s.opt.dark) {
+      g.save(); g.fillStyle = 'rgba(0,0,0,0.88)'; g.beginPath(); g.rect(0, Z.sy, Z.w, Z.sh);
+      for (const f of s.flares) { const r = U * 30 * Math.min(1, f.t * 5) * (1 - f.t / 2.6 * 0.4); g.moveTo(f.x + r, f.y); g.arc(f.x, f.y, r, 0, 6.28, true); }
+      g.fill('evenodd'); g.restore();
+      for (const f of s.flares) { g.fillStyle = 'rgba(255,240,180,' + (1 - f.t / 2.6) + ')'; g.beginPath(); g.arc(f.x, f.y, 5, 0, 6.28); g.fill(); }
+    }
+    // 민호 (왼쪽 아래)
+    pose(s.phase === 'end' && s.result && s.result.rate >= 0.45 ? I.h2 : s.muzzle > 0 ? I.h1 : I.h0, Z.w * 0.1, Z.floor, U * 34, false);
+    if (s.aimX != null && s.muzzle > 0) { g.strokeStyle = '#ff3b3b'; g.lineWidth = 3; g.beginPath(); g.arc(s.aimX, s.aimY, 18, 0, 6.28); g.moveTo(s.aimX - 26, s.aimY); g.lineTo(s.aimX + 26, s.aimY); g.moveTo(s.aimX, s.aimY - 26); g.lineTo(s.aimX, s.aimY + 26); g.stroke(); }
+    const r = clamp(1 - s.t / s.dur, 0, 1);
+    g.fillStyle = 'rgba(0,0,0,0.5)'; g.fillRect(Z.w * 0.2, Z.sy + 8, Z.w * 0.6, 8); g.fillStyle = '#7dff8a'; g.fillRect(Z.w * 0.2, Z.sy + 8, Z.w * 0.6 * r, 8);
   };
 })(window.DX);

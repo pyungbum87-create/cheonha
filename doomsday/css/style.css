@@ -395,3 +395,28 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .r-ico.skin img { width: 100%; height: 100%; object-fit: cover; }
 .r-btn.on { background: linear-gradient(180deg, #7dff8a, #2fb34a); color: #102; }
 #bossIntro .bi-band.cut { background-size: cover !important; background-position: center !important; height: 40%; top: 27%; }
+
+/* ---------- 액티브 스킬 버튼 · 자동 버튼 ---------- */
+.skill-bar { position: absolute; right: 12px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 108px); display: flex; flex-direction: column; gap: 10px; }
+.sk { position: relative; width: 62px; height: 62px; border-radius: 50%; background: #1b2a3a; border: 3px solid #5f7a99; box-shadow: 0 4px 0 rgba(0,0,0,.5); overflow: hidden; font-size: 28px; display: flex; align-items: center; justify-content: center; }
+.sk img { width: 70%; height: 70%; object-fit: contain; position: relative; z-index: 1; }
+.sk .fill { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(95,243,255,.35); }
+.sk.ready { border-color: #ffd23d; animation: skPulse .6s infinite alternate; }
+.sk.ready .fill { background: rgba(255,210,61,.35); }
+@keyframes skPulse { from { box-shadow: 0 0 6px #ffd23d; transform: scale(1); } to { box-shadow: 0 0 22px #ffd23d; transform: scale(1.08); } }
+.auto-btn { position: absolute; right: 12px; top: calc(max(10px, env(safe-area-inset-top)) + 118px); padding: 6px 10px; border-radius: 10px; font-weight: 900; font-size: 13px; background: #2a2f3a; color: #8a93a3; border: 2px solid #4a5263; }
+.auto-btn.on { background: #1f4a2a; color: #7dff8a; border-color: #7dff8a; }
+/* ---------- 구조 신호 ---------- */
+#signal .sig-box { width: min(86vw, 360px); background: #1b1f29; border: 3px solid #ff5a3a; border-radius: 18px; padding: 16px; text-align: center; animation: cmIn .25s ease-out; }
+.sig-head { font-family: var(--font-title); font-size: 26px; color: #ff6a4a; }
+#sigFace { width: 96px; height: 96px; border-radius: 50%; background: #fff; border: 4px solid #fff; margin: 8px auto; display: block; object-fit: cover; }
+.sig-name { font-weight: 900; color: var(--gold); font-size: 17px; }
+.sig-line { color: #fff; font-size: 16px; margin: 6px 0 12px; word-break: keep-all; line-height: 1.4; }
+.sig-btns { display: flex; gap: 8px; justify-content: center; }
+.sig-btns button { flex: 1; }
+.sig-time { height: 6px; background: rgba(255,255,255,.15); border-radius: 3px; margin-top: 12px; overflow: hidden; }
+.sig-time i { display: block; height: 100%; background: #ff6a4a; width: 100%; }
+.stars { color: #ffd23d; letter-spacing: 2px; }
+.stars .off { color: rgba(255,255,255,.25); }
+.sig-b { flex: 1; padding: 12px 6px; border-radius: 12px; font-weight: 900; font-size: 16px; background: #3a4150; color: #ddd; border: 2px solid #5a6273; }
+.sig-b.go { background: linear-gradient(180deg, #ff8a4a, #e0442a); color: #fff; border-color: #ffd0a0; }

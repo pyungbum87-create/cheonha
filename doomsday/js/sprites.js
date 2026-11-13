@@ -289,6 +289,10 @@ window.DX = window.DX || {};
       }
       SPR.gun[nm] = { skinArt: usedSkin, skin };
     }
+    // 안전 칸 창문 얼굴 (시민 12명 + 강아지)
+    const npc = C.comicNpc || [];
+    for (let i = 0; i < npc.length; i++) { const cv = await SPR.cut(npc[i].face, 72); if (cv) out.push({ name: 'face:' + i, canvas: cv }); }
+    { const cv = await SPR.cut('assets/npc/dog_0.png', 72); if (cv) out.push({ name: 'face:dog', canvas: cv }); }
     return out;
   }
   // 꾸미기에서 옷을 바꾸면 두 번째 장만 다시 만듦 (빠름)

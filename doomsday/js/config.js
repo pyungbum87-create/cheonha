@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.11',
+    version: 'v0.12',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -144,16 +144,15 @@ DX.CONFIG = {
      reward: 결과(0~1 비율)에 곱해서 지급 — gold(×스테이지 배율), heal(열차 체력 비율), ult(필살기 충전) */
   minigame: {
     on: true,
+    // 스토리: 장마다 1번, 중간보스 다음(5번째 웨이브 전). 다시 하기: pool 중 무작위(직전 것 제외)
     byStage: [
-      [[3, 'parcel']],
-      [[2, 'rescue'], [5, 'parcel']],
-      [[3, 'rescue'], [6, 'golf']],
-      [[2, 'golf'], [5, 'rescue']],
-      [[3, 'parcel'], [6, 'golf']],
-      [[2, 'rescue'], [5, 'parcel']],
-      [[3, 'golf'], [6, 'rescue']],
-      [[2, 'parcel'], [5, 'golf']],
+      [[5, 'boiler']], [[5, 'rescue']], [[5, 'sniper']], [[5, 'parcel']],
+      [[5, 'rescue']], [[5, 'boiler', { hard: true }]], [[5, 'sniper', { dark: true }]], [[5, 'golf']],
     ],
+    pool: [['boiler', 'rescue', 'parcel'], ['rescue', 'parcel', 'boiler'], ['sniper', 'rescue', 'parcel'], ['parcel', 'golf', 'sniper'],
+      ['rescue', 'sniper', 'boiler'], ['boiler', 'rescue', 'sniper'], ['sniper', 'boiler', 'parcel'], ['golf', 'parcel', 'sniper']],
+    // 미니게임 시작 대사 (게임 설명 말고 사건으로)
+    lines: { boiler: '열차가 멈췄다! 좀비가 다가온다!', rescue: '사람들이 쫓기고 있어! 업고 뛰어!', sniper: '옥상의 사람들이 위험해! 엄호해!', parcel: '택배 폭탄이 날아온다! 받아쳐!', golf: '사장님이 골프채를 들었다!', hack: '문 암호를 풀어야 해!' },
     bg: ['assets/story/ch1_side.jpg', 'assets/story/ch2_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch1_side.jpg', 'assets/story/ch1_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch3_side.jpg'],
     tint: [null, null, null, 'rgba(160,40,140,0.28)', 'rgba(60,40,20,0.25)', 'rgba(170,200,255,0.45)', 'rgba(0,0,0,0.45)', 'rgba(20,120,40,0.3)'],
     reward: { gold: 60, goldPerStage: 0.35, heal: 0.15, ult: 0.35 },
@@ -162,18 +161,30 @@ DX.CONFIG = {
   /* ------------------------------------------------------------- 만화 컷 (챕터 시작 때 1번, 스테이지 id 별)
      칸 하나 = { who, text } 또는 { cap: '해설 문구' }. who: 0 잭 / 1 민호 / 2 소피 / 'n숫자' = 시민 얼굴(npc 목록 순서)
      bg: 배경 그림, pos: 배경에서 보여줄 가로 위치들(%), tint: 색 덧칠. 한 화면에 3칸씩 */
+  // 얼굴 순서 = 그림 주문서 citizens_faces.png 순서. job = 안전 칸 보너스 (jobs 참고)
   comicNpc: [
-    { name: '여고생 지은', face: 'assets/npc/face_0.png' }, { name: '택배기사 박씨', face: 'assets/npc/face_1.png' },
-    { name: '편의점 알바', face: 'assets/npc/face_2.png' }, { name: '휴게소 주방장', face: 'assets/npc/face_3.png' },
-    { name: '바텐더', face: 'assets/npc/face_4.png' }, { name: '정비공 철수', face: 'assets/npc/face_5.png' },
-    { name: '청소 여사님', face: 'assets/npc/face_6.png' }, { name: '경비 아저씨', face: 'assets/npc/face_7.png' },
-    { name: '김 대리', face: 'assets/npc/face_8.png' }, { name: '백신 박사', face: 'assets/npc/face_9.png' },
-    { name: '기관사 할아버지', face: 'assets/npc/face_10.png' }, { name: '퇴직한 부장님', face: 'assets/npc/face_11.png' },
+    { name: '인턴 이하나', face: 'assets/npc/face_0.png', job: 'scout' }, { name: '택배기사 박씨', face: 'assets/npc/face_1.png', job: 'gold' },
+    { name: '편의점 알바', face: 'assets/npc/face_2.png', job: 'gold' }, { name: '휴게소 요리사', face: 'assets/npc/face_3.png', job: 'cook' },
+    { name: '바텐더', face: 'assets/npc/face_4.png', job: 'ult' }, { name: '정비공', face: 'assets/npc/face_5.png', job: 'mech' },
+    { name: '청소부 아주머니', face: 'assets/npc/face_6.png', job: 'guard' }, { name: '경비원 할아버지', face: 'assets/npc/face_7.png', job: 'guard' },
+    { name: '부장님 비서', face: 'assets/npc/face_8.png', job: 'crit' }, { name: '연구원', face: 'assets/npc/face_9.png', job: 'scout' },
+    { name: '버스 기사', face: 'assets/npc/face_10.png', job: 'mech' }, { name: '회사원 아저씨', face: 'assets/npc/face_11.png', job: 'gold' },
   ],
+  // 시민 직업 보너스 (1명당, 같은 직업 3명 이상이면 ×2)
+  jobs: {
+    cook: { name: '요리사', desc: '웨이브마다 체력 회복', heal: 0.03 },
+    gold: { name: '골드', desc: '골드 +', gold: 0.05 },
+    mech: { name: '정비공', desc: '쿨타임 감소', haste: 0.04 },
+    guard: { name: '경비', desc: '침입 방어', inv: 0.15 },
+    ult: { name: '바텐더', desc: '필살기 충전 +', ult: 0.08 },
+    crit: { name: '비서', desc: '치명타 +', crit: 0.03 },
+    scout: { name: '정찰', desc: '경험치 +', xp: 0.05 },
+  },
+
   comics: {
     desert: { bg: 'assets/story/ch1_side.jpg', pos: [0, 100, 30, 70], panels: [
       { cap: '좀비 사태 3일째. 회사는 사라졌다. 하지만 출근은 계속된다.' },
-      { who: 'n10', text: '이 열차... 둠스데이 익스프레스는 아직 달릴 수 있네.' },
+      { who: 'n10', text: '이 열차... 아직 달릴 수 있어요! 운전은 제가 해 봤어요!' },
       { who: 0, text: '목적지는 지하 연구소. 백신이 거기 있다.' },
       { who: 1, text: '저 오늘 입사 첫날인데요... 왜 무기가 전부 뚫어뻥이에요?' },
       { who: 2, text: '마지막까지 문 연 가게가 철물점이었거든.' },
@@ -197,7 +208,7 @@ DX.CONFIG = {
       { cap: '한밤의 회식 거리. 2차, 3차... 끝이 없다.' },
       { who: 'n4', text: '과장님들이 폭탄주를 드시더니... 진짜 폭탄이 됐어요!' },
       { who: 1, text: '저 회식 싫어서 입사 미뤘던 사람인데요...' },
-      { who: 'n11', text: '자네들, 사장님 골프공은 조심하게. 아주 매서워.' },
+      { who: 'n11', text: '사장님 골프공은 조심해요. 아주 매서워요.' },
       { who: 2, text: '골프공이면... 내 노트북으로 받아치면 되지.' },
     ] },
     bridge: { bg: 'assets/story/ch1_side.jpg', tint: 'rgba(60,30,10,0.25)', pos: [100, 0, 60, 20], panels: [
@@ -211,7 +222,7 @@ DX.CONFIG = {
       { cap: '눈보라 설산. 강제 워크숍 현장.' },
       { who: 'n6', text: '상무님이 스키 연수 가시더니 안 돌아오셨어요...' },
       { who: 1, text: '워크숍... 그 단어만 들어도 소름이...' },
-      { who: 'n0', text: '저도 태워 주세요! 강아지도 같이요!' },
+      { who: 'n0', text: '(무전) 구조 신호 발견! 눈 속에 사람들이 있어요!' },
       { who: 0, text: '타라. 둠스데이 익스프레스는 정원이 없다.' },
     ] },
     tunnel: { bg: 'assets/story/ch3_side.jpg', tint: 'rgba(0,0,0,0.5)', pos: [0, 100, 50, 30], panels: [
@@ -282,7 +293,31 @@ DX.CONFIG = {
   },
 
   // 시민 구출 미니게임에서 구한 사람들이 타는 '안전 칸' — 1명당 보너스 (최대 maxPeople명까지)
-  safeCar: { goldPer: 0.04, xpPer: 0.03, maxPeople: 12 },
+  safeCar: { goldPer: 0.02, xpPer: 0.02, maxPeople: 12 },
+
+  /* ------------------------------------------------------------- 구조 작전 (판 도중 구조 신호 → 멈춘다/지나친다)
+     at = 몇 번째 웨이브 시작 전, decide = 고르는 시간(초, 안 고르면 구함)
+     face = 시민 얼굴 번호(comicNpc), n = 구하는 사람 수, op = 작전 미니게임(rescue/sniper/boiler/hack/parcel), dog = 강아지
+     처음 하는 장은 첫 번째 사연, 다시 하기는 무작위. 지나친 사람은 다음 장에서 좀비로 나타남 */
+  rescueOps: {
+    at: 3, decide: 3, slow: 0.35,
+    byStage: {
+      desert: [{ face: 0, n: 1, op: 'sniper', line: '폐차 지붕에 올라간 인턴이 손을 흔든다!', quote: '저 오늘 첫 출근이었는데요...' }],
+      rest: [{ face: 1, n: 1, op: 'rescue', line: '휴게소 화장실에 택배기사가 갇혔다!', quote: '배송은... 끝까지 해야죠' },
+        { face: 3, n: 1, op: 'rescue', line: '호두과자 가게 사장님이 쫓기고 있다!', quote: '호두과자는 제가 책임질게요!' }],
+      city: [{ face: 8, n: 3, op: 'sniper', line: '본사 옥상에서 사무직 3명이 손을 흔든다!', quote: '부장님은 버리고 왔어요' }],
+      neon: [{ face: 4, n: 2, op: 'rescue', line: '노래방에 회식팀이 갇혔다!', quote: '3차는 진짜 안 가요' }],
+      bridge: [{ face: 10, n: 4, op: 'rescue', line: '철교 위에 통근 버스가 멈춰 있다!', quote: '다리가 무너지기 전에 다 건넜어요!' },
+        { dog: true, n: 1, op: 'rescue', line: "다리 아래 강아지 '야근이'가 매달려 있다!", quote: '멍멍! (야근이가 안전 칸 마스코트가 됐다)' }],
+      snow: [{ face: 5, n: 2, op: 'boiler', line: '눈 속에 워크숍 참가자들이 파묻혔다! 보일러 열로 녹이자!', quote: '상무님이 퇴사도 못 하게 했어요' }],
+      tunnel: [{ face: 8, n: 1, op: 'sniper', dark: true, line: '어둠 속에서 부장님 비서가 부른다!', quote: '이사님 약점은 등 뒤예요!', bossWeak: true }],
+      lab: [{ face: 9, n: 2, op: 'hack', line: '실험실 문 안에 연구원들이 갇혔다!', quote: '금고 비밀번호 앞자리는... 0, 4, 1!' }],
+    },
+  },
+  // 안전 칸: 6명마다 한 칸 더. 침입 좀비가 노리면 시민이 도망가 보너스가 잠시 꺼짐(fleeT초)
+  safeSeats: 6, safeFleeT: 25,
+  // 보스 공통 2단계 (체력 50%) — 보스별 rage가 있으면 그걸 씀
+  bossRage: { at: 0.5, speed: 1.2, scale: 1.08, throwMul: 0.8, quote: '이제부터 진짜 야근이다!!' },
 
   invasion: {
     firstWave: 3,            // 몇 번째 웨이브부터 침입이 생기는지
@@ -366,37 +401,44 @@ DX.CONFIG = {
   /* ------------------------------------------------------------- 무기 (레벨업으로 획득, Lv1~5, Lv5는 '진화')
      배열은 [Lv1, Lv2, Lv3, Lv4, Lv5] 순서 */
   weapons: {
-    mg: { name: '뚫어뻥 기관총', evoName: '황금 뚫어뻥 개틀링', icon: 'assets/icons/w_mg.png', car: 'gun',
+    mg: { evoWith: 'haste', name: '뚫어뻥 기관총', evoName: '황금 뚫어뻥 개틀링', icon: 'assets/icons/w_mg.png', car: 'gun',
       desc: ['생존자들이 뚫어뻥 탄을 연사', '사수 +1명 합류', '피해 증가, 관통 +1', '연사 속도 증가', '진화! 황금 개틀링 난사'],
       dmg: [10, 12, 14, 16, 20], rate: [0.30, 0.27, 0.24, 0.21, 0.15], shooters: [2, 3, 3, 3, 3], pierce: [0, 0, 1, 1, 2], range: 34 },
-    flame: { name: '화염방사 칸', evoName: '플레임 스톰', icon: 'assets/icons/w_flame.png', car: 'flame',
+    flame: { evoWith: 'armor', name: '화염방사 칸', evoName: '플레임 스톰', icon: 'assets/icons/w_flame.png', car: 'flame',
       desc: ['열차 양옆으로 화염 분사', '화염 피해 증가', '사거리 증가', '피해 대폭 증가', '진화! 바닥에 불바다를 남김'],
       dps: [22, 28, 36, 44, 60], range: [9, 10, 11.5, 12.5, 15] },
-    tesla: { name: '테슬라 코일', evoName: '테슬라 체인 스톰', icon: 'assets/icons/w_tesla.png', car: 'tesla',
+    tesla: { evoWith: 'crit', name: '테슬라 코일', evoName: '테슬라 체인 스톰', icon: 'assets/icons/w_tesla.png', car: 'tesla',
       desc: ['번개가 좀비 사이를 연쇄', '연쇄 수 증가', '피해 증가', '발동 속도 증가', '진화! 번개가 두 줄기로'],
       cd: [2.0, 1.8, 1.6, 1.4, 1.0], chains: [8, 10, 12, 14, 20], dmg: [30, 36, 44, 52, 66], range: 22 },
-    drone: { name: '드론 폭탄', evoName: '드론 편대 폭격', icon: 'assets/icons/w_drone.png', car: 'drone',
+    drone: { evoWith: 'magnet', name: '드론 폭탄', evoName: '드론 편대 폭격', icon: 'assets/icons/w_drone.png', car: 'drone',
       desc: ['드론이 좀비 떼에 폭탄 투하', '폭발 피해 증가', '드론 +1', '폭발 범위 증가', '진화! 드론 4대 편대'],
       drones: [1, 1, 2, 2, 4], cd: [2.0, 1.8, 1.7, 1.5, 1.1], dmg: [55, 65, 75, 85, 100], radius: [3.6, 3.9, 4.2, 4.7, 5.4] },
-    cannon: { name: '캐논 터렛', evoName: '쌍열 캐논', icon: 'assets/icons/w_cannon.png', car: 'cannon',
+    cannon: { evoWith: 'power', name: '캐논 터렛', evoName: '쌍열 캐논', icon: 'assets/icons/w_cannon.png', car: 'cannon',
       desc: ['강력한 포탄으로 범위 피해', '피해 증가', '폭발 범위 증가', '연사 속도 증가', '진화! 포신 2개'],
       rate: [1.0, 0.9, 0.8, 0.7, 0.45], dmg: [60, 75, 90, 105, 130], splash: [3.0, 3.3, 3.6, 4.0, 4.6], range: 40 },
-    barrel: { name: '드럼통 낙하', evoName: '드럼통 비', icon: 'assets/icons/w_barrel.png', car: null,
+    barrel: { evoWith: 'greed', name: '드럼통 낙하', evoName: '드럼통 비', icon: 'assets/icons/w_barrel.png', car: null,
       desc: ['하늘에서 폭발 드럼통 낙하', '피해 증가', '드럼통 +1', '폭발 범위 증가', '진화! 드럼통 4개 연속 낙하'],
       cd: [5.5, 5.0, 5.0, 4.5, 3.2], count: [1, 1, 2, 2, 4], dmg: [70, 85, 100, 115, 145], radius: [4.2, 4.5, 4.8, 5.4, 6.2] },
     // ↓ 새 무기 3종 (그림이 없으면 기관총 칸 그림에 색만 입혀서 씀. 아이콘이 없으면 emoji)
-    water: { name: '소방 물대포', evoName: '고압 해일 물대포', icon: 'assets/icons/w_water.png', emoji: '💧', car: 'water',
-      desc: ['물줄기로 좀비를 밀어내고 적심 (젖은 좀비: 불 → 증기 폭발, 번개 → 감전 1.5배)', '밀어내는 힘 증가', '피해 증가', '발사 간격 감소', '진화! 양쪽으로 해일 발사'],
-      cd: [2.4, 2.2, 2.0, 1.7, 1.4], dmg: [24, 30, 38, 46, 60], push: [9, 12, 13, 14, 18], range: 14, width: 3.2, wet: 4 },
-    freeze: { name: '냉동 컨테이너', evoName: '절대영도 컨테이너', icon: 'assets/icons/w_ice.png', emoji: '❄️', car: 'freeze',
-      desc: ['주변 좀비를 얼려서 멈춤 (젖은 좀비는 2배 오래 + 추가 피해)', '얼음 범위 증가', '얼리는 시간 증가', '발동 간격 감소', '진화! 얼음 가시가 연속 폭발'],
-      cd: [4.5, 4.2, 4.0, 3.4, 2.6], dmg: [30, 36, 44, 52, 66], radius: [7, 8.5, 9, 10, 12], freeze: [1.3, 1.5, 2.0, 2.2, 2.6], slow: 0.45 },
-    fan: { name: '초대형 환풍기', evoName: '회오리 폭풍', icon: 'assets/icons/w_wind.png', emoji: '🌪️', car: 'fan',
-      desc: ['좀비 떼에 회오리를 일으켜 한데 모으고 피해', '회오리 피해 증가', '빨아들이는 힘 증가', '회오리 지속 증가', '진화! 회오리 2개'],
-      cd: [5.0, 4.8, 4.5, 4.2, 3.6], dps: [16, 20, 24, 28, 36], radius: [4.5, 4.5, 5, 5.5, 6], pull: [5, 5.5, 7, 7.5, 9], dur: [2.5, 2.6, 2.8, 3.4, 3.6], count: [1, 1, 1, 1, 2] },
+    // ↓ 액티브 스킬 3종 (쿨타임이 차면 버튼이 번쩍 → 누르면 발동. 자동 모드에서는 알아서 쓰지만 효과 auto배)
+    water: { active: true, name: '소방 물대포', evoName: '물회오리 물대포', icon: 'assets/icons/w_water.png', emoji: '💧', car: 'water', elem: '물',
+      desc: ['굵은 물줄기로 밀어내고 적심 (젖음: 번개 감전·얼음 빙결·불 수증기)', '피해·밀어내기 증가', '물줄기 두 줄기!', '쿨타임 감소', '열차 주위를 도는 물회오리!'],
+      cd: [12, 11, 10.5, 9, 8.5], dmg: [55, 70, 80, 95, 110], push: [16, 20, 22, 24, 26], range: 15, width: 3.4, wet: 6 },
+    freeze: { active: true, name: '냉동 컨테이너', evoName: '얼음 가시 컨테이너', icon: 'assets/icons/w_ice.png', emoji: '❄️', car: 'freeze', elem: '얼음',
+      desc: ['넓은 범위를 3초 얼림 (얼린 좀비를 총·폭발로 치면 산산조각)', '얼리는 시간 증가', '범위 1.5배!', '쿨타임 감소', '얼음 가시가 솟아 큰 피해!'],
+      cd: [18, 17, 16, 14, 13], dmg: [20, 25, 30, 35, 120], radius: [9, 9, 13.5, 13.5, 14], freeze: [3, 3.6, 3.6, 4, 4], slow: 0.45 },
+    fan: { active: true, name: '회오리 환풍기', evoName: '추적 회오리', icon: 'assets/icons/w_wind.png', emoji: '🌪️', car: 'fan', elem: '바람',
+      desc: ['좀비를 한곳으로 빨아들이는 회오리 (불붙은 좀비가 들어가면 불회오리)', '회오리 피해 증가', '회오리 크기 두 배!', '쿨타임 감소', '회오리가 좀비를 따라다님!'],
+      cd: [15, 14, 13.5, 12, 11], dps: [10, 13, 16, 19, 24], radius: [5, 5, 8, 8, 9], pull: [7, 8, 10, 10, 12], dur: [4, 4.5, 4.5, 5, 6], follow: [0, 0, 0, 0, 1] },
   },
-  // 무기 조합 (젖은 좀비에게 불·번개)
-  combo: { steamDmg: 0.6, steamRadius: 2.6, shockMul: 1.5 },
+  // 액티브 스킬: 화면 아래 버튼 최대 max개. auto = 자동 모드 효율
+  skills: { max: 3, auto: 0.8 },
+  // 원소 반응 (젖음·얼음·불·바람이 만나면)
+  combo: { shockMul: 2, shockChain: 8, shatterMul: 1.5, steamSlow: 2.5, steamRadius: 3, fireTornado: 0.35 },
+  // 판 안 제한: 무기 칸 4개(기관총 포함), 보조템 4개, 진화 최대 2개 (진화 = 최고 레벨 + 짝 보조템 → 중간보스 보물상자에서)
+  limits: { weapons: 4, passives: 4, evo: 2 },
+  // 첫 레벨업 2번은 빨리 (몸풀기)
+  xpEarly: [4, 7],
 
   /* ------------------------------------------------------------- 패시브 (Lv1~5) */
   passives: {
