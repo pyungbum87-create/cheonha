@@ -458,7 +458,43 @@ window.DX = window.DX || {};
   }
 
   /* ================= 웨이브 ================= */
-  function nextWave() {
+  /* ================= 웨이브 사이 미니게임 ================= */
+  function miniReward(grade, stageIdx) {
+    const mg = C.minigames || {}, rw = (mg.rewards || {})[grade] || {};
+    const gold = Math.round((rw.gold || 0) * (1 + (stageIdx || 0) * (mg.goldPerStage || 0)));
+    return { gold, heal: rw.heal || 0, ult: rw.ult || 0, card: rw.card || 0 };
+  }
+  DX.MINI_REWARD = function (grade, stageIdx) {
+    const r = miniReward(grade, stageIdx), out = [];
+    if (r.gold) out.push(DX.L('골드 +' + r.gold, '金币 +' + r.gold));
+    if (r.heal) out.push(DX.L('체력 +' + Math.round(r.heal * 100) + '%', '生命 +' + Math.round(r.heal * 100) + '%'));
+    if (r.ult) out.push(DX.L('대파 폭격 충전', '大招充能'));
+    if (r.card) out.push(DX.L('카드 ' + r.card + '장', '卡牌 ' + r.card + ' 张'));
+    return out.join(' · ');
+  };
+  function miniFor(cleared) {
+    const mg = C.minigames;
+    if (!mg || !mg.on || !DX.MINI || !G.stg) return null;
+    const k = (mg.schedule && mg.schedule[G.stg.id] || {})[cleared];
+    return k && DX.MINI.has(k) ? k : null;
+  }
+  function startMini(key) {
+    DX.state = 'mini';
+    const si = G.stageIdx;
+    DX.MINI.start(key, { stage: si, theme: G.stg.theme, reward: gr => DX.MINI_REWARD(gr, si) }, res => {
+      if (!G) return;
+      const r = miniReward(res.grade, si);
+      G.gold += r.gold;
+      if (r.heal) G.hp = Math.min(G.hpMax, G.hp + G.hpMax * r.heal);
+      if (r.ult) G.ult = Math.min(1, G.ult + r.ult);
+      if (r.card) G.pendingLv += r.card;
+      if (r.gold || r.heal) S.level();
+      DX.state = 'play';
+      nextWave(true);
+    });
+  }
+  function nextWave(afterMini) {
+    if (!afterMini && G.waveIdx >= 0 && G.endT < 0) { const mk = miniFor(G.waveIdx + 1); if (mk) { startMini(mk); return; } }
     G.waveIdx++;
     if (G.waveIdx >= G.stg.waves.length) { endRun(true); return; }
     const w = G.stg.waves[G.waveIdx];
@@ -1909,7 +1945,7 @@ window.DX = window.DX || {};
   };
   DX.setQuality = function (q) { DX.save.quality = q; E.dprCap = q === 'low' ? 1.25 : 2; DX.persist(); buildProps(world.theme); };
   DX.previewStage = function (i) { DX.save.stage = i; DX.persist(); if (!G) applyTheme(i); };
-  DX._dbg = { inv: () => G && startInvasion(), end: w => endRun(w), boss: k => { G.wave = Object.assign({}, G.wave, { boss: k }); spawnBoss(); }, spawn: (t, x, z) => spawnZombie(t, x, z) };
+  DX._dbg = { mini: k => G && startMini(k), inv: () => G && startInvasion(), end: w => endRun(w), boss: k => { G.wave = Object.assign({}, G.wave, { boss: k }); spawnBoss(); }, spawn: (t, x, z) => spawnZombie(t, x, z) };
   DX._world = world;
   DX._update = update;
   DX._render = render;
