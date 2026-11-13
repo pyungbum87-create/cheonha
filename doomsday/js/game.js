@@ -186,6 +186,12 @@ window.DX = window.DX || {};
   // 바닥 질감 (그림 타일을 깔아서 스크롤). 없으면 예전 단색 바닥
   const GROUND_OF = { desert: 'sand', city: 'asphalt', bridge: 'planks', tunnel: 'concrete' };
   function drawGround(th) {
+    const gi = th.groundImg && SPR.frames['gimg:' + th.groundImg];
+    if (gi) {   // 그림 바닥: 가로 26칸 폭 그림을 선로 중심에 깔고, 바깥은 좌우 뒤집어 이어 붙임
+      const TW = 26, TH = TW / gi.aspect, off = world.scroll % TH, tn = th.groundTint ? null : null;
+      for (let z = -174 + off; z < 60; z += TH) for (let i = -2; i <= 2; i++) E.quad(gi, i * TW, 0.02, z, [TW, 0, 0], [0, 0, -TH], 0.5, 0.5, tn, null, i % 2 !== 0, 400);
+      return true;
+    }
     const fr = SPR.frames['ground:' + (th.groundTex || GROUND_OF[th.props] || 'sand')]; if (!fr) return false;
     const TS = 12, off = world.scroll % TS, tint = th.groundTint || null;
     let x0 = -54, x1 = 54;

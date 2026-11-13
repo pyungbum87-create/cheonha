@@ -344,6 +344,10 @@ window.DX = window.DX || {};
     }
     // 바닥 질감 (코드로 그림: 모래·아스팔트·눈·콘크리트·나무판·자갈) — 이어 붙여도 이음새가 안 보이게 그림
     for (const k of ['sand', 'asphalt', 'snow', 'concrete', 'planks', 'gravel']) items.push({ name: 'ground:' + k, canvas: makeGround(k) });
+    // 챕터 바닥 그림 (위에서 내려다본 그림, 가운데 자갈길 = 선로 자리)
+    for (const k of ['desert', 'rest', 'city', 'neon', 'tunnel', 'lab']) {
+      try { const d = await getPixels('assets/ground/' + k + '.jpg'); items.push({ name: 'gimg:' + k, canvas: crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 }) }); } catch (e) { console.warn('ground img fail', k, e); }
+    }
     if (!items.length) return false;
     let atlas;
     try { atlas = pack(items, 2048); } catch (e) { console.warn('atlas 2048 full → 4096'); SPR.frames = {}; atlas = pack(items, 4096); }

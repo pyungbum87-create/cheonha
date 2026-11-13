@@ -269,7 +269,7 @@ DX.CONFIG = {
         { who: 0, text: '연료가 간당간당하다. 다음 휴게소에 들른다.' },
       ],
       theme: {
-        skyImg: 'assets/sky/sunset.jpg', skyTop: '#f3b06b', skyBottom: '#f7d49b', fog: '#efc08a', fogNear: 55, fogFar: 150,
+        groundImg: 'desert', skyImg: 'assets/sky/sunset.jpg', skyTop: '#f3b06b', skyBottom: '#f7d49b', fog: '#efc08a', fogNear: 55, fogFar: 150,
         light: [0.5, 0.9, 0.3], sky: '#fff1d6', ground: '#a8714a', ambient: 0.45,
         groundCol: '#d9a066', ballast: '#8b6a4f', sleeper: '#5b4636', rail: '#aab2bf',
         props: 'desert', weather: 'dust', rock: ['#c27a45', '#b06a3a', '#d48b52', '#9e5d33'], plant: '#5f8f3a',
@@ -297,7 +297,7 @@ DX.CONFIG = {
         { who: 2, text: '무전이 잡혀. "본사 서버에... 백신 위치가..." 도심으로 가야 해.' },
       ],
       theme: {
-        skyImg: 'assets/sky/sunset.jpg', skyTop: '#ff7e5f', skyBottom: '#ffc27a', fog: '#f2a27a', fogNear: 50, fogFar: 140,
+        groundImg: 'rest', skyImg: 'assets/sky/sunset.jpg', skyTop: '#ff7e5f', skyBottom: '#ffc27a', fog: '#f2a27a', fogNear: 50, fogFar: 140,
         light: [0.7, 0.6, 0.3], sky: '#ffd9b8', ground: '#8a5040', ambient: 0.5, spriteTint: [1.0, 0.9, 0.84],
         groundCol: '#c98a5c', ballast: '#7a5a48', sleeper: '#4e3a2e', rail: '#b0a8a8',
         props: 'desert', weather: 'dust', rock: ['#b0603a', '#a0502e', '#c4743f', '#8a4a2a'], plant: '#6a7a3a', groundTint: [1.0, 0.86, 0.8, 1],
@@ -325,7 +325,7 @@ DX.CONFIG = {
         { who: 0, text: '과장님... 편히 퇴근하세요.' },
       ],
       theme: {
-        skyTop: '#1d2448', skyBottom: '#6a3f6e', fog: '#4a3a62', fogNear: 50, fogFar: 150,
+        groundImg: 'city', skyTop: '#1d2448', skyBottom: '#6a3f6e', fog: '#4a3a62', fogNear: 50, fogFar: 150,
         light: [0.35, 0.85, 0.45], sky: '#c9d2ff', ground: '#5a4a6a', ambient: 0.62,
         groundCol: '#565a68', ballast: '#3c3f4a', sleeper: '#3d3027', rail: '#9aa3b2',
         props: 'city', weather: 'rain', spriteTint: [0.85, 0.85, 0.97], building: ['#5a6378', '#66708a', '#525a6e', '#6a5a78', '#586868'], neon: ['#ff4fa3', '#3df2ff', '#ffd23d', '#7dff6b'],
@@ -353,7 +353,7 @@ DX.CONFIG = {
         { who: 2, text: '앞에 협곡 철교야. 이사님 신호가 거기서 잡혀.' },
       ],
       theme: {
-        skyTop: '#07061a', skyBottom: '#3a0d4a', fog: '#24103a', fogNear: 40, fogFar: 130,
+        groundImg: 'neon', skyTop: '#07061a', skyBottom: '#3a0d4a', fog: '#24103a', fogNear: 40, fogFar: 130,
         light: [0.3, 0.8, 0.5], sky: '#ff9ad8', ground: '#2a1a3a', ambient: 0.66,
         groundCol: '#3a3446', ballast: '#2a2632', sleeper: '#2e2420', rail: '#a99ac0',
         props: 'city', weather: 'confetti', spriteTint: [0.95, 0.82, 1.0], building: ['#2e2a44', '#3a2e50', '#26303e', '#40284a', '#2a3a44'], neon: ['#ff3fa0', '#3df2ff', '#fff23d', '#b05cff', '#ff7a2a'], groundTint: [0.62, 0.55, 0.85, 1],
@@ -437,7 +437,7 @@ DX.CONFIG = {
         { who: 0, text: '카드키 준비. 마지막 출근이다.' },
       ],
       theme: {
-        skyTop: '#0a0a12', skyBottom: '#2a0e14', fog: '#1a0e12', fogNear: 35, fogFar: 120,
+        groundImg: 'tunnel', skyTop: '#0a0a12', skyBottom: '#2a0e14', fog: '#1a0e12', fogNear: 35, fogFar: 120,
         light: [0.3, 0.9, 0.5], sky: '#ffb0a0', ground: '#2a1a20', ambient: 0.55,
         groundCol: '#2e2b30', ballast: '#242226', sleeper: '#3a2e26', rail: '#8a8f9a',
         props: 'tunnel', weather: 'sparks', spriteTint: [0.85, 0.74, 0.76], walls: [-12.5, 5.5], wall: '#3a3840', alarm: '#ff2a2a',
@@ -466,7 +466,7 @@ DX.CONFIG = {
         { who: 0, text: '...내일도 출근이다. 열차 정비해 둬.' },
       ],
       theme: {
-        skyTop: '#04120e', skyBottom: '#0e2e26', fog: '#0c221d', fogNear: 35, fogFar: 115,
+        groundImg: 'lab', skyTop: '#04120e', skyBottom: '#0e2e26', fog: '#0c221d', fogNear: 35, fogFar: 115,
         light: [0.3, 0.9, 0.5], sky: '#a0ffd8', ground: '#16241f', ambient: 0.6,
         groundCol: '#26332f', ballast: '#1d2724', sleeper: '#2e2a26', rail: '#9aa8a4',
         props: 'tunnel', weather: 'sparks', spriteTint: [0.78, 0.95, 0.86], walls: [-12.5, 5.5], wall: '#2c3c3a', alarm: '#3dff9a', groundTint: [0.7, 0.95, 0.85, 1],
