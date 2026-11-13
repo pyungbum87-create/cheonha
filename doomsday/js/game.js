@@ -295,6 +295,26 @@ window.DX = window.DX || {};
   /* 그림 열차: 지붕(위에서 본 그림) + 양옆(옆에서 본 그림) 판을 3D로 세워서 조립 */
   const TOP_CAR = 1.6, TOP_ENGINE = 2.3;
   const GHOST_TINT = [0.45, 0.95, 1.0, 0.33], GHOST_ADD = [0.0, 0.12, 0.18];
+  // 열차 외형 단계: 열차 장갑판 강화 5단계마다 + 판 안의 '덕테이프 장갑' 카드 2장마다 1단계
+  const TIER_NAMES = ['', '모래주머니 장착!', '앞범퍼 가시 쟁기 장착!', '경광등 드럼통 장착!', '황금 열차 각성!!'];
+  function trainTier() {
+    const m = (DX.save.meta && DX.save.meta.hp) || 0, a = G && G.passives ? (G.passives.armor || 0) : 0;
+    return Math.min(4, Math.floor(m / 5) + Math.floor(a / 2));
+  }
+  let lastTier = -1;
+  function drawTrainGear(layout, tier, t) {
+    const sb = SPR.frames['prop:sandbag'], sp = SPR.frames['prop:spikes'], br = SPR.frames['prop:barrel_siren'];
+    const tint = tier >= 4 ? [1.15, 1.0, 0.6, 1] : null;
+    for (const c of layout.cars) {
+      if (tier >= 1 && sb) for (const sx of [-1, 1]) for (const dz of [-1.6, 1.6]) E.sprite(sb, sx * 1.2, TOP_CAR + 0.02, c.cz + dz, 0.62 * sb.aspect, 0.62, 0, 0.5, 0, tint, null, sx < 0);
+      if (tier >= 3 && br) for (const sx of [-1, 1]) {
+        E.sprite(br, sx * 1.25, TOP_CAR, c.z0 + 0.5, 0.95 * br.aspect, 0.95, 0, 0.5, 0, tint, null, false);
+        if (Math.sin(t * 8 + sx) > 0.3) { T.reset().tr(sx * 1.25, TOP_CAR + 1.05, c.z0 + 0.5).sc(0.7); E.draw('ico', '#ff2a2a', 1.6, 0.35, 2); }
+      }
+    }
+    if (tier >= 2 && sp) for (const x of [-1.05, 0, 1.05]) E.sprite(sp, x, 0.15, -0.35, 1.15 * sp.aspect, 1.15, 0, 0.5, 0, tint, null, x < 0);
+    if (tier >= 4 && Math.random() < 0.3) { const L = layout.end; const pp = { mesh: 'ico', x: rand(-1.4, 1.4), y: rand(1, 3), z: rand(0, L), vy: 1.5, s: 0.18, s1: 0.02, max: 0.7, col: '#ffe066', emi: 2, pass: 2, alpha: 1, drift: 0.6 }; if (G) part(pp); else lobbyParts.push(Object.assign(pp, { life: 0, g: 0, rot: 0, vr: 0, vx: 0, vz: 0 })); }
+  }
   function drawTrainArt(layout, st, ghost) {
     const pieces = [{ kind: 'engine', z0: 0, L: 6.4, top: TOP_ENGINE }].concat(layout.cars.map((c, i) => ({ kind: c.kind, z0: c.z0, L: MD.CAR_LEN, top: TOP_CAR, idx: i })));
     const t = G ? G.t : world.t;
@@ -319,6 +339,13 @@ window.DX = window.DX || {};
         const pp = { mesh: 'ico', x: rand(-0.2, 0.2), y: p.top + 2.0, z: 1.6, vx: rand(-0.3, 0.3), vy: rand(2.5, 4), vz: 0, s: 0.45, s1: 1.4, max: 1.0, col: '#e8e2d8', alpha: 0.4, pass: 1, drift: 0.7 };
         if (G) part(pp); else lobbyParts.push(Object.assign(pp, { life: 0, g: 0, rot: 0, vr: 0 }));
       }
+    }
+    if (!ghost) {
+      const tier = trainTier();
+      if (tier >= 4) for (const p of pieces) { /* 황금 테두리 빛 */ T.reset().tr(0, 0.1, p.z0 + p.L / 2).sc(3.6, 1, p.L + 0.4); E.draw('disc', '#ffd23d', 1.2, 0.18 + Math.sin(t * 4) * 0.06, 2); }
+      drawTrainGear(layout, tier, t);
+      if (lastTier >= 0 && tier > lastTier && DX.UI) { DX.UI.toast(DX.T('열차 외형 강화: ') + DX.T(TIER_NAMES[tier])); if (G) FX.text(0, 5, layout.end / 2, TIER_NAMES[tier], '#ffd23d', 26, 1.6, true); }
+      lastTier = tier;
     }
   }
 
@@ -508,7 +535,8 @@ window.DX = window.DX || {};
     G.zs.push(b); G.boss = b; G.bossSpawned = true;
     S.roar(); G.shake = Math.max(G.shake, 0.8);
     if (DX.UI) DX.UI.bossBar(true, DX.T(cfg.name), 1);
-    if (DX.UI && cfg.quote) DX.UI.banner(cfg.name, '“' + DX.T(cfg.quote) + '”', 'boss');
+    if (DX.UI && DX.UI.bossIntro) { DX.UI.bossIntro(cfg); G.slowmo = 0.15; G.slowmoT = 1.6; }
+    else if (DX.UI && cfg.quote) DX.UI.banner(cfg.name, '“' + DX.T(cfg.quote) + '”', 'boss');
   }
   function updWave(dt) {
     const w = G.wave; if (!w || G.endT >= 0) return;
@@ -542,6 +570,14 @@ window.DX = window.DX || {};
     o.life = 0; if (o.drift === undefined) o.drift = 1; if (o.s1 === undefined) o.s1 = o.s;
     o.vx = o.vx || 0; o.vy = o.vy || 0; o.vz = o.vz || 0; o.g = o.g || 0; o.rot = o.rot || 0; o.vr = o.vr || 0;
     G.parts.push(o); return o;
+  }
+  // 데미지 숫자 (좀비마다 0.22초씩 모아서 한 번에)
+  function dmgNum(z, d, crit) {
+    if (DX.save.dmgNum === false) return;
+    let n = 0; for (const t of G.ftexts) if (t.dmg) n++;
+    if (n > (lowQ() ? 14 : 30) && !crit && !z.boss) return;
+    const v = Math.round(d); if (v < 1) return;
+    G.ftexts.push({ x: z.x + rand(-0.5, 0.5), y: (z.y || 0) + 2.2 * (z.s || 1) + rand(0, 0.6), z: z.z, txt: crit ? v + '!' : '' + v, col: crit ? '#ffd23d' : z.boss ? '#ffb0a0' : '#ffffff', size: crit ? 24 : z.boss ? 19 : 15, t: 0, max: crit ? 0.8 : 0.55, dmg: true, crit });
   }
   FX.text = function (x, y, z, txt, col, size, life, big) { txt = DX.T(txt); if (G.ftexts.length > 60) G.ftexts.shift(); G.ftexts.push({ x, y, z, txt, col: col || '#fff', size: size || 18, t: 0, max: life || 0.9, big }); };
   FX.spark = function (x, y, z, n, col) {
@@ -602,7 +638,7 @@ window.DX = window.DX || {};
         for (let i = 0; i < 8; i++) part({ mesh: 'cube', x: z.x, y: 1.2, z: z.z, vx: rand(-5, 5), vy: rand(3, 8), vz: rand(-5, 5), g: -25, s: rand(0.2, 0.4), max: 1, col: pick(['#c08a57', '#e8d5a8']), bounce: true, vr: rand(-10, 10) });
       } else dmg = 0;
     }
-    z.hp -= dmg; z.flash = 0.07; z.lastKind = kind; if (dmg > 0) z.hitT = 0.16;
+    z.hp -= dmg; z.flash = 0.07; z.lastKind = kind; if (dmg > 0) { z.hitT = 0.16; z.dmgAcc = (z.dmgAcc || 0) + dmg; if (crit) z.dmgCrit = true; }
     G.stats[SRC] = (G.stats[SRC] || 0) + Math.min(hp0, dmg);
     if (force && !z.boss) {
       const k = force / z.mass;
@@ -1395,6 +1431,8 @@ window.DX = window.DX || {};
     for (const z of G.zs) {
       if (z.dead) continue;
       z.flash = Math.max(0, z.flash - dt); if (z.hitT > 0) z.hitT -= dt;
+      z.dmgT = (z.dmgT || 0) - dt;
+      if (z.dmgAcc > 0 && z.dmgT <= 0) { dmgNum(z, z.dmgAcc, z.dmgCrit); z.dmgAcc = 0; z.dmgCrit = false; z.dmgT = 0.22; }
       if (z.burnT > 0) { z.burnT -= dt; if (z.burnT <= 0) z.burn = 0; }
       z.ph += dt * (z.boss ? 4 : 11) * (z.spd / 6);
       if (z.stun > 0) z.stun -= dt;

@@ -348,3 +348,22 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .card .c-tag { top: -6px; right: 14px; }
 /* 체력 바: 하트 */
 #hpWrap, .hp-wrap { position: relative; }
+
+/* 낮은 체력 / 피격: 화면 가장자리 빨간 빛 */
+#vignette { position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 4;
+  background: radial-gradient(ellipse at center, rgba(255,0,0,0) 55%, rgba(220,20,20,0.55) 85%, rgba(160,0,0,0.85) 100%); }
+/* 보스 등장 컷인 */
+#bossIntro { position: absolute; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
+#bossIntro .bi-band { position: absolute; left: -10%; right: -10%; top: 30%; height: 34%; transform: skewY(-6deg) scaleX(0);
+  background: repeating-linear-gradient(135deg, rgba(20,8,10,.92) 0 26px, rgba(120,10,10,.92) 26px 52px); box-shadow: 0 0 0 4px #ffd23d, 0 0 40px rgba(255,0,0,.6); }
+#bossIntro img { position: absolute; right: -4%; top: 22%; height: 46%; max-width: 62%; object-fit: contain; transform: translateX(120%); filter: drop-shadow(0 8px 16px rgba(0,0,0,.6)); }
+#bossIntro .bi-text { position: absolute; left: 5%; top: 36%; width: 58%; z-index: 2; opacity: 0; transform: translateX(-40px); }
+#bossIntro .bi-warn { font-family: var(--font-title); color: #ff4a4a; font-size: 16px; letter-spacing: 3px; text-shadow: 0 2px 0 #000; }
+#biName { font-family: var(--font-title); font-size: 26px; word-break: keep-all; line-height: 1.1; color: #fff; text-shadow: 0 3px 0 #000, 0 0 14px rgba(255,0,0,.8); }
+#biQuote { margin-top: 6px; font-weight: 900; font-size: 15px; color: #ffd23d; text-shadow: 0 2px 0 #000; }
+#bossIntro.go .bi-band { animation: biBand 1.9s ease-out forwards; }
+#bossIntro.go img { animation: biImg 1.9s cubic-bezier(.2,.9,.3,1.2) forwards; }
+#bossIntro.go .bi-text { animation: biText 1.9s ease-out forwards; }
+@keyframes biBand { 0% { transform: skewY(-6deg) scaleX(0); } 12% { transform: skewY(-6deg) scaleX(1); } 85% { opacity: 1; } 100% { transform: skewY(-6deg) scaleX(1); opacity: 0; } }
+@keyframes biImg { 0% { transform: translateX(120%) scale(.9); } 22% { transform: translateX(0) scale(1.05); } 30% { transform: translateX(0) scale(1); } 85% { opacity: 1; } 100% { transform: translateX(-8%) scale(1.02); opacity: 0; } }
+@keyframes biText { 0%, 15% { opacity: 0; transform: translateX(-40px); } 30% { opacity: 1; transform: translateX(0); } 85% { opacity: 1; } 100% { opacity: 0; } }

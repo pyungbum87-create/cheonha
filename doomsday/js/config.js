@@ -244,7 +244,7 @@ DX.CONFIG = {
   /* ------------------------------------------------------------- 로비 영구 강화 (골드로 구매)
      레벨당 효과는 아주 작게, 대신 단계가 많음. 가격 = costBase × costGrow^현재레벨 */
   meta: {
-    hp: { name: '열차 장갑판', icon: '🛡️', desc: '열차 체력 +25', per: 25, max: 24, costBase: 60, costGrow: 1.13 },
+    hp: { name: '열차 장갑판', icon: '🛡️', desc: '열차 체력 +25 (5단계마다 열차 모습이 바뀜)', per: 25, max: 24, costBase: 60, costGrow: 1.13 },
     dmg: { name: '사격 훈련', icon: '🎯', desc: '모든 피해 +4%', per: 0.04, max: 20, costBase: 80, costGrow: 1.14 },
     xp: { name: '야간 자율학습', icon: '📚', desc: '경험치 +4%', per: 0.04, max: 20, costBase: 70, costGrow: 1.14 },
     magnet: { name: '자석 코팅', icon: '🧲', desc: '경험치 흡수 범위 +5%', per: 0.05, max: 20, costBase: 50, costGrow: 1.12 },

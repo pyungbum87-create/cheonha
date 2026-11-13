@@ -271,6 +271,7 @@ window.DX = window.DX || {};
         const s = Math.min(1, 380 / full.height);
         full = scaled(full, s);
         items.push({ name: key + ':full', canvas: full });
+        SPR.clean = SPR.clean || {}; SPR.clean[key] = full;   // 흰 배경 지운 전신 그림 (컷인 등 화면용)
         SPR.chars[key] = { full: key + ':full', parts: {}, height: a.height || 2.2, face: a.face || 1 };
         if (a.parts) {
           const pd = await getPixels(a.parts); removeBg(pd);

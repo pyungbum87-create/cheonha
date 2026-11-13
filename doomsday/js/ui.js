@@ -232,8 +232,19 @@ window.DX = window.DX || {};
     }
     for (const k in markEls) if (!want[k]) { markEls[k].remove(); delete markEls[k]; }
   }
+  // 보스 등장 컷인: 보스 그림이 옆에서 쓱 들어오고 이름·대사 크게
+  UI.bossIntro = function (cfg) {
+    const el = $('bossIntro'); if (!el) return;
+    const cl = DX.SPR && DX.SPR.clean && DX.SPR.clean[cfg.art];
+    $('biImg').src = cl ? cl.toDataURL() : (cfg.art && C.art[cfg.art] ? C.art[cfg.art].full : ''); $('biImg').style.filter = cfg.artTint ? 'sepia(0.3) hue-rotate(' + (cfg.artTint[2] > cfg.artTint[1] ? 230 : 70) + 'deg) saturate(1.4)' : '';
+    $('biName').textContent = T(cfg.name); $('biQuote').textContent = cfg.quote ? '“' + T(cfg.quote) + '”' : '';
+    el.classList.remove('hidden', 'go'); void el.offsetWidth; el.classList.add('go');
+    clearTimeout(UI._biT); UI._biT = setTimeout(() => el.classList.add('hidden'), 1900);
+    if (navigator.vibrate) try { navigator.vibrate([40, 60, 80]); } catch (e) {}
+  };
   UI.frame = function (G, dt) {
     drawFx(G, dt);
+    { const v = $('vignette'); if (v) { const hp = G ? G.hp / G.hpMax : 1; const low = G && hp < 0.3 && G.endT < 0; v.style.opacity = low ? (0.45 + Math.sin(performance.now() / 160) * 0.25) * (1 - hp / 0.3 * 0.6) : (G && G.hurt > 0 ? Math.min(0.5, G.hurt * 2) : 0); } }
     updMarks(G);
     if (!G) { if (fingerKey) finger(fingerKey, null); return; }
     updHints(G);
@@ -354,6 +365,13 @@ window.DX = window.DX || {};
       const sc = r < 0.15 ? 0.5 + r / 0.15 * 0.7 : 1.2 - Math.min(0.2, (r - 0.15));
       const size = Math.max(1, Math.round(t.size * sc * (t.big ? 1.2 : 1)));
       fctx.globalAlpha = Math.max(0, Math.min(1, (1 - r) * 2));
+      if (t.dmg) {   // 데미지 숫자: 톡 튀었다가 위로
+        const s2 = Math.round(t.size * (r < 0.12 ? 0.6 + r / 0.12 * 0.8 : 1.4 - Math.min(0.4, r * 0.6)));
+        fctx.font = s2 + "px 'Black Han Sans', sans-serif"; fctx.lineWidth = Math.max(3, s2 / 4);
+        fctx.strokeStyle = t.crit ? '#6a2a00' : '#1a1a22'; fctx.strokeText(t.txt, p.x, p.y - r * 18);
+        fctx.fillStyle = t.col; fctx.fillText(t.txt, p.x, p.y - r * 18);
+        continue;
+      }
       fctx.font = size + "px 'Black Han Sans', 'Noto Sans SC', sans-serif";
       fctx.lineWidth = Math.max(3, size / 5);
       fctx.strokeStyle = '#11131a'; fctx.strokeText(t.txt, p.x, p.y);
