@@ -111,9 +111,16 @@ window.DX = window.DX || {};
     return sv.portrait;
   }
   UI.portraitOf = portraitOf;
+  function starCount() { let n = 0; const S = DX.save.stars || {}; for (const k in S) n += S[k].filter(Boolean).length; return n; }
+  function codexDone() { const cx = DX.save.codex || {}; return Object.keys(C.zombies).every(k => (cx.z || {})[k]) && Object.keys(C.bosses).every(k => (cx.b || {})[k]); }
+  // 얻는 방법: 별·출석·도감은 조건만 채우면 무료, 골드/보석은 구매, 이벤트는 그 달에만
   function skinOpen(cat, k) {
-    if (!k.need) return k.cost === 0 || !!(DX.save.skinOwned || {})[cat + ':' + k.id];
-    const st = C.stages[k.need - 1]; return !!(st && DX.save.cleared[st.id]);
+    if ((DX.save.skinOwned || {})[cat + ':' + k.id] || k.id === 'base') return true;
+    if (k.need) { const st = C.stages[k.need - 1]; return !!(st && DX.save.cleared[st.id]); }
+    if (k.stars) return starCount() >= k.stars;
+    if (k.att) return (DX.save.attDays || 0) >= k.att;
+    if (k.codex) return codexDone();
+    return false;
   }
   function tintCss(t) { if (!t) return ''; const r = t[0], g = t[1], b = t[2], hue = r > g && r > b ? -25 : b > r && b > g ? 200 : g > r ? 90 : 0; return 'filter:sepia(.35) hue-rotate(' + hue + 'deg) saturate(1.5)'; }
   function renderSkins() {
@@ -128,11 +135,18 @@ window.DX = window.DX || {};
         let ico;
         if (cat === 'train') ico = '<span style="' + tintCss(k.tint) + '">🚂</span>';
         else { const sv = C.survivors.find(x => x.art === cat) || {}; const sp = k.id !== 'base' ? skinPortrait(cat, k.id) : sv.portrait; ico = '<img src="' + sp + '" style="' + (k.id !== 'base' && !probe(sp) ? tintCss(k.tint) : '') + '" onerror="this.onerror=null;this.src=\'' + sv.portrait + '\';this.setAttribute(\'style\',\'' + tintCss(k.tint) + '\')">'; }
+        const month = new Date().getMonth() + 1;
         const btn = on ? '<button class="r-btn on" disabled>' + T('장착 중') + '</button>'
           : open ? '<button class="r-btn" data-skin="' + cat + ':' + k.id + '">' + T('장착') + '</button>'
           : k.need ? '<button class="r-btn" disabled>🔒 ' + k.need + T('장 클리어') + '</button>'
+          : k.stars ? '<button class="r-btn" disabled>⭐ ' + starCount() + '/' + k.stars + '</button>'
+          : k.att ? '<button class="r-btn" disabled>📅 ' + (DX.save.attDays || 0) + '/' + k.att + L('일', '天') + '</button>'
+          : k.codex ? '<button class="r-btn" disabled>📖 ' + L('도감 완성', '图鉴完成') + '</button>'
+          : k.month && k.month !== month ? '<button class="r-btn" disabled>🎄 ' + k.month + L('월 한정', '月限定') + '</button>'
+          : k.gems ? '<button class="r-btn" data-skinbuy="' + cat + ':' + k.id + '"' + ((DX.save.gems || 0) < k.gems ? ' disabled' : '') + '>💎 ' + k.gems + '</button>'
           : '<button class="r-btn" data-skinbuy="' + cat + ':' + k.id + '"' + (DX.save.gold < k.cost ? ' disabled' : '') + '>🪙 ' + k.cost + '</button>';
-        h += '<div class="row"><div class="r-ico skin">' + ico + '</div><div class="r-main"><div class="r-name">' + esc(T(k.name)) + '</div><div class="r-desc">' + (cat === 'train' ? T('열차 외형') : T('지붕 사수·대화 얼굴')) + '</div></div>' + btn + '</div>';
+        const gr = k.grade || (k.cost >= 2000 ? '영웅' : '희귀'), gi = { '일반': 1, '희귀': 2, '영웅': 3, '전설': 4 }[gr] || 2;
+        h += '<div class="row"><div class="r-ico skin">' + ico + '</div><div class="r-main"><div class="r-name">' + esc(T(k.name)) + '<span class="grade g' + gi + '">' + T(gr) + '</span></div><div class="r-desc">' + (cat === 'train' ? T('열차 외형') : T('지붕 사수·대화 얼굴')) + '</div></div>' + btn + '</div>';
       }
     }
     $('skinList').innerHTML = h;
@@ -143,13 +157,26 @@ window.DX = window.DX || {};
     const [cat, id] = (b.dataset.skin || b.dataset.skinbuy).split(':');
     const k = (C.skins[cat] || []).find(x => x.id === id); if (!k) return;
     if (b.dataset.skinbuy) {
-      if (DX.save.gold < k.cost) return;
-      DX.save.gold -= k.cost; DX.save.skinOwned[cat + ':' + id] = true; DX.track('skin_buy', { cat, id }); DX.S.level();
+      if (k.gems) { if ((DX.save.gems || 0) < k.gems) return; DX.save.gems -= k.gems; }
+      else { if (DX.save.gold < k.cost) return; DX.save.gold -= k.cost; }
+      DX.save.skinOwned[cat + ':' + id] = true; DX.track('skin_buy', { cat, id }); DX.S.level();
       toast(T('구매 완료! ') + T(k.name));
     }
-    DX.save.skin[cat] = id; DX.persist();
+    DX.save.skin[cat] = id; if (id !== 'base') DX.save.skinOwned[cat + ':' + id] = true; DX.persist();
     if (cat !== 'train' && DX.SPR.refreshGunners) DX.SPR.refreshGunners();
     DX.S.click(); refreshLobby(); renderSkins();
+  }
+  // 정비소 강화 상한: 장 진행에 묶음 (2장까지 5단계, 4장까지 10단계 ...)
+  function metaCap(k) { return Math.min(C.meta[k].max, 5 * (1 + Math.floor(DX.chapterCount() / 2))); }
+  /* ---------------- 생존자 키우기 ---------------- */
+  function heroCost(lv) { const H = C.heroes; return Math.round(H.costBase * Math.pow(H.costGrow, lv) / 5) * 5; }
+  function renderHeroes() {
+    const H = C.heroes, hs = DX.save.heroes = DX.save.heroes || {};
+    $('heroList').innerHTML = H.list.map(h => {
+      const joined = !h.join || DX.chapterCount() >= h.join, lv = hs[h.id] || 0, max = lv >= H.max, cost = heroCost(lv);
+      const btn = !joined ? '<button class="r-btn" disabled>🔒 ' + h.join + L('장 클리어 후 합류', '章通关后加入') + '</button>' : '<button class="r-btn" data-hero="' + h.id + '"' + (max || DX.save.gold < cost ? ' disabled' : '') + '>' + (max ? 'MAX' : '🪙 ' + cost) + '</button>';
+      return '<div class="row"><div class="r-ico skin"><img src="' + h.portrait + '" style="' + (joined ? '' : 'filter:grayscale(1) brightness(.5)') + '"></div><div class="r-main"><div class="r-name">' + esc(T(h.name)) + ' <small style="color:var(--gold)">Lv ' + lv + '/' + H.max + '</small></div><div class="r-desc">' + esc(T(h.desc)) + (lv ? ' (' + L('지금 ', '当前 ') + '+' + Math.round(lv * h.per * 100) + '%)' : '') + '</div></div>' + btn + '</div>';
+    }).join('');
   }
   function refreshLobby() {
     // 첫 10판 개방: 정비소(2판째), 보상(9판째)
@@ -170,14 +197,20 @@ window.DX = window.DX || {};
     th.src = st.thumb || C.assets.story[2];
     { const ca = (C.chapterArt || {})[st.id]; if (ca && ca.thumb && DX.SPR.probe) DX.SPR.probe(ca.thumb).then(ok => { if (ok && (DX.save.stage || 0) === i) th.src = ca.thumb; }); }
     $('stBadge').innerHTML = !stageUnlocked(i) ? T('🔒 잠김') : DX.save.cleared[st.id] ? '<span class="stars">' + starHtml((DX.save.stars || {})[st.id]) + '</span>' : '';
+    // 장 안 스테이지 5개
+    { const done = DX.subDone(st.id), sel = Math.min((DX.save.subSel || {})[st.id] != null ? DX.save.subSel[st.id] : Math.min(4, done), Math.min(4, done));
+      $('subRow').innerHTML = (C.subStages || []).map((ss, k) => '<button data-sub="' + k + '" class="' + (k < done ? 'done ' : '') + (k === sel ? 'on ' : '') + (k > done ? 'lock' : '') + '"><b>' + (i + 1) + '-' + (k + 1) + '</b></button>').join('');
+      $('stBest').textContent = (i + 1) + '-' + (sel + 1) + ' · ' + T(C.subStages[sel].name) + (C.subStages[sel].type === 'rescue' ? ' 🚨' : sel === 4 ? ' 👹' : '') + (best ? '  |  ' + L('최고 ', '最高 ') + 'WAVE ' + best : '');
+      show($('btnEndless'), DX.chapterCount() >= C.endless.unlockStage); $('btnEndless').textContent = '♾️ ' + L('무한 모드', '无尽模式') + (DX.save.endlessBest ? ' · ' + L('최고 ', '最高 ') + DX.save.endlessBest + L('웨이브', '波') : ''); }
+    { const hb = document.querySelector('[data-tab=hero]'); if (hb) show(hb, DX.chapterCount() >= C.heroes.unlockStage); }
     $('btnStart').disabled = !stageUnlocked(i);
     $('btnStart').style.opacity = stageUnlocked(i) ? 1 : 0.5;
     // 강화
     const M = C.meta;
     $('metaList').innerHTML = Object.keys(M).map(k => {
-      const m = M[k], lv = DX.save.meta[k] || 0, max = lv >= m.max, cost = max ? 0 : DX.metaCost(k, lv);
-      return '<div class="row"><div class="r-ico">' + m.icon + '</div><div class="r-main"><div class="r-name">' + esc(T(m.name)) + ' <small style="color:var(--gold)">Lv ' + lv + '/' + m.max + '</small></div><div class="r-desc">' + esc(T(m.desc)) + '</div></div>' +
-        '<button class="r-btn" data-meta="' + k + '"' + (max || DX.save.gold < cost ? ' disabled' : '') + '>' + (max ? 'MAX' : '🪙 ' + cost) + '</button></div>';
+      const m = M[k], lv = DX.save.meta[k] || 0, cap = metaCap(k), max = lv >= cap, cost = max ? 0 : DX.metaCost(k, lv);
+      return '<div class="row"><div class="r-ico">' + m.icon + '</div><div class="r-main"><div class="r-name">' + esc(T(m.name)) + ' <small style="color:var(--gold)">Lv ' + lv + '/' + cap + '</small></div><div class="r-desc">' + esc(T(m.desc)) + (cap < m.max && lv >= cap ? ' · ' + L('다음 장을 깨면 상한 증가', '通关下一章提高上限') : '') + '</div></div>' +
+        '<button class="r-btn" data-meta="' + k + '"' + (max || DX.save.gold < cost ? ' disabled' : '') + '>' + (lv >= m.max ? 'MAX' : max ? '🔒' : '🪙 ' + cost) + '</button></div>';
     }).join('');
     renderReward();
     $('nextGoal').textContent = nextGoal();
@@ -197,12 +230,18 @@ window.DX = window.DX || {};
   function setTab(t) {
     tab = t;
     document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
-    ['stage', 'meta', 'reward', 'skin'].forEach(k => show($('tab-' + k), k === t));
+    ['stage', 'meta', 'reward', 'skin', 'hero'].forEach(k => show($('tab-' + k), k === t));
     if (t === 'skin') renderSkins();
+    if (t === 'hero') renderHeroes();
     if (t !== 'stage') tip(t);
   }
 
   /* ---------------- 보상 탭: 7일 출석 + 일일 미션 3개 ---------------- */
+  function idleGold() {
+    const s = DX.save; if (!s.idleT) { s.idleT = Date.now(); DX.persist(); return 0; }
+    const h = Math.min(C.idle.maxHours, (Date.now() - s.idleT) / 3600000);
+    return Math.floor(h * (C.idle.perHourBase + C.idle.perStage * DX.chapterCount()));
+  }
   function renderReward() {
     DX.dailyInit();
     const s = DX.save, att = s.att, can = DX.attCan();
@@ -216,6 +255,17 @@ window.DX = window.DX || {};
       return '<div class="row"><div class="r-ico">' + (m.c ? '✅' : done ? '🎁' : '🎯') + '</div><div class="r-main"><div class="r-name">' + esc(L(M.name[0], M.name[1])) + '</div><div class="r-desc">' + m.p + ' / ' + M.goal + L(' · 골드 ', ' · 金币 ') + M.gold + '</div><div class="r-bar"><i style="width:' + (m.p / M.goal * 100) + '%"></i></div></div>' +
         '<button class="r-btn" data-mis="' + j + '"' + (done && !m.c ? '' : ' disabled') + '>' + (m.c ? L('완료', '已领') : L('받기', '领取')) + '</button></div>';
     }).join('');
+    // 방치 보상
+    if (DX.chapterCount() >= C.idle.unlockStage) {
+      const g = idleGold();
+      h += '<div class="rw-head">' + L('방치 보상', '离线奖励') + '</div><div class="row"><div class="r-ico">⏳</div><div class="r-main"><div class="r-name">' + L('자리 비운 동안 쌓인 골드', '离开期间累积的金币') + '</div><div class="r-desc">🪙 ' + g + L(' (최대 ', '（最多 ') + C.idle.maxHours + L('시간)', '小时）') + '</div></div><button class="r-btn" data-idle="1"' + (g > 0 ? '' : ' disabled') + '>' + L('받기', '领取') + '</button><button class="r-btn" data-idle="2"' + (g > 0 ? '' : ' disabled') + '>📺 ×2</button></div>';
+    }
+    // 도감
+    { const cx = s.codex || { z: {}, b: {}, c: {} }, nz = Object.keys(cx.z || {}).length, nb = Object.keys(cx.b || {}).length, nc = Object.keys(cx.c || {}).length, nr = Object.keys(s.reactions || {}).length;
+      const tz = Object.keys(C.zombies).length, tb = Object.keys(C.bosses).length, tc = C.comicNpc.length + 1;
+      const newN = s.codexNew || 0;
+      h += '<div class="rw-head">' + L('도감', '图鉴') + '</div><div class="row"><div class="r-ico">📖</div><div class="r-main"><div class="r-name">' + L('좀비 ', '僵尸 ') + nz + '/' + tz + ' · ' + L('보스 ', '首领 ') + nb + '/' + tb + ' · ' + L('시민 ', '市民 ') + nc + '/' + tc + ' · ' + L('반응 ', '反应 ') + nr + '/5</div><div class="r-desc">' + L('새로 기록 ', '新记录 ') + newN + L('개 · 1개당 골드 ', '个 · 每个金币 ') + C.codex.reward + '</div></div><button class="r-btn" data-codex="1"' + (newN ? '' : ' disabled') + '>' + L('받기', '领取') + '</button></div>'; }
+    h += '<div class="rw-head">💎 ' + L('보석 ', '宝石 ') + (s.gems || 0) + '</div>';
     $('rewardList').innerHTML = h;
     show($('rewardDot'), DX.rewardDot());
   }
@@ -663,6 +713,18 @@ window.DX = window.DX || {};
   }
   function backToLobby() {
     show($('hud'), false); showLobby();
+    // 장 클리어 컷: 구한 시민이 안전 칸에 + 다음 장 예고
+    const cc = DX._clearCut; DX._clearCut = null;
+    if (cc) {
+      const last = cc.last, who = last && !last.dog ? 'n' + last.face : C.radio ? 'n' + C.radio.who : 0;
+      const ch = C.comics[cc.id] || {};
+      UI.comic({ bg: ch.bg || 'assets/story/ch1_side.jpg', pos: [50, 0, 100], panels: [
+        { cap: L('구한 시민 ', '救出的市民 ') + cc.n + L('명이 안전 칸에 탔다!', '人登上了安全车厢！') },
+        { who, text: cc.n ? L('살았다! 고마워요, 둠스데이 익스프레스!', '得救了！谢谢你，末日快车！') : L('...다음엔 꼭 우리도 태워 줘요', '...下次一定要带上我们') },
+        { cap: T((C.nextTease || {})[cc.id] || '') },
+      ] }, 'CLEAR!', () => showLobby(), cc.id);
+      return;
+    }
     // 처음 정비소가 열리면 바로 안내 / 같은 장에서 2번 연속 지면 장갑 강화 도움말
     if (DX.unlocked('meta') && !DX.save.metaGuided) { DX.save.metaGuided = true; DX.persist(); setTab('meta'); toast(L('정비소가 열렸어요! 열차를 강화하세요', '维修站开放了！强化列车吧')); }
     else if ((DX.save.loseRow || 0) >= 2) { DX.save.loseRow = 0; DX.persist(); setTab('meta'); toast(L('정비소에서 장갑을 올려보세요', '去维修站强化装甲吧')); }
@@ -679,17 +741,24 @@ window.DX = window.DX || {};
       const b = e.target.closest('[data-meta]'); if (!b || b.disabled) return;
       const k = b.dataset.meta, m = C.meta[k], lv = DX.save.meta[k] || 0;
       const cost = DX.metaCost(k, lv);
-      if (lv >= m.max || DX.save.gold < cost) return;
+      if (lv >= metaCap(k) || DX.save.gold < cost) return;
       DX.save.gold -= cost; DX.save.meta[k] = lv + 1; DX.persist(); DX.S.level(); DX.vib('light'); refreshLobby(); toast(T(m.name) + ' Lv ' + (lv + 1) + '!');
       DX.track('meta_up', { k, lv: lv + 1 });
     });
     $('rewardList').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b || b.disabled) return;
       const s = DX.save;
+      if (b.dataset.idle) {
+        const g = idleGold(); if (!g) return;
+        const give = m => { s.gold += g * m; s.idleT = Date.now(); DX.persist(); DX.S.level(); toast(L('방치 보상 골드 +', '离线奖励 金币 +') + g * m); refreshLobby(); };
+        if (b.dataset.idle === '2') DX.showAd('idle', () => give(2)); else give(1);
+        return;
+      }
+      if (b.dataset.codex) { const n = s.codexNew || 0; s.gold += n * C.codex.reward; s.codexNew = 0; DX.persist(); DX.S.level(); toast(L('도감 보상 골드 +', '图鉴奖励 金币 +') + n * C.codex.reward); refreshLobby(); return; }
       if (b.dataset.att) {
         if (!DX.attCan()) return;
         const g = DX.ATT[s.att.streak % 7];
-        s.att.streak++; s.att.last = DX.today(); s.gold += g; DX.persist();
+        s.att.streak++; s.attDays = (s.attDays || 0) + 1; if (s.att.streak % 7 === 0) s.gems = (s.gems || 0) + C.gems.att7; s.att.last = DX.today(); s.gold += g; DX.persist();
         toast(L('출석 보상! 골드 +', '签到奖励！金币 +') + g); DX.track('attend', { day: s.att.streak });
       } else if (b.dataset.mis != null) {
         const m = s.daily.m[+b.dataset.mis], M = DX.MISSIONS[m.i];
@@ -739,6 +808,18 @@ window.DX = window.DX || {};
     $('btnLang').addEventListener('click', () => { const l = DX.lang() === 'zh' ? 'ko' : 'zh'; DX.setLang(l); DX.save.lang = l; DX.persist(); relang(); DX.track('lang', { l }); });
     $('btnGuide').addEventListener('click', openGuide);
     $('skinList').addEventListener('click', skinAction);
+    $('heroList').addEventListener('click', e => {
+      const b = e.target.closest('[data-hero]'); if (!b || b.disabled) return;
+      const id = b.dataset.hero, lv = (DX.save.heroes || {})[id] || 0, cost = heroCost(lv);
+      if (DX.save.gold < cost || lv >= C.heroes.max) return;
+      DX.save.gold -= cost; DX.save.heroes[id] = lv + 1; DX.persist(); DX.S.level(); refreshLobby(); renderHeroes();
+      DX.track('hero_up', { id, lv: lv + 1 });
+    });
+    $('subRow').addEventListener('click', e => {
+      const b = e.target.closest('[data-sub]'); if (!b || b.classList.contains('lock')) return;
+      const st = C.stages[DX.save.stage || 0]; DX.save.subSel = DX.save.subSel || {}; DX.save.subSel[st.id] = +b.dataset.sub; DX.persist(); DX.S.click(); refreshLobby();
+    });
+    $('btnEndless').addEventListener('click', () => { DX.S.click(); show($('lobby'), false); DX.startRun(C.stages.findIndex(s => s.id === C.endless.base), 0, true); });
     $('skillBar').addEventListener('pointerdown', e => { const b = e.target.closest('[data-sk]'); if (!b) return; e.stopPropagation(); e.preventDefault(); if (DX.castSkill(b.dataset.sk)) { b.classList.remove('ready'); try { navigator.vibrate && navigator.vibrate(25); } catch (e2) {} } });
     $('btnAuto').addEventListener('pointerdown', e => { e.stopPropagation(); const G = DX.getG && DX.getG(); DX.setAutoSkill(!(G && G.autoSkill)); DX.S.click(); toast(G && G.autoSkill ? L('자동 스킬 켬 (효율 80%)', '自动技能开启（效率80%）') : L('직접 누르면 100% + 타이밍 보너스!', '手动释放100% + 时机加成！')); });
     // 드래그 = 기관총 직접 조준 (게임 화면 빈 곳)
@@ -762,7 +843,7 @@ window.DX = window.DX || {};
     });
     // 결과
     $('btnRevive').addEventListener('click', () => { show($('result'), false); DX.showAd('revive', () => DX.revive()); });
-    $('btnDouble').addEventListener('click', () => { show($('result'), false); DX.showAd('double', () => { toast(L('골드 2배 지급!', '金币翻倍到账！')); DX.finishRun(true); backToLobby(); }); });
+    $('btnDouble').addEventListener('click', () => { const dd = new Date().toDateString(); const ad = DX.save.adDbl = DX.save.adDbl && DX.save.adDbl.d === dd ? DX.save.adDbl : { d: dd, n: 0 }; if (ad.n >= C.econ.adDoubleDay) { toast(L('오늘 광고 2배는 다 썼어요', '今日双倍次数已用完')); return; } ad.n++; show($('result'), false); DX.showAd('double', () => { toast(L('골드 2배 지급!', '金币翻倍到账！')); DX.finishRun(true); backToLobby(); }); });
     $('btnLobby').addEventListener('click', () => { show($('result'), false); DX.finishRun(false); backToLobby(); });
     window.addEventListener('keydown', e => { if (e.key === ' ') DX.useUltimate(); if (e.key === 'g') DX.useHorn(); });
     // 앱을 내리면 자동 일시정지·음악 정지·저장 / 돌아오면 일시정지 메뉴에서 재개

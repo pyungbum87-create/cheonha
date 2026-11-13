@@ -474,12 +474,22 @@ window.DX = window.DX || {};
   };
 
   /* ================= 런 시작 ================= */
-  DX.startRun = function (stageIdx) {
-    const stg = C.stages[stageIdx];
+  // 장 진행: 지금 장의 다음 스테이지(0~4). 이미 깬 장은 5
+  function chapterCount() { return Object.keys(DX.save.cleared || {}).length; }
+  DX.chapterCount = chapterCount;
+  function subDone(id) { return DX.save.cleared[id] ? 5 : ((DX.save.sub || {})[id] || 0); }
+  DX.subDone = subDone;
+  DX.startRun = function (stageIdx, sub, endless) {
+    const base = C.stages[stageIdx];
+    if (sub == null) { const sel = (DX.save.subSel || {})[base.id]; sub = sel != null ? sel : Math.min(4, subDone(base.id)); }
+    const SS = C.subStages && C.subStages[sub];
+    let stg = base;
+    if (endless) stg = Object.assign({}, base, { name: DX.L('무한 모드', '无尽模式'), waves: [] });
+    else if (SS && sub < 4) stg = Object.assign({}, base, { waves: base.waves.slice(0, SS.waves).map(w => Object.assign({}, w, { hp: w.hp * SS.hp })), clearGold: Math.round(base.clearGold * SS.gold) });
     applyTheme(stageIdx);
     const meta = DX.save.meta;
     G = {
-      stageIdx, stg, waveIdx: -1, waveT: 0, spawnAcc: 0, hordeDone: 0, waveDone: false,
+      stageIdx, stg, sub: endless ? -1 : sub, subType: SS && !endless ? SS.type : null, endless: !!endless, waveIdx: -1, waveT: 0, spawnAcc: 0, hordeDone: 0, waveDone: false,
       hpMaxBase: C.train.baseHp + meta.hp * C.meta.hp.per, hp: 0, hpMax: 0,
       level: 1, xp: 0, xpNeed: needXp(1), pendingLv: 0,
       kills: 0, gold: 0, combo: 0, comboT: 0, maxCombo: 0, rerolls: C.ads.rerollPerRun, stats: {}, inv: {}, invT: 8,
@@ -490,7 +500,7 @@ window.DX = window.DX || {};
       ult: 0, ultQueue: [], hornCd: 5, shield: 0, emergencyUsed: false, revived: false,
       boss: null, bossSpawned: false, timeScale: 1, hitstop: 0, slowmo: 0, slowmoT: 0, shake: 0, t: 0, wa: 0,
       cannonYaw: 0, cannonRecoil: 0, ghostZ: 2, aim: [0, 0, 0], recoil: [0, 0, 0], endT: -1, outcome: null,
-      dmgMul: 1 + meta.dmg * C.meta.dmg.per, xpMul: 1 + meta.xp * C.meta.xp.per, timers: [],
+      dmgMul: 1 + meta.dmg * C.meta.dmg.per, xpMul: (1 + meta.xp * C.meta.xp.per) * (1 + heroPer('xp')), timers: [],
     };
     G.layout = trainLayout(G.cars);
     recalc();
@@ -505,6 +515,12 @@ window.DX = window.DX || {};
       for (const id of activeIds()) G.sk[id] = 0.7;
     }
     if (!G.prologue) { DX.save.runs = (DX.save.runs || 0) + 1; DX.persist(); }
+    // 무전 (인턴 이하나)
+    if (!G.prologue && C.radio && !(G.stageIdx === 0 && sub === 0)) {
+      const rl = (C.radio.byStage[G.stg.id] || []).concat(C.radio.lines), npc = C.comicNpc[C.radio.who];
+      later(1.8, () => DX.UI && DX.UI.toast('📻 ' + DX.T(npc.name) + ': ' + DX.T(sub === 4 && C.radio.byStage[G.stg.id] ? C.radio.byStage[G.stg.id][0] : pick(rl))));
+    }
+    if (DX.save.flags && DX.save.flags.secretary && G.stg.id === 'lab') G.bossWeak = true;
     // 새로 열린 기능 안내 (한 번씩)
     const hints = DX.save.unlockHint = DX.save.unlockHint || {};
     [['aim', '화면을 끌어서 직접 조준! 기관총 피해 +30%, 보스 약점 저격'], ['skillManual', '스킬 버튼을 직접 누르면 100% + 타이밍 보너스!'], ['invasion', '침입 좀비가 나타나요! 빨간 칸을 터치'], ['combo', '두 무기를 함께 가지면 조합 발동!'], ['place', '새 칸을 어디에 붙일지 고를 수 있어요'], ['autoBtn', '이제 AUTO 버튼으로 스킬을 알아서 쓸 수 있어요']].forEach(([k, msg], i) => {
@@ -526,6 +542,14 @@ window.DX = window.DX || {};
   function flashCar(kind, v) { if (G) G.carFlash[kind] = Math.max(G.carFlash[kind] || 0, v || 0.25); }
   // 칸 배치 보너스: 기관차 바로 뒤 칸은 쿨타임 감소
   function ph(kind) { return G && G.cars[0] === kind && G.placed ? C.placement.frontHaste : 1; }
+  // 생존자 레벨 효과
+  function heroLv(id) { return ((DX.save.heroes || {})[id]) || 0; }
+  function heroPer(perk) { const h = (C.heroes.list || []).find(k => k.perk === perk); return h ? heroLv(h.id) * h.per : 0; }
+  // 꾸미기 수집 보너스 (외형 3개마다 골드 +2%)
+  function skinBonus() { const n = Object.keys(DX.save.skinOwned || {}).length, b = C.skinBonus; return b ? Math.min(b.max, Math.floor(n / b.every) * b.per) : 0; }
+  // 칸 도감: 장을 깨야 열리는 무기
+  function weaponOpen(id) { const u = (C.weaponUnlock || {})[id]; return u == null || chapterCount() >= u || chapterCount() >= 2 && (DX.save.runs || 0) > 30; }
+  DX.weaponOpen = weaponOpen;
   function needXp(lv) { return (C.xpEarly && C.xpEarly[lv - 1]) || C.xpNeed(lv); }
   function recalc() {
     const p = G.passives;
@@ -537,7 +561,7 @@ window.DX = window.DX || {};
     G.magnet = C.magnetRange * (1 + (p.magnet || 0) * C.passives.magnet.per + (DX.save.meta.magnet || 0) * C.meta.magnet.per);
     G.rescued = G.citizens ? G.citizens.length : 0;
     G.crit = (p.crit || 0) * C.passives.crit.per + jobCount('crit') * C.jobs.crit.crit;
-    G.greed = (1 + (p.greed || 0) * C.passives.greed.per) * (1 + Math.min(G.rescued, C.safeCar.maxPeople) * C.safeCar.goldPer + jobCount('gold') * C.jobs.gold.gold);
+    G.greed = (1 + (p.greed || 0) * C.passives.greed.per) * (1 + Math.min(G.rescued, C.safeCar.maxPeople) * C.safeCar.goldPer + jobCount('gold') * C.jobs.gold.gold + skinBonus());
     G.layout = trainLayout(G.cars);
     // 드론 수
     const dl = G.weapons.drone;
@@ -545,8 +569,17 @@ window.DX = window.DX || {};
   }
 
   /* ================= 웨이브 ================= */
+  function endlessWave(i) {
+    const E2 = C.endless, b = C.stages[C.stages.length - 1].waves, src = b[i % (b.length - 1)];
+    const boss = (i + 1) % E2.bossEvery === 0;
+    const bosses = Object.keys(C.bosses);
+    const w = Object.assign({}, src, { hp: src.hp * (1 + i * E2.hpGrow), rate: src.rate * (1 + i * E2.rateGrow), time: 26 });
+    if (boss) { w.boss = bosses[Math.floor(i / E2.bossEvery) % bosses.length]; w.bossHp = 1 + i * 0.12; } else delete w.boss;
+    return w;
+  }
   function nextWave() {
     G.waveIdx++;
+    if (G.endless) G.stg.waves[G.waveIdx] = endlessWave(G.waveIdx);
     if (G.waveIdx >= G.stg.waves.length) { endRun(true); return; }
     const w = G.stg.waves[G.waveIdx];
     G.wave = w; G.waveT = 0; G.hordeDone = 0; G.bossSpawned = false; G.waveDone = false;
@@ -556,10 +589,10 @@ window.DX = window.DX || {};
     // 웨이브 사이 미니게임 (config.minigame) — 하는 동안 본게임 멈춤
     // 구조 작전 (구조 신호)
     const ro = C.rescueOps;
-    if (ro && DX.MINI && G.waveIdx + 1 === ro.at && !w.boss && (ro.byStage[G.stg.id] || []).length) { rescueSignal(); return; }
+    if (ro && DX.MINI && G.subType === 'rescue' && G.waveIdx === 0 && (ro.byStage[G.stg.id] || []).length) { later(2.5, rescueSignal); }
     // 지나친 사람은 다음 장에서 좀비로
     if (G.waveIdx === 0 && DX.save.passed && DX.save.passed.stage !== G.stg.id) later(4, spawnPassedZombie);
-    const mg = C.minigame, mlist = mg && mg.on && DX.MINI && (mg.byStage[G.stageIdx] || []);
+    const mg = C.minigame, mlist = mg && mg.on && DX.MINI && !G.endless && (mg.byStage[G.stageIdx] || []);
     const mm = mlist && mlist.find(m => m[0] === G.waveIdx + 1);
     if (mm && !w.boss) {
       let kind = mm[1];
@@ -581,6 +614,8 @@ window.DX = window.DX || {};
   }
   /* ---------- 구조 작전: 구조 신호 → 멈춘다 / 지나친다 ---------- */
   function rescueSignal() {
+    if (!G || G.endT >= 0) return;
+    if (DX.state !== 'play') { later(1, rescueSignal); return; }
     const ro = C.rescueOps, list = ro.byStage[G.stg.id];
     const op = DX.save.cleared[G.stg.id] ? pick(list) : list[0];
     const npc = op.dog ? { name: DX.L('강아지 야근이', '狗狗加班'), face: 'assets/npc/dog_0.png' } : C.comicNpc[op.face] || {};
@@ -599,7 +634,7 @@ window.DX = window.DX || {};
         const ok = r && r.rate >= 0.45;
         DX.track('rescue_op', { stage: G.stageIdx + 1, ok });
         if (ok) {
-          G.opOk = true;
+          G.opOk = true; DX.save.opDone = DX.save.opDone || {}; DX.save.opDone[G.stg.id] = 1;
           const list2 = op.dog ? [{ dog: true, job: 'scout' }] : [{ face: op.face, job: C.comicNpc[op.face].job }].concat(randomCitizens(Math.max(0, op.n - 1)));
           addCitizens(list2, op.quote);
           if (op.bossWeak) { G.bossWeak = true; later(2.5, () => DX.UI && DX.UI.banner(DX.L('약점 제보!', '弱点情报！'), DX.L('보스에게 주는 피해 +30%', '对首领伤害 +30%'), 'win')); }
@@ -693,6 +728,7 @@ window.DX = window.DX || {};
     const zx = zoneX();
     if (zx && world.theme.deck && (x <= zx[0] + 0.01 || x >= zx[1] - 0.01)) { zb.climb = 1; zb.y = -2.4; }
     G.zs.push(zb);
+    codexAdd('z', type);
     return zb;
   }
   function spawnPoint() {
@@ -726,6 +762,9 @@ window.DX = window.DX || {};
       mass: 999, kx: 0, kz: 0, stun: 0, flash: 0, burn: 0, burnT: 0, atk: false, onTrain: false, jump: null, r: 2.2, dead: false, boss: true, stompT: 5 };
     b.r = (b.giant ? 0.4 : 0.8) * b.s;
     G.zs.push(b); G.boss = b; G.bossSpawned = true;
+    codexAdd('b', w.boss || 'bujang');
+    // 택배기사 박씨를 구했다면: 택배 대장이 옛 동료를 보고 멈칫
+    if (w.boss === 'taekbae' && DX.save.flags && DX.save.flags.park) later(4, () => { if (G && G.boss === b) { b.stun = 2.5; FX.text(b.x, 8, b.z, '박씨...? 형님?!', '#ffd23d', 26, 1.8, true); } });
     S.roar(); G.shake = Math.max(G.shake, 0.8);
     if (DX.UI) DX.UI.bossBar(true, DX.T(cfg.name), 1);
     if (DX.UI && DX.UI.bossIntro) { DX.UI.bossIntro(cfg); G.slowmo = 0.15; G.slowmoT = 1.6; }
@@ -834,6 +873,8 @@ window.DX = window.DX || {};
       fxSprite('iceburst', z.x, 1, z.z, 1.2, 2.4, 0.4);
       for (let i = 0; i < 6; i++) part({ mesh: 'cube', x: z.x, y: 1.2, z: z.z, vx: rand(-6, 6), vy: rand(3, 8), vz: rand(-6, 6), g: -25, s: rand(0.15, 0.3), max: 0.8, col: pick(['#dff4ff', '#a8dcff']), emi: 0.4, bounce: true });
     }
+    // 생존자 레벨 효과: 잭 = 기관총, 민호 = 원소 무기
+    if (SRC === 'mg') dmg *= 1 + heroPer('mg'); else if (SRC === 'flame' || SRC === 'water' || SRC === 'freeze' || SRC === 'fan') dmg *= 1 + heroPer('elem');
     // 보스 약점: 직접 조준으로 맞히거나, 구한 비서가 약점을 알려줬을 때
     if (z.boss && G.bossWeak) dmg *= 1.3;
     const hp0 = z.hp + Math.max(0, z.armor);
@@ -1206,6 +1247,7 @@ window.DX = window.DX || {};
       const w = W[id];
       const isNew = lv === 0;
       if (isNew && owned >= LM.weapons) continue;
+      if (isNew && !weaponOpen(id)) continue;
       if (lv + 1 === 5 && w.evoWith) continue;   // 진화는 중간보스 보물상자에서만
       let desc = w.desc[lv];
       if (w.evoWith && lv + 1 === 4) desc += ' · ' + DX.L('진화 짝: ', '进化搭档：') + DX.T(P[w.evoWith].name);
@@ -1293,7 +1335,7 @@ window.DX = window.DX || {};
   DX.useHorn = function () {
     if (!G || DX.state !== 'play' || G.hornCd > 0) return false;
     const h = C.horn;
-    G.hornCd = h.cd;
+    G.hornCd = h.cd * (1 - Math.min(0.5, heroPer('horn')));
     G.shield = Math.max(G.shield, h.shield);
     SRC = 'horn';
     for (const z of G.zs) {
@@ -1535,7 +1577,7 @@ window.DX = window.DX || {};
       if (invaded(id)) continue;
       const lv = G.weapons[id], w = W[id];
       const was = G.sk[id] || 0;
-      G.sk[id] = Math.min(1, was + dt / (w.cd[lv - 1] * haste * jobHaste() * ph(C.weapons[id].car)));
+      G.sk[id] = Math.min(1, was + dt / (w.cd[lv - 1] * haste * jobHaste() * ph(C.weapons[id].car) * (1 - Math.min(0.4, heroPer('cd')))));
       if (was < 1 && G.sk[id] >= 1) { G.skReady[id] = G.t; if (DX.UI && DX.UI.skillReady) DX.UI.skillReady(id); vib(15); }
       if (G.sk[id] >= 1 && G.autoSkill && skillWorth(id)) castSkill(id, C.skills.auto);
     }
@@ -1674,8 +1716,16 @@ window.DX = window.DX || {};
     return n >= 3 ? n * 2 : n;
   }
   function jobHaste() { return 1 / (1 + jobCount('mech') * C.jobs.mech.haste); }
+  function codexAdd(kind, key) {
+    const cx = DX.save.codex = DX.save.codex || { z: {}, b: {}, c: {} };
+    if (!cx[kind]) cx[kind] = {};
+    if (cx[kind][key]) return;
+    cx[kind][key] = 1; DX.save.codexNew = (DX.save.codexNew || 0) + 1;
+    if (G && G.t > 1 && kind !== 'z') { /* 조용히 기록 */ }
+  }
+  DX.codexAdd = codexAdd;
   function addCitizens(list, quote) {
-    for (const c of list) G.citizens.push(c);
+    for (const c of list) { G.citizens.push(c); codexAdd('c', c.dog ? 'dog' : String(c.face)); if (c.face === 1) (DX.save.flags = DX.save.flags || {}).park = 1; if (c.face === 8 && G.stg.id === 'tunnel') (DX.save.flags = DX.save.flags || {}).secretary = 1; }
     const need = Math.max(1, Math.ceil(G.citizens.length / C.safeSeats));
     let have = G.cars.filter(k => k === 'safe').length;
     while (have < need) { G.cars.push('safe'); have++; }
@@ -2157,14 +2207,27 @@ window.DX = window.DX || {};
     G.endT = 0;
     const stg = G.stg;
     const out = { win, stageIdx: G.stageIdx, wave: Math.min(G.waveIdx + 1, stg.waves.length), kills: G.kills, maxCombo: G.maxCombo, gold: Math.round(G.gold), level: G.level, canRevive: !win && !G.revived && C.ads.revive, stats: G.stats, t: G.t, final: win && G.stageIdx === C.stages.length - 1 };
-    if (win) {
+    if (G.endless) { win = false; out.endless = G.waveIdx; if (G.waveIdx > (DX.save.endlessBest || 0)) { DX.save.endlessBest = G.waveIdx; out.newBest = true; } }
+    out.sub = G.sub;
+    if (win && G.sub >= 0 && G.sub < 4) {   // 장 안의 스테이지 클리어 (장은 아직)
       out.gold += stg.clearGold;
+      DX.save.sub = DX.save.sub || {}; DX.save.sub[stg.id] = Math.max(DX.save.sub[stg.id] || 0, G.sub + 1);
+      DX.save.subSel = DX.save.subSel || {}; DX.save.subSel[stg.id] = Math.min(4, G.sub + 1);
+      collectAllOrbs(); S.win();
+      SRC = 'misc'; for (const z of G.zs) hit(z, 99999, 'blast', z.x, z.z - 5, 10, false);
+      if (DX.UI) DX.UI.banner(DX.L('스테이지 클리어!', '关卡通关！'), DX.T(C.subStages[G.sub].name) + ' ✔', 'win');
+      out.stars = null; out.citizens = G.citizens.length;
+    } else if (win) {
+      out.gold += stg.clearGold;
+      if (!DX.save.cleared[stg.id]) DX._clearCut = { id: stg.id, n: G.citizens.length, last: G.citizens[G.citizens.length - 1] };
       DX.save.cleared[stg.id] = true;
       // 별 3개: 클리어 / 구조 작전 성공(지나치지 않음) / 열차 체력 50% 이상
       const hasOp = !!(C.rescueOps && (C.rescueOps.byStage[stg.id] || []).length);
-      const st3 = [true, hasOp ? (G.opOk && !G.opSkip) : true, G.hp >= G.hpMax * 0.5];
+      const st3 = [true, hasOp ? (DX.save.opDone && DX.save.opDone[stg.id] && !G.opSkip) : true, G.hp >= G.hpMax * 0.5];
       DX.save.stars = DX.save.stars || {};
       const old = DX.save.stars[stg.id] || [false, false, false];
+      const newStars = st3.filter((v, i) => v && !old[i]).length;
+      if (newStars) DX.save.gems = (DX.save.gems || 0) + newStars * C.gems.perStar;
       DX.save.stars[stg.id] = old.map((v, i) => v || st3[i]);
       out.stars = st3; out.citizens = G.citizens.length;
       collectAllOrbs();
@@ -2195,7 +2258,7 @@ window.DX = window.DX || {};
   DX.finishRun = function (double) {
     if (!G || !G.outcome) return;
     const o = G.outcome;
-    DX.save.gold += Math.round(o.gold * (double ? 2 : 1));
+    DX.save.gold += Math.round(o.gold * (o.win ? 1 : C.econ.failRate) * (double ? 2 : 1));
     DX.persist();
     G = null;
     DX.state = 'lobby';
@@ -2406,7 +2469,7 @@ window.DX = window.DX || {};
       else if (!G) { world.speed = 8; updWorld(dt, 8); }
       render(dt);
       DX.perf(dt);
-      if (DX.Music) DX.Music.play(DX.state === 'lobby' || !G ? 'lobby' : (DX.state === 'result' ? '' : 'battle'));
+      if (DX.Music) DX.Music.play(DX.state === 'lobby' || !G ? 'lobby' : DX.state === 'result' ? '' : DX.state === 'mini' ? 'mini' : G.boss ? 'boss' : G.stageIdx >= 4 ? 'battle2' : 'battle');
       if (DX.UI) DX.UI.frame(G, dt);
     } catch (e) { console.error(e); DX.track('draw_error', { m: String(e && e.message || e).slice(0, 80) }); if (DX.UI && DX.UI.error) DX.UI.error(e); }
     requestAnimationFrame(frame);

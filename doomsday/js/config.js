@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.13',
+    version: 'v0.14',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -260,28 +260,29 @@ DX.CONFIG = {
   gunnerAnims: ['top_idle', 'top_shoot', 'top_react'],
 
   /* ------------------------------------------------------------- 꾸미기 (로비 '꾸미기' 버튼)
-     cost = 골드 가격, need = 이 스테이지(번호)를 깨야 열림. tint = 그림이 아직 없을 때 대신 입히는 색
+     cost = 골드 가격, need = 이 장(번호)을 깨야 열림, stars = 별 개수, att = 출석 일수, codex = 좀비 도감 완성, month = 이 달에만 판매, gems = 보석 가격
+     grade = 일반/희귀/영웅/전설 (능력치 없음, 모습만). tint = 그림이 아직 없을 때 대신 입히는 색
      열차: art = assets/train/skins/아이디_top.png, _side.png (기관차 모양 교체)
      생존자: assets/chars/skins/이름_아이디/top_동작_0~3.png + assets/portraits/skin_이름_아이디.png */
   skins: {
     train: [
-      { id: 'base', name: '기본 둠스데이호', cost: 0 },
-      { id: 'subway', name: '통근 지하철', cost: 1500, tint: [0.75, 1.1, 0.8] },
-      { id: 'neon', name: '야근 네온 열차', cost: 2500, tint: [1.1, 0.75, 1.25] },
-      { id: 'army', name: '군용 장갑 열차', cost: 3500, tint: [0.8, 0.95, 0.65] },
-      { id: 'santa', name: '산타 열차', cost: 4000, tint: [1.3, 0.7, 0.7] },
-      { id: 'gold', name: '황금 열차', cost: 0, need: 8, tint: [1.3, 1.1, 0.55] },
+      { id: 'base', name: '기본 둠스데이호', cost: 0, grade: '일반' },
+      { id: 'subway', name: '통근 지하철', cost: 0, stars: 24, grade: '희귀', tint: [0.75, 1.1, 0.8] },
+      { id: 'neon', name: '야근 네온 열차', cost: 2500, grade: '희귀', tint: [1.1, 0.75, 1.25] },
+      { id: 'army', name: '좀비 퇴치 열차', cost: 0, codex: true, grade: '영웅', tint: [0.8, 0.95, 0.65] },
+      { id: 'santa', name: '산타 열차', cost: 3000, month: 12, grade: '영웅', tint: [1.3, 0.7, 0.7] },
+      { id: 'gold', name: '황금 열차', gems: 300, grade: '전설', tint: [1.3, 1.1, 0.55] },
     ],
     jack: [
       { id: 'base', name: '기본', cost: 0 },
-      { id: 'delivery', name: '배달원', cost: 1200, tint: [1.15, 0.9, 0.7] },
+      { id: 'delivery', name: '배달원', cost: 0, att: 7, grade: '희귀', tint: [1.15, 0.9, 0.7] },
       { id: 'suit', name: '정장 히어로', cost: 2000, tint: [0.75, 0.8, 1.1] },
       { id: 'santa', name: '산타', cost: 0, need: 6, tint: [1.3, 0.75, 0.75] },
     ],
     minho: [
       { id: 'base', name: '기본', cost: 0 },
       { id: 'fire', name: '소방관', cost: 1200, tint: [1.25, 0.85, 0.6] },
-      { id: 'chef', name: '셰프', cost: 2000, tint: [1.15, 1.15, 1.15] },
+      { id: 'chef', name: '셰프', cost: 0, att: 30, grade: '영웅', tint: [1.15, 1.15, 1.15] },
       { id: 'ninja', name: '닌자', cost: 0, need: 5, tint: [0.6, 0.6, 0.75] },
     ],
     sophie: [
@@ -318,6 +319,56 @@ DX.CONFIG = {
   safeSeats: 6, safeFleeT: 25,
   // 보스 공통 2단계 (체력 50%) — 보스별 rage가 있으면 그걸 씀
   bossRage: { at: 0.5, speed: 1.2, scale: 1.08, throwMul: 0.8, quote: '이제부터 진짜 야근이다!!' },
+
+  /* ------------------------------------------------------------- ★ 판 밖 성장 · 경제 (설계서 3단계)
+     subStages: 장마다 스테이지 5개 = 일반 3 + 구조 작전 1 + 보스 1. waves = 그 장 웨이브 중 몇 개까지, gold = 클리어 골드 배율
+     구조 작전 스테이지(type 'rescue')는 시작하자마자 구조 신호가 뜸. 장 클리어(다음 장 열림) = 5번째 */
+  subStages: [
+    { name: '출근길', waves: 3, gold: 0.35, hp: 0.85 },
+    { name: '중간 점검', waves: 4, gold: 0.45, hp: 0.92 },
+    { name: '야근 돌입', waves: 5, gold: 0.55, hp: 1.0 },
+    { name: '구조 작전', waves: 3, gold: 0.5, hp: 0.9, type: 'rescue' },
+    { name: '결재 (보스)', waves: 99, gold: 1.0, hp: 1.0 },
+  ],
+  // 스테이지 시작 무전 (인턴 이하나가 안내). {n} = 스테이지 번호
+  radio: {
+    who: 0,
+    lines: ['다음 구조 신호를 찾고 있어요!', '좀비 떼가 몰려와요! 칸을 잘 지켜 주세요!', '이 근처에 사람이 있을지도 몰라요...', '부장님 무전은 무시하세요. 진짜로요.', '연료는 충분해요. 끝까지 가요!'],
+    byStage: {
+      desert: ['첫 출근 열차, 출발합니다!'], rest: ['휴게소 호두과자 냄새가 나요!'], city: ['본사 옥상에서 구조 신호가 잡혀요!'],
+      neon: ['회식 노래가 들려요... 무서워요'], bridge: ['다리가 흔들려요! 빨리 건너요!'], snow: ['너무 추워요... 보일러 꼭 지켜 주세요'],
+      tunnel: ['비상등만 보여요. 조명탄 준비!'], lab: ['사실... 사장님은 제 삼촌이에요. 꼭 막아 주세요!'],
+    },
+  },
+  // 생존자 키우기 (2장 클리어 후 열림). 레벨당 효과, cost = 기본 가격 × grow^레벨. join = 이 장을 깨면 합류(새 동료, 그림은 나중에)
+  heroes: {
+    unlockStage: 2, max: 20, costBase: 150, costGrow: 1.16,
+    list: [
+      { id: 'jack', name: '잭', portrait: 'assets/portraits/survivor1.png', perk: 'mg', per: 0.03, desc: '기관총 피해 +3%' },
+      { id: 'minho', name: '민호', portrait: 'assets/portraits/survivor2.png', perk: 'elem', per: 0.03, desc: '불·물·얼음·바람 피해 +3%' },
+      { id: 'sophie', name: '소피', portrait: 'assets/portraits/survivor3.png', perk: 'cd', per: 0.02, desc: '스킬 쿨타임 -2%' },
+      { id: 'hana', name: '인턴 이하나', portrait: 'assets/npc/face_0.png', perk: 'xp', per: 0.03, desc: '경험치 +3%, 구조 신호 정찰', join: 4 },
+      { id: 'park', name: '은퇴 기관사 박 기장', portrait: 'assets/npc/face_10.png', perk: 'horn', per: 0.04, desc: '경적 쿨타임 -4%, 열차 체력 +1%', join: 6 },
+    ],
+  },
+  // 칸 도감: 처음엔 기관총·화염만, 장을 깨면 새 무기 칸이 열림 (장 번호)
+  weaponUnlock: { mg: 0, flame: 0, tesla: 1, drone: 2, barrel: 2, cannon: 3, water: 3, freeze: 5, fan: 6 },
+  // 방치 보상 (3장 클리어 후): 자리 비운 동안 골드. 최대 maxHours시간분, 광고 보면 2배
+  idle: { unlockStage: 3, perHourBase: 40, perStage: 25, maxHours: 8 },
+  // 경제: 실패하면 번 골드의 failRate만, 광고 2배는 하루 adDoubleDay번
+  econ: { failRate: 0.4, adDoubleDay: 3 },
+  // 꾸미기 수집 보너스: 외형 every개마다 골드 +per (최대 max)
+  skinBonus: { every: 3, per: 0.02, max: 0.10 },
+  // 보석(희귀 화폐): 새 별 1개당 gemsPerStar, 출석 7일째 att7
+  gems: { perStar: 3, att7: 10 },
+  // 도감: 처음 본 좀비·보스·구한 시민·원소 반응마다 골드 reward
+  codex: { reward: 30 },
+  // 무한 모드 (8장 클리어 후): 웨이브가 끝없이, 점점 강하게. 기록 = 버틴 웨이브
+  endless: { unlockStage: 8, base: 'lab', hpGrow: 0.18, rateGrow: 0.08, bossEvery: 5 },
+  // 음악 파일 자리 (픽사베이에서 받은 곡을 이 이름으로 넣으면 자동 사용, 없으면 지금 소리)
+  music: { lobby: 'assets/music/lobby.mp3', battle: 'assets/music/battle1.mp3', battle2: 'assets/music/battle2.mp3', boss: 'assets/music/boss.mp3', mini: 'assets/music/mini.mp3', win: 'assets/music/win.mp3', lose: 'assets/music/lose.mp3' },
+  // 장 클리어 컷: 다음 장 예고 한 줄
+  nextTease: { desert: '다음: 해 질 녘 고속도로 휴게소', rest: '다음: 비 내리는 본사 앞 도심', city: '다음: 한밤의 네온 유흥가', neon: '다음: 천 길 낭떠러지 협곡 철교', bridge: '다음: 눈보라 설산 워크숍', snow: '다음: 비상등만 깜빡이는 암흑 터널', tunnel: '다음: 지하 연구소와 사장실', lab: '1부 출근편 끝! 2부 야근편을 기다려 주세요' },
 
   invasion: {
     firstWave: 3,            // 몇 번째 웨이브부터 침입이 생기는지

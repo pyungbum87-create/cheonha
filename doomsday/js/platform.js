@@ -10,7 +10,7 @@ window.DX = window.DX || {};
   const API = DX.API, PF = DX.PLATFORM;
 
   // ★ 빌드 번호 (월일-시분). 화면 아래에 표시 → 휴대폰에서 최신판인지 확인용
-  DX.BUILD = '1114-0130';
+  DX.BUILD = '1114-0330';
 
   /* ---------------- 저장소 (위챗·더우인은 플랫폼 저장소, 웹은 localStorage) ---------------- */
   DX.store = {
@@ -79,10 +79,22 @@ window.DX = window.DX || {};
       Music.next += sd; Music.step++;
     }
   }
+  // 음악 파일 (config.music): 파일이 있으면 그 곡을 반복, 없으면 코드 음악
+  const files = {}, fileOk = {};
+  function fileFor(mode) {
+    const M = DX.CONFIG.music || {}, url = M[mode]; if (!url) return null;
+    if (!(url in fileOk)) { fileOk[url] = false; const a = new Audio(); a.preload = 'auto'; a.oncanplaythrough = () => { fileOk[url] = true; }; a.onerror = () => { fileOk[url] = false; }; a.src = url; files[url] = a; }
+    return fileOk[url] ? files[url] : null;
+  }
+  Music.file = null;
   Music.play = function (mode) {
     const c = Music.ctx; if (!c) return;
     const on = DX.save && DX.save.music !== false && !Music.hidden;
     if (!on) mode = '';
+    const f = mode ? fileFor(mode) || (mode === 'battle2' || mode === 'boss' || mode === 'mini' ? fileFor('battle') : null) : null;
+    if (f !== Music.file) { if (Music.file) Music.file.pause(); Music.file = f; if (f) { f.loop = true; f.volume = 0.5; f.currentTime = 0; f.play().catch(() => {}); } }
+    if (f) mode = '';   // 파일이 나오면 코드 음악은 끔
+    else if (mode && !PAT[mode]) mode = 'battle';
     if (mode === Music.mode) return;
     Music.mode = mode;
     clearInterval(Music.timer);
