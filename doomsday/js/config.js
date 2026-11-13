@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.91',
+    version: 'v0.9',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -67,7 +67,7 @@ DX.CONFIG = {
     office: { full: 'assets/chars/office_full.png', parts: 'assets/chars/office_parts.png', height: 2.6, face: 1 },
     box: { full: 'assets/chars/box_full.png', parts: 'assets/chars/box_parts.png', height: 2.6, face: 1 },
     bomber: { full: 'assets/chars/bomber_full.png', parts: 'assets/chars/bomber_parts.png', height: 2.8, face: 1 },
-    jack: { full: 'assets/chars/jack_full.png', parts: 'assets/chars/jack_parts.png', height: 1.55, face: 1 },
+    jack: { full: 'assets/chars/jack_full.png', height: 1.55, face: 1 },   // 생존자 동작 그림 전체: assets/chars/jack, minho, sophie 폴더 (각 동작 4컷)
     dancer: { full: 'assets/chars/dancer_full.png', parts: 'assets/chars/dancer_parts.png', height: 2.6, face: 1 },
     riot: { full: 'assets/chars/riot_full.png', parts: 'assets/chars/riot_parts.png', height: 2.4, face: 1 },
     bujang: { full: 'assets/chars/bujang_full.png', height: 2.3, face: 1 },   // 거미 보스 (부위 그림 없음 → 통째로 날아감)
@@ -137,32 +137,6 @@ DX.CONFIG = {
     heroes: ['jack', 'minho', 'sophie'],   // 칸마다 싸우는 생존자 (fightArt 또는 fightFallback 에 있는 이름)
     reward: { gold: 6, ult: 0.25, heal: 0.05 },  // 격퇴 보상 (골드, 필살기 충전, 체력 회복 비율)
     failDamage: 0.06,        // 실패 시 열차 최대체력 대비 피해
-  },
-
-  /* ------------------------------------------------------------ 웨이브 사이 미니게임 (js/minigame.js)
-     schedule: 스테이지 id 별로 { 몇 번째 웨이브를 깬 뒤: '게임 이름' }
-       게임 이름: parcel(택배 받아치기) golf(사장님 골프공) sniper(지붕 저격) boiler(보일러 압력) supply(휴게소 보급 달리기)
-     rewards: 등급별 보상 — gold(골드) heal(체력 회복 비율) ult(대파 폭격 충전 0~1) card(레벨업 카드 장수)
-     goldPerStage: 스테이지가 1 오를 때마다 골드 보상 증가 비율 */
-  minigames: {
-    on: true,
-    schedule: {
-      desert: { 2: 'boiler' },
-      rest: { 2: 'supply', 5: 'parcel' },
-      city: { 2: 'sniper', 5: 'parcel' },
-      neon: { 2: 'supply', 5: 'boiler' },
-      bridge: { 2: 'sniper', 5: 'boiler' },
-      snow: { 2: 'parcel', 5: 'sniper' },
-      tunnel: { 2: 'boiler', 5: 'sniper' },
-      lab: { 2: 'supply', 5: 'golf' },
-    },
-    rewards: {
-      S: { gold: 30, heal: 0.25, ult: 0.4, card: 1 },
-      A: { gold: 20, heal: 0.15, ult: 0.2 },
-      B: { gold: 10, heal: 0.08 },
-      C: { gold: 4 },
-    },
-    goldPerStage: 0.3,
   },
 
   /* ------------------------------------------------------------ 인트로 (게임 첫 실행 시)
