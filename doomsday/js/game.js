@@ -88,7 +88,7 @@ window.DX = window.DX || {};
     buildProps(th);
   }
   // 그림 소품 (폐차·경찰차·상자·모래주머니 등). h = 세계 높이
-  const PROP_H = { wreck1: 2.5, wreck2: 2.5, police1: 2.5, police2: 2.5, crate: 1.3, box: 1.1, sandbag: 1.0, gas: 1.5, barrel_siren: 1.8, spikes: 0.9 };
+  const PROP_H = { billboard: 3.2, watertower: 5, watchtower: 4.6, barricade: 1.8, supplies: 2.0, jersey: 1.6, lamp_rest: 3.6, shelter_rest: 3.2, mapboard: 2.6, vending: 2.6, foodcart: 2.8, bikes: 2.0, shelter_city: 3.2, lamp_city: 4.2, traffic: 4.4, billboard_city: 3.4, cones: 1.7, utilbox: 2.4, wreck1: 2.5, wreck2: 2.5, police1: 2.5, police2: 2.5, crate: 1.3, box: 1.1, sandbag: 1.0, gas: 1.5, barrel_siren: 1.8, spikes: 0.9 };
   function spriteProps(P, kinds, z0, z1, step, xr) {
     for (let z = z0; z < z1; z += rand(step[0], step[1])) {
       const side = Math.random() < 0.5 ? -1 : 1, k = pick(kinds);
@@ -108,7 +108,7 @@ window.DX = window.DX || {};
         for (let z = -190; z < 50; z += rand(16, 28)) for (const side of [-1, 1]) P.push({ k: 'mesa', x: side * rand(32, 48), z, sx: rand(8, 14), sy: rand(10, 22), sz: rand(8, 14), r: rand(0, 1), col: pick(th.rock), col2: '#e0a670' });
         for (let z = -190; z < 50; z += 14) P.push({ k: 'pole', x: 3.4, z });
         P.push({ k: 'tower', x: 9, z: -120 }); P.push({ k: 'station', x: -13, z: -40 });
-        spriteProps(P, ['wreck1', 'wreck2', 'crate', 'box', 'sandbag', 'gas', 'barrel_siren', 'spikes', 'wreck1'], -190, 50, [4, 8], [5, 17]);
+        spriteProps(P, th.propKinds || ['wreck1', 'wreck2', 'crate', 'box', 'sandbag', 'gas', 'barrel_siren', 'spikes', 'wreck1'], -190, 50, [4, 8], [5, 17]);
       } else if (th.props === 'city') {
         for (let z = -190; z < 50; z += 0) {
           const d = rand(8, 13);
@@ -117,7 +117,7 @@ window.DX = window.DX || {};
         }
         for (let z = -190; z < 50; z += 12) { P.push({ k: 'lamp', x: 11.5, z }); P.push({ k: 'lamp', x: -11.5, z: z + 6 }); }
         for (let z = -190; z < 50; z += rand(28, 40)) P.push({ k: 'billboard', x: Math.random() < 0.5 ? 12.5 : -12.8, z, neon: pick(th.neon) });
-        spriteProps(P, ['police1', 'police2', 'wreck1', 'wreck2', 'sandbag', 'crate', 'barrel_siren', 'box'], -190, 50, [5, 9], [4.5, 11]);
+        spriteProps(P, th.propKinds || ['police1', 'police2', 'wreck1', 'wreck2', 'sandbag', 'crate', 'barrel_siren', 'box'], -190, 50, [5, 9], [4.5, 11]);
       } else if (th.props === 'bridge') {
         for (let z = -190; z < 50; z += 6.2) { P.push({ k: 'truss', x: th.deck[0] - 0.4, z }); P.push({ k: 'truss', x: th.deck[1] + 0.4, z }); }
         for (let z = -190; z < 50; z += rand(9, 15)) for (const side of [-1, 1]) { const s = rand(10, 22); P.push({ k: 'cliff', x: side * rand(32, 55), y: rand(-30, -10), z, sx: s * rand(0.8, 1.3), sy: s * rand(2, 3), sz: s, r: rand(0, 6), col: pick(th.cliff) }); }
@@ -804,6 +804,24 @@ window.DX = window.DX || {};
     const tint = [(base ? base[0] : 1) * (1 - 0.72 * b), (base ? base[1] : 1) * (1 - 0.75 * b), (base ? base[2] : 1) * (1 - 0.78 * b), z.alpha === undefined ? 1 : z.alpha];
     let add = z.flash > 0 ? FLASH_ADD : z.stun > 0 ? SHOCK_ADD : null;
     if (!corpse && z.boss && z.bst === 'wind' && Math.sin((G ? G.t : 0) * 30) > 0) add = BOSS_WIND_ADD;   // 공격 준비: 빨갛게 번쩍
+    // 프레임 애니메이션 그림이 있으면 그걸로 (걷기 4컷 / 공격 / 맞음 / 쓰러짐)
+    const ak = z.boss ? (z.cfg.anim || z.cfg.art) : z.type, AN = C.anim && C.anim[ak];
+    if (AN) {
+      const hh = AN.h || AN; let key = null;
+      if (corpse) key = hh.a3 ? 'a3' : null;
+      else if (z.hitT > 0 && hh.a2) key = 'a2';
+      else if (z.boss && (z.bst === 'wind') && hh.a0) key = 'a0';
+      else if (z.boss && (z.bst === 'strike' || z.bst === 'throw') && hh.a1) key = 'a1';
+      else if (z.atk && hh.a1) key = ((G ? G.t : 0) * 2.4 + (z.seed || 0)) % 1 < 0.5 ? 'a0' : 'a1';
+      else if (hh.w0) key = 'w' + (Math.floor((z.ph || 0) / (Math.PI / 2)) % 4 + 4) % 4;
+      const af = key && SPR.frames['anim:' + ak + ':' + key];
+      if (af) {
+        const hk = (hh[key] || 1) * (z.boss && !hh.w0 ? 1 : 1);
+        if (!corpse) { bob = hh.w0 && !z.atk ? Math.abs(Math.sin(z.ph * 2)) * 0.06 * H : 0; rot = (z.lean || 0) + (z.stun > 0 ? (Math.random() - 0.5) * 0.2 : 0); sq = 1; }
+        E.sprite(af, z.x, y + bob, z.z, H * hk * af.aspect, H * hk * sq, rot, 0.5, ay, tint, add, fl);
+        return;
+      }
+    }
     if (!corpse && !DX.save.mild) {
       const R = rigOf(ch);
       if (R && (z.boss || rigBudget-- > 0)) { drawRig(z, ch, R, H, tint, add); return; }

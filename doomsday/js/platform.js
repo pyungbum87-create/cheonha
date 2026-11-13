@@ -10,7 +10,7 @@ window.DX = window.DX || {};
   const API = DX.API, PF = DX.PLATFORM;
 
   // ★ 빌드 번호 (월일-시분). 화면 아래에 표시 → 휴대폰에서 최신판인지 확인용
-  DX.BUILD = '1113-1548';
+  DX.BUILD = '1113-1805';
 
   /* ---------------- 저장소 (위챗·더우인은 플랫폼 저장소, 웹은 localStorage) ---------------- */
   DX.store = {

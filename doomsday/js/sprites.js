@@ -332,6 +332,16 @@ window.DX = window.DX || {};
         items.push({ name: 'fx:' + key, canvas: cv });
       } catch (e) { console.warn('fx art fail', key, e); }
     }
+    // 프레임 애니메이션 (좀비 걷기·공격·맞음·쓰러짐, 보스 행동)
+    const an = (DX.CONFIG && DX.CONFIG.anim) || {};
+    for (const nm in an) for (const key in an[nm].h || an[nm]) {
+      try {
+        const d = await getPixels('assets/chars/anim/' + nm + '_' + key + '.png'); removeBg(d);
+        let cv = crop(d, null, null, bboxAlpha(d));
+        cv = scaled(cv, Math.min(1, (['bujang', 'isa', 'ceo'].indexOf(nm) >= 0 ? 300 : 210) / Math.max(cv.width, cv.height)));
+        items.push({ name: 'anim:' + nm + ':' + key, canvas: cv });
+      } catch (e) { console.warn('anim fail', nm, key, e); }
+    }
     // 길가 소품 그림 (폐차·경찰차·상자 등)
     const pa = (DX.CONFIG && DX.CONFIG.propArt) || {};
     for (const key in pa) {

@@ -31,7 +31,7 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .hidden { display: none !important; }
 
 #app { position: relative; height: 100%; height: 100dvh; width: min(100vw, 62dvh); margin: 0 auto; overflow: hidden;
-  background: var(--sky-img, none) center top / 100% auto no-repeat, linear-gradient(180deg, var(--sky-top), var(--sky-bot)); }
+  background: var(--sky-img, none) center top / auto 48% no-repeat, linear-gradient(180deg, var(--sky-top), var(--sky-bot)); }
 #gl, #fx { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 #fx { pointer-events: none; }
 .screen, #hud, .modal { position: absolute; inset: 0; }

@@ -70,7 +70,8 @@ DX.CONFIG = {
     jack: { full: 'assets/chars/jack_full.png', height: 1.55, face: 1 },   // 생존자 동작 그림 전체: assets/chars/jack, minho, sophie 폴더 (각 동작 4컷)
     dancer: { full: 'assets/chars/dancer_full.png', parts: 'assets/chars/dancer_parts.png', height: 2.6, face: 1 },
     riot: { full: 'assets/chars/riot_full.png', parts: 'assets/chars/riot_parts.png', height: 2.4, face: 1 },
-    bujang: { full: 'assets/chars/bujang_full.png', height: 2.3, face: 1 },   // 거미 보스 (부위 그림 없음 → 통째로 날아감)
+    bujang: { full: 'assets/chars/bujang_full.png', height: 2.6, face: 1 },   // 거미 보스
+    isa: { full: 'assets/chars/isa_full.png', height: 2.8, face: 1 },
     ceo: { full: 'assets/chars/ceo_full.png', height: 2.7, face: 1 },
     minho: { full: 'assets/chars/minho_back.png', height: 1.55, face: 1 },    // 지붕 사수 (뒷모습)
     sophie: { full: 'assets/chars/sophie_back.png', height: 1.55, face: 1 },
@@ -107,11 +108,19 @@ DX.CONFIG = {
     muzzle: 'assets/fx/muzzle.png', sonic: 'assets/fx/sonic.png', iceburst: 'assets/fx/iceburst.png', cloud_teal: 'assets/fx/cloud_teal.png',
     cloud_pink: 'assets/fx/cloud_pink.png', crate: 'assets/fx/crate.png', barrel: 'assets/fx/barrel.png', drone: 'assets/fx/drone.png',
   },
+  // 프레임 애니메이션 그림 (assets/chars/anim/이름_키.png). w0~w3 = 걷기 4컷, a0 = 준비, a1 = 공격, a2 = 맞음, a3 = 쓰러짐
+  // h = 걷기 첫 컷 대비 높이 비율 (자동 계산값)
+  anim: {office: {w0: 1.0, w1: 1.021, w2: 0.949, w3: 0.99, a0: 0.786, a1: 0.838, a2: 0.91, a3: 0.791}, box: {w0: 1.0, w1: 1.052, w2: 1.033, w3: 1.036, a0: 0.857, a1: 0.95, a2: 0.96, a3: 0.86}, bomber: {w0: 1.0, w1: 0.995, w2: 0.949, w3: 0.986, a0: 0.804, a1: 0.928, a2: 0.93, a3: 0.817}, dancer: {w0: 1.0, w1: 1.018, w2: 0.977, w3: 1.013, a0: 0.879, a1: 0.97, a2: 0.962, a3: 0.862}, riot: {w0: 1.0, w1: 1.012, w2: 0.996, w3: 1.0, a0: 0.905, a1: 0.947, a2: 0.988, a3: 0.935}, bujang: {a0: 1.0, a1: 1.0, a2: 0.929, a3: 0.993}, isa: {a0: 1.0, a1: 1.017, a2: 0.971, a3: 0.998}, ceo: {a0: 1.0, a1: 0.99, a2: 0.948, a3: 1.132}},
   // 길가 소품 그림 (배경에 흩어 놓는 물건). 이름: 파일
   propArt: {
     wreck1: 'assets/props/wreck1.png', wreck2: 'assets/props/wreck2.png', police1: 'assets/props/police1.png', police2: 'assets/props/police2.png',
     crate: 'assets/props/crate.png', box: 'assets/props/box.png', sandbag: 'assets/props/sandbag.png', gas: 'assets/props/gas.png',
     barrel_siren: 'assets/props/barrel_siren.png', spikes: 'assets/props/spikes.png', bomber: 'assets/props/bomber.png',
+    billboard: 'assets/props/billboard.png', watertower: 'assets/props/watertower.png', watchtower: 'assets/props/watchtower.png', barricade: 'assets/props/barricade.png',
+    supplies: 'assets/props/supplies.png', jersey: 'assets/props/jersey.png', lamp_rest: 'assets/props/lamp_rest.png', shelter_rest: 'assets/props/shelter_rest.png',
+    mapboard: 'assets/props/mapboard.png', vending: 'assets/props/vending.png', foodcart: 'assets/props/foodcart.png', bikes: 'assets/props/bikes.png',
+    shelter_city: 'assets/props/shelter_city.png', lamp_city: 'assets/props/lamp_city.png', traffic: 'assets/props/traffic.png', billboard_city: 'assets/props/billboard_city.png',
+    cones: 'assets/props/cones.png', utilbox: 'assets/props/utilbox.png',
   },
   // 포즈 그림이 아직 없을 때 전신 그림 1장으로 대신 씀 (flip = 좌우 뒤집기)
   fightFallback: {
@@ -187,11 +196,11 @@ DX.CONFIG = {
       colors: { skin: '#7cc94e', shirt: '#dfe6ee', pants: '#2d3446', tie: '#8e24aa', toast: '#e9b872', bag: '#4a3222', eye: '#ffffff', pupil: '#ff2222' } },
     hwisik: { model: 'giant', proj: 'barrel', base: 'bomber', art: 'bomber', name: '회식 끝판왕 과장님', quote: '3차 가자아아!!', hp: 2400, speed: 1.9, dps: 19, xp: 75, gold: 55, scale: 4.4, summon: 'bomber',
       colors: { skin: '#a7d86a', shirt: '#f0e6d0', pants: '#3a3a44', belly: '#c6f08a', tie: '#2e7d32', cheek: '#ff7b9c', eye: '#ffffff', pupil: '#ff2222' } },
-    isa: { model: 'spider', proj: 'paper', art: 'bujang', artTint: [0.78, 0.62, 1.0], name: '독거미 이사님', quote: '이사회 결정이다.', hp: 2600, speed: 2.8, dps: 20, xp: 80, gold: 60, scale: 3.3, summon: 'dancer',
+    isa: { model: 'spider', proj: 'paper', art: 'isa', name: '독거미 이사님', quote: '이사회 결정이다.', hp: 2600, speed: 2.8, dps: 20, xp: 80, gold: 60, scale: 3.3, summon: 'dancer',
       colors: { body: '#5a3a7a', spots: '#ffcf3a', skin: '#9a7ad8', leg: '#2a1a3a', eye: '#3dff6b', tie: '#ffcf3a' } },
     sangmu: { model: 'giant', proj: 'snow', base: 'office', art: 'office', artTint: [0.72, 0.84, 1.1], name: '스키 연수 간 상무님', quote: '워크숍은 강제 참석이다!', hp: 2900, speed: 2.0, dps: 22, xp: 90, gold: 70, scale: 4.6, summon: 'riot',
       colors: { skin: '#8fc4d8', shirt: '#2a5aa8', pants: '#1d2a44', tie: '#ff5a36', toast: '#e9b872', bag: '#4a3222', eye: '#ffffff', pupil: '#ff2222' } },
-    isa2: { model: 'spider', proj: 'paper', art: 'bujang', artTint: [0.62, 1.0, 0.7], name: '독거미 이사님 (2차 변이)', quote: '퇴사는 허락 못 한다!', hp: 3200, speed: 3.0, dps: 24, xp: 100, gold: 80, scale: 3.6, summon: 'dancer',
+    isa2: { model: 'spider', proj: 'paper', art: 'isa', artTint: [0.75, 1.0, 0.8], name: '독거미 이사님 (2차 변이)', quote: '퇴사는 허락 못 한다!', hp: 3200, speed: 3.0, dps: 24, xp: 100, gold: 80, scale: 3.6, summon: 'dancer',
       colors: { body: '#2a5a3a', spots: '#ffcf3a', skin: '#7ad89a', leg: '#1a3a2a', eye: '#ff3d3d', tie: '#ffcf3a' } },
     ceo: { model: 'giant', proj: 'golf', base: 'office', crown: true, art: 'ceo', name: '좀비 사장님 (최종 보스)', quote: '연봉 동결이다!!', hp: 4200, speed: 1.8, dps: 26, xp: 150, gold: 120, scale: 5.0, summon: 'riot',
       colors: { skin: '#6fb64a', shirt: '#1d1d24', pants: '#1d1d24', tie: '#ffcf3a', toast: '#ffd700', bag: '#7a5a20', eye: '#ffffff', pupil: '#ff2222' } },
@@ -269,7 +278,7 @@ DX.CONFIG = {
         { who: 0, text: '연료가 간당간당하다. 다음 휴게소에 들른다.' },
       ],
       theme: {
-        groundImg: 'desert', skyImg: 'assets/sky/sunset.jpg', skyTop: '#f3b06b', skyBottom: '#f7d49b', fog: '#efc08a', fogNear: 55, fogFar: 150,
+        skyImg: 'assets/sky/ch1.jpg', propKinds: ['billboard', 'watertower', 'watchtower', 'barricade', 'supplies', 'jersey', 'wreck1', 'wreck2', 'gas'], groundImg: 'desert', skyTop: '#f3b06b', skyBottom: '#f7d49b', fog: '#efc08a', fogNear: 55, fogFar: 150,
         light: [0.5, 0.9, 0.3], sky: '#fff1d6', ground: '#a8714a', ambient: 0.45,
         groundCol: '#d9a066', ballast: '#8b6a4f', sleeper: '#5b4636', rail: '#aab2bf',
         props: 'desert', weather: 'dust', rock: ['#c27a45', '#b06a3a', '#d48b52', '#9e5d33'], plant: '#5f8f3a',
@@ -297,7 +306,7 @@ DX.CONFIG = {
         { who: 2, text: '무전이 잡혀. "본사 서버에... 백신 위치가..." 도심으로 가야 해.' },
       ],
       theme: {
-        groundImg: 'rest', skyImg: 'assets/sky/sunset.jpg', skyTop: '#ff7e5f', skyBottom: '#ffc27a', fog: '#f2a27a', fogNear: 50, fogFar: 140,
+        skyImg: 'assets/sky/ch2.jpg', propKinds: ['lamp_rest', 'shelter_rest', 'mapboard', 'vending', 'foodcart', 'bikes', 'wreck1', 'wreck2'], groundImg: 'rest', skyTop: '#ff7e5f', skyBottom: '#ffc27a', fog: '#f2a27a', fogNear: 50, fogFar: 140,
         light: [0.7, 0.6, 0.3], sky: '#ffd9b8', ground: '#8a5040', ambient: 0.5, spriteTint: [1.0, 0.9, 0.84],
         groundCol: '#c98a5c', ballast: '#7a5a48', sleeper: '#4e3a2e', rail: '#b0a8a8',
         props: 'desert', weather: 'dust', rock: ['#b0603a', '#a0502e', '#c4743f', '#8a4a2a'], plant: '#6a7a3a', groundTint: [1.0, 0.86, 0.8, 1],
@@ -325,7 +334,7 @@ DX.CONFIG = {
         { who: 0, text: '과장님... 편히 퇴근하세요.' },
       ],
       theme: {
-        groundImg: 'city', skyTop: '#1d2448', skyBottom: '#6a3f6e', fog: '#4a3a62', fogNear: 50, fogFar: 150,
+        skyImg: 'assets/sky/ch3.jpg', propKinds: ['shelter_city', 'lamp_city', 'traffic', 'billboard_city', 'cones', 'utilbox', 'police1', 'police2', 'wreck1'], groundImg: 'city', skyTop: '#1d2448', skyBottom: '#6a3f6e', fog: '#4a3a62', fogNear: 50, fogFar: 150,
         light: [0.35, 0.85, 0.45], sky: '#c9d2ff', ground: '#5a4a6a', ambient: 0.62,
         groundCol: '#565a68', ballast: '#3c3f4a', sleeper: '#3d3027', rail: '#9aa3b2',
         props: 'city', weather: 'rain', spriteTint: [0.85, 0.85, 0.97], building: ['#5a6378', '#66708a', '#525a6e', '#6a5a78', '#586868'], neon: ['#ff4fa3', '#3df2ff', '#ffd23d', '#7dff6b'],
