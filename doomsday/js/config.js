@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.9',
+    version: 'v0.10',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -129,6 +129,99 @@ DX.CONFIG = {
     dancer: { src: 'assets/chars/dancer_full.png', flip: true },
     riot: { src: 'assets/chars/riot_full.png', flip: true },
   },
+  /* ------------------------------------------------------------- 미니게임 (웨이브 사이 이벤트, js/mini.js)
+     byStage: 스테이지 순서대로 [몇 번째 웨이브 시작 전, 종류]. 종류 = parcel(택배 쳐내기) / golf(골프공 받아치기) / rescue(시민 구출)
+     웨이브 번호는 1부터. 4·7번째는 보스라서 2·3·5·6 중에 넣기
+     bg: 스테이지별 배경 그림 (없으면 휴게소), tint: 배경 색 덧칠
+     reward: 결과(0~1 비율)에 곱해서 지급 — gold(×스테이지 배율), heal(열차 체력 비율), ult(필살기 충전) */
+  minigame: {
+    on: true,
+    byStage: [
+      [[3, 'parcel']],
+      [[2, 'rescue'], [5, 'parcel']],
+      [[3, 'rescue'], [6, 'golf']],
+      [[2, 'golf'], [5, 'rescue']],
+      [[3, 'parcel'], [6, 'golf']],
+      [[2, 'rescue'], [5, 'parcel']],
+      [[3, 'golf'], [6, 'rescue']],
+      [[2, 'parcel'], [5, 'golf']],
+    ],
+    bg: ['assets/story/ch1_side.jpg', 'assets/story/ch2_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch1_side.jpg', 'assets/story/ch1_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch3_side.jpg'],
+    tint: [null, null, null, 'rgba(160,40,140,0.28)', 'rgba(60,40,20,0.25)', 'rgba(170,200,255,0.45)', 'rgba(0,0,0,0.45)', 'rgba(20,120,40,0.3)'],
+    reward: { gold: 60, goldPerStage: 0.35, heal: 0.15, ult: 0.35 },
+  },
+
+  /* ------------------------------------------------------------- 만화 컷 (챕터 시작 때 1번, 스테이지 id 별)
+     칸 하나 = { who, text } 또는 { cap: '해설 문구' }. who: 0 잭 / 1 민호 / 2 소피 / 'n숫자' = 시민 얼굴(npc 목록 순서)
+     bg: 배경 그림, pos: 배경에서 보여줄 가로 위치들(%), tint: 색 덧칠. 한 화면에 3칸씩 */
+  comicNpc: [
+    { name: '여고생 지은', face: 'assets/npc/face_0.png' }, { name: '택배기사 박씨', face: 'assets/npc/face_1.png' },
+    { name: '편의점 알바', face: 'assets/npc/face_2.png' }, { name: '휴게소 주방장', face: 'assets/npc/face_3.png' },
+    { name: '바텐더', face: 'assets/npc/face_4.png' }, { name: '정비공 철수', face: 'assets/npc/face_5.png' },
+    { name: '청소 여사님', face: 'assets/npc/face_6.png' }, { name: '경비 아저씨', face: 'assets/npc/face_7.png' },
+    { name: '김 대리', face: 'assets/npc/face_8.png' }, { name: '백신 박사', face: 'assets/npc/face_9.png' },
+    { name: '기관사 할아버지', face: 'assets/npc/face_10.png' }, { name: '퇴직한 부장님', face: 'assets/npc/face_11.png' },
+  ],
+  comics: {
+    desert: { bg: 'assets/story/ch1_side.jpg', pos: [0, 100, 30, 70], panels: [
+      { cap: '좀비 사태 3일째. 회사는 사라졌다. 하지만 출근은 계속된다.' },
+      { who: 'n10', text: '이 열차... 둠스데이 익스프레스는 아직 달릴 수 있네.' },
+      { who: 0, text: '목적지는 지하 연구소. 백신이 거기 있다.' },
+      { who: 1, text: '저 오늘 입사 첫날인데요... 왜 무기가 전부 뚫어뻥이에요?' },
+      { who: 2, text: '마지막까지 문 연 가게가 철물점이었거든.' },
+      { who: 0, text: '전원 배치! 출근 시간이다!!' },
+    ] },
+    rest: { bg: 'assets/story/ch2_side.jpg', pos: [0, 100, 50, 25], panels: [
+      { cap: '해 질 녘, 고속도로 휴게소.' },
+      { who: 'n3', text: '호두과자를 굽는데 택배 상자들이 혼자 걸어와요!' },
+      { who: 'n1', text: '그거... 제가 배송하던 물건이에요. 전부 착불로요.' },
+      { who: 1, text: '호두과자... 아니, 사람부터 구해요!' },
+      { who: 0, text: '시민 태우고 연료 넣는다. 날아오는 상자는 받아쳐!' },
+    ] },
+    city: { bg: 'assets/story/ch3_side.jpg', pos: [0, 100, 40, 70], panels: [
+      { cap: '비 내리는 본사 앞 도심.' },
+      { who: 'n8', text: '살려주세요! 빌딩 위에서 댄서들이 뛰어내려요!' },
+      { who: 2, text: '본사 서버에 백신 단서가 있어. 내가 뚫을게.' },
+      { who: 'n7', text: '사원증 없으면 못 들어가... 아, 이제 상관없나.' },
+      { who: 0, text: '전원 돌격. 오늘은 야근 없다!' },
+    ] },
+    neon: { bg: 'assets/stages/stage6.jpg', zoom: 1.9, pos: [0, 100, 5, 95], panels: [
+      { cap: '한밤의 회식 거리. 2차, 3차... 끝이 없다.' },
+      { who: 'n4', text: '과장님들이 폭탄주를 드시더니... 진짜 폭탄이 됐어요!' },
+      { who: 1, text: '저 회식 싫어서 입사 미뤘던 사람인데요...' },
+      { who: 'n11', text: '자네들, 사장님 골프공은 조심하게. 아주 매서워.' },
+      { who: 2, text: '골프공이면... 내 노트북으로 받아치면 되지.' },
+    ] },
+    bridge: { bg: 'assets/story/ch1_side.jpg', tint: 'rgba(60,30,10,0.25)', pos: [100, 0, 60, 20], panels: [
+      { cap: '천 길 낭떠러지 위, 아슬아슬 협곡 철교.' },
+      { who: 'n5', text: '다리가 흔들려요! 바퀴 볼트는 제가 조여 둘게요!' },
+      { who: 2, text: '좀비가 다리 밑에서 기어 올라와. 밀어서 떨어뜨려!' },
+      { who: 1, text: '저 고소공포증 있다고 면접 때 말했는데요!!' },
+      { who: 0, text: '아래 보지 마. 앞만 봐.' },
+    ] },
+    snow: { bg: 'assets/stages/stage7.jpg', zoom: 1.9, pos: [0, 100, 5, 95], panels: [
+      { cap: '눈보라 설산. 강제 워크숍 현장.' },
+      { who: 'n6', text: '상무님이 스키 연수 가시더니 안 돌아오셨어요...' },
+      { who: 1, text: '워크숍... 그 단어만 들어도 소름이...' },
+      { who: 'n0', text: '저도 태워 주세요! 강아지도 같이요!' },
+      { who: 0, text: '타라. 둠스데이 익스프레스는 정원이 없다.' },
+    ] },
+    tunnel: { bg: 'assets/story/ch3_side.jpg', tint: 'rgba(0,0,0,0.5)', pos: [0, 100, 50, 30], panels: [
+      { cap: '비상등만 깜빡이는 암흑 터널.' },
+      { who: 2, text: '무전이 다시 잡혀... 연구소까지 터널 하나 남았어.' },
+      { who: 'n9', text: '(지직) 여기는 지하 연구소... 백신은... 사장실 금고에...' },
+      { who: 1, text: '사장실이요? 그럼 결국 사장님을...' },
+      { who: 0, text: '퇴사하러 간다. 다 같이.' },
+    ] },
+    lab: { bg: 'assets/stages/stage8.jpg', zoom: 1.9, pos: [0, 100, 5, 95], panels: [
+      { cap: '지하 연구소. 마지막 출근.' },
+      { who: 'n9', text: '자네들이 왔군! 그런데 사장님이 금고를 통째로 삼키셨네!' },
+      { who: 2, text: '...그래서 사장님이 그렇게 커진 거구나.' },
+      { who: 1, text: '연봉 동결은 못 참아요!!' },
+      { who: 0, text: '전원 배치. 마지막 결재 받으러 간다!' },
+    ] },
+  },
+
   invasion: {
     firstWave: 3,            // 몇 번째 웨이브부터 침입이 생기는지
     every: [25, 35],         // 침입 간격(초) 최소~최대

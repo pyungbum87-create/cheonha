@@ -227,21 +227,36 @@ window.DX = window.DX || {};
     return cv;
   }
 
-  // 아틀라스 (그림들을 큰 텍스처 한 장에 모음)
-  function pack(items, size) {
+  // 아틀라스 (그림들을 큰 텍스처에 모음) — 한 장이 꽉 차면 남은 그림은 두 번째 장으로 (최대 2장)
+  // 넣지 못한 그림 목록을 돌려줌. page = 몇 번째 장(0/1)
+  function packPage(items, size, page) {
     const atlas = document.createElement('canvas'); atlas.width = size; atlas.height = size;
     const g = atlas.getContext('2d');
-    items.sort((a, b) => b.canvas.height - a.canvas.height);
-    let x = 2, y = 2, rowH = 0;
+    let x = 2, y = 2, rowH = 0; const left = [];
     for (const it of items) {
       const w = it.canvas.width, h = it.canvas.height;
       if (x + w + 2 > size) { x = 2; y += rowH + 4; rowH = 0; }
-      if (y + h + 2 > size) throw new Error('atlas full');
+      if (y + h + 2 > size || w + 4 > size) { left.push(it); continue; }
       g.drawImage(it.canvas, x, y);
-      SPR.frames[it.name] = { u0: x / size, v0: y / size, u1: (x + w) / size, v1: (y + h) / size, aspect: w / h, meta: it.meta };
+      SPR.frames[it.name] = { u0: x / size, v0: y / size, u1: (x + w) / size, v1: (y + h) / size, aspect: w / h, meta: it.meta, t: page };
       x += w + 4; rowH = Math.max(rowH, h);
     }
-    return atlas;
+    return { atlas, left };
+  }
+  // 필요한 만큼 가장 작은 크기로: 2048 한 장 → 4096 한 장 + 나머지는 (1024~4096 중 맞는 크기) 두 번째 장
+  function pack(items) {
+    items.sort((a, b) => b.canvas.height - a.canvas.height);
+    const tryOne = (list, sizes, page) => { for (const s of sizes) { const r = packPage(list, s, page); if (!r.left.length) return r; } return null; };
+    const one = tryOne(items, [2048], 0); if (one) return [one.atlas];
+    SPR.frames = {};
+    const P0 = /atlas=small/.test(location.search) ? 2048 : 4096;   // 테스트: 주소 뒤에 ?atlas=small → 첫 장을 작게 해서 2장 나눔 확인
+    const a = packPage(items, P0, 0);
+    if (!a.left.length) return [a.atlas];
+    const b = tryOne(a.left, [1024, 2048, 4096], 1);
+    if (b) return [a.atlas, b.atlas];
+    const c = packPage(a.left, 4096, 1);
+    console.warn('atlas 2장도 꽉 참 → 빠진 그림', c.left.map(i => i.name));
+    return [a.atlas, c.atlas];
   }
   function scaled(canvas, s) {
     const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(canvas.width * s)); c.height = Math.max(1, Math.round(canvas.height * s));
@@ -359,12 +374,29 @@ window.DX = window.DX || {};
       try { const d = await getPixels('assets/ground/' + k + '.jpg'); items.push({ name: 'gimg:' + k, canvas: crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 }) }); } catch (e) { console.warn('ground img fail', k, e); }
     }
     if (!items.length) return false;
-    let atlas;
-    try { atlas = pack(items, 2048); } catch (e) { console.warn('atlas 2048 full → 4096'); SPR.frames = {}; atlas = pack(items, 4096); }
-    DX.E.setSpriteTexture(atlas);
-    SPR.atlas = atlas;
+    const pages = pack(items);
+    DX.E.setSpriteTexture(pages[0], 0);
+    if (pages[1]) DX.E.setSpriteTexture(pages[1], 1);
+    SPR.atlas = pages[0]; SPR.pages = pages.map(p => p.width);
     SPR.ready = true;
     return true;
+  };
+  // 2D 화면용 그림 1장: 흰 배경 지우고, 옆 그림에서 잘려 들어온 조각(좌우 끝에 붙은 작은 덩어리)은 버림
+  const cutCache = {};
+  SPR.cut = function (url, maxH, keepBg) {
+    if (cutCache[url]) return cutCache[url];
+    return (cutCache[url] = (async () => {
+      const d = await getPixels(url);
+      if (keepBg) return crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 });
+      removeBg(d);
+      const { lab, comps } = components(d);
+      if (!comps.length) return null;
+      const big = Math.max(...comps.map(c => c.n));
+      const keep = comps.filter(c => !((c.x0 <= 1 || c.x1 >= d.width - 2) && c.n < big * 0.3) && c.n > 6);
+      const box = { x0: Math.min(...keep.map(c => c.x0)), x1: Math.max(...keep.map(c => c.x1)), y0: Math.min(...keep.map(c => c.y0)), y1: Math.max(...keep.map(c => c.y1)) };
+      const cv = crop(d, lab, new Set(keep.map(c => c.id)), box);
+      return maxH ? scaled(cv, Math.min(1, maxH / cv.height)) : cv;
+    })().catch(e => { console.warn('cut fail', url, e); return null; }));
   };
   SPR.has = key => SPR.ready && !!SPR.chars[key];
 })(window.DX);

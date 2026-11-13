@@ -36,7 +36,7 @@ window.DX = window.DX || {};
   // 하늘: 색 그라데이션 + (있으면) 구름 그림. 그림은 스테이지 테마의 skyImg
   UI.setSky = function (top, bot, img) {
     const r = document.documentElement.style; r.setProperty('--sky-top', top); r.setProperty('--sky-bot', bot);
-    r.setProperty('--sky-img', img ? 'url("' + img + '")' : 'none');
+    r.setProperty('--sky-img', img ? 'url("' + new URL(img, location.href).href + '")' : 'none');   // 절대 주소로 (css 폴더 기준으로 잘못 찾던 문제)
   };
 
   /* ---------------- 알림 ---------------- */
@@ -400,6 +400,44 @@ window.DX = window.DX || {};
     if (skip || dlg.i >= dlg.lines.length) { const d = dlg.done; dlg = null; show($('dialog'), false); if (d) d(); return; }
     DX.S.click(); renderDlg();
   }
+  /* ---------------- 만화 컷 (챕터 시작) ---------------- */
+  let cm = null;
+  UI.comic = function (data, title, done) {
+    cm = { d: data, i: 0, done, page: 0 };
+    $('cmTitle').textContent = title || '';
+    show($('comic'), true);
+    $('cmPage').innerHTML = '';
+    comicNext();
+  };
+  function comicPanel(p, k) {
+    const d = cm.d, el = document.createElement('div');
+    const side = k % 2 ? 'r' : 'l';
+    el.className = 'cm-panel ' + side;
+    const pos = d.pos || [0, 100, 50];
+    el.style.backgroundImage = 'url("' + d.bg + '")';
+    el.style.backgroundPosition = pos[k % pos.length] + '% 60%';
+    if (d.zoom) el.style.backgroundSize = (d.zoom * 100) + '% auto';
+    let h = d.tint ? '<div class="tint" style="background:' + d.tint + '"></div>' : '';
+    if (p.cap) h += '<div class="cm-cap">' + esc(T(p.cap)) + '</div>';
+    else {
+      let face = '', name = '';
+      if (typeof p.who === 'string' && p.who[0] === 'n') { const n = (C.comicNpc || [])[+p.who.slice(1)] || {}; face = n.face; name = n.name || ''; }
+      else { const sv = C.survivors[p.who] || C.survivors[0]; face = sv.portrait; name = sv.name; }
+      h += '<img class="face" src="' + face + '" alt=""><div class="cm-bub"><b>' + esc(T(name)) + '</b>' + esc(T(p.text)) + '</div>';
+    }
+    el.innerHTML = h;
+    return el;
+  }
+  function comicNext(skip) {
+    if (!cm) return;
+    const P = cm.d.panels;
+    if (skip || cm.i >= P.length) { const d = cm.done; cm = null; show($('comic'), false); if (d) d(); return; }
+    const page = $('cmPage');
+    if (page.children.length >= 3) page.innerHTML = '';
+    page.appendChild(comicPanel(P[cm.i], cm.i));
+    cm.i++;
+    DX.S.click();
+  }
   function showEnding(done) {
     const e = C.ending;
     $('endTitle').textContent = T(e.title); $('endSub').textContent = T(e.sub); $('endThanks').textContent = T(e.thanks);
@@ -488,7 +526,12 @@ window.DX = window.DX || {};
   function startStage(i) {
     const st = C.stages[i];
     DX.save.seenStory = DX.save.seenStory || {};
-    if (st.intro && st.intro.length && !DX.save.seenStory[st.id]) {
+    const cmc = C.comics && C.comics[st.id];
+    if (cmc && !DX.save.seenStory[st.id]) {
+      DX.save.seenStory[st.id] = true; DX.persist();
+      show($('lobby'), false);
+      UI.comic(cmc, 'CHAPTER ' + (i + 1) + ' · ' + T(st.name), () => DX.startRun(i));
+    } else if (st.intro && st.intro.length && !DX.save.seenStory[st.id]) {
       DX.save.seenStory[st.id] = true; DX.persist();
       show($('lobby'), false);
       UI.dialogue(st.intro, 'STAGE ' + (i + 1) + ' · ' + T(st.name), () => DX.startRun(i));
@@ -532,6 +575,7 @@ window.DX = window.DX || {};
       if (!stageUnlocked(i)) return; DX.S.click();
       startStage(i);
     });
+    $('comic').addEventListener('click', e => { if (e.target.id === 'cmSkip') { comicNext(true); return; } comicNext(false); });
     $('dialog').addEventListener('click', e => { if (e.target.id === 'dlgSkip') return; nextDlg(false); });
     $('dlgSkip').addEventListener('click', e => { e.stopPropagation(); nextDlg(true); });
     $('btnCam').addEventListener('click', () => { DX.S.click(); $('camLabel').textContent = T(DX.toggleCam()); });
@@ -548,6 +592,8 @@ window.DX = window.DX || {};
       $('fight').addEventListener('pointerdown', e => { e.preventDefault(); const p = pos(e); DX.FIGHT.down(p[0], p[1]); });
       $('fight').addEventListener('pointermove', e => { const p = pos(e); DX.FIGHT.move(p[0], p[1]); });
       ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => $('fight').addEventListener(n, () => DX.FIGHT.up())); }
+    { const pos = e => { const r = $('miniCv').getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+      $('mini').addEventListener('pointerdown', e => { e.preventDefault(); const p = pos(e); DX.MINI.down(p[0], p[1]); }); }
     $('btnUlt').addEventListener('click', () => { const G = DX.getG(); if (G && G.ult >= 1) hintDone('ult'); if (!DX.useUltimate()) DX.S.click(); });
     $('btnHorn').addEventListener('click', () => { hintDone('horn'); if (!DX.useHorn()) DX.S.click(); });
     // 일시정지 / 설정

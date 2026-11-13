@@ -466,6 +466,10 @@ window.DX = window.DX || {};
     if (G.waveIdx > 0) { G.hp = Math.min(G.hpMax, G.hp + G.hpMax * 0.1); collectAllOrbs(); }
     if (DX.UI) DX.UI.banner('WAVE ' + (G.waveIdx + 1), w.boss ? C.texts.bossAlert : pick(C.texts.waveSubs), w.boss ? 'boss' : 'wave');
     if (w.boss) S.alarm();
+    // 웨이브 사이 미니게임 (config.minigame) — 하는 동안 본게임 멈춤
+    const mg = C.minigame, mlist = mg && mg.on && DX.MINI && (mg.byStage[G.stageIdx] || []);
+    const mm = mlist && mlist.find(m => m[0] === G.waveIdx + 1);
+    if (mm && !w.boss) { startMini(mm[1]); return; }
     // 보스 직전 보급 제안 (선택형 광고) — 고르는 동안 게임 멈춤
     const bs = C.ads.bossSupply;
     if (w.boss && bs && bs.on && (!bs.finalOnly || G.waveIdx === G.stg.waves.length - 1) && G.hp < G.hpMax * (bs.askBelow || 1) && (G.supplyN || 0) < bs.perRun && DX.UI && DX.UI.bossSupply) {
@@ -475,6 +479,20 @@ window.DX = window.DX || {};
       DX.UI.bossSupply(bs, G);
     }
   }
+  function startMini(kind) {
+    const mg = C.minigame, si = G.stageIdx;
+    DX.state = 'mini';
+    DX.MINI.start(kind, { bg: mg.bg && mg.bg[si], tint: mg.tint && mg.tint[si] }, r => {
+      if (!G) return;
+      const rate = r ? r.rate : 0, rw = mg.reward;
+      const gold = Math.round(rw.gold * (1 + si * rw.goldPerStage) * rate);
+      G.gold += gold; G.hp = Math.min(G.hpMax, G.hp + G.hpMax * rw.heal * rate); G.ult = Math.min(1, G.ult + rw.ult * rate);
+      DX.track('minigame_end', { kind, stage: si + 1, grade: r ? r.grade : 'C' });
+      if (DX.UI) DX.UI.banner((r ? r.grade : 'C') + DX.L(' 등급!', ' 级！'), DX.L('골드 +' + gold + ' · 체력 회복 · 필살기 충전', '金币 +' + gold + ' · 生命恢复 · 大招充能'), rate >= 0.45 ? 'win' : 'wave');
+      DX.state = 'play';
+    });
+  }
+  DX.startMini = k => G && startMini(k);
   // 보급 결과: take=true 면 광고 시청 완료 → 보상 지급, false 면 그냥 진행
   DX.bossSupplyDone = function (take) {
     if (!G || DX.state !== 'supply') return;
@@ -1927,7 +1945,7 @@ window.DX = window.DX || {};
   };
   DX.setQuality = function (q) { DX.save.quality = q; E.dprCap = q === 'low' ? 1.25 : 2; DX.persist(); buildProps(world.theme); };
   DX.previewStage = function (i) { DX.save.stage = i; DX.persist(); if (!G) applyTheme(i); };
-  DX._dbg = { inv: () => G && startInvasion(), end: w => endRun(w), boss: k => { G.wave = Object.assign({}, G.wave, { boss: k }); spawnBoss(); }, spawn: (t, x, z) => spawnZombie(t, x, z) };
+  DX._dbg = { mini: k => startMini(k), inv: () => G && startInvasion(), end: w => endRun(w), boss: k => { G.wave = Object.assign({}, G.wave, { boss: k }); spawnBoss(); }, spawn: (t, x, z) => spawnZombie(t, x, z) };
   DX._world = world;
   DX._update = update;
   DX._render = render;

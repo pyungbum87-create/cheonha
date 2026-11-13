@@ -366,25 +366,27 @@ window.DX = window.DX || {};
   layout(location=6) in vec4 iAX;    // 월드 고정 사각형: 가로 축 (w=1이면 사용)
   layout(location=7) in vec4 iAY;    // 세로 축
   uniform mat4 uVP; uniform vec3 uRight, uUp;
-  out vec2 vUV; out vec4 vT; out vec3 vA; out vec3 vW;
+  out vec2 vUV; out vec4 vT; out vec3 vA; out vec3 vW; out float vP;
   void main(){
     vec2 l = vec2((aC.x - iSize.z) * iSize.x, (aC.y - iSize.w) * iSize.y);
     float c = cos(iPos.w), s = sin(iPos.w);
     l = vec2(l.x * c - l.y * s, l.x * s + l.y * c);
     vec3 w = iAX.w > 0.5 ? iPos.xyz + iAX.xyz * (aC.x - iSize.z) + iAY.xyz * (aC.y - iSize.w) : iPos.xyz + uRight * l.x + uUp * l.y;
     vW = w;
-    float u = iAdd.w > 0.5 ? 1.0 - aC.x : aC.x;
+    float fl = mod(iAdd.w, 2.0); vP = iAdd.w > 1.5 ? 1.0 : 0.0;   // w = 좌우반전 + 2×그림장 번호
+    float u = fl > 0.5 ? 1.0 - aC.x : aC.x;
     vUV = vec2(mix(iUV.x, iUV.z, u), mix(iUV.w, iUV.y, aC.y));
     vT = iTint; vA = iAdd.rgb;
     gl_Position = uVP * vec4(w, 1.0);
   }`;
   const SFS = `#version 300 es
   precision mediump float;
-  in vec2 vUV; in vec4 vT; in vec3 vA; in vec3 vW;
-  uniform sampler2D uTex; uniform vec3 uCam, uFog, uEnv; uniform vec2 uFogR;
+  in vec2 vUV; in vec4 vT; in vec3 vA; in vec3 vW; in float vP;
+  uniform sampler2D uTex, uTex1; uniform vec3 uCam, uFog, uEnv; uniform vec2 uFogR;
   out vec4 o;
   void main(){
-    vec4 t = texture(uTex, vUV);
+    vec4 t0 = texture(uTex, vUV), t1 = texture(uTex1, vUV);
+    vec4 t = vP > 0.5 ? t1 : t0;
     if (t.a < 0.01) discard;
     vec3 c = t.rgb * vT.rgb * uEnv + vA * t.a;
     float f = smoothstep(uFogR.x, uFogR.y, length(vW - uCam));
@@ -392,7 +394,7 @@ window.DX = window.DX || {};
     o = vec4(c, t.a) * vT.a;
   }`;
   const SST = 28;
-  let sprog = null, svao = null, sib = null, stex = null;
+  let sprog = null, svao = null, sib = null, stex = null, stex1 = null;
   const SU = {};
   let sdata = new Float32Array(SST * 512), sn = 0, sdepth = new Float32Array(512), sorder = [];
   E.env.spriteTint = [1, 1, 1];
@@ -400,7 +402,7 @@ window.DX = window.DX || {};
     sprog = gl.createProgram();
     gl.attachShader(sprog, sh(gl.VERTEX_SHADER, SVS)); gl.attachShader(sprog, sh(gl.FRAGMENT_SHADER, SFS)); gl.linkProgram(sprog);
     if (!gl.getProgramParameter(sprog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(sprog));
-    for (const u of ['uVP', 'uRight', 'uUp', 'uTex', 'uCam', 'uFog', 'uEnv', 'uFogR']) SU[u] = gl.getUniformLocation(sprog, u);
+    for (const u of ['uVP', 'uRight', 'uUp', 'uTex', 'uTex1', 'uCam', 'uFog', 'uEnv', 'uFogR']) SU[u] = gl.getUniformLocation(sprog, u);
     svao = gl.createVertexArray(); gl.bindVertexArray(svao);
     const vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1]), gl.STATIC_DRAW);
@@ -409,9 +411,10 @@ window.DX = window.DX || {};
     for (let i = 0; i < 7; i++) { gl.enableVertexAttribArray(1 + i); gl.vertexAttribPointer(1 + i, 4, gl.FLOAT, false, SST * 4, i * 16); gl.vertexAttribDivisor(1 + i, 1); }
     gl.bindVertexArray(null);
   }
-  E.setSpriteTexture = function (canvas) {
+  E.setSpriteTexture = function (canvas, page) {
     if (!sprog) initSprites();
-    stex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, stex);
+    const tx = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tx);
+    if (page === 1) { if (stex1) gl.deleteTexture(stex1); stex1 = tx; } else { if (stex) gl.deleteTexture(stex); stex = tx; }
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
@@ -429,7 +432,7 @@ window.DX = window.DX || {};
     d[o + 4] = w; d[o + 5] = h; d[o + 6] = ax === undefined ? 0.5 : ax; d[o + 7] = ay === undefined ? 0 : ay;
     d[o + 8] = frame.u0; d[o + 9] = frame.v0; d[o + 10] = frame.u1; d[o + 11] = frame.v1;
     d[o + 12] = tint ? tint[0] : 1; d[o + 13] = tint ? tint[1] : 1; d[o + 14] = tint ? tint[2] : 1; d[o + 15] = tint && tint[3] !== undefined ? tint[3] : 1;
-    d[o + 16] = add ? add[0] : 0; d[o + 17] = add ? add[1] : 0; d[o + 18] = add ? add[2] : 0; d[o + 19] = flip ? 1 : 0;
+    d[o + 16] = add ? add[0] : 0; d[o + 17] = add ? add[1] : 0; d[o + 18] = add ? add[2] : 0; d[o + 19] = (flip ? 1 : 0) + (frame.t ? 2 : 0);
     for (let k = 20; k < 28; k++) d[o + k] = 0;
     sn++;
   };
@@ -457,6 +460,7 @@ window.DX = window.DX || {};
     gl.uniform3fv(SU.uRight, right); gl.uniform3fv(SU.uUp, up);
     gl.uniform3fv(SU.uCam, c); gl.uniform3fv(SU.uFog, E.env.fog); gl.uniform3fv(SU.uEnv, E.env.spriteTint);
     gl.uniform2f(SU.uFogR, E.env.fogNear, E.env.fogFar);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, stex1 || stex); gl.uniform1i(SU.uTex1, 1);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, stex); gl.uniform1i(SU.uTex, 0);
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); gl.disable(gl.CULL_FACE);
     gl.bindVertexArray(svao); gl.bindBuffer(gl.ARRAY_BUFFER, sib);
