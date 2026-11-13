@@ -60,7 +60,9 @@ window.DX = window.DX || {};
     sec.classList.remove('hidden');
     st = { kind, done, opt, t: 0, phase: 'load', phaseT: 0, img: {}, score: 0, max: 1, combo: 0, maxCombo: 0, hp: 3, texts: [], parts: [], shake: 0, flash: 0, result: null };
     drawLoading();
-    const img = await loadAll(need(kind, opt.bg || 'assets/story/ch2_side.jpg'));
+    let bgUrl = opt.bg || 'assets/story/ch2_side.jpg';
+    if (opt.bgNew && DX.SPR.probe && await DX.SPR.probe(opt.bgNew)) { bgUrl = opt.bgNew; opt.tint = null; }   // 새 옆 배경 그림이 있으면 그걸로
+    const img = await loadAll(need(kind, bgUrl));
     if (!st) return;
     st.img = img; st.phase = 'intro'; st.phaseT = 1.6;
     SETUP[kind](st);
@@ -72,7 +74,7 @@ window.DX = window.DX || {};
     if (st.phase === 'end') return;
     const rate = clamp(st.score / st.max, 0, 1);
     const grade = rate >= 0.9 ? 'S' : rate >= 0.7 ? 'A' : rate >= 0.45 ? 'B' : 'C';
-    st.phase = 'end'; st.phaseT = 2.0; st.result = { kind: st.kind, rate, grade, score: st.score, max: st.max, maxCombo: st.maxCombo };
+    st.phase = 'end'; st.phaseT = 2.0; st.result = { kind: st.kind, rate, grade, score: st.score, max: st.max, maxCombo: st.maxCombo, saved: st.saved || 0, dogs: st.dogs || 0 };
     if (rate >= 0.45 && DX.S) DX.S.win(); else if (DX.S) DX.S.lose();
   }
   function close() {

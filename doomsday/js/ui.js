@@ -97,6 +97,59 @@ window.DX = window.DX || {};
   }
   UI.showLobby = showLobby;
   function stageUnlocked(i) { return C.game.unlockAllStages || i === 0 || DX.save.cleared[C.stages[i - 1].id]; }
+  /* ---------------- 꾸미기 (열차·생존자 외형) ---------------- */
+  const SKIN_CAT = [['train', '🚂 열차'], ['jack', '잭'], ['minho', '민호'], ['sophie', '소피']];
+  const probeOk = {};
+  function probe(url) { if (!(url in probeOk) && DX.SPR.probe) { probeOk[url] = false; DX.SPR.probe(url).then(ok => { probeOk[url] = ok; }); } return probeOk[url]; }
+  UI.probe = probe;
+  function skinPortrait(nm, id) { return 'assets/portraits/skin_' + nm + '_' + id + '.png'; }
+  // 대화·만화 얼굴: 꾸미기 옷 얼굴 그림이 있으면 그걸로
+  function portraitOf(sv) {
+    const id = DX.save.skin && DX.save.skin[sv.art];
+    if (id && id !== 'base') { const u = skinPortrait(sv.art, id); if (probe(u)) return u; }
+    return sv.portrait;
+  }
+  UI.portraitOf = portraitOf;
+  function skinOpen(cat, k) {
+    if (!k.need) return k.cost === 0 || !!(DX.save.skinOwned || {})[cat + ':' + k.id];
+    const st = C.stages[k.need - 1]; return !!(st && DX.save.cleared[st.id]);
+  }
+  function tintCss(t) { if (!t) return ''; const r = t[0], g = t[1], b = t[2], hue = r > g && r > b ? -25 : b > r && b > g ? 200 : g > r ? 90 : 0; return 'filter:sepia(.35) hue-rotate(' + hue + 'deg) saturate(1.5)'; }
+  function renderSkins() {
+    const S = C.skins || {}; DX.save.skin = DX.save.skin || {}; DX.save.skinOwned = DX.save.skinOwned || {};
+    let h = '';
+    for (const [cat, title] of SKIN_CAT) {
+      const list = S[cat] || []; if (!list.length) continue;
+      h += '<div class="skin-h">' + esc(T(title)) + '</div>';
+      const cur = DX.save.skin[cat] || 'base';
+      for (const k of list) {
+        const open = skinOpen(cat, k), on = cur === k.id;
+        let ico;
+        if (cat === 'train') ico = '<span style="' + tintCss(k.tint) + '">🚂</span>';
+        else { const sv = C.survivors.find(x => x.art === cat) || {}; const sp = k.id !== 'base' ? skinPortrait(cat, k.id) : sv.portrait; ico = '<img src="' + sp + '" style="' + (k.id !== 'base' && !probe(sp) ? tintCss(k.tint) : '') + '" onerror="this.onerror=null;this.src=\'' + sv.portrait + '\';this.setAttribute(\'style\',\'' + tintCss(k.tint) + '\')">'; }
+        const btn = on ? '<button class="r-btn on" disabled>' + T('장착 중') + '</button>'
+          : open ? '<button class="r-btn" data-skin="' + cat + ':' + k.id + '">' + T('장착') + '</button>'
+          : k.need ? '<button class="r-btn" disabled>🔒 ' + k.need + T('장 클리어') + '</button>'
+          : '<button class="r-btn" data-skinbuy="' + cat + ':' + k.id + '"' + (DX.save.gold < k.cost ? ' disabled' : '') + '>🪙 ' + k.cost + '</button>';
+        h += '<div class="row"><div class="r-ico skin">' + ico + '</div><div class="r-main"><div class="r-name">' + esc(T(k.name)) + '</div><div class="r-desc">' + (cat === 'train' ? T('열차 외형') : T('지붕 사수·대화 얼굴')) + '</div></div>' + btn + '</div>';
+      }
+    }
+    $('skinList').innerHTML = h;
+  }
+  UI.renderSkins = renderSkins;
+  function skinAction(e) {
+    const b = e.target.closest('[data-skin],[data-skinbuy]'); if (!b) return;
+    const [cat, id] = (b.dataset.skin || b.dataset.skinbuy).split(':');
+    const k = (C.skins[cat] || []).find(x => x.id === id); if (!k) return;
+    if (b.dataset.skinbuy) {
+      if (DX.save.gold < k.cost) return;
+      DX.save.gold -= k.cost; DX.save.skinOwned[cat + ':' + id] = true; DX.track('skin_buy', { cat, id }); DX.S.level();
+      toast(T('구매 완료! ') + T(k.name));
+    }
+    DX.save.skin[cat] = id; DX.persist();
+    if (cat !== 'train' && DX.SPR.refreshGunners) DX.SPR.refreshGunners();
+    DX.S.click(); refreshLobby(); renderSkins();
+  }
   function refreshLobby() {
     $('logoSub').textContent = T(C.game.subtitle);
     $('lobGold').textContent = DX.save.gold.toLocaleString();
@@ -111,6 +164,7 @@ window.DX = window.DX || {};
     const th = $('stThumb');
     th.onerror = () => { if (st.thumbFallback && th.src.indexOf(st.thumbFallback) < 0) { th.src = st.thumbFallback; return; } th.onerror = null; th.src = C.assets.story[i % 2 === 0 ? 2 : 1]; };
     th.src = st.thumb || C.assets.story[2];
+    { const ca = (C.chapterArt || {})[st.id]; if (ca && ca.thumb && DX.SPR.probe) DX.SPR.probe(ca.thumb).then(ok => { if (ok && (DX.save.stage || 0) === i) th.src = ca.thumb; }); }
     $('stBadge').textContent = !stageUnlocked(i) ? T('🔒 잠김') : DX.save.cleared[st.id] ? 'CLEAR' : '';
     $('btnStart').disabled = !stageUnlocked(i);
     $('btnStart').style.opacity = stageUnlocked(i) ? 1 : 0.5;
@@ -139,7 +193,8 @@ window.DX = window.DX || {};
   function setTab(t) {
     tab = t;
     document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
-    ['stage', 'meta', 'reward'].forEach(k => show($('tab-' + k), k === t));
+    ['stage', 'meta', 'reward', 'skin'].forEach(k => show($('tab-' + k), k === t));
+    if (t === 'skin') renderSkins();
     if (t !== 'stage') tip(t);
   }
 
@@ -238,6 +293,10 @@ window.DX = window.DX || {};
     const cl = DX.SPR && DX.SPR.clean && DX.SPR.clean[cfg.art];
     $('biImg').src = cl ? cl.toDataURL() : (cfg.art && C.art[cfg.art] ? C.art[cfg.art].full : ''); $('biImg').style.filter = cfg.artTint ? 'sepia(0.3) hue-rotate(' + (cfg.artTint[2] > cfg.artTint[1] ? 230 : 70) + 'deg) saturate(1.4)' : '';
     $('biName').textContent = T(cfg.name); $('biQuote').textContent = cfg.quote ? '“' + T(cfg.quote) + '”' : '';
+    // 보스 컷인 그림이 있으면 띠 전체를 그 그림으로
+    const band = el.querySelector('.bi-band'), cut = cfg.cutin && probe(cfg.cutin);
+    band.classList.toggle('cut', !!cut); band.style.backgroundImage = cut ? 'url("' + cfg.cutin + '")' : '';
+    $('biImg').style.display = cut ? 'none' : '';
     el.classList.remove('hidden', 'go'); void el.offsetWidth; el.classList.add('go');
     clearTimeout(UI._biT); UI._biT = setTimeout(() => el.classList.add('hidden'), 1900);
     if (navigator.vibrate) try { navigator.vibrate([40, 60, 80]); } catch (e) {}
@@ -271,7 +330,7 @@ window.DX = window.DX || {};
     if (key !== ownedKey) {
       ownedKey = key;
       let h = '';
-      for (const id in G.weapons) { const wc = C.weapons[id], lv = G.weapons[id]; h += '<div class="w' + (lv >= 5 ? ' evo' : '') + '">' + iconHtml(lv >= 5 && wc.evoIcon ? wc.evoIcon : wc.icon, '🔫') + '<b>' + (lv >= 5 ? '★' : lv) + '</b></div>'; }
+      for (const id in G.weapons) { const wc = C.weapons[id], lv = G.weapons[id]; h += '<div class="w' + (lv >= 5 ? ' evo' : '') + '">' + iconHtml(lv >= 5 && wc.evoIcon ? wc.evoIcon : wc.icon, wc.emoji || '🔫') + '<b>' + (lv >= 5 ? '★' : lv) + '</b></div>'; }
       for (const id in G.passives) h += '<div class="w">' + C.passives[id].icon + '<b>' + G.passives[id] + '</b></div>';
       $('owned').innerHTML = h;
     }
@@ -303,7 +362,7 @@ window.DX = window.DX || {};
       b.className = 'card' + (c.evo ? ' evo' : c.isNew ? ' new' : '');
       const frame = getComputedStyle(document.documentElement).getPropertyValue('--card-img');
       if (frame && frame.trim()) b.style.backgroundImage = frame;
-      b.innerHTML = '<div class="c-ico">' + (c.icon ? iconHtml(c.icon, '🔫') : c.emoji) + '</div>' +
+      b.innerHTML = '<div class="c-ico">' + (c.icon ? iconHtml(c.icon, c.emoji || '🔫') : c.emoji) + '</div>' +
         '<div><div class="c-name">' + esc(T(c.name)) + '</div><div class="c-lv">' + (c.lv ? (c.evo ? T('★ 진화') : 'Lv ' + c.lv) : '') + '</div><div class="c-desc">' + esc(T(c.desc)) + '</div></div>' +
         (c.evo ? '<span class="c-tag">EVOLUTION</span>' : c.isNew ? '<span class="c-tag">NEW</span>' : '');
       let used = false;
@@ -323,7 +382,7 @@ window.DX = window.DX || {};
 
   /* ---------------- 결과 ---------------- */
   const wn = (k, d) => (C.weapons[k] && C.weapons[k].name) || d;
-  const SRC_NAME = { mg: wn('mg', '기관총'), flame: '화염방사', tesla: wn('tesla', '테슬라 코일'), drone: wn('drone', '드론 폭탄'), cannon: wn('cannon', '캐논 터렛'), barrel: '드럼통', ult: C.ultimate.name, horn: C.horn.name, bomber: '회식 좀비 폭발', fall: '낭떠러지', misc: '기타' };
+  const SRC_NAME = { mg: wn('mg', '기관총'), flame: '화염방사', tesla: wn('tesla', '테슬라 코일'), drone: wn('drone', '드론 폭탄'), cannon: wn('cannon', '캐논 터렛'), barrel: '드럼통', ult: C.ultimate.name, horn: C.horn.name, bomber: '회식 좀비 폭발', fall: '낭떠러지', misc: '기타', water: wn('water', '물대포'), freeze: wn('freeze', '냉동 컨테이너'), fan: wn('fan', '환풍기') };
   let lastResult = null;
   UI.result = function (o) {
     const st = C.stages[o.stageIdx];
@@ -391,7 +450,7 @@ window.DX = window.DX || {};
   };
   function renderDlg() {
     const l = dlg.lines[dlg.i], sv = C.survivors[l.who] || C.survivors[0];
-    $('dlgFace').src = sv.portrait; $('dlgName').textContent = T(sv.name); $('dlgText').textContent = T(l.text);
+    $('dlgFace').src = portraitOf(sv); $('dlgName').textContent = T(sv.name); $('dlgText').textContent = T(l.text);
     const b = document.querySelector('.dlg-box'); b.style.animation = 'none'; void b.offsetWidth; b.style.animation = 'pop .2s';
   }
   function nextDlg(skip) {
@@ -402,34 +461,44 @@ window.DX = window.DX || {};
   }
   /* ---------------- 만화 컷 (챕터 시작) ---------------- */
   let cm = null;
-  UI.comic = function (data, title, done) {
-    cm = { d: data, i: 0, done, page: 0 };
+  UI.comic = async function (data, title, done, stageId) {
+    cm = { d: data, i: 0, done, page: 0, img: null, side: null, loading: true };
     $('cmTitle').textContent = title || '';
     show($('comic'), true);
     $('cmPage').innerHTML = '';
-    comicNext();
+    // 챕터 그림 자리: 만화 그림 → 새 옆 배경 → 지금 배경 순서로
+    const ca = (C.chapterArt || {})[stageId] || {}, my = cm;
+    if (DX.SPR.probe) {
+      if (ca.comic && await DX.SPR.probe(ca.comic)) my.img = ca.comic;
+      else if (ca.side && ca.side !== data.bg && await DX.SPR.probe(ca.side)) my.side = ca.side;
+    }
+    if (cm === my) { cm.loading = false; comicNext(); }
   };
   function comicPanel(p, k) {
     const d = cm.d, el = document.createElement('div');
     const side = k % 2 ? 'r' : 'l';
     el.className = 'cm-panel ' + side;
     const pos = d.pos || [0, 100, 50];
-    el.style.backgroundImage = 'url("' + d.bg + '")';
-    el.style.backgroundPosition = pos[k % pos.length] + '% 60%';
-    if (d.zoom) el.style.backgroundSize = (d.zoom * 100) + '% auto';
-    let h = d.tint ? '<div class="tint" style="background:' + d.tint + '"></div>' : '';
+    if (cm.img) {   // 3칸 만화 그림이 있으면 칸마다 한 칸씩 잘라서 배경으로
+      el.style.backgroundImage = 'url("' + cm.img + '")'; el.style.backgroundSize = '300% 100%'; el.style.backgroundPosition = ((k % 3) * 50) + '% 50%';
+    } else {
+      el.style.backgroundImage = 'url("' + (cm.side || d.bg) + '")';
+      el.style.backgroundPosition = pos[k % pos.length] + '% 60%';
+      if (d.zoom && !cm.side) el.style.backgroundSize = (d.zoom * 100) + '% auto';
+    }
+    let h = d.tint && !cm.img && !cm.side ? '<div class="tint" style="background:' + d.tint + '"></div>' : '';
     if (p.cap) h += '<div class="cm-cap">' + esc(T(p.cap)) + '</div>';
     else {
       let face = '', name = '';
       if (typeof p.who === 'string' && p.who[0] === 'n') { const n = (C.comicNpc || [])[+p.who.slice(1)] || {}; face = n.face; name = n.name || ''; }
-      else { const sv = C.survivors[p.who] || C.survivors[0]; face = sv.portrait; name = sv.name; }
+      else { const sv = C.survivors[p.who] || C.survivors[0]; face = portraitOf(sv); name = sv.name; }
       h += '<img class="face" src="' + face + '" alt=""><div class="cm-bub"><b>' + esc(T(name)) + '</b>' + esc(T(p.text)) + '</div>';
     }
     el.innerHTML = h;
     return el;
   }
   function comicNext(skip) {
-    if (!cm) return;
+    if (!cm || (cm.loading && !skip)) return;
     const P = cm.d.panels;
     if (skip || cm.i >= P.length) { const d = cm.done; cm = null; show($('comic'), false); if (d) d(); return; }
     const page = $('cmPage');
@@ -530,7 +599,7 @@ window.DX = window.DX || {};
     if (cmc && !DX.save.seenStory[st.id]) {
       DX.save.seenStory[st.id] = true; DX.persist();
       show($('lobby'), false);
-      UI.comic(cmc, 'CHAPTER ' + (i + 1) + ' · ' + T(st.name), () => DX.startRun(i));
+      UI.comic(cmc, 'CHAPTER ' + (i + 1) + ' · ' + T(st.name), () => DX.startRun(i), st.id);
     } else if (st.intro && st.intro.length && !DX.save.seenStory[st.id]) {
       DX.save.seenStory[st.id] = true; DX.persist();
       show($('lobby'), false);
@@ -609,6 +678,7 @@ window.DX = window.DX || {};
     opt('optLow', v => { DX.save.qualityManual = true; DX.setQuality(v ? 'low' : 'high'); });
     $('btnLang').addEventListener('click', () => { const l = DX.lang() === 'zh' ? 'ko' : 'zh'; DX.setLang(l); DX.save.lang = l; DX.persist(); relang(); DX.track('lang', { l }); });
     $('btnGuide').addEventListener('click', openGuide);
+    $('skinList').addEventListener('click', skinAction);
     $('guidePrev').addEventListener('click', () => { if (gPage > 0) { gPage--; renderGuide(); } });
     $('guideNext').addEventListener('click', () => { if (gPage < DX.GUIDE.length - 1) { gPage++; renderGuide(); } else show($('guide'), false); });
     $('btnPrivacy').addEventListener('click', () => { $('privacyBody').textContent = L(DX.PRIVACY[0], DX.PRIVACY[1]); show($('privacy'), true); });
@@ -655,6 +725,9 @@ window.DX = window.DX || {};
     if (!DX.boot()) { document.body.innerHTML = '<div style="padding:30px;color:#fff;font-family:sans-serif">' + L('이 기기/브라우저는 WebGL2를 지원하지 않아요. 크롬 또는 사파리 최신 버전에서 열어주세요.', '当前设备/浏览器不支持 WebGL2，请使用最新版 Chrome 或 Safari 打开。') + '</div>'; return; }
     DX.track('launch', { lang: DX.lang(), pf: DX.PLATFORM, build: DX.BUILD });
     runLoading(() => {
+      // 아직 없을 수도 있는 그림 자리 미리 확인 (보스 컷인·꾸미기 얼굴)
+      for (const k in C.bosses) if (C.bosses[k].cutin) probe(C.bosses[k].cutin);
+      C.survivors.forEach(sv => portraitOf(sv));
       if (location.hash === '#autostart') { DX.save.seenIntro = true; DX.save.firstRunDone = true; DX.startRun(DX.save.stage || 0); return; }
       if (!DX.save.seenIntro) showIntro(); else showLobby();
     });

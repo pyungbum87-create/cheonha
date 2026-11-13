@@ -19,7 +19,10 @@ window.DX = window.DX || {};
     const n = retry == null ? (isFile || src.indexOf('data:') === 0 ? 0 : 8) : retry;
     for (let k = 0; ; k++) {
       try { return await loadOnce(k ? src + (src.indexOf('?') < 0 ? '?' : '&') + 'r=' + k : src); }
-      catch (e) { if (k >= n) throw e; SPR.retries = (SPR.retries || 0) + 1; await new Promise(r => setTimeout(r, Math.min(2000, 300 * (k + 1)))); }
+      catch (e) {
+        // 파일이 아예 없으면(404) 다시 시도하지 않음 → 아직 안 넣은 그림 자리는 바로 건너뜀
+        if (k === 0 && n > 0) { let st = 0; try { st = (await fetch(src, { method: 'HEAD', cache: 'no-store' })).status; } catch (e2) {} if (st === 404) { SPR.missing = SPR.missing || {}; SPR.missing[src.split('?')[0]] = 1; throw e; } }
+        if (k >= n) throw e; SPR.retries = (SPR.retries || 0) + 1; await new Promise(r => setTimeout(r, Math.min(2000, 300 * (k + 1)))); }
     }
   }
   const imgCache = {};
@@ -244,20 +247,57 @@ window.DX = window.DX || {};
     return { atlas, left };
   }
   // 필요한 만큼 가장 작은 크기로: 2048 한 장 → 4096 한 장 + 나머지는 (1024~4096 중 맞는 크기) 두 번째 장
+  // 첫 장 = 고정 그림, 두 번째 장 = 첫 장에 못 들어간 그림 + 바꿔 끼우는 그림(지붕 사수 동작·꾸미기 옷)
+  const tryOne = (list, sizes, page) => { for (const s of sizes) { const r = packPage(list, s, page); if (!r.left.length) return r; } return null; };
+  function packPage1(list) {
+    for (const k in SPR.frames) if (SPR.frames[k].t === 1) delete SPR.frames[k];
+    if (!list.length) return null;
+    list.sort((a, b) => b.canvas.height - a.canvas.height);
+    const b = tryOne(list, [512, 1024, 2048, 4096], 1);
+    if (b) return b.atlas;
+    const c = packPage(list, 4096, 1);
+    console.warn('atlas 2장도 꽉 참 → 빠진 그림', c.left.map(i => i.name));
+    return c.atlas;
+  }
   function pack(items) {
     items.sort((a, b) => b.canvas.height - a.canvas.height);
-    const tryOne = (list, sizes, page) => { for (const s of sizes) { const r = packPage(list, s, page); if (!r.left.length) return r; } return null; };
-    const one = tryOne(items, [2048], 0); if (one) return [one.atlas];
-    SPR.frames = {};
-    const P0 = /atlas=small/.test(location.search) ? 2048 : 4096;   // 테스트: 주소 뒤에 ?atlas=small → 첫 장을 작게 해서 2장 나눔 확인
-    const a = packPage(items, P0, 0);
-    if (!a.left.length) return [a.atlas];
-    const b = tryOne(a.left, [1024, 2048, 4096], 1);
-    if (b) return [a.atlas, b.atlas];
-    const c = packPage(a.left, 4096, 1);
-    console.warn('atlas 2장도 꽉 참 → 빠진 그림', c.left.map(i => i.name));
-    return [a.atlas, c.atlas];
+    let a = tryOne(items, [2048], 0);
+    if (!a) {
+      SPR.frames = {};
+      const P0 = /atlas=small/.test(location.search) ? 2048 : 4096;   // 테스트: 주소 뒤에 ?atlas=small → 첫 장을 작게 해서 2장 나눔 확인
+      a = packPage(items, P0, 0);
+    }
+    SPR._left = a.left || [];
+    const p1 = packPage1(SPR._left.concat(SPR._swap || []));
+    return p1 ? [a.atlas, p1] : [a.atlas];
   }
+  // 지붕 사수 동작 그림 (꾸미기 옷이 있으면 그 그림, 없으면 기본 그림 + 색 입히기)
+  async function gunnerItems() {
+    const C = DX.CONFIG || {}, out = [], sk = (DX.save && DX.save.skin) || {};
+    SPR.gun = {};
+    for (const sv of (C.survivors || [])) {
+      const nm = sv.art; if (!nm) continue;
+      const skin = sk[nm] && sk[nm] !== 'base' ? sk[nm] : null;
+      let usedSkin = false;
+      for (const an of (C.gunnerAnims || [])) for (let k = 0; k < 4; k++) {
+        const base = 'assets/chars/' + nm + '/' + an + '_' + k + '.png';
+        const alt = skin ? 'assets/chars/skins/' + nm + '_' + skin + '/' + an + '_' + k + '.png' : null;
+        let cv = null;
+        if (alt) { cv = await SPR.cut(alt, 170); if (cv) usedSkin = true; }
+        if (!cv) cv = await SPR.cut(base, 170);
+        if (cv) out.push({ name: 'gun:' + nm + ':' + an + '_' + k, canvas: cv });
+      }
+      SPR.gun[nm] = { skinArt: usedSkin, skin };
+    }
+    return out;
+  }
+  // 꾸미기에서 옷을 바꾸면 두 번째 장만 다시 만듦 (빠름)
+  SPR.refreshGunners = async function () {
+    if (!SPR.ready) return;
+    SPR._swap = (await gunnerItems()).concat(SPR._trainSwap || []);
+    const p1 = packPage1((SPR._left || []).concat(SPR._swap));
+    if (p1) DX.E.setSpriteTexture(p1, 1);
+  };
   function scaled(canvas, s) {
     const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(canvas.width * s)); c.height = Math.max(1, Math.round(canvas.height * s));
     const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(canvas, 0, 0, c.width, c.height);
@@ -299,21 +339,26 @@ window.DX = window.DX || {};
       } catch (e) { console.warn('art load fail', key, e); }
     }
     // 열차 그림 (위에서 본 그림 + 옆에서 본 그림)
-    const tr = (DX.CONFIG && DX.CONFIG.trainArt) || {};
+    const tr = Object.assign({}, (DX.CONFIG && DX.CONFIG.trainArt) || {});
+    // 꾸미기 열차 그림 (기관차 모양 교체)
+    for (const sk of ((DX.CONFIG.skins || {}).train || [])) if (sk.id !== 'base') tr['skin_' + sk.id] = { top: 'assets/train/skins/' + sk.id + '_top.png', side: 'assets/train/skins/' + sk.id + '_side.png' };
     SPR.train = {};
     for (const key in tr) {
-      try {
-        const t = {};
-        for (const face of ['top', 'side']) {
-          if (!tr[key][face]) continue;
-          const d = await getPixels(tr[key][face]); removeBg(d);
-          let cv = crop(d, null, null, bboxAlpha(d));
-          cv = scaled(cv, Math.min(1, 420 / Math.max(cv.width, cv.height)));
-          items.push({ name: 'train:' + key + ':' + face, canvas: cv });
-          t[face] = 'train:' + key + ':' + face;
+      const t = {};
+      for (const face of ['top', 'side']) {
+        const list = [tr[key][face], tr[key][face + 'Fallback']].filter(Boolean);
+        for (const src of list) {
+          try {
+            const d = await getPixels(src); removeBg(d);
+            let cv = crop(d, null, null, bboxAlpha(d));
+            cv = scaled(cv, Math.min(1, 420 / Math.max(cv.width, cv.height)));
+            items.push({ name: 'train:' + key + ':' + face, canvas: cv });
+            t[face] = 'train:' + key + ':' + face;
+            break;
+          } catch (e) { /* 그림 없음 → 다음 후보 */ }
         }
-        if (t.top) SPR.train[key] = t;
-      } catch (e) { console.warn('train art fail', key, e); }
+      }
+      if (t.top || t.side) SPR.train[key] = t;
     }
     // 실내 전투 그림 (2D 화면용: 아틀라스에 넣지 않고 따로 보관)
     const fa = (DX.CONFIG && DX.CONFIG.fightArt) || {};
@@ -367,12 +412,28 @@ window.DX = window.DX || {};
         items.push({ name: 'prop:' + key, canvas: cv });
       } catch (e) { console.warn('prop art fail', key, e); }
     }
+    // 챕터 그림 자리의 소품 (assets/props/chN_p1~6.png, 없으면 건너뜀)
+    const CA = (DX.CONFIG && DX.CONFIG.chapterArt) || {};
+    for (const id in CA) if (CA[id].props) for (let k = 1; k <= 6; k++) {
+      const key = CA[id].props + '_p' + k;
+      try {
+        const d = await getPixels('assets/props/' + key + '.png'); removeBg(d);
+        let cv = crop(d, null, null, bboxAlpha(d));
+        cv = scaled(cv, Math.min(1, 200 / Math.max(cv.width, cv.height)));
+        items.push({ name: 'prop:' + key, canvas: cv });
+      } catch (e) { break; }
+    }
     // 바닥 질감 (코드로 그림: 모래·아스팔트·눈·콘크리트·나무판·자갈) — 이어 붙여도 이음새가 안 보이게 그림
     for (const k of ['sand', 'asphalt', 'snow', 'concrete', 'planks', 'gravel']) items.push({ name: 'ground:' + k, canvas: makeGround(k) });
     // 챕터 바닥 그림 (위에서 내려다본 그림, 가운데 자갈길 = 선로 자리)
     for (const k of ['desert', 'rest', 'city', 'neon', 'tunnel', 'lab']) {
       try { const d = await getPixels('assets/ground/' + k + '.jpg'); items.push({ name: 'gimg:' + k, canvas: crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 }) }); } catch (e) { console.warn('ground img fail', k, e); }
     }
+    // 챕터 그림 자리의 새 바닥 (있으면 'gimgc:스테이지id' 로, 게임이 기존 바닥 대신 씀). 큰 그림은 1024 높이로 줄임
+    for (const id in CA) if (CA[id].ground) {
+      try { const d = await getPixels(CA[id].ground); let cv = crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 }); cv = scaled(cv, Math.min(1, 1024 / cv.height)); items.push({ name: 'gimgc:' + id, canvas: cv }); } catch (e) { /* 아직 없음 */ }
+    }
+    SPR._swap = await gunnerItems();
     if (!items.length) return false;
     const pages = pack(items);
     DX.E.setSpriteTexture(pages[0], 0);
@@ -384,8 +445,9 @@ window.DX = window.DX || {};
   // 2D 화면용 그림 1장: 흰 배경 지우고, 옆 그림에서 잘려 들어온 조각(좌우 끝에 붙은 작은 덩어리)은 버림
   const cutCache = {};
   SPR.cut = function (url, maxH, keepBg) {
-    if (cutCache[url]) return cutCache[url];
-    return (cutCache[url] = (async () => {
+    const ck = url + '|' + (maxH || 0) + '|' + (keepBg ? 1 : 0);
+    if (cutCache[ck]) return cutCache[ck];
+    return (cutCache[ck] = (async () => {
       const d = await getPixels(url);
       if (keepBg) return crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 });
       removeBg(d);
@@ -398,5 +460,8 @@ window.DX = window.DX || {};
       return maxH ? scaled(cv, Math.min(1, maxH / cv.height)) : cv;
     })().catch(e => { console.warn('cut fail', url, e); return null; }));
   };
+  // 그림 파일이 있는지 확인 (한 번만, 결과 기억). 없으면 false
+  const probeCache = {};
+  SPR.probe = url => probeCache[url] || (probeCache[url] = loadImg(ver(url), 0).then(() => true, () => false));
   SPR.has = key => SPR.ready && !!SPR.chars[key];
 })(window.DX);

@@ -388,3 +388,10 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .cm-cap { position: absolute; left: 10px; top: 10px; right: 30%; background: #ffd34a; color: #111; border: 3px solid #111; padding: 8px 12px; font-size: 16px; font-weight: 800; line-height: 1.35; word-break: keep-all; box-shadow: 3px 3px 0 rgba(0,0,0,.4); }
 .cm-tap { text-align: center; color: #111; font-size: 18px; animation: blink 1s infinite; }
 @keyframes cmIn { from { opacity: 0; transform: scale(.92) translateY(10px); } to { opacity: 1; } }
+
+/* ---------- 꾸미기 ---------- */
+.skin-h { font-family: var(--font-title); color: var(--gold); font-size: 15px; margin: 10px 2px 4px; }
+.r-ico.skin { width: 46px; height: 46px; border-radius: 10px; overflow: hidden; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.r-ico.skin img { width: 100%; height: 100%; object-fit: cover; }
+.r-btn.on { background: linear-gradient(180deg, #7dff8a, #2fb34a); color: #102; }
+#bossIntro .bi-band.cut { background-size: cover !important; background-position: center !important; height: 40%; top: 27%; }

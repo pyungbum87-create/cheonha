@@ -15,7 +15,7 @@ window.DX = window.DX || {};
   /* ================= 저장 데이터 ================= */
   const SAVE_KEY = 'doomsday_express_save_v3';
   const defSave = () => ({ gold: C.game.startGold, meta: { hp: 0, dmg: 0, xp: 0, magnet: 0 }, cleared: {}, best: {}, seenIntro: false, seenStory: {}, quality: 'high', qualityManual: false, sound: true, music: true, vibrate: true, shake: true, stage: 0, cam: 'far', supply: { day: '', n: 0 },
-    lang: null, mild: undefined, daily: null, att: { last: '', streak: 0 }, tips: {}, hints: {}, statc: {}, firstRunDone: false });
+    lang: null, mild: undefined, daily: null, att: { last: '', streak: 0 }, tips: {}, hints: {}, statc: {}, firstRunDone: false, skin: { train: 'base', jack: 'base', minho: 'base', sophie: 'base' }, skinOwned: {} });
   DX.save = defSave();
   try { const s = JSON.parse(DX.store.get(SAVE_KEY) || 'null'); if (s) DX.save = Object.assign(defSave(), s, { meta: Object.assign(defSave().meta, s.meta || {}), att: Object.assign(defSave().att, s.att || {}) }); } catch (e) {}
   if (!DX.LANG_FORCED && (DX.save.lang === 'ko' || DX.save.lang === 'zh')) DX.setLang(DX.save.lang);
@@ -81,10 +81,13 @@ window.DX = window.DX || {};
   function applyTheme(idx) {
     world.stageIdx = idx;
     const th = C.stages[idx].theme;
-    world.theme = th;
+    world.theme = th; world.stageId = C.stages[idx].id;
+    const ca = (C.chapterArt || {})[C.stages[idx].id] || {};
     E.env.fog = E.col(th.fog).slice(); E.env.fogNear = th.fogNear; E.env.fogFar = th.fogFar;
     E.env.light = th.light; E.env.sky = E.col(th.sky); E.env.ground = E.col(th.ground); E.env.ambient = th.ambient; E.env.spriteTint = th.spriteTint || [1, 1, 1];
     if (DX.UI) DX.UI.setSky(th.skyTop, th.skyBottom, th.skyImg);
+    // 챕터 그림 자리: 새 먼 풍경 그림이 있으면 바꿔 끼움
+    if (ca.sky && SPR.probe && DX.UI) SPR.probe(ca.sky).then(ok => { if (ok && world.stageIdx === idx) DX.UI.setSky(th.skyTop, th.skyBottom, ca.sky); });
     buildProps(th);
   }
   // 그림 소품 (폐차·경찰차·상자·모래주머니 등). h = 세계 높이
@@ -93,11 +96,24 @@ window.DX = window.DX || {};
     for (let z = z0; z < z1; z += rand(step[0], step[1])) {
       const side = Math.random() < 0.5 ? -1 : 1, k = pick(kinds);
       const x = side < 0 ? -rand(xr[0], xr[1]) : rand(xr[0] - 1.5, xr[1] - 3);
-      P.push({ k: 'sprite', f: 'prop:' + k, h: PROP_H[k] * rand(0.9, 1.1), x, z: z + rand(-1, 1), fl: Math.random() < 0.5 });
+      P.push({ k: 'sprite', f: 'prop:' + k, h: (PROP_H[k] || 2.6) * rand(0.9, 1.1), x, z: z + rand(-1, 1), fl: Math.random() < 0.5 });
       if ((k === 'sandbag' || k === 'crate') && Math.random() < 0.6) P.push({ k: 'sprite', f: 'prop:' + k, h: PROP_H[k] * rand(0.85, 1), x: x + side * rand(0.9, 1.5), z: z + rand(-0.6, 0.6), fl: Math.random() < 0.5 });
     }
   }
+  // 챕터 그림 자리의 소품 (assets/props/chN_p1~6.png)이 있으면 그 목록
+  function chProps() {
+    const ca = (C.chapterArt || {})[world.stageId]; if (!ca || !ca.props) return null;
+    const out = []; for (let k = 1; k <= 6; k++) if (SPR.frames['prop:' + ca.props + '_p' + k]) out.push(ca.props + '_p' + k);
+    return out.length ? out : null;
+  }
   function buildProps(th) {
+    const chp = chProps();
+    if (chp && (th.props === 'desert' || th.props === 'city')) th = Object.assign({}, th, { propKinds: chp });
+    else if (chp) later0.push(() => spriteProps(world.props, chp, -190, 50, [9, 15], [6, 16]));
+    try { return buildProps0(th); } finally { while (later0.length) later0.shift()(); }
+  }
+  const later0 = [];
+  function buildProps0(th) {
     world.props = []; world.pebbles = [];
     const P = world.props;
     const seed = () => Math.floor(rand(0, 1000));
@@ -186,7 +202,7 @@ window.DX = window.DX || {};
   // 바닥 질감 (그림 타일을 깔아서 스크롤). 없으면 예전 단색 바닥
   const GROUND_OF = { desert: 'sand', city: 'asphalt', bridge: 'planks', tunnel: 'concrete' };
   function drawGround(th) {
-    const gi = th.groundImg && SPR.frames['gimg:' + th.groundImg];
+    const gi = SPR.frames['gimgc:' + world.stageId] || (th.groundImg && SPR.frames['gimg:' + th.groundImg]);
     if (gi) {   // 그림 바닥: 가로 26칸 폭 그림을 선로 중심에 깔고, 바깥은 좌우 뒤집어 이어 붙임
       const TW = 26, TH = TW / gi.aspect, off = world.scroll % TH, tn = th.groundTint ? null : null;
       for (let z = -174 + off; z < 60; z += TH) for (let i = -2; i <= 2; i++) E.quad(gi, i * TW, 0.02, z, [TW, 0, 0], [0, 0, -TH], 0.5, 0.5, tn, null, i % 2 !== 0, 400);
@@ -321,18 +337,32 @@ window.DX = window.DX || {};
     if (tier >= 2 && sp) for (const x of [-1.05, 0, 1.05]) E.sprite(sp, x, 0.15, -0.35, 1.15 * sp.aspect, 1.15, 0, 0.5, 0, tint, null, x < 0);
     if (tier >= 4 && Math.random() < 0.3) { const L = layout.end; const pp = { mesh: 'ico', x: rand(-1.4, 1.4), y: rand(1, 3), z: rand(0, L), vy: 1.5, s: 0.18, s1: 0.02, max: 0.7, col: '#ffe066', emi: 2, pass: 2, alpha: 1, drift: 0.6 }; if (G) part(pp); else lobbyParts.push(Object.assign(pp, { life: 0, g: 0, rot: 0, vr: 0, vx: 0, vz: 0 })); }
   }
+  function trainSkin() { const id = DX.save.skin && DX.save.skin.train; if (!id || id === 'base') return null; return ((C.skins || {}).train || []).find(k => k.id === id) || null; }
+  // 새 칸 그림이 없을 때 지붕 위에 코드로 그리는 장식 (물탱크·냉동기·환풍기·초록 십자)
+  function carDeco(kind, top, cz, L, t) {
+    if (kind === 'water') { E.box('cube', 0, top + 0.45, cz, 1.4, 0.8, L * 0.5, 0, '#d8343a', 0.15); E.box('cube', 0.75, top + 0.9, cz - L * 0.2, 0.25, 0.25, 1.2, 0, '#c9ced6', 0.2); }
+    else if (kind === 'freeze') { E.box('cube', 0, top + 0.5, cz, 1.7, 0.9, L * 0.62, 0, '#dff1ff', 0.35); E.box('cube', 0, top + 0.98, cz, 1.2, 0.08, L * 0.4, 0, '#7fd8ff', 0.8); }
+    else if (kind === 'fan') { E.box('cube', 0, top + 0.2, cz, 2.2, 0.3, 2.2, 0, '#5a6270', 0); for (let k = 0; k < 4; k++) E.box('cube', 0, top + 0.42, cz, 2.0, 0.07, 0.38, t * 14 + k * Math.PI / 4, '#c7d0db', 0.15); }
+    else if (kind === 'safe') { E.box('cube', 0, top + 0.08, cz, 1.0, 0.1, 0.32, 0, '#2ecc71', 0.6); E.box('cube', 0, top + 0.08, cz, 0.32, 0.1, 1.0, 0, '#2ecc71', 0.6); }
+  }
   function drawTrainArt(layout, st, ghost) {
     const pieces = [{ kind: 'engine', z0: 0, L: 6.4, top: TOP_ENGINE }].concat(layout.cars.map((c, i) => ({ kind: c.kind, z0: c.z0, L: MD.CAR_LEN, top: TOP_CAR, idx: i })));
     const t = G ? G.t : world.t;
     const xo = ghost ? GHOST_X : 0, zo = ghost ? (st.ghostZ || 0) : 0;
+    // 꾸미기 열차: 그림이 있으면 기관차 모양 교체, 없으면 열차 전체에 색만 입힘
+    const tsk = trainSkin(), tskArt = tsk && SPR.train['skin_' + tsk.id];
     for (const p of pieces) {
-      const art = SPR.train[p.kind] || SPR.train.gun; if (!art) continue;
-      const ft = SPR.frames[art.top], fs = art.side ? SPR.frames[art.side] : null;
+      const own = (p.kind === 'engine' && tskArt) || SPR.train[p.kind] || {}, gunA = SPR.train.gun || {};
+      const ft = SPR.frames[own.top || gunA.top]; if (!ft) continue;
+      const fs = SPR.frames[own.side || (own.top ? null : gunA.side)] || null;
+      const stand = !own.top;   // 새 칸 그림이 아직 없음 → 기관총 칸 + 색
+      let ktint = stand && C.carTint ? C.carTint[p.kind] : null;
+      if (tsk && tsk.tint && !tskArt) ktint = ktint ? [ktint[0] * tsk.tint[0], ktint[1] * tsk.tint[1], ktint[2] * tsk.tint[2]] : tsk.tint;
       const Lq = p.L * 1.1, W = Lq * ft.aspect, cz = p.z0 + p.L / 2 + zo;
       const inv = !ghost && G && p.idx !== undefined && G.inv && G.inv[p.idx];
       const pulse = inv ? 0.5 + 0.5 * Math.sin(t * 14) : 0;
       const jit = inv ? (Math.random() - 0.5) * 0.08 : Math.sin(t * 9 + p.z0) * 0.012;
-      const tint = ghost ? GHOST_TINT : null, add = ghost ? GHOST_ADD : inv ? [0.55 * pulse, 0.02, 0.02] : null;
+      const tint = ghost ? GHOST_TINT : ktint ? [ktint[0], ktint[1], ktint[2], 1] : null, add = ghost ? GHOST_ADD : inv ? [0.55 * pulse, 0.02, 0.02] : null;
       if (!ghost) E.box('cube', xo, p.top / 2 + 0.05, cz, W * 0.9, p.top - 0.3, Lq * 0.88, 0, '#2a2c33');  // 지붕 그림보다 0.1 낮게 (겹쳐서 깜빡이지 않게)
       if (fs) {
         const hS = Lq / fs.aspect, sx = W / 2 - 0.04;
@@ -340,6 +370,7 @@ window.DX = window.DX || {};
         E.quad(fs, xo - sx + jit, 0.12, cz, [0, 0, -Lq], [0, hS, 0], 0.5, 0, tint, add, false, ghost ? 8 : 5);
       }
       E.quad(ft, xo + jit, p.top, cz, [W, 0, 0], [0, 0, -Lq], 0.5, 0.5, tint, add, false, ghost ? 9 : 6);
+      if (!ghost && stand) carDeco(p.kind, p.top, cz, Lq, t);
       if (!ghost && p.kind === 'tesla') { const pu = 1 + Math.sin(t * 9) * 0.15; T.reset().tr(0, p.top + 1.3, cz).sc(1.6 * pu); E.draw('ico', '#3df2ff', 1, 0.22, 2); }
       if (!ghost && p.kind === 'engine' && Math.random() < 0.25) {
         const pp = { mesh: 'ico', x: rand(-0.2, 0.2), y: p.top + 2.0, z: 1.6, vx: rand(-0.3, 0.3), vy: rand(2.5, 4), vz: 0, s: 0.45, s1: 1.4, max: 1.0, col: '#e8e2d8', alpha: 0.4, pass: 1, drift: 0.7 };
@@ -427,6 +458,7 @@ window.DX = window.DX || {};
       kills: 0, gold: 0, combo: 0, comboT: 0, maxCombo: 0, rerolls: C.ads.rerollPerRun, stats: {}, inv: {}, invT: 8,
       weapons: { mg: 1 }, passives: {}, cars: ['gun'],
       zs: [], corpses: [], orbs: [], bullets: [], shells: [], bombs: [], drones: [], barrels: [], leeks: [], bolts: [], parts: [], sparts: [], decals: [], fires: [], ftexts: [], tele: [], bproj: [], sfx: [], planes: [],
+      tornados: [], rescued: 0,
       tm: { mg: [0, 0.1, 0.2], flame: 0, tesla: 1, cannon: 0.5, barrel: 2, flameFx: 0 },
       ult: 0, ultQueue: [], hornCd: 5, shield: 0, emergencyUsed: false, revived: false,
       boss: null, bossSpawned: false, timeScale: 1, hitstop: 0, slowmo: 0, slowmoT: 0, shake: 0, t: 0, wa: 0,
@@ -450,7 +482,7 @@ window.DX = window.DX || {};
     G.hpMax = nm;
     G.magnet = C.magnetRange * (1 + (p.magnet || 0) * C.passives.magnet.per + (DX.save.meta.magnet || 0) * C.meta.magnet.per);
     G.crit = (p.crit || 0) * C.passives.crit.per;
-    G.greed = 1 + (p.greed || 0) * C.passives.greed.per;
+    G.greed = (1 + (p.greed || 0) * C.passives.greed.per) * (1 + Math.min(G.rescued || 0, C.safeCar.maxPeople) * C.safeCar.goldPer);
     G.layout = trainLayout(G.cars);
     // 드론 수
     const dl = G.weapons.drone;
@@ -482,12 +514,20 @@ window.DX = window.DX || {};
   function startMini(kind) {
     const mg = C.minigame, si = G.stageIdx;
     DX.state = 'mini';
-    DX.MINI.start(kind, { bg: mg.bg && mg.bg[si], tint: mg.tint && mg.tint[si] }, r => {
+    const ca = (C.chapterArt || {})[G.stg.id] || {};
+    DX.MINI.start(kind, { bg: mg.bg && mg.bg[si], bgNew: ca.side, tint: mg.tint && mg.tint[si] }, r => {
       if (!G) return;
       const rate = r ? r.rate : 0, rw = mg.reward;
       const gold = Math.round(rw.gold * (1 + si * rw.goldPerStage) * rate);
       G.gold += gold; G.hp = Math.min(G.hpMax, G.hp + G.hpMax * rw.heal * rate); G.ult = Math.min(1, G.ult + rw.ult * rate);
       DX.track('minigame_end', { kind, stage: si + 1, grade: r ? r.grade : 'C' });
+      // 구한 시민 → '안전 칸'에 태움 (1명당 골드·경험치 보너스)
+      if (kind === 'rescue' && r && r.saved > 0) {
+        const first = !G.rescued; G.rescued += r.saved + (r.dogs || 0);
+        if (G.cars.indexOf('safe') < 0) G.cars.push('safe');
+        recalc();
+        later(2.2, () => DX.UI && DX.UI.banner(first ? DX.L('안전 칸 연결!', '安全车厢已连接！') : DX.L('안전 칸 탑승!', '安全车厢上车！'), DX.L('탑승 ' + G.rescued + '명 · 골드·경험치 보너스', '乘客 ' + G.rescued + ' 人 · 金币/经验加成'), 'win'));
+      }
       if (DX.UI) DX.UI.banner((r ? r.grade : 'C') + DX.L(' 등급!', ' 级！'), DX.L('골드 +' + gold + ' · 체력 회복 · 필살기 충전', '金币 +' + gold + ' · 生命恢复 · 大招充能'), rate >= 0.45 ? 'win' : 'wave');
       DX.state = 'play';
     });
@@ -649,6 +689,8 @@ window.DX = window.DX || {};
   let SRC = 'mg';
   function hit(z, dmg, kind, dx, dz, force, canCrit) {
     if (z.dead) return 0;
+    // 무기 조합: 젖은 좀비 + 번개 = 감전 피해 증가
+    if (z.wetT > 0 && kind === 'shock') { dmg *= C.combo.shockMul; if (Math.random() < 0.15) FX.text(z.x, 2.6, z.z, '감전!!', '#8af7ff', 16, 0.7); }
     const hp0 = z.hp + Math.max(0, z.armor);
     let crit = false;
     if (canCrit && G.crit > 0 && Math.random() < G.crit) { dmg *= 2; crit = true; }
@@ -670,6 +712,13 @@ window.DX = window.DX || {};
       if (z.onTrain && force > 8) { z.onTrain = false; z.jump = null; }
     }
     if ((crit && dmg >= 25 || dmg >= 90) && Math.random() < 0.6) FX.text(z.x + rand(-0.3, 0.3), 2.4 * (z.boss ? 2.5 : 1), z.z, Math.round(dmg) + (crit ? '!' : ''), crit ? '#ffd23d' : '#ffffff', crit ? 20 : 15, 0.6);
+    // 무기 조합: 젖은 좀비 + 불 = 증기 폭발 (주변 피해)
+    if (z.wetT > 0 && kind === 'burn') {
+      z.wetT = 0; const cb = C.combo, sd = 40 * cb.steamDmg * G.pMul;
+      if (!fxSprite('steam', z.x, 1.2, z.z, 1.6, 3.6, 0.7, { rise: 1.5 })) fxSprite('smoke', z.x, 1.2, z.z, 1.6, 3.6, 0.7, { rise: 2, tint: [1.4, 1.4, 1.4], alpha: 0.8 });
+      if (Math.random() < 0.35) FX.text(z.x, 2.8, z.z, '증기 폭발!', '#ffffff', 17, 0.8);
+      near(z.x, z.z, cb.steamRadius, zb => { if (zb !== z && !zb.dead) hit(zb, sd, 'steam', zb.x - z.x, zb.z - z.z, 3, false); });
+    }
     if (z.hp <= 0) kill(z, kind, dx, dz, force);
     return dmg;
   }
@@ -707,6 +756,7 @@ window.DX = window.DX || {};
     }
     G.sparts = G.sparts.filter(p => p.t < p.max && p.y > -40);
   }
+  const ICE_ADD = [0.12, 0.25, 0.4];
   const FLASH_ADD = [0.65, 0.65, 0.65], SHOCK_ADD = [0.15, 0.55, 0.65], BOSS_WIND_ADD = [0.7, 0.05, 0.02];
   function drawSparts() {
     for (const p of G.sparts) {
@@ -820,7 +870,9 @@ window.DX = window.DX || {};
     const base = z.cfg.artTint;
     const b = z.burn || 0;
     const tint = [(base ? base[0] : 1) * (1 - 0.72 * b), (base ? base[1] : 1) * (1 - 0.75 * b), (base ? base[2] : 1) * (1 - 0.78 * b), z.alpha === undefined ? 1 : z.alpha];
-    let add = z.flash > 0 ? FLASH_ADD : z.stun > 0 ? SHOCK_ADD : null;
+    if (z.iceT > 0) { tint[0] *= 0.6; tint[1] *= 0.85; tint[2] *= 1.25; } else if (z.wetT > 0) { tint[0] *= 0.85; tint[1] *= 0.95; tint[2] *= 1.12; }
+    let add = z.flash > 0 ? FLASH_ADD : z.iceT > 0 ? ICE_ADD : z.stun > 0 ? SHOCK_ADD : null;
+    if (!corpse && z.raged && !add) { const pu = 0.5 + 0.5 * Math.sin((G ? G.t : 0) * 10); add = [0.35 * pu, 0.02, 0.02]; }
     if (!corpse && z.boss && z.bst === 'wind' && Math.sin((G ? G.t : 0) * 30) > 0) add = BOSS_WIND_ADD;   // 공격 준비: 빨갛게 번쩍
     // 프레임 애니메이션 그림이 있으면 그걸로 (걷기 4컷 / 공격 / 맞음 / 쓰러짐)
     const ak = z.boss ? (z.cfg.anim || z.cfg.art) : z.type, AN = C.anim && C.anim[ak];
@@ -830,6 +882,7 @@ window.DX = window.DX || {};
       else if (z.hitT > 0 && hh.a2) key = 'a2';
       else if (z.boss && (z.bst === 'wind') && hh.a0) key = 'a0';
       else if (z.boss && (z.bst === 'strike' || z.bst === 'throw') && hh.a1) key = 'a1';
+      else if (z.raged && hh[z.cfg.rage.frame]) key = z.cfg.rage.frame;
       else if (z.atk && hh.a1) key = ((G ? G.t : 0) * 2.4 + (z.seed || 0)) % 1 < 0.5 ? 'a0' : 'a1';
       else if (hh.w0) key = 'w' + (Math.floor((z.ph || 0) / (Math.PI / 2)) % 4 + 4) % 4;
       const af = key && SPR.frames['anim:' + ak + ':' + key];
@@ -977,7 +1030,7 @@ window.DX = window.DX || {};
   }
   function collectAllOrbs() { for (const o of G.orbs) o.fly = true; }
   function gainXp(v) {
-    G.xp += v * G.xpMul;
+    G.xp += v * G.xpMul * (1 + Math.min(G.rescued || 0, C.safeCar.maxPeople) * C.safeCar.xpPer);
     while (G.xp >= G.xpNeed) { G.xp -= G.xpNeed; G.level++; G.xpNeed = C.xpNeed(G.level); G.pendingLv++; }
   }
   function buildCards() {
@@ -990,7 +1043,7 @@ window.DX = window.DX || {};
       const w = W[id];
       const isNew = lv === 0;
       if (isNew && owned >= 6) continue;
-      opts.push({ kind: 'weapon', id, lv: lv + 1, name: lv + 1 === 5 ? w.evoName : w.name, desc: w.desc[lv], icon: lv + 1 === 5 && w.evoIcon ? w.evoIcon : w.icon, isNew, evo: lv + 1 === 5, w: isNew ? (owned < 4 ? 3.2 : 1.5) : 3 });
+      opts.push({ kind: 'weapon', id, lv: lv + 1, name: lv + 1 === 5 ? w.evoName : w.name, desc: w.desc[lv], icon: lv + 1 === 5 && w.evoIcon ? w.evoIcon : w.icon, emoji: w.emoji, isNew, evo: lv + 1 === 5, w: isNew ? (owned < 4 ? 3.2 : 1.5) : 3 });
     }
     for (const id in P) {
       const lv = G.passives[id] || 0; if (lv >= 5) continue;
@@ -1034,7 +1087,7 @@ window.DX = window.DX || {};
   /* ================= 필살기 / 고스트 싱크 ================= */
   DX.useUltimate = function () {
     if (!G || DX.state !== 'play' || G.ult < 1) return false;
-    G.ult = 0;
+    G.ult = 0; G.ultFlash = 1.2;
     const targets = densest(C.ultimate.count, 9);
     targets.forEach((p, i) => G.ultQueue.push({ x: p[0], z: p[1], t: -i * 0.17, first: i === 0 }));
     if (DX.UI) DX.UI.banner(C.ultimate.name + '!!', '하늘에서 대파가 쏟아진다', 'ult');
@@ -1281,6 +1334,72 @@ window.DX = window.DX || {};
         }
       });
     }
+    // --- 물대포 (소방차 칸): 좀비가 많은 쪽으로 물줄기 → 밀어내고 적심
+    SRC = 'water';
+    const wl = invaded('water') ? 0 : (G.weapons.water || 0);
+    if (wl) {
+      const w = W.water, c = carOf('water');
+      G.tm.water = (G.tm.water || 0) - dt;
+      if (c && G.tm.water <= 0 && G.zs.length) {
+        G.tm.water = w.cd[wl - 1] * haste;
+        let lc = 0, rc = 0; near(0, c.cz, w.range + 2, zb => { if (zb.x < 0) lc++; else rc++; });
+        const sides = wl >= 5 ? [-1, 1] : [lc > rc ? -1 : 1];
+        for (const sd of sides) {
+          near(sd * w.range / 2, c.cz, w.range / 2 + w.width, zb => {
+            const dx = zb.x * sd; if (dx < 0.3 || dx > w.range + 1 || Math.abs(zb.z - c.cz) > w.width + dx * 0.2 || zb.onTrain) return;
+            zb.wetT = w.wet;
+            hit(zb, w.dmg[wl - 1] * pm, 'water', sd, (zb.z - c.cz) * 0.05, w.push[wl - 1], true);
+          });
+          for (let k = 0; k < 4; k++) if (!fxSprite('water', sd * (2.5 + k * 3), 1.5, c.cz + rand(-0.4, 0.4), 1.8, 3.4, 0.4, { rot: sd > 0 ? 0 : Math.PI, vr: 0, vx: sd * 12, alpha: 0.9 }))
+            for (let j = 0; j < 4; j++) part({ mesh: 'ico', x: sd * 1.8, y: 2.0, z: c.cz + rand(-0.6, 0.6), vx: sd * rand(16, 26), vy: rand(0, 4), vz: rand(-2, 2), s: 0.32, s1: 0.9, max: 0.6, col: pick(['#7fd8ff', '#bfeeff', '#3fb4ff']), emi: 0.6, pass: 2, alpha: 0.85, drift: 0.2 });
+        }
+        S.flame();
+      }
+    }
+    // --- 냉동 컨테이너: 주변 좀비를 얼려서 멈춤 (젖은 좀비 = 2배)
+    SRC = 'freeze';
+    const fzl = invaded('freeze') ? 0 : (G.weapons.freeze || 0);
+    if (fzl) {
+      const w = W.freeze, c = carOf('freeze');
+      G.tm.freeze = (G.tm.freeze || 0) - dt;
+      if (c && G.tm.freeze <= 0) {
+        let any = false; near(0, c.cz, w.radius[fzl - 1], () => { any = true; });
+        if (any) {
+          G.tm.freeze = w.cd[fzl - 1] * haste;
+          const n = fzl >= 5 ? 3 : 1;
+          for (let b = 0; b < n; b++) later(b * 0.35, () => freezeBurst(carOf('freeze'), w, fzl, G.pMul, b));
+        } else G.tm.freeze = 0.4;
+      }
+    }
+    // --- 환풍기: 좀비 떼에 회오리 → 끌어모으고 피해
+    SRC = 'fan';
+    const fnl = invaded('fan') ? 0 : (G.weapons.fan || 0);
+    if (fnl) {
+      const w = W.fan, c = carOf('fan');
+      G.tm.fan = (G.tm.fan || 0) - dt;
+      if (c && G.tm.fan <= 0 && G.zs.length) {
+        G.tm.fan = w.cd[fnl - 1] * haste;
+        for (const t of densest(w.count[fnl - 1], 8)) G.tornados.push({ x: t[0], z: t[1], t: 0, max: w.dur[fnl - 1], r: w.radius[fnl - 1], pull: w.pull[fnl - 1], dps: w.dps[fnl - 1] * pm, tick: 0, fx: 0 });
+        S.horn();
+      }
+    }
+    for (const t of G.tornados) {
+      t.t += dt; t.tick -= dt; t.fx -= dt; t.z += world.speed * 0.32 * dt;
+      near(t.x, t.z, t.r, zb => {
+        if (zb.boss || zb.onTrain || zb.jump) return;
+        const dx = t.x - zb.x, dz = t.z - zb.z, d = Math.hypot(dx, dz) || 1, k = t.pull * dt;
+        zb.x += dx / d * k - dz / d * k * 0.7; zb.z += dz / d * k + dx / d * k * 0.7;
+      });
+      if (t.tick <= 0) { t.tick = 0.25; near(t.x, t.z, t.r, zb => hit(zb, t.dps * 0.25, 'wind', 0, 0, 0, true)); }
+      if (t.fx <= 0) {
+        t.fx = lowQ() ? 0.16 : 0.09;
+        if (!fxSprite('tornado', t.x, 0, t.z, 3.4, 4.2, 0.35, { rot: 0, vr: 0, alpha: 0.95 })) {
+          fxSprite('smoke', t.x + rand(-0.6, 0.6), rand(0.5, 3.5), t.z, 1.4, 2.6, 0.5, { vr: 9, tint: [0.85, 0.95, 1.05], alpha: 0.7, rise: 1.5 });
+          part({ mesh: 'ico', x: t.x + Math.cos(t.t * 9) * 1.4, y: rand(0.3, 3.5), z: t.z + Math.sin(t.t * 9) * 1.4, vx: -Math.sin(t.t * 9) * 6, vy: 2, vz: Math.cos(t.t * 9) * 6, s: 0.25, s1: 0.05, max: 0.5, col: '#dff4ff', emi: 0.5, pass: 2, alpha: 0.7, drift: 0.3 });
+        }
+      }
+    }
+    G.tornados = G.tornados.filter(t => t.t < t.max);
     // --- 드럼통
     const bl = G.weapons.barrel || 0;
     if (bl) {
@@ -1295,6 +1414,21 @@ window.DX = window.DX || {};
     }
   }
 
+  function freezeBurst(c, w, lv, pm, b) {
+    if (!c || !G) return;
+    const r = w.radius[lv - 1] * (1 + b * 0.15);
+    SRC = 'freeze';
+    shockRing(0, c.cz, r, '#bfeeff');
+    let n = 0;
+    near(0, c.cz, r, zb => {
+      const wet = zb.wetT > 0, t = w.freeze[lv - 1] * (wet ? 2 : 1) * (zb.boss ? 0.25 : 1);
+      zb.stun = Math.max(zb.stun, t); zb.iceT = Math.max(zb.iceT || 0, t); zb.slowT = t + 2.5;
+      hit(zb, w.dmg[lv - 1] * pm * (wet ? 1.8 : 1), 'ice', 0, 0, 0, true);
+      if (wet) { zb.wetT = 0; if (Math.random() < 0.3) FX.text(zb.x, 2.6, zb.z, '얼음 조합!', '#bfeeff', 16, 0.8); }
+      if (n++ < 10) fxSprite('freeze', zb.x, 0, zb.z, 1.2, 2.2, 0.5, { rot: 0, vr: 0 }) || fxSprite('iceburst', zb.x, 1, zb.z, 1.2, 2.4, 0.45);
+    });
+    S.zap();
+  }
   function updProjectiles(dt) {
     const S2 = world.speed;
     // 총알
@@ -1395,7 +1529,7 @@ window.DX = window.DX || {};
     }
     z.atk = false;
     z.throwT -= dt;
-    if (z.throwT <= 0 && d < 34 && d > reach + 4) { z.throwT = rand(4, 5.5); z.bst = 'throw'; z.bk = 0; z.bt = 0.55; return true; }
+    if (z.throwT <= 0 && d < 34 && d > reach + 4) { z.throwT = rand(4, 5.5) * (z.raged ? z.cfg.rage.throwMul : 1); z.bst = 'throw'; z.bk = 0; z.bt = 0.55; return true; }
     return false;
   }
   function bossStrike(z) {
@@ -1478,6 +1612,7 @@ window.DX = window.DX || {};
       if (z.burnT > 0) { z.burnT -= dt; if (z.burnT <= 0) z.burn = 0; }
       z.ph += dt * (z.boss ? 4 : 11) * (z.spd / 6);
       if (z.stun > 0) z.stun -= dt;
+      if (z.wetT > 0) z.wetT -= dt; if (z.iceT > 0) z.iceT -= dt; if (z.slowT > 0) z.slowT -= dt;
       z.x += z.kx * dt; z.z += z.kz * dt;
       const damp = Math.pow(0.02, dt); z.kx *= damp; z.kz *= damp;
       // 점프 (댄서)
@@ -1514,6 +1649,13 @@ window.DX = window.DX || {};
       z.yaw = d <= z.r + 0.12 ? Math.atan2(dx, dz) : Math.atan2(mx, mz);
       { const fx = d <= z.r + 0.12 ? dx : mx; if (Math.abs(fx) > 0.25) z.face = fx > 0 ? 1 : -1; }
       if (z.boss) {
+        const rg = z.cfg.rage;
+        if (rg && !z.raged && z.hp < z.maxHp * rg.at) {   // 분노 2단계
+          z.raged = true; z.spd *= rg.speed; z.s *= rg.scale; z.r *= rg.scale; z.hitT = 0;
+          G.shake = Math.max(G.shake, 1.2); S.roar(); vib([60, 40, 120]);
+          shockRing(z.x, z.z, 9, '#ff3030'); FX.text(z.x, 7 * (z.s / 3), z.z, rg.quote, '#ff4040', 30, 1.8, true);
+          if (DX.UI) DX.UI.banner(DX.L('분노 2단계!!', '狂暴第二阶段！！'), '“' + DX.T(rg.quote) + '”', 'boss');
+        }
         z.stompT -= dt;
         if (z.stompT <= 0) {
           z.stompT = 6;
@@ -1527,7 +1669,7 @@ window.DX = window.DX || {};
       }
       if (d > z.r + 0.12) {
         z.atk = false;
-        if (z.stun <= 0) { const st2 = Math.min(z.spd * dt, md); z.x += mx / md * st2; z.z += mz / md * st2; }
+        if (z.stun <= 0) { const st2 = Math.min(z.spd * (z.slowT > 0 ? C.weapons.freeze.slow : 1) * dt, md); z.x += mx / md * st2; z.z += mz / md * st2; }
         if (!z.boss) z.z += drift;
         // 댄서 점프 시작
         if (z.cfg.jumper && d < 5.5 && d > 1.2 && z.stun <= 0) {
@@ -1681,7 +1823,7 @@ window.DX = window.DX || {};
     G.wa += dt * world.speed / 0.45;
     updWorld(dt, world.speed);
     G.shake = Math.max(0, G.shake - rawDt * 2.5);
-    G.hurt = Math.max(0, (G.hurt || 0) - rawDt);
+    G.hurt = Math.max(0, (G.hurt || 0) - rawDt); G.ultFlash = Math.max(0, (G.ultFlash || 0) - rawDt);
     if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
     if (G.hornCd > 0) G.hornCd -= dt;
     if (G.shield > 0) G.shield -= dt;
@@ -1781,7 +1923,7 @@ window.DX = window.DX || {};
     if (!G) {
       // 로비: 생존자 + 연기
       const slots = [[-0.75, DECK, layout.cars[0].cz - 1.4], [0.75, DECK, layout.cars[0].cz + 0.3], [0, DECK, layout.cars[0].cz + 1.9]];
-      C.survivors.forEach((sv, i) => { if (sv.art && SPR.has(sv.art)) drawSurvivorSprite(slots[i], Math.PI + 0.6 * (i - 1) + Math.sin(world.t + i) * 0.4, SPR.chars[sv.art], 0, world.t + i, false); else MD.survivor(slots[i][0], slots[i][1], slots[i][2], Math.PI + Math.sin(world.t + i) * 0.6, sv, 'normal', 0, world.t); });
+      C.survivors.forEach((sv, i) => { if (sv.art && SPR.has(sv.art)) drawSurvivorSprite(slots[i], Math.PI + 0.6 * (i - 1) + Math.sin(world.t + i) * 0.4, SPR.chars[sv.art], 0, world.t + i, false, sv.art, false); else MD.survivor(slots[i][0], slots[i][1], slots[i][2], Math.PI + Math.sin(world.t + i) * 0.6, sv, 'normal', 0, world.t); });
       for (const p of lobbyParts) { p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt + 8 * dt * p.drift; }
       for (let i = lobbyParts.length - 1; i >= 0; i--) if (lobbyParts[i].life > lobbyParts[i].max) lobbyParts.splice(i, 1);
       drawParts(lobbyParts);
@@ -1797,7 +1939,7 @@ window.DX = window.DX || {};
     const ml = G.weapons.mg || 0, n = ml ? C.weapons.mg.shooters[ml - 1] : 0, slots = gunSlots();
     for (let i = 0; i < Math.max(2, n); i++) {
       const sv = C.survivors[i % C.survivors.length];
-      if (sv.art && SPR.has(sv.art)) drawSurvivorSprite(slots[i], i < n ? G.aim[i] : Math.PI, SPR.chars[sv.art], G.recoil[i], G.t + i, ml >= 5);
+      if (sv.art && SPR.has(sv.art)) drawSurvivorSprite(slots[i], i < n ? G.aim[i] : Math.PI, SPR.chars[sv.art], G.recoil[i], G.t + i, ml >= 5, sv.art, i < n);
       else MD.survivor(slots[i][0], slots[i][1], slots[i][2], i < n ? G.aim[i] : Math.PI, sv, ml >= 5 ? 'gold' : 'normal', G.recoil[i], G.t);
     }
     // 화염 노즐 (열차 옆구리마다)
@@ -1891,7 +2033,29 @@ window.DX = window.DX || {};
   const camCur = { back: 40, y: 24, tz: 0, ty: 0, fov: 50 }; // 카메라 값은 config.js 의 camera 에서 수정
   DX.toggleCam = function () { DX.save.cam = DX.save.cam === 'near' ? 'far' : 'near'; DX.persist(); return C.camera[DX.save.cam].label; };
   const GOLD_TINT = [1.15, 1.0, 0.55, 1];
-  function drawSurvivorSprite(slot, aim, ch, recoil, t, gold) {
+  // 지붕 사수: 동작 그림(대기·사격·맞음·환호)이 있으면 그걸로, 없으면 전신 그림 1장
+  function gunFrame(nm, recoil, t, firing) {
+    const g = k => SPR.frames['gun:' + nm + ':' + k];
+    if (G && G.endT >= 0 && G.outcome && G.outcome.win) return g('top_react_2');
+    if (G && G.ultFlash > 0) return g('top_react_3');
+    if (G && G.hurt > 0.12) return g('top_react_0');
+    if (firing && recoil > 0.55) return g('top_shoot_1');
+    if (firing && recoil > 0.15) return g('top_shoot_2');
+    if (firing) return g('top_shoot_0');
+    return g('top_idle_' + (Math.floor(t * 2.5) % 4));
+  }
+  function gunTint(nm, gold) {
+    const id = DX.save.skin && DX.save.skin[nm]; let tn = gold ? GOLD_TINT : null;
+    if (id && id !== 'base' && !(SPR.gun && SPR.gun[nm] && SPR.gun[nm].skinArt)) { const k = ((C.skins || {})[nm] || []).find(x => x.id === id); if (k && k.tint) tn = tn ? [tn[0] * k.tint[0], tn[1] * k.tint[1], tn[2] * k.tint[2], 1] : [k.tint[0], k.tint[1], k.tint[2], 1]; }
+    return tn;
+  }
+  function drawSurvivorSprite(slot, aim, ch, recoil, t, gold, nm, firing) {
+    const gf = nm && gunFrame(nm, recoil || 0, t, firing);
+    if (gf) {
+      const sx = Math.sin(aim), left = sx < 0, H = ch.height * 1.12;
+      E.sprite(gf, slot[0], slot[1] + Math.abs(Math.sin(t * 2)) * 0.02, slot[2], H * gf.aspect, H, 0, 0.5, 0, gunTint(nm, gold), null, left);
+      return;
+    }
     const fr = SPR.frames[ch.full]; if (!fr) return;
     const sx = Math.sin(aim), sy = -Math.cos(aim); // 화면 기준 조준 방향 (위 = 앞)
     const left = sx < 0;
@@ -1899,7 +2063,7 @@ window.DX = window.DX || {};
     const rot = left ? -ang : ang;
     const H = ch.height * (1 + (recoil || 0) * 0.05);
     const back = (recoil || 0) * 0.15 * (left ? 1 : -1);
-    E.sprite(fr, slot[0] + back, slot[1] + Math.abs(Math.sin(t * 2)) * 0.03, slot[2], H * fr.aspect, H, rot, 0.5, 0, gold ? GOLD_TINT : null, null, left !== (ch.face < 0));
+    E.sprite(fr, slot[0] + back, slot[1] + Math.abs(Math.sin(t * 2)) * 0.03, slot[2], H * fr.aspect, H, rot, 0.5, 0, nm ? gunTint(nm, gold) : gold ? GOLD_TINT : null, null, left !== (ch.face < 0));
   }
   const lobbyParts = [];
   function drawParts(arr) {

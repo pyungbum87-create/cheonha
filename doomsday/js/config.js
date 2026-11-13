@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.10',
+    version: 'v0.11',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -86,7 +86,13 @@ DX.CONFIG = {
     tesla: { top: 'assets/train/car_tesla_top.png', side: 'assets/train/car_tesla_side.png' },
     drone: { top: 'assets/train/car_drone_top.png', side: 'assets/train/car_drone_side.png' },
     cannon: { top: 'assets/train/car_cannon_top.png', side: 'assets/train/car_cannon_side.png' },
+    // ↓ 새 칸 (그림 파일이 없으면 기관총 칸 그림 + 아래 carTint 색으로 대신 그림)
+    water: { top: 'assets/train/car_water_top.png', side: 'assets/train/car_water_side.png' },
+    freeze: { top: 'assets/train/car_freeze_top.png', side: 'assets/train/car_freeze_side.png' },
+    fan: { top: 'assets/train/car_fan_top.png', side: 'assets/train/car_fan_side.png' },
+    safe: { top: 'assets/train/car_safe_top.png', side: 'assets/train/car_safe_side.png', sideFallback: 'assets/train/extra/car_safe_a.png' },
   },
+  carTint: { water: [0.7, 0.88, 1.25], freeze: [0.85, 1.0, 1.3], fan: [0.85, 1.12, 0.85], safe: [1.0, 1.08, 0.9] },
 
   /* ------------------------------------------------------------- 실내 침입 전투
      bg = 열차 내부 배경, 나머지 = 포즈 3개짜리 그림 (생존자: 준비/휘두르기/맞음, 좀비: 걷기/공격/날아감) */
@@ -107,6 +113,8 @@ DX.CONFIG = {
     explosion: 'assets/fx/explosion.png', smoke: 'assets/fx/smoke.png', fireball: 'assets/fx/fireball.png', lightning: 'assets/fx/lightning.png',
     muzzle: 'assets/fx/muzzle.png', sonic: 'assets/fx/sonic.png', iceburst: 'assets/fx/iceburst.png', cloud_teal: 'assets/fx/cloud_teal.png',
     cloud_pink: 'assets/fx/cloud_pink.png', crate: 'assets/fx/crate.png', barrel: 'assets/fx/barrel.png', drone: 'assets/fx/drone.png',
+    // ↓ 새 효과 (없으면 코드 효과로 대신): 물줄기·회오리·얼음 가시·수증기
+    water: 'assets/fx/water.png', tornado: 'assets/fx/tornado.png', freeze: 'assets/fx/freeze.png', steam: 'assets/fx/steam.png',
   },
   // 프레임 애니메이션 그림 (assets/chars/anim/이름_키.png). w0~w3 = 걷기 4컷, a0 = 준비, a1 = 공격, a2 = 맞음, a3 = 쓰러짐
   // h = 걷기 첫 컷 대비 높이 비율 (자동 계산값)
@@ -222,6 +230,60 @@ DX.CONFIG = {
     ] },
   },
 
+  /* ------------------------------------------------------------- ★ 챕터 그림 자리 (스테이지 id 별)
+     파일이 있으면 자동으로 그 그림을 쓰고, 없으면 지금 그림(또는 코드 그림)을 그대로 씀
+     ground = 바닥(위에서 본 그림) / sky = 먼 풍경 / side = 옆 배경(만화·미니게임) / thumb = 스테이지 미리보기
+     comic = 가로 3칸 만화 그림(말풍선 빈칸) / props = 길가 소품 6개 (assets/props/chN_p1~6.png)
+     → 그림 넣기: _dev/import_art.py 가 파일 이름대로 알아서 이 자리에 넣어 줌 */
+  chapterArt: {
+    desert: { ground: 'assets/ground/ch1.jpg', sky: 'assets/sky/ch1.jpg', side: 'assets/story/ch1_side.jpg', thumb: 'assets/stages/ch1_thumb.jpg', comic: 'assets/story/comic_ch1.jpg', props: 'ch1' },
+    rest: { ground: 'assets/ground/ch2.jpg', sky: 'assets/sky/ch2.jpg', side: 'assets/story/ch2_side.jpg', thumb: 'assets/stages/ch2_thumb.jpg', comic: 'assets/story/comic_ch2.jpg', props: 'ch2' },
+    city: { ground: 'assets/ground/ch3.jpg', sky: 'assets/sky/ch3.jpg', side: 'assets/story/ch3_side.jpg', thumb: 'assets/stages/ch3_thumb.jpg', comic: 'assets/story/comic_ch3.jpg', props: 'ch3' },
+    neon: { ground: 'assets/ground/ch4.jpg', sky: 'assets/sky/ch4.jpg', side: 'assets/story/ch4_side.jpg', thumb: 'assets/stages/ch4_thumb.jpg', comic: 'assets/story/comic_ch4.jpg', props: 'ch4' },
+    bridge: { sky: 'assets/sky/ch5.jpg', side: 'assets/story/ch5_side.jpg', thumb: 'assets/stages/ch5_thumb.jpg', comic: 'assets/story/comic_ch5.jpg', props: 'ch5' },   // 철교는 바닥이 낭떠러지라 ground 안 씀
+    snow: { ground: 'assets/ground/ch6.jpg', sky: 'assets/sky/ch6.jpg', side: 'assets/story/ch6_side.jpg', thumb: 'assets/stages/ch6_thumb.jpg', comic: 'assets/story/comic_ch6.jpg', props: 'ch6' },
+    tunnel: { ground: 'assets/ground/ch7.jpg', sky: 'assets/sky/ch7.jpg', side: 'assets/story/ch7_side.jpg', thumb: 'assets/stages/ch7_thumb.jpg', comic: 'assets/story/comic_ch7.jpg', props: 'ch7' },
+    lab: { ground: 'assets/ground/ch8.jpg', sky: 'assets/sky/ch8.jpg', side: 'assets/story/ch8_side.jpg', thumb: 'assets/stages/ch8_thumb.jpg', comic: 'assets/story/comic_ch8.jpg', props: 'ch8' },
+  },
+  // 생존자 지붕 사수 동작 그림 (assets/chars/이름/top_동작_0~3.png). idle=대기, shoot=사격, react=맞음/환호/필살기
+  gunnerAnims: ['top_idle', 'top_shoot', 'top_react'],
+
+  /* ------------------------------------------------------------- 꾸미기 (로비 '꾸미기' 버튼)
+     cost = 골드 가격, need = 이 스테이지(번호)를 깨야 열림. tint = 그림이 아직 없을 때 대신 입히는 색
+     열차: art = assets/train/skins/아이디_top.png, _side.png (기관차 모양 교체)
+     생존자: assets/chars/skins/이름_아이디/top_동작_0~3.png + assets/portraits/skin_이름_아이디.png */
+  skins: {
+    train: [
+      { id: 'base', name: '기본 둠스데이호', cost: 0 },
+      { id: 'subway', name: '통근 지하철', cost: 1500, tint: [0.75, 1.1, 0.8] },
+      { id: 'neon', name: '야근 네온 열차', cost: 2500, tint: [1.1, 0.75, 1.25] },
+      { id: 'army', name: '군용 장갑 열차', cost: 3500, tint: [0.8, 0.95, 0.65] },
+      { id: 'santa', name: '산타 열차', cost: 4000, tint: [1.3, 0.7, 0.7] },
+      { id: 'gold', name: '황금 열차', cost: 0, need: 8, tint: [1.3, 1.1, 0.55] },
+    ],
+    jack: [
+      { id: 'base', name: '기본', cost: 0 },
+      { id: 'delivery', name: '배달원', cost: 1200, tint: [1.15, 0.9, 0.7] },
+      { id: 'suit', name: '정장 히어로', cost: 2000, tint: [0.75, 0.8, 1.1] },
+      { id: 'santa', name: '산타', cost: 0, need: 6, tint: [1.3, 0.75, 0.75] },
+    ],
+    minho: [
+      { id: 'base', name: '기본', cost: 0 },
+      { id: 'fire', name: '소방관', cost: 1200, tint: [1.25, 0.85, 0.6] },
+      { id: 'chef', name: '셰프', cost: 2000, tint: [1.15, 1.15, 1.15] },
+      { id: 'ninja', name: '닌자', cost: 0, need: 5, tint: [0.6, 0.6, 0.75] },
+    ],
+    sophie: [
+      { id: 'base', name: '기본', cost: 0 },
+      { id: 'hacker', name: '해커 후드', cost: 1200, tint: [0.7, 1.15, 0.8] },
+      { id: 'idol', name: '아이돌', cost: 2000, tint: [1.25, 0.85, 1.15] },
+      { id: 'space', name: '우주복', cost: 0, need: 7, tint: [0.95, 1.05, 1.25] },
+    ],
+  },
+
+  // 시민 구출 미니게임에서 구한 사람들이 타는 '안전 칸' — 1명당 보너스 (최대 maxPeople명까지)
+  safeCar: { goldPer: 0.04, xpPer: 0.03, maxPeople: 12 },
+
   invasion: {
     firstWave: 3,            // 몇 번째 웨이브부터 침입이 생기는지
     every: [25, 35],         // 침입 간격(초) 최소~최대
@@ -281,21 +343,22 @@ DX.CONFIG = {
 
   /* ------------------------------------------------------------- 보스 (model: spider=거미형, giant=거대 인간형) */
   bosses: {
-    bujang: { model: 'spider', proj: 'paper', art: 'bujang', name: '변이 거미 부장님', quote: '이거 오늘까지 해 와!', hp: 1600, speed: 2.4, dps: 15, xp: 60, gold: 40, scale: 3.0, summon: 'office',
+    bujang: { cutin: 'assets/ui/cutin_bujang.jpg', model: 'spider', proj: 'paper', art: 'bujang', name: '변이 거미 부장님', quote: '이거 오늘까지 해 와!', hp: 1600, speed: 2.4, dps: 15, xp: 60, gold: 40, scale: 3.0, summon: 'office',
       colors: { body: '#7a9a4a', spots: '#a3507d', skin: '#8fd05a', leg: '#5d3b6e', eye: '#ff2a2a', tie: '#1d3fbf' } },
-    taekbae: { model: 'giant', proj: 'crate', base: 'box', art: 'box', name: '택배 대장 (산더미 배송)', quote: '착불입니다~!!', hp: 1900, speed: 2.1, dps: 16, xp: 65, gold: 45, scale: 4.0, summon: 'box',
+    taekbae: { cutin: 'assets/ui/cutin_taekbae.jpg', model: 'giant', proj: 'crate', base: 'box', art: 'box', name: '택배 대장 (산더미 배송)', quote: '착불입니다~!!', hp: 1900, speed: 2.1, dps: 16, xp: 65, gold: 45, scale: 4.0, summon: 'box',
       colors: { skin: '#9ad466', shirt: '#3f6aa8', pants: '#33302a', box: '#c08a57', tape: '#e8d5a8', cap: '#2c5aa0', eye: '#ffffff', pupil: '#ff2222' } },
-    gwajang: { model: 'giant', proj: 'paper', base: 'office', art: 'office', name: '거대 과장님 (야근 47일째)', quote: '야근은 미덕이야~', hp: 2200, speed: 2.0, dps: 18, xp: 70, gold: 50, scale: 4.2, summon: 'bomber',
+    gwajang: { cutin: 'assets/ui/cutin_gwajang.jpg', model: 'giant', proj: 'paper', base: 'office', art: 'office', name: '거대 과장님 (야근 47일째)', quote: '야근은 미덕이야~', hp: 2200, speed: 2.0, dps: 18, xp: 70, gold: 50, scale: 4.2, summon: 'bomber',
       colors: { skin: '#7cc94e', shirt: '#dfe6ee', pants: '#2d3446', tie: '#8e24aa', toast: '#e9b872', bag: '#4a3222', eye: '#ffffff', pupil: '#ff2222' } },
-    hwisik: { model: 'giant', proj: 'barrel', base: 'bomber', art: 'bomber', name: '회식 끝판왕 과장님', quote: '3차 가자아아!!', hp: 2400, speed: 1.9, dps: 19, xp: 75, gold: 55, scale: 4.4, summon: 'bomber',
+    hwisik: { cutin: 'assets/ui/cutin_hwisik.jpg', model: 'giant', proj: 'barrel', base: 'bomber', art: 'bomber', name: '회식 끝판왕 과장님', quote: '3차 가자아아!!', hp: 2400, speed: 1.9, dps: 19, xp: 75, gold: 55, scale: 4.4, summon: 'bomber',
       colors: { skin: '#a7d86a', shirt: '#f0e6d0', pants: '#3a3a44', belly: '#c6f08a', tie: '#2e7d32', cheek: '#ff7b9c', eye: '#ffffff', pupil: '#ff2222' } },
-    isa: { model: 'spider', proj: 'paper', art: 'isa', name: '독거미 이사님', quote: '이사회 결정이다.', hp: 2600, speed: 2.8, dps: 20, xp: 80, gold: 60, scale: 3.3, summon: 'dancer',
+    isa: { cutin: 'assets/ui/cutin_isa.jpg', model: 'spider', proj: 'paper', art: 'isa', name: '독거미 이사님', quote: '이사회 결정이다.', hp: 2600, speed: 2.8, dps: 20, xp: 80, gold: 60, scale: 3.3, summon: 'dancer',
       colors: { body: '#5a3a7a', spots: '#ffcf3a', skin: '#9a7ad8', leg: '#2a1a3a', eye: '#3dff6b', tie: '#ffcf3a' } },
-    sangmu: { model: 'giant', proj: 'snow', base: 'office', art: 'office', artTint: [0.72, 0.84, 1.1], name: '스키 연수 간 상무님', quote: '워크숍은 강제 참석이다!', hp: 2900, speed: 2.0, dps: 22, xp: 90, gold: 70, scale: 4.6, summon: 'riot',
+    sangmu: { cutin: 'assets/ui/cutin_sangmu.jpg', model: 'giant', proj: 'snow', base: 'office', art: 'office', artTint: [0.72, 0.84, 1.1], name: '스키 연수 간 상무님', quote: '워크숍은 강제 참석이다!', hp: 2900, speed: 2.0, dps: 22, xp: 90, gold: 70, scale: 4.6, summon: 'riot',
       colors: { skin: '#8fc4d8', shirt: '#2a5aa8', pants: '#1d2a44', tie: '#ff5a36', toast: '#e9b872', bag: '#4a3222', eye: '#ffffff', pupil: '#ff2222' } },
-    isa2: { model: 'spider', proj: 'paper', art: 'isa', artTint: [0.75, 1.0, 0.8], name: '독거미 이사님 (2차 변이)', quote: '퇴사는 허락 못 한다!', hp: 3200, speed: 3.0, dps: 24, xp: 100, gold: 80, scale: 3.6, summon: 'dancer',
+    isa2: { cutin: 'assets/ui/cutin_isa.jpg', model: 'spider', proj: 'paper', art: 'isa', artTint: [0.75, 1.0, 0.8], name: '독거미 이사님 (2차 변이)', quote: '퇴사는 허락 못 한다!', hp: 3200, speed: 3.0, dps: 24, xp: 100, gold: 80, scale: 3.6, summon: 'dancer',
       colors: { body: '#2a5a3a', spots: '#ffcf3a', skin: '#7ad89a', leg: '#1a3a2a', eye: '#ff3d3d', tie: '#ffcf3a' } },
-    ceo: { model: 'giant', proj: 'golf', base: 'office', crown: true, art: 'ceo', name: '좀비 사장님 (최종 보스)', quote: '연봉 동결이다!!', hp: 4200, speed: 1.8, dps: 26, xp: 150, gold: 120, scale: 5.0, summon: 'riot',
+    // rage = 체력이 at 아래로 떨어지면 분노 2단계 (빨라지고 커짐, 투척 간격 짧아짐, rageFrame 그림 사용)
+    ceo: { rage: { at: 0.5, speed: 1.35, scale: 1.15, throwMul: 0.6, quote: '연봉 삭감이다!!!', frame: 'a3' }, cutin: 'assets/ui/cutin_ceo.jpg', model: 'giant', proj: 'golf', base: 'office', crown: true, art: 'ceo', name: '좀비 사장님 (최종 보스)', quote: '연봉 동결이다!!', hp: 4200, speed: 1.8, dps: 26, xp: 150, gold: 120, scale: 5.0, summon: 'riot',
       colors: { skin: '#6fb64a', shirt: '#1d1d24', pants: '#1d1d24', tie: '#ffcf3a', toast: '#ffd700', bag: '#7a5a20', eye: '#ffffff', pupil: '#ff2222' } },
   },
 
@@ -321,7 +384,19 @@ DX.CONFIG = {
     barrel: { name: '드럼통 낙하', evoName: '드럼통 비', icon: 'assets/icons/w_barrel.png', car: null,
       desc: ['하늘에서 폭발 드럼통 낙하', '피해 증가', '드럼통 +1', '폭발 범위 증가', '진화! 드럼통 4개 연속 낙하'],
       cd: [5.5, 5.0, 5.0, 4.5, 3.2], count: [1, 1, 2, 2, 4], dmg: [70, 85, 100, 115, 145], radius: [4.2, 4.5, 4.8, 5.4, 6.2] },
+    // ↓ 새 무기 3종 (그림이 없으면 기관총 칸 그림에 색만 입혀서 씀. 아이콘이 없으면 emoji)
+    water: { name: '소방 물대포', evoName: '고압 해일 물대포', icon: 'assets/icons/w_water.png', emoji: '💧', car: 'water',
+      desc: ['물줄기로 좀비를 밀어내고 적심 (젖은 좀비: 불 → 증기 폭발, 번개 → 감전 1.5배)', '밀어내는 힘 증가', '피해 증가', '발사 간격 감소', '진화! 양쪽으로 해일 발사'],
+      cd: [2.4, 2.2, 2.0, 1.7, 1.4], dmg: [24, 30, 38, 46, 60], push: [9, 12, 13, 14, 18], range: 14, width: 3.2, wet: 4 },
+    freeze: { name: '냉동 컨테이너', evoName: '절대영도 컨테이너', icon: 'assets/icons/w_ice.png', emoji: '❄️', car: 'freeze',
+      desc: ['주변 좀비를 얼려서 멈춤 (젖은 좀비는 2배 오래 + 추가 피해)', '얼음 범위 증가', '얼리는 시간 증가', '발동 간격 감소', '진화! 얼음 가시가 연속 폭발'],
+      cd: [4.5, 4.2, 4.0, 3.4, 2.6], dmg: [30, 36, 44, 52, 66], radius: [7, 8.5, 9, 10, 12], freeze: [1.3, 1.5, 2.0, 2.2, 2.6], slow: 0.45 },
+    fan: { name: '초대형 환풍기', evoName: '회오리 폭풍', icon: 'assets/icons/w_wind.png', emoji: '🌪️', car: 'fan',
+      desc: ['좀비 떼에 회오리를 일으켜 한데 모으고 피해', '회오리 피해 증가', '빨아들이는 힘 증가', '회오리 지속 증가', '진화! 회오리 2개'],
+      cd: [5.0, 4.8, 4.5, 4.2, 3.6], dps: [16, 20, 24, 28, 36], radius: [4.5, 4.5, 5, 5.5, 6], pull: [5, 5.5, 7, 7.5, 9], dur: [2.5, 2.6, 2.8, 3.4, 3.6], count: [1, 1, 1, 1, 2] },
   },
+  // 무기 조합 (젖은 좀비에게 불·번개)
+  combo: { steamDmg: 0.6, steamRadius: 2.6, shockMul: 1.5 },
 
   /* ------------------------------------------------------------- 패시브 (Lv1~5) */
   passives: {
