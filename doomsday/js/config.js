@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.8',
+    version: 'v0.9',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -23,7 +23,7 @@ DX.CONFIG = {
      back=열차 뒤 거리, height=높이, grow=열차가 길어질 때 더 멀어지는 정도, aim/ahead=바라보는 지점, fov=화각 */
   camera: {
     far: { label: '원거리', back: 14, backGrow: 0.4, height: 18, grow: 0.35, aim: 0.6, ahead: 4, fov: 50 },
-    near: { label: '근거리', back: -4, backGrow: 0.0, height: 8.5, grow: 0.05, aim: 0.35, ahead: 16, fov: 62 },
+    near: { label: '근거리', back: 7, backGrow: 0.15, height: 12, grow: 0.15, aim: 0.15, ahead: 12, fov: 56 },   // 열차 뒤 위에서 앞을 내다보는 추격 시점
   },
 
   /* ------------------------------------------------------------- 광고 (보상형 동영상만 사용, 유료결제 없음)
@@ -105,7 +105,13 @@ DX.CONFIG = {
   fxArt: {
     explosion: 'assets/fx/explosion.png', smoke: 'assets/fx/smoke.png', fireball: 'assets/fx/fireball.png', lightning: 'assets/fx/lightning.png',
     muzzle: 'assets/fx/muzzle.png', sonic: 'assets/fx/sonic.png', iceburst: 'assets/fx/iceburst.png', cloud_teal: 'assets/fx/cloud_teal.png',
-    cloud_pink: 'assets/fx/cloud_pink.png', crate: 'assets/fx/crate.png', barrel: 'assets/fx/barrel.png',
+    cloud_pink: 'assets/fx/cloud_pink.png', crate: 'assets/fx/crate.png', barrel: 'assets/fx/barrel.png', drone: 'assets/fx/drone.png',
+  },
+  // 길가 소품 그림 (배경에 흩어 놓는 물건). 이름: 파일
+  propArt: {
+    wreck1: 'assets/props/wreck1.png', wreck2: 'assets/props/wreck2.png', police1: 'assets/props/police1.png', police2: 'assets/props/police2.png',
+    crate: 'assets/props/crate.png', box: 'assets/props/box.png', sandbag: 'assets/props/sandbag.png', gas: 'assets/props/gas.png',
+    barrel_siren: 'assets/props/barrel_siren.png', spikes: 'assets/props/spikes.png', bomber: 'assets/props/bomber.png',
   },
   // 포즈 그림이 아직 없을 때 전신 그림 1장으로 대신 씀 (flip = 좌우 뒤집기)
   fightFallback: {
@@ -263,7 +269,7 @@ DX.CONFIG = {
         { who: 0, text: '연료가 간당간당하다. 다음 휴게소에 들른다.' },
       ],
       theme: {
-        skyTop: '#f3b06b', skyBottom: '#f7d49b', fog: '#efc08a', fogNear: 55, fogFar: 150,
+        skyImg: 'assets/sky/sunset.jpg', skyTop: '#f3b06b', skyBottom: '#f7d49b', fog: '#efc08a', fogNear: 55, fogFar: 150,
         light: [0.5, 0.9, 0.3], sky: '#fff1d6', ground: '#a8714a', ambient: 0.45,
         groundCol: '#d9a066', ballast: '#8b6a4f', sleeper: '#5b4636', rail: '#aab2bf',
         props: 'desert', weather: 'dust', rock: ['#c27a45', '#b06a3a', '#d48b52', '#9e5d33'], plant: '#5f8f3a',
@@ -291,10 +297,10 @@ DX.CONFIG = {
         { who: 2, text: '무전이 잡혀. "본사 서버에... 백신 위치가..." 도심으로 가야 해.' },
       ],
       theme: {
-        skyTop: '#ff7e5f', skyBottom: '#ffc27a', fog: '#f2a27a', fogNear: 50, fogFar: 140,
+        skyImg: 'assets/sky/sunset.jpg', skyTop: '#ff7e5f', skyBottom: '#ffc27a', fog: '#f2a27a', fogNear: 50, fogFar: 140,
         light: [0.7, 0.6, 0.3], sky: '#ffd9b8', ground: '#8a5040', ambient: 0.5, spriteTint: [1.0, 0.9, 0.84],
         groundCol: '#c98a5c', ballast: '#7a5a48', sleeper: '#4e3a2e', rail: '#b0a8a8',
-        props: 'desert', weather: 'dust', rock: ['#b0603a', '#a0502e', '#c4743f', '#8a4a2a'], plant: '#6a7a3a',
+        props: 'desert', weather: 'dust', rock: ['#b0603a', '#a0502e', '#c4743f', '#8a4a2a'], plant: '#6a7a3a', groundTint: [1.0, 0.86, 0.8, 1],
       },
       waves: [
         { time: 20, rate: 2.8, hordes: 1, hordeSize: 24, mix: { office: 0.6, box: 0.4 }, hp: 3.6 },
@@ -350,7 +356,7 @@ DX.CONFIG = {
         skyTop: '#07061a', skyBottom: '#3a0d4a', fog: '#24103a', fogNear: 40, fogFar: 130,
         light: [0.3, 0.8, 0.5], sky: '#ff9ad8', ground: '#2a1a3a', ambient: 0.66,
         groundCol: '#3a3446', ballast: '#2a2632', sleeper: '#2e2420', rail: '#a99ac0',
-        props: 'city', weather: 'confetti', spriteTint: [0.95, 0.82, 1.0], building: ['#2e2a44', '#3a2e50', '#26303e', '#40284a', '#2a3a44'], neon: ['#ff3fa0', '#3df2ff', '#fff23d', '#b05cff', '#ff7a2a'],
+        props: 'city', weather: 'confetti', spriteTint: [0.95, 0.82, 1.0], building: ['#2e2a44', '#3a2e50', '#26303e', '#40284a', '#2a3a44'], neon: ['#ff3fa0', '#3df2ff', '#fff23d', '#b05cff', '#ff7a2a'], groundTint: [0.62, 0.55, 0.85, 1],
       },
       waves: [
         { time: 20, rate: 3.1, hordes: 1, hordeSize: 29, mix: { office: 0.7, bomber: 0.15, dancer: 0.15 }, hp: 5.3 },
@@ -375,7 +381,7 @@ DX.CONFIG = {
         { who: 0, text: '나머지 반쪽은 설산 너머 연수원에 있다더군.' },
       ],
       theme: {
-        skyTop: '#7fb2e5', skyBottom: '#f2d6b3', fog: '#c9c6c9', fogNear: 60, fogFar: 170,
+        skyImg: 'assets/sky/sunset.jpg', skyTop: '#7fb2e5', skyBottom: '#f2d6b3', fog: '#c9c6c9', fogNear: 60, fogFar: 170,
         light: [0.4, 0.9, 0.35], sky: '#eef6ff', ground: '#6a6a7a', ambient: 0.5,
         groundCol: '#4a5560', ballast: '#5d636e', sleeper: '#4a3a2e', rail: '#b3bccb',
         props: 'bridge', weather: 'wind', deck: [-11, 4], river: '#3f7fb0', cliff: ['#8a6a52', '#9a7a5a', '#7a5a46', '#a88a6a'], steel: '#8a4a3a',
@@ -403,10 +409,10 @@ DX.CONFIG = {
         { who: 1, text: '다음은 터널이에요. 엄청 어두워요...' },
       ],
       theme: {
-        skyTop: '#8fa6c4', skyBottom: '#e6edf6', fog: '#dce5ef', fogNear: 40, fogFar: 130,
+        skyImg: 'assets/sky/snow.jpg', skyTop: '#8fa6c4', skyBottom: '#e6edf6', fog: '#dce5ef', fogNear: 40, fogFar: 130,
         light: [0.4, 0.9, 0.35], sky: '#f4f8ff', ground: '#c8d2de', ambient: 0.62, spriteTint: [0.93, 0.97, 1.06],
         groundCol: '#d8e0ea', ballast: '#9aa6b4', sleeper: '#5a4a40', rail: '#c4ccd8',
-        props: 'bridge', weather: 'snow', deck: [-11, 4], river: '#b8d4ea', cliff: ['#e8eef5', '#cdd7e2', '#b4c0ce', '#f4f7fb'], steel: '#4a5a7a',
+        props: 'bridge', weather: 'snow', deck: [-11, 4], river: '#b8d4ea', cliff: ['#e8eef5', '#cdd7e2', '#b4c0ce', '#f4f7fb'], steel: '#4a5a7a', groundTex: 'snow',
       },
       waves: [
         { time: 20, rate: 3.5, hordes: 1, hordeSize: 33, mix: { office: 0.6, box: 0.25, riot: 0.15 }, hp: 7.1 },
@@ -463,7 +469,7 @@ DX.CONFIG = {
         skyTop: '#04120e', skyBottom: '#0e2e26', fog: '#0c221d', fogNear: 35, fogFar: 115,
         light: [0.3, 0.9, 0.5], sky: '#a0ffd8', ground: '#16241f', ambient: 0.6,
         groundCol: '#26332f', ballast: '#1d2724', sleeper: '#2e2a26', rail: '#9aa8a4',
-        props: 'tunnel', weather: 'sparks', spriteTint: [0.78, 0.95, 0.86], walls: [-12.5, 5.5], wall: '#2c3c3a', alarm: '#3dff9a',
+        props: 'tunnel', weather: 'sparks', spriteTint: [0.78, 0.95, 0.86], walls: [-12.5, 5.5], wall: '#2c3c3a', alarm: '#3dff9a', groundTint: [0.7, 0.95, 0.85, 1],
       },
       waves: [
         { time: 20, rate: 3.8, hordes: 1, hordeSize: 38, mix: { office: 0.6, box: 0.2, riot: 0.1, bomber: 0.1 }, hp: 8.4 },

@@ -33,7 +33,11 @@ window.DX = window.DX || {};
     if (src) return '<img src="' + src + '" alt="" onerror="this.replaceWith(document.createTextNode(\'' + (emoji || '★') + '\'))">';
     return emoji || '★';
   }
-  UI.setSky = function (top, bot) { const r = document.documentElement.style; r.setProperty('--sky-top', top); r.setProperty('--sky-bot', bot); };
+  // 하늘: 색 그라데이션 + (있으면) 구름 그림. 그림은 스테이지 테마의 skyImg
+  UI.setSky = function (top, bot, img) {
+    const r = document.documentElement.style; r.setProperty('--sky-top', top); r.setProperty('--sky-bot', bot);
+    r.setProperty('--sky-img', img ? 'url("' + img + '")' : 'none');
+  };
 
   /* ---------------- 알림 ---------------- */
   UI.toast = function (msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; $('app').appendChild(t); setTimeout(() => t.remove(), 1600); };

@@ -168,6 +168,65 @@ window.DX = window.DX || {};
   SPR.hasTrain = () => SPR.ready && SPR.train && !!SPR.train.engine;
   SPR.hasFight = () => SPR.ready && SPR.fight && SPR.fight.bg && SPR.fight.jack;
 
+  /* ---------- 바닥 질감 만들기 ---------- */
+  function makeGround(kind) {
+    const S = kind === 'gravel' ? 192 : 320, cv = document.createElement('canvas'); cv.width = cv.height = S;
+    const g = cv.getContext('2d');
+    let seed = { sand: 11, asphalt: 23, snow: 37, concrete: 41, planks: 53, gravel: 67 }[kind];
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+    const R = (a, b) => a + rnd() * (b - a);
+    // 가장자리를 넘으면 반대편에도 그려서 이음새 없애기
+    const wrap = (x, y, r, fn) => { for (const ox of [0, -S, S]) for (const oy of [0, -S, S]) if (x + ox > -r && x + ox < S + r && y + oy > -r && y + oy < S + r) fn(x + ox, y + oy); };
+    const blob = (x, y, r, col) => wrap(x, y, r, (px, py) => { const gr = g.createRadialGradient(px, py, 0, px, py, r); gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(px - r, py - r, r * 2, r * 2); });
+    const dots = (n, r0, r1, cols) => { for (let i = 0; i < n; i++) { const x = R(0, S), y = R(0, S), r = R(r0, r1), c = cols[Math.floor(rnd() * cols.length)]; wrap(x, y, r, (px, py) => { g.fillStyle = c; g.beginPath(); g.ellipse(px, py, r, r * R(0.6, 1), R(0, 3), 0, 6.28); g.fill(); }); } };
+    const crack = (n, col, w) => { for (let i = 0; i < n; i++) { let x = R(0, S), y = R(0, S), a = R(0, 6.28); const pts = [[x, y]]; for (let k = 0; k < 7; k++) { a += R(-0.8, 0.8); x += Math.cos(a) * R(6, 16); y += Math.sin(a) * R(6, 16); pts.push([x, y]); } wrap(pts[0][0], pts[0][1], 120, (px, py) => { const dx = px - pts[0][0], dy = py - pts[0][1]; g.strokeStyle = col; g.lineWidth = w; g.beginPath(); pts.forEach((p, j) => j ? g.lineTo(p[0] + dx, p[1] + dy) : g.moveTo(p[0] + dx, p[1] + dy)); g.stroke(); }); } };
+    if (kind === 'sand') {
+      g.fillStyle = '#d6a468'; g.fillRect(0, 0, S, S);
+      for (let i = 0; i < 26; i++) blob(R(0, S), R(0, S), R(30, 90), rnd() < 0.5 ? 'rgba(255,226,170,0.35)' : 'rgba(150,95,50,0.22)');
+      for (let i = 0; i < 14; i++) { const y = R(0, S); wrap(0, y, 40, (px, py) => { g.strokeStyle = 'rgba(255,235,190,0.25)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, py); for (let x = 0; x <= S; x += 16) g.lineTo(x, py + Math.sin(x / 30 + i) * 5); g.stroke(); }); }
+      dots(140, 1.2, 3.2, ['#8e6440', '#a87a50', '#6e4c32', '#c49468']);
+      dots(40, 3, 6, ['#9a7a5c', '#b08a66']); dots(40, 1, 2, ['rgba(255,240,210,0.8)']);
+      crack(5, 'rgba(110,70,40,0.35)', 1.4);
+      for (let i = 0; i < 8; i++) { const x = R(0, S), y = R(0, S); wrap(x, y, 14, (px, py) => { g.strokeStyle = '#8a8a3a'; g.lineWidth = 1.6; for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(px, py); g.lineTo(px + R(-8, 8), py - R(5, 12)); g.stroke(); } }); }
+    } else if (kind === 'asphalt') {
+      g.fillStyle = '#4a4d57'; g.fillRect(0, 0, S, S);
+      for (let i = 0; i < 20; i++) blob(R(0, S), R(0, S), R(30, 80), rnd() < 0.5 ? 'rgba(90,92,104,0.4)' : 'rgba(30,30,38,0.35)');
+      dots(1600, 0.5, 1.3, ['rgba(140,140,150,0.6)', 'rgba(25,25,30,0.7)', 'rgba(100,100,110,0.5)']);
+      for (let i = 0; i < 4; i++) { const x = R(0, S), y = R(0, S), w = R(40, 90), h = R(30, 70), a = R(0, 1); wrap(x, y, 100, (px, py) => { g.save(); g.translate(px, py); g.rotate(a); g.fillStyle = 'rgba(28,29,35,0.45)'; g.fillRect(-w / 2, -h / 2, w, h); g.restore(); }); }
+      crack(9, 'rgba(18,18,22,0.75)', 1.6);
+      for (let i = 0; i < 3; i++) { const x = R(0, S), y = R(0, S); wrap(x, y, 40, (px, py) => { g.fillStyle = 'rgba(230,200,60,0.45)'; g.fillRect(px, py, 6, R(18, 34)); }); }
+      for (let i = 0; i < 4; i++) blob(R(0, S), R(0, S), R(14, 30), 'rgba(120,140,200,0.18)');
+    } else if (kind === 'snow') {
+      g.fillStyle = '#e8eef7'; g.fillRect(0, 0, S, S);
+      for (let i = 0; i < 26; i++) blob(R(0, S), R(0, S), R(30, 90), rnd() < 0.5 ? 'rgba(255,255,255,0.7)' : 'rgba(150,170,210,0.25)');
+      for (let i = 0; i < 10; i++) { const y = R(0, S); wrap(0, y, 40, (px, py) => { g.strokeStyle = 'rgba(160,180,220,0.25)'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, py); for (let x = 0; x <= S; x += 16) g.lineTo(x, py + Math.sin(x / 40 + i) * 7); g.stroke(); }); }
+      dots(60, 1, 2.5, ['rgba(120,140,180,0.5)']); dots(120, 0.6, 1.4, ['#ffffff']);
+    } else if (kind === 'concrete') {
+      g.fillStyle = '#5c6066'; g.fillRect(0, 0, S, S);
+      for (let i = 0; i < 18; i++) blob(R(0, S), R(0, S), R(30, 80), rnd() < 0.5 ? 'rgba(120,124,130,0.35)' : 'rgba(30,32,36,0.3)');
+      dots(900, 0.5, 1.2, ['rgba(150,150,155,0.5)', 'rgba(30,30,34,0.5)']);
+      g.strokeStyle = 'rgba(25,26,30,0.7)'; g.lineWidth = 3; for (let i = 0; i <= S; i += S / 4) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, S); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(S, i); g.stroke(); }
+      crack(6, 'rgba(20,20,24,0.6)', 1.3);
+      for (let i = 0; i < 6; i++) blob(R(0, S), R(0, S), R(12, 30), 'rgba(80,60,40,0.3)');
+    } else if (kind === 'planks') {
+      const n = 8, ph = S / n;
+      for (let i = 0; i < n; i++) {
+        const c = ['#7a5536', '#6e4b2f', '#84603e', '#735034'][i % 4];
+        g.fillStyle = c; g.fillRect(0, i * ph, S, ph);
+        for (let k = 0; k < 6; k++) { g.strokeStyle = 'rgba(40,25,12,0.25)'; g.lineWidth = 1; g.beginPath(); const y = i * ph + R(3, ph - 3); g.moveTo(0, y); for (let x = 0; x <= S; x += 20) g.lineTo(x, y + Math.sin(x / 25 + k) * 1.5); g.stroke(); }
+        g.fillStyle = 'rgba(20,12,6,0.85)'; g.fillRect(0, i * ph + ph - 3, S, 3);
+        g.fillStyle = 'rgba(255,230,190,0.12)'; g.fillRect(0, i * ph, S, 2);
+        for (const x of [S * 0.18, S * 0.82]) { g.fillStyle = '#3a3a40'; g.beginPath(); g.arc(x, i * ph + ph / 2, 3, 0, 6.28); g.fill(); }
+      }
+      for (let i = 0; i < 10; i++) blob(R(0, S), R(0, S), R(20, 60), 'rgba(30,18,8,0.2)');
+    } else {
+      g.fillStyle = '#6e6660'; g.fillRect(0, 0, S, S);
+      dots(900, 2, 5, ['#8a827a', '#5a524c', '#9a9088', '#4a443f', '#7a6a5a']);
+      dots(300, 1, 2, ['rgba(255,255,255,0.35)', 'rgba(0,0,0,0.35)']);
+    }
+    return cv;
+  }
+
   // 아틀라스 (그림들을 큰 텍스처 한 장에 모음)
   function pack(items, size) {
     const atlas = document.createElement('canvas'); atlas.width = size; atlas.height = size;
@@ -272,6 +331,18 @@ window.DX = window.DX || {};
         items.push({ name: 'fx:' + key, canvas: cv });
       } catch (e) { console.warn('fx art fail', key, e); }
     }
+    // 길가 소품 그림 (폐차·경찰차·상자 등)
+    const pa = (DX.CONFIG && DX.CONFIG.propArt) || {};
+    for (const key in pa) {
+      try {
+        const d = await getPixels(pa[key]);
+        let cv = crop(d, null, null, bboxAlpha(d));
+        cv = scaled(cv, Math.min(1, 200 / Math.max(cv.width, cv.height)));
+        items.push({ name: 'prop:' + key, canvas: cv });
+      } catch (e) { console.warn('prop art fail', key, e); }
+    }
+    // 바닥 질감 (코드로 그림: 모래·아스팔트·눈·콘크리트·나무판·자갈) — 이어 붙여도 이음새가 안 보이게 그림
+    for (const k of ['sand', 'asphalt', 'snow', 'concrete', 'planks', 'gravel']) items.push({ name: 'ground:' + k, canvas: makeGround(k) });
     if (!items.length) return false;
     let atlas;
     try { atlas = pack(items, 2048); } catch (e) { console.warn('atlas 2048 full → 4096'); SPR.frames = {}; atlas = pack(items, 4096); }

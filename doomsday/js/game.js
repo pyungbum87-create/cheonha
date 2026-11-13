@@ -84,13 +84,51 @@ window.DX = window.DX || {};
     world.theme = th;
     E.env.fog = E.col(th.fog).slice(); E.env.fogNear = th.fogNear; E.env.fogFar = th.fogFar;
     E.env.light = th.light; E.env.sky = E.col(th.sky); E.env.ground = E.col(th.ground); E.env.ambient = th.ambient; E.env.spriteTint = th.spriteTint || [1, 1, 1];
-    if (DX.UI) DX.UI.setSky(th.skyTop, th.skyBottom);
+    if (DX.UI) DX.UI.setSky(th.skyTop, th.skyBottom, th.skyImg);
     buildProps(th);
+  }
+  // 그림 소품 (폐차·경찰차·상자·모래주머니 등). h = 세계 높이
+  const PROP_H = { wreck1: 2.5, wreck2: 2.5, police1: 2.5, police2: 2.5, crate: 1.3, box: 1.1, sandbag: 1.0, gas: 1.5, barrel_siren: 1.8, spikes: 0.9 };
+  function spriteProps(P, kinds, z0, z1, step, xr) {
+    for (let z = z0; z < z1; z += rand(step[0], step[1])) {
+      const side = Math.random() < 0.5 ? -1 : 1, k = pick(kinds);
+      const x = side < 0 ? -rand(xr[0], xr[1]) : rand(xr[0] - 1.5, xr[1] - 3);
+      P.push({ k: 'sprite', f: 'prop:' + k, h: PROP_H[k] * rand(0.9, 1.1), x, z: z + rand(-1, 1), fl: Math.random() < 0.5 });
+      if ((k === 'sandbag' || k === 'crate') && Math.random() < 0.6) P.push({ k: 'sprite', f: 'prop:' + k, h: PROP_H[k] * rand(0.85, 1), x: x + side * rand(0.9, 1.5), z: z + rand(-0.6, 0.6), fl: Math.random() < 0.5 });
+    }
   }
   function buildProps(th) {
     world.props = []; world.pebbles = [];
     const P = world.props;
     const seed = () => Math.floor(rand(0, 1000));
+    world.propSprites = !!SPR.frames['prop:crate'];
+    if (world.propSprites) {
+      // 새 방식: 그림 소품 + 멀리 보이는 큰 지형만 3D
+      if (th.props === 'desert') {
+        for (let z = -190; z < 50; z += rand(16, 28)) for (const side of [-1, 1]) P.push({ k: 'mesa', x: side * rand(32, 48), z, sx: rand(8, 14), sy: rand(10, 22), sz: rand(8, 14), r: rand(0, 1), col: pick(th.rock), col2: '#e0a670' });
+        for (let z = -190; z < 50; z += 14) P.push({ k: 'pole', x: 3.4, z });
+        P.push({ k: 'tower', x: 9, z: -120 }); P.push({ k: 'station', x: -13, z: -40 });
+        spriteProps(P, ['wreck1', 'wreck2', 'crate', 'box', 'sandbag', 'gas', 'barrel_siren', 'spikes', 'wreck1'], -190, 50, [4, 8], [5, 17]);
+      } else if (th.props === 'city') {
+        for (let z = -190; z < 50; z += 0) {
+          const d = rand(8, 13);
+          for (const side of [-1, 1]) { const w = rand(7, 11); P.push({ k: 'building', x: side * (13.5 + w / 2 + rand(0, 2)), z: z + d / 2, sx: w, sy: rand(9, 26), sz: d, col: pick(th.building), neon: pick(th.neon), sign: Math.random() < 0.45, seed: seed() }); }
+          z += d + rand(0.5, 2);
+        }
+        for (let z = -190; z < 50; z += 12) { P.push({ k: 'lamp', x: 11.5, z }); P.push({ k: 'lamp', x: -11.5, z: z + 6 }); }
+        for (let z = -190; z < 50; z += rand(28, 40)) P.push({ k: 'billboard', x: Math.random() < 0.5 ? 12.5 : -12.8, z, neon: pick(th.neon) });
+        spriteProps(P, ['police1', 'police2', 'wreck1', 'wreck2', 'sandbag', 'crate', 'barrel_siren', 'box'], -190, 50, [5, 9], [4.5, 11]);
+      } else if (th.props === 'bridge') {
+        for (let z = -190; z < 50; z += 6.2) { P.push({ k: 'truss', x: th.deck[0] - 0.4, z }); P.push({ k: 'truss', x: th.deck[1] + 0.4, z }); }
+        for (let z = -190; z < 50; z += rand(9, 15)) for (const side of [-1, 1]) { const s = rand(10, 22); P.push({ k: 'cliff', x: side * rand(32, 55), y: rand(-30, -10), z, sx: s * rand(0.8, 1.3), sy: s * rand(2, 3), sz: s, r: rand(0, 6), col: pick(th.cliff) }); }
+        for (let z = -190; z < 50; z += rand(14, 24)) P.push({ k: 'sprite', f: 'prop:' + pick(['crate', 'box', 'gas', 'sandbag']), h: 1.1, x: Math.random() < 0.5 ? th.deck[0] + 0.8 : th.deck[1] - 0.8, z, fl: Math.random() < 0.5 });
+      } else if (th.props === 'tunnel') {
+        let i = 0;
+        for (let z = -190; z < 50; z += 8.2) { i++; P.push({ k: 'wallseg', x: th.walls[0] - 1, z, seed: seed(), door: i % 5 === 0 }); P.push({ k: 'wallseg', x: th.walls[1] + 1, z, seed: seed(), door: i % 7 === 3 }); }
+        for (let z = -190; z < 50; z += rand(7, 12)) { const k = pick(['crate', 'box', 'gas', 'barrel_siren', 'sandbag']); P.push({ k: 'sprite', f: 'prop:' + k, h: PROP_H[k], x: Math.random() < 0.5 ? th.walls[0] + rand(0.6, 2.5) : th.walls[1] - rand(0.5, 1.2), z, fl: Math.random() < 0.5 }); }
+      }
+      return;
+    }
     if (th.props === 'desert') {
       for (let z = -190; z < 50; z += rand(5, 9)) {
         for (const side of [-1, 1]) {
@@ -145,21 +183,43 @@ window.DX = window.DX || {};
     for (const p of world.props) { p.z += v; if (p.z > 55) p.z -= 245; }
     for (const p of world.pebbles) { p.z += v; if (p.z > 50) { p.z -= 240; p.x = rand(-30, 30); } }
   }
+  // 바닥 질감 (그림 타일을 깔아서 스크롤). 없으면 예전 단색 바닥
+  const GROUND_OF = { desert: 'sand', city: 'asphalt', bridge: 'planks', tunnel: 'concrete' };
+  function drawGround(th) {
+    const fr = SPR.frames['ground:' + (th.groundTex || GROUND_OF[th.props] || 'sand')]; if (!fr) return false;
+    const TS = 12, off = world.scroll % TS, tint = th.groundTint || null;
+    let x0 = -54, x1 = 54;
+    if (th.deck) { x0 = th.deck[0]; x1 = th.deck[1]; }
+    if (th.walls) { x0 = th.walls[0] - 1; x1 = th.walls[1] + 1; }
+    for (let z = -174 + off; z < 56; z += TS) for (let x = x0; x < x1 - 0.01; x += TS) {
+      const w = Math.min(TS, x1 - x);
+      // 타일마다 뒤집기·방향·밝기를 섞어서 바둑판 반복이 안 보이게
+      const zi = Math.floor((z - world.scroll) / TS + 0.5 + 1e4), xi = Math.round(x / TS), hsh = ((zi * 73856093) ^ (xi * 19349663)) >>> 0;
+      const flipV = hsh & 2, br = 0.93 + ((hsh >> 3) % 8) * 0.018;
+      const tn = tint ? [tint[0] * br, tint[1] * br, tint[2] * br, 1] : [br, br, br, 1];
+      E.quad(fr, x + w / 2, 0.02, z, [w, 0, 0], [0, 0, flipV ? TS : -TS], 0.5, 0.5, tn, null, !!(hsh & 1), 400);
+    }
+    const gv = SPR.frames['ground:gravel'];
+    if (gv) { const o2 = world.scroll % 4.4; for (let z = -174 + o2; z < 56; z += 4.4) E.quad(gv, 0, 0.05, z, [4.6, 0, 0], [0, 0, -4.4], 0.5, 0.5, null, null, false, 390); }
+    return true;
+  }
   function drawWorld() {
     const th = world.theme;
+    if (world.propSprites !== !!SPR.frames['prop:crate']) buildProps(th);   // 그림을 다 받은 뒤 소품 다시 배치
+    const textured = drawGround(th);
     if (th.props === 'bridge') {
       E.box('plane', 0, -45, -70, 400, 1, 400, 0, '#6a5a4a');
       E.box('plane', 0, -44.5, -70, 26, 1, 400, 0, th.river, 0.3);
       const d0 = th.deck[0], d1 = th.deck[1];
-      E.box('cube', (d0 + d1) / 2, -0.25, -70, d1 - d0, 0.5, 320, 0, th.groundCol);
+      E.box('cube', (d0 + d1) / 2, textured ? -0.29 : -0.25, -70, d1 - d0, 0.5, 320, 0, th.groundCol);
       E.box('cube', (d0 + d1) / 2, -1.2, -70, d1 - d0 - 1, 1.4, 320, 0, '#3a3f48');
       const off = world.scroll % 3;
-      for (let z = -150 + off; z < 45; z += 3) E.box('cube', (d0 + d1) / 2, 0.02, z, d1 - d0, 0.05, 0.12, 0, '#3a424c');
-    } else {
+      if (!textured) for (let z = -150 + off; z < 45; z += 3) E.box('cube', (d0 + d1) / 2, 0.02, z, d1 - d0, 0.05, 0.12, 0, '#3a424c');
+    } else if (!textured) {
       E.box('plane', 0, 0, -70, 320, 1, 320, 0, th.groundCol);
     }
-    for (const tx of [0, GHOST_X]) {
-      E.box('cube', tx, 0.05, -70, 4.4, 0.1, 320, 0, th.ballast);
+    for (const tx of [0]) {   // 선로는 하나만
+      if (!textured) E.box('cube', tx, 0.05, -70, 4.4, 0.1, 320, 0, th.ballast);
       const off = world.scroll % 1.6;
       for (let z = -150 + off; z < 45; z += 1.6) E.box('cube', tx, 0.16, z, 3.4, 0.14, 0.42, 0, th.sleeper);
       E.box('cube', tx - 0.75, 0.3, -70, 0.14, 0.18, 320, 0, th.rail);
@@ -170,8 +230,13 @@ window.DX = window.DX || {};
       const off = world.scroll % 10;
       for (let z = -150 + off; z < 45; z += 10) E.box('cube', -3.5, 0.06, z, 0.3, 0.04, 3, 0, '#ffd23d', 0.5);
     }
-    for (const p of world.pebbles) if (Math.abs(p.x) > 2.5 && Math.abs(p.x - GHOST_X) > 2.5) E.box('cube', p.x, 0.05, p.z, p.s, 0.1, p.s * 1.3, p.r, th.ballast);
-    for (const p of world.props) if (p.z > -175 && p.z < 52) MD.prop(p, th, world.t);
+    if (!textured) for (const p of world.pebbles) if (Math.abs(p.x) > 2.5 && Math.abs(p.x - GHOST_X) > 2.5) E.box('cube', p.x, 0.05, p.z, p.s, 0.1, p.s * 1.3, p.r, th.ballast);
+    const stint = th.spriteTint ? [th.spriteTint[0] * 0.92, th.spriteTint[1] * 0.92, th.spriteTint[2] * 0.92, 1] : [0.92, 0.92, 0.92, 1];
+    for (const p of world.props) {
+      if (!(p.z > -175 && p.z < 52)) continue;
+      if (p.k === 'sprite') { const fr = SPR.frames[p.f]; if (fr) { T.reset().tr(p.x, 0.04, p.z).sc(p.h * fr.aspect * 0.9, 1, p.h * 0.5); E.draw('disc', '#000000', 0, 0.25, 1); E.sprite(fr, p.x, 0, p.z, p.h * fr.aspect, p.h, 0, 0.5, 0, stint, null, p.fl); } continue; }
+      MD.prop(p, th, world.t);
+    }
   }
 
   /* 날씨 */
@@ -328,7 +393,7 @@ window.DX = window.DX || {};
       level: 1, xp: 0, xpNeed: C.xpNeed(1), pendingLv: 0,
       kills: 0, gold: 0, combo: 0, comboT: 0, maxCombo: 0, rerolls: C.ads.rerollPerRun, stats: {}, inv: {}, invT: 8,
       weapons: { mg: 1 }, passives: {}, cars: ['gun'],
-      zs: [], corpses: [], orbs: [], bullets: [], shells: [], bombs: [], drones: [], barrels: [], leeks: [], bolts: [], parts: [], sparts: [], decals: [], fires: [], ftexts: [], tele: [], bproj: [], sfx: [],
+      zs: [], corpses: [], orbs: [], bullets: [], shells: [], bombs: [], drones: [], barrels: [], leeks: [], bolts: [], parts: [], sparts: [], decals: [], fires: [], ftexts: [], tele: [], bproj: [], sfx: [], planes: [],
       tm: { mg: [0, 0.1, 0.2], flame: 0, tesla: 1, cannon: 0.5, barrel: 2, flameFx: 0 },
       ult: 0, ultQueue: [], hornCd: 5, shield: 0, emergencyUsed: false, revived: false,
       boss: null, bossSpawned: false, timeScale: 1, hitstop: 0, slowmo: 0, slowmoT: 0, shake: 0, t: 0, wa: 0,
@@ -1146,6 +1211,7 @@ window.DX = window.DX || {};
       if (G.tm.barrel <= 0 && G.zs.length) {
         G.tm.barrel = w.cd[bl - 1] * haste;
         const ts = densest(w.count[bl - 1], 5);
+        G.planes.push({ t: 0, z: ts.reduce((a, t) => a + t[1], 0) / ts.length - 6 });   // 폭격기가 지나가며 투하
         ts.forEach((t, i) => G.barrels.push({ x: t[0], z: t[1], y: 34 + i * 7, vy: -26, rot: rand(0, 6), dmg: w.dmg[bl - 1] * pm, r: w.radius[bl - 1] }));
       }
     }
@@ -1506,6 +1572,7 @@ window.DX = window.DX || {};
   }
   function updParts(dt) {
     updSparts(dt); updBproj(dt); updSfx(dt);
+    for (const pl of G.planes) pl.t += dt; G.planes = G.planes.filter(pl => pl.t < 2.2);
     const S2 = world.speed;
     for (const p of G.parts) {
       p.life += dt;
@@ -1680,6 +1747,7 @@ window.DX = window.DX || {};
     }
     drawSparts();
     drawSfx();
+    { const fr = SPR.frames['prop:bomber']; if (fr) for (const pl of G.planes) { const x = -70 + pl.t * 65; E.sprite(fr, x, 24, pl.z, 13 * fr.aspect, 13, 0, 0.5, 0.5, [1, 1, 1, Math.min(1, (2.2 - pl.t) * 3)], null, false); T.reset().tr(x, 0.05, pl.z).sc(16, 1, 7); E.draw('disc', '#000000', 0, 0.18, 1); } }
     for (const c of G.corpses) { if (c.art) { drawZSprite(c, c.ch, true); continue; } if (c.boss && !c.giant) MD.boss(c, c.cfg); else { MD.zombie(c, c.cfg, true); if (c.cfg.crown) MD.crown(c); } }
     // 투사체
     for (const b of G.bullets) {
@@ -1692,7 +1760,11 @@ window.DX = window.DX || {};
       E.box('ico', x, y, z, 0.45, 0.45, 0.45, 0, '#ffcf6b', 1.5);
     }
     for (const b of G.bombs) E.box('ico', b.x, b.y, b.z, 0.5, 0.6, 0.5, 0, '#222', 0);
-    for (const d of G.drones) MD.drone(d.x, d.y, d.z, G.t * 10);
+    for (const d of G.drones) {
+      const fr = SPR.frames['fx:drone'];
+      if (fr) { T.reset().tr(d.x, 0.05, d.z).sc(1.4, 1, 1.0); E.draw('disc', '#000000', 0, 0.22, 1); E.sprite(fr, d.x, d.y + Math.sin(G.t * 6 + d.a) * 0.15, d.z, 2.4 * fr.aspect, 2.4, Math.sin(G.t * 3 + d.a) * 0.08, 0.5, 0.5, null, null, false); }
+      else MD.drone(d.x, d.y, d.z, G.t * 10);
+    }
     for (const b of G.barrels) {
       MD.barrel(b.x, b.y, b.z, b.rot, 1.3);
       T.reset().tr(b.x, 0.06, b.z).sc(b.r * 2 * (1 - b.y / 60)); E.draw('ring', '#ff5030', 1.2, 0.6, 2);
