@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.15',
+    version: 'v0.16',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -253,7 +253,7 @@ DX.CONFIG = {
     rest: { ground: 'assets/ground/ch2.jpg', sky: 'assets/sky/ch2.jpg', side: 'assets/story/ch2_side.jpg', thumb: 'assets/stages/ch2_thumb.jpg', comic: 'assets/story/comic_ch2.jpg', props: 'ch2' },
     city: { ground: 'assets/ground/ch3.jpg', sky: 'assets/sky/ch3.jpg', side: 'assets/story/ch3_side.jpg', thumb: 'assets/stages/ch3_thumb.jpg', comic: 'assets/story/comic_ch3.jpg', props: 'ch3' },
     neon: { ground: 'assets/ground/ch4.jpg', sky: 'assets/sky/ch4.jpg', side: 'assets/story/ch4_side.jpg', thumb: 'assets/stages/ch4_thumb.jpg', comic: 'assets/story/comic_ch4.jpg', props: 'ch4' },
-    bridge: { sky: 'assets/sky/ch5.jpg', side: 'assets/story/ch5_side.jpg', thumb: 'assets/stages/ch5_thumb.jpg', comic: 'assets/story/comic_ch5.jpg', props: 'ch5' },   // 철교는 바닥이 낭떠러지라 ground 안 씀
+    bridge: { ground: 'assets/ground/ch5.jpg', sky: 'assets/sky/ch5.jpg', side: 'assets/story/ch5_side.jpg', thumb: 'assets/stages/ch5_thumb.jpg', comic: 'assets/story/comic_ch5.jpg', props: 'ch5' },   // 철교는 바닥이 낭떠러지라 ground 안 씀
     snow: { ground: 'assets/ground/ch6.jpg', sky: 'assets/sky/ch6.jpg', side: 'assets/story/ch6_side.jpg', thumb: 'assets/stages/ch6_thumb.jpg', comic: 'assets/story/comic_ch6.jpg', props: 'ch6' },
     tunnel: { ground: 'assets/ground/ch7.jpg', sky: 'assets/sky/ch7.jpg', side: 'assets/story/ch7_side.jpg', thumb: 'assets/stages/ch7_thumb.jpg', comic: 'assets/story/comic_ch7.jpg', props: 'ch7' },
     lab: { ground: 'assets/ground/ch8.jpg', sky: 'assets/sky/ch8.jpg', side: 'assets/story/ch8_side.jpg', thumb: 'assets/stages/ch8_thumb.jpg', comic: 'assets/story/comic_ch8.jpg', props: 'ch8' },

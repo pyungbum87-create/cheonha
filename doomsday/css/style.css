@@ -440,7 +440,7 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .grade { font-size: 10px; padding: 1px 5px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
 .grade.g1 { background: #555; } .grade.g2 { background: #2a6fdb; } .grade.g3 { background: #8a3cff; } .grade.g4 { background: linear-gradient(90deg, #ffb300, #ff5a00); }
 #tab-stage .stage-card { height: auto; }
-#tab-stage .stage-thumb { height: 78px; }
+#tab-stage .stage-thumb { height: 66px; }
 #tab-stage .stage-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 #tab-stage .sub-row { margin-top: 6px; }
 

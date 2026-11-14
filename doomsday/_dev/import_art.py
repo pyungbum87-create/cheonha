@@ -93,10 +93,15 @@ def black_to_alpha(im):
     return Image.fromarray(out, 'RGBA')
 
 
-def save(im, path, jpg=False, maxw=None):
+def save(im, path, jpg=False, maxw=None, maxside=None):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if maxw and im.size[0] > maxw:
         im = im.resize((maxw, round(im.size[1] * maxw / im.size[0])), Image.LANCZOS)
+    # PNG는 용량을 줄이려고 긴 변을 제한 (게임에서 이보다 크게 안 씀)
+    if not jpg:
+        lim = maxside or 480
+        if max(im.size) > lim:
+            k = lim / max(im.size); im = im.resize((round(im.size[0] * k), round(im.size[1] * k)), Image.LANCZOS)
     if jpg:
         im.convert('RGB').save(path, quality=88)
     else:
@@ -140,7 +145,7 @@ def handle(name, im):
         return True
     m = re.match(r'^car_(safe|water|freeze|fan)_(top|side)$', n)
     if m:
-        save(im, A('train', f'car_{m[1]}_{m[2]}.png')); return True
+        save(im, A('train', f'car_{m[1]}_{m[2]}.png'), maxside=512); return True
     m = re.match(r'^ch([1-8])_(ground|far|props|side|thumb)$', n)
     if m:
         c, k = m[1], m[2]
@@ -164,20 +169,20 @@ def handle(name, im):
     if m:
         ps = split_row(im, 4, dark_bg=True)
         for i, p in enumerate(ps):
-            save(black_to_alpha(p), A('fx', f'{m[1]}_{i}.png'))
-        save(black_to_alpha(ps[2]), A('fx', f'{m[1]}.png'))   # 게임은 3번째 단계를 기본으로 씀
+            save(black_to_alpha(p), A('fx', f'{m[1]}_{i}.png'), maxside=320)
+        save(black_to_alpha(ps[2]), A('fx', f'{m[1]}.png'), maxside=320)   # 게임은 3번째 단계를 기본으로 씀
         return True
     m = re.match(r'^icon_(water|ice|wind)$', n)
     if m:
-        save(im, A('icons', f'w_{m[1]}.png')); return True
+        save(im, A('icons', f'w_{m[1]}.png'), maxside=256); return True
     m = re.match(r'^skin_train_(\w+)_(top|side)$', n)
     if m:
-        save(im, A('train', 'skins', f'{m[1]}_{m[2]}.png')); return True
+        save(im, A('train', 'skins', f'{m[1]}_{m[2]}.png'), maxside=512); return True
     m = re.match(r'^skin_(jack|minho|sophie)_(.+?)_(top_(?:idle|shoot|move|react)|portrait)$', name, re.I)
     if m:
         sid = SKIN_ID.get(m[2].strip(), re.sub(r'\W+', '', m[2]).lower())
         if m[3].lower() == 'portrait':
-            save(im, A('portraits', f'skin_{m[1].lower()}_{sid}.png'))
+            save(im, A('portraits', f'skin_{m[1].lower()}_{sid}.png'), maxside=256)
         else:
             for i, p in enumerate(split_row(im, 4)):
                 save(p, A('chars', 'skins', f'{m[1].lower()}_{sid}', f'{m[3].lower()}_{i}.png'))
@@ -219,7 +224,10 @@ def main():
             if os.path.splitext(f)[1].lower() in ('.png', '.jpg', '.jpeg', '.webp'):
                 files.append(os.path.join(root, f))
     for f in sorted(files):
-        name = os.path.splitext(os.path.basename(f))[0].strip()
+        name = os.path.basename(f)
+        while os.path.splitext(name)[1].lower() in ('.png', '.jpg', '.jpeg', '.webp'):   # 'a.png.png' 같은 겹친 확장자도 처리
+            name = os.path.splitext(name)[0]
+        name = name.strip()
         try:
             im = Image.open(f); im.load()
             if not handle(name, im.convert('RGBA') if im.mode == 'P' else im):
