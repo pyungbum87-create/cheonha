@@ -15,7 +15,7 @@
 <link rel="icon" href="assets/icon-192.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <title>머리카락 사수 대작전 | 头发保卫战</title>
-<link rel="stylesheet" href="style.css?v=1114-2121">
+<link rel="stylesheet" href="style.css?v=1114-2220">
 </head>
 <body>
 <div id="app"><div id="gameWrap">
@@ -55,7 +55,7 @@
  <div class="subtitle" id="startSub">头发保卫战 · Last Hair Standing</div>
  <div class="heroStage" id="heroStage">
   <button class="heroArrow" id="heroPrev" type="button" aria-label="이전">‹</button>
-  <img id="heroPreviewImage" src="assets/hero_boss.webp?v=1114-2121" alt="">
+  <img id="heroPreviewImage" src="assets/hero_boss.webp?v=1114-2220" alt="">
   <div class="heroInfo"><b id="heroName"></b><span id="heroSkill"></span><span id="heroLv" class="heroLv"></span></div>
   <button class="heroArrow right" id="heroNext" type="button" aria-label="다음">›</button>
  </div>
@@ -64,6 +64,7 @@
   <div class="field"><label id="ageLabel">난이도</label><select id="ageSelect"><option value="0">🌱 입문</option><option value="1" selected>🎒 초급</option><option value="2">📗 중급</option><option value="3">📘 고급</option><option value="4">🎓 전문</option><option value="5">🏆 도전</option></select></div>
   <div class="field"><label id="studyLabel">학습 언어</label><select id="studySelect"><option value="mix">🌐 中·한·EN</option><option value="zh">中文</option><option value="ko">한국어</option><option value="en">English</option></select></div>
  </div>
+ <div class="levelDesc" id="levelDesc"></div>
  <button class="boostBtn" id="boostBtn" type="button"></button>
  <button class="cta big" id="startBtn">▶ 게임 시작!</button>
  <div id="collection" class="collectLine"></div>
@@ -87,7 +88,7 @@
  <button class="cta" id="settingsClose" type="button"></button>
 </div></div>
 
-<div class="screen hidden" id="quizScreen"><div class="panel"><div class="brand">TRILINGUAL COUNTERATTACK</div><div style="font-size:34px">📚✨</div><div class="title" id="quizTitle">언어 반격!</div><div class="subtitle" id="quizType"></div><div class="quizPrompt" id="quizPrompt"></div><div class="voiceTools"><button class="voiceBtn" id="hearPrompt" type="button">🔊 듣기</button><button class="voiceBtn" id="hearSlow" type="button">🐢 천천히</button></div><div class="voiceNote" id="voiceNote" aria-live="polite"></div><div class="voiceTools hidden" id="reviewVoices"><button class="voiceBtn" data-voice="zh" type="button">中文 🔊</button><button class="voiceBtn" data-voice="ko" type="button">한국어 🔊</button><button class="voiceBtn" data-voice="en" type="button">English 🔊</button></div><div class="quizOptions" id="quizOptions"></div><button class="voiceBtn" id="hintBtn" type="button"></button><div class="small" id="quizFeedback"></div><button class="cta secondary" id="skipQuiz">↩</button></div></div>
+<div class="screen hidden" id="quizScreen"><div class="panel quizPanel"><div id="quizStamp" class="stamp hidden"></div><div class="title" id="quizTitle">언어 반격!</div><div class="subtitle" id="quizType"></div><div class="qTime hidden" id="qTime"><i id="qTimeBar"></i></div><div class="quizPrompt" id="quizPrompt"></div><div class="voiceTools"><button class="voiceBtn" id="hearPrompt" type="button">🔊 듣기</button><button class="voiceBtn" id="hearSlow" type="button">🐢 천천히</button></div><div class="voiceNote" id="voiceNote" aria-live="polite"></div><div class="voiceTools hidden" id="reviewVoices"><button class="voiceBtn" data-voice="zh" type="button">中文 🔊</button><button class="voiceBtn" data-voice="ko" type="button">한국어 🔊</button><button class="voiceBtn" data-voice="en" type="button">English 🔊</button></div><div class="quizOptions" id="quizOptions"></div><div class="qReview hidden" id="quizReview"></div><button class="voiceBtn" id="hintBtn" type="button"></button><div class="small" id="quizFeedback"></div><button class="cta secondary" id="skipQuiz">↩</button></div></div>
 <div class="screen hidden" id="pauseScreen"><div class="panel"><div style="font-size:52px">⏸️</div><div class="title" id="pauseTitle">일시정지</div><button class="cta" id="resumeBtn">▶</button><button class="cta secondary" id="pauseSettings" type="button">⚙️</button><button class="cta secondary" id="quitBtn">🏠</button></div></div>
 <div class="screen hidden" id="helpScreen"><div class="panel"><div class="title" id="helpTitle"></div><p style="line-height:1.9;text-align:left" id="helpText"></p><button class="cta" id="closeHelp"></button></div></div>
 <div class="screen hidden" id="resultScreen"><div class="panel"><div class="brand" id="resultTop"></div><img id="resultHero" class="resultHero" alt=""><div class="resultEmoji" id="resultEmoji"></div><div class="ranking" id="ranking"></div><div class="subtitle" id="rankingZh"></div><div class="stat" id="resultStats"></div><div class="small" id="recordText"></div><div id="resultAchievement" class="achievement"></div><div class="coinGain" id="coinGain"></div><button class="cta ad" id="doubleBtn" type="button"></button><button class="cta" id="retryBtn"></button><div class="btnRow"><button class="cta secondary" id="shareBtn" type="button"></button><button class="cta secondary" id="homeBtn"></button></div><div id="resultProgress" class="collectLine"></div><div class="banner" id="resultTip"></div></div></div>
@@ -97,6 +98,7 @@
 <div id="adLayer" class="adLayer hidden"><div class="adBox"><div class="brand" style="color:#aaa">TEST AD</div><div id="adTitle" style="font-weight:900;margin:8px 0"></div><div id="adCount">2</div><div class="small" id="adNote" style="color:#bbb"></div></div></div>
 <div class="footer" id="version">HAIR DEFENSE</div>
 </div></div>
-<script src="game.js?v=1114-2121"></script>
+<script src="words.js?v=1114-2220"></script>
+<script src="game.js?v=1114-2220"></script>
 </body>
 </html>

@@ -115,3 +115,33 @@
 @media(max-height:700px){.heroStage{height:128px}.startPanel .title{font-size:22px}.cta.big{padding:10px;font-size:18px}.avatarPick .avatarThumb{height:34px}.startPanel .subtitle{display:none}}
 .cta.dim{background:#ddd;color:#777}
 .title,.subtitle,.ranking{word-break:keep-all}
+
+/* ===== v11 언어 반격 · 연출 ===== */
+.quizPanel{position:relative;padding:14px 14px 12px}
+.quizPanel .title{font-size:24px;margin:2px 0}.quizPanel .subtitle{margin:0 0 6px;font-size:12px}
+.qTime{height:10px;border:2px solid #4b355c;border-radius:8px;background:#efe6f7;overflow:hidden;margin:4px 0 8px}
+.qTime i{display:block;height:100%;width:100%;background:#7ad66c;transition:width .1s linear}
+.quizPrompt{position:relative;padding:22px 8px 12px!important}
+.qKind{position:absolute;top:-1px;left:50%;transform:translate(-50%,-50%);background:#6842ae;color:#fff;font-size:11px;font-weight:900;border-radius:10px;padding:3px 10px;white-space:nowrap}
+.qMain{font-size:28px;font-weight:1000;line-height:1.3;word-break:keep-all}
+.qSub{font-size:14px;font-weight:800;color:#8c589d;margin-top:3px}
+.qAsk{font-size:14px;font-weight:900;color:#6f567a;margin-top:6px}
+.quizPrompt.long .qMain{font-size:19px}
+.quizOptions.three{grid-template-columns:1fr 1fr 1fr}
+.quizOptions.long{grid-template-columns:1fr}
+.quizOptions.long .quizOpt{font-size:14px;min-height:46px;text-align:left;padding:9px 12px;line-height:1.35;word-break:keep-all}
+.quizOpt.correct{background:#9be98a!important;border-color:#2f7a2a!important;opacity:1!important;animation:okPop .45s ease-out}
+.quizOpt.wrong{background:#ffb3ab!important;border-color:#a2352c!important;opacity:1!important;animation:shake .4s}
+@keyframes okPop{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.qReview{background:#f3fbe9;border:2px dashed #8fc47c;border-radius:12px;padding:8px;font-size:13px;line-height:1.6;color:#3d4a36;margin:4px 0}.qReview b{font-size:18px}.qReview .py{color:#8c589d;font-weight:800}
+.stamp{position:absolute;left:50%;top:38%;z-index:5;transform:translate(-50%,-50%) rotate(-12deg) scale(2.4);opacity:0;pointer-events:none;font-size:34px;font-weight:1000;padding:8px 18px;border:5px solid;border-radius:16px;background:#ffffffe8;white-space:nowrap}
+.stamp.ok{color:#1f9d3a;border-color:#1f9d3a;box-shadow:0 0 0 4px #c9f5b3}.stamp.no{color:#d23b2f;border-color:#d23b2f;font-size:26px}
+.stamp.show{animation:stampIn 1.9s ease-out forwards}
+@keyframes stampIn{0%{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2.4)}14%{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(.92)}22%{transform:translate(-50%,-50%) rotate(-12deg) scale(1.05)}30%,75%{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}100%{opacity:0;transform:translate(-50%,-60%) rotate(-12deg) scale(1)}}
+.confetti{position:absolute;top:18%;width:9px;height:14px;border-radius:2px;z-index:6;pointer-events:none;animation:confetti 1.5s ease-in forwards}
+@keyframes confetti{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx),70vh) rotate(var(--rot));opacity:0}}
+.ability.charge{animation:charge .6s ease-out!important}
+@keyframes charge{0%{transform:scale(1);box-shadow:0 5px 0 #382345,0 0 0 #ffe066}40%{transform:scale(1.12);box-shadow:0 5px 0 #382345,0 0 28px #ffe066}100%{transform:scale(1)}}
+.levelDesc{font-size:11px;font-weight:800;color:#7a5a94;background:#f6eefc;border-radius:9px;padding:5px 8px;margin:-2px 0 6px;text-align:left}
+@media(max-height:700px){.qMain{font-size:22px}.quizPrompt.long .qMain{font-size:16px}.levelDesc{font-size:10px;padding:3px 6px}}
