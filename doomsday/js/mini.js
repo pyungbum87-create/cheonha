@@ -106,7 +106,8 @@ window.DX = window.DX || {};
   }
   function loop(ts) {
     if (!st) return;
-    const dt = Math.min(0.05, (ts - last) / 1000 || 0.016) * MINI_SPEED; last = ts;
+    const SP = (DX.CONFIG.minigame || {}).speed, spd = SP ? Math.min(SP.max, SP.base + (st.opt.stage || 0) * SP.perStage) : MINI_SPEED;
+    const dt = Math.min(0.05, (ts - last) / 1000 || 0.016) * spd; last = ts;
     if (st.phase !== 'load') try { update(dt); if (st) draw(); } catch (e) { console.error(e); }
     if (st) raf = requestAnimationFrame(loop);
   }

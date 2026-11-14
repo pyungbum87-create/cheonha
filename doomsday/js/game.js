@@ -479,7 +479,7 @@ window.DX = window.DX || {};
       DX.track(res.win ? 'invasion_win' : 'invasion_fail', { stage: G.stageIdx + 1 });
       if (res.win) {
         DX.mission('fight');
-        const g = cfg.reward.gold * inv.n;
+        const g = Math.round(cfg.reward.gold * inv.n * (res.twist === 'boss' || res.twist === 'bomb' ? 1.5 : 1));
         G.gold += g; G.ult = Math.min(1, G.ult + cfg.reward.ult); G.hp = Math.min(G.hpMax, G.hp + G.hpMax * cfg.reward.heal);
         if (DX.UI) DX.UI.banner('격퇴 성공!!', DX.L('골드 +' + g + ' · 필살기 충전 · 체력 회복', '金币 +' + g + ' · 大招充能 · 生命恢复'), 'win');
         S.win();
@@ -704,8 +704,9 @@ window.DX = window.DX || {};
     DX.MINI.start(kind, opt, r => {
       if (!G) return;
       const rate = r ? r.rate : 0, rw = mg.reward;
-      const gold = Math.round(rw.gold * (1 + si * rw.goldPerStage) * rate);
-      G.gold += gold; G.hp = Math.min(G.hpMax, G.hp + G.hpMax * rw.heal * rate); G.ult = Math.min(1, G.ult + rw.ult * rate);
+      const gm = (mg.gradeMul || {})[r ? r.grade : 'C'] || rate;
+      const gold = Math.round(rw.gold * (1 + si * rw.goldPerStage) * gm);
+      G.gold += gold; G.hp = Math.min(G.hpMax, G.hp + G.hpMax * rw.heal * gm); G.ult = Math.min(1, G.ult + rw.ult * gm);
       DX.track('minigame_end', { kind, stage: si + 1, grade: r ? r.grade : 'C' });
       if (r && (r.grade === 'S' || r.grade === 'A')) DX.mission('mini');
       // 구한 시민 → '안전 칸'에 태움 (1명당 골드·경험치 보너스)

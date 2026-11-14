@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.17',
+    version: 'v0.18',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -159,6 +159,10 @@ DX.CONFIG = {
     bg: ['assets/story/ch1_side.jpg', 'assets/story/ch2_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch1_side.jpg', 'assets/story/ch1_side.jpg', 'assets/story/ch3_side.jpg', 'assets/story/ch3_side.jpg'],
     tint: [null, null, null, 'rgba(160,40,140,0.28)', 'rgba(60,40,20,0.25)', 'rgba(170,200,255,0.45)', 'rgba(0,0,0,0.45)', 'rgba(20,120,40,0.3)'],
     reward: { gold: 60, goldPerStage: 0.35, heal: 0.15, ult: 0.35 },
+    // 등급별 보상 배율 (C 도 조금은 줌 → 실패해도 손해 느낌 줄이기)
+    gradeMul: { S: 1.3, A: 1.0, B: 0.75, C: 0.35 },
+    // 속도: 첫 장은 느리게, 장마다 조금씩 빨라짐 (기본 + 장번호 × 증가)
+    speed: { base: 0.78, perStage: 0.025, max: 0.98 },
   },
 
   /* ------------------------------------------------------------- 만화 컷 (챕터 시작 때 1번, 스테이지 id 별)
@@ -386,6 +390,16 @@ DX.CONFIG = {
       car: { title: '🚨 객차 침입! 연타로 쫓아내라', hint: '👆 화면 연타!!', bg: 'bg' },
       engine: { title: '🔥 기관실 습격! 양쪽을 막아라', hint: '👈 왼쪽 · 오른쪽 👉 터치!', bg: 'bgEngine', fromStage: 2 },
       roof: { title: '🌬️ 지붕 위 결투!', hint: '👆 연타! 경보 뜨면 손 떼!', bg: 'bgRoof', fromStage: 3, chance: 0.4 },
+    },
+    // 변주: after번째 싸움부터 chance 확률로 규칙 하나가 섞임 (같은 변주 연속 X). 떨어지는 아이템(❤️⚡💥)은 항상.
+    twists: {
+      after: 1, chance: 0.8,
+      list: {
+        rush: { title: '⚡ 좀비 러시! 한 방에 한 마리', hint: '👆 빠르게 연타!!', col: '#ffe066', extra: 3, time: 3 },
+        boss: { title: '👑 대장 좀비 출현!', hint: '👉 밀어서 강타! ❗ 뜨면 꾹!', col: '#ff5ad2', hpMul: 3 },
+        bomb: { title: '💣 폭탄 좀비! 터지기 전에 처치', hint: '💣 때리면 주변까지 쾅!', col: '#ffb13d', fuse: 6, radius: 1.0 },
+        dark: { title: '🔦 정전! 빨간 눈을 조심해', hint: '👀 가까이 오면 때려!', col: '#9fb4ff', light: 1.25, time: 2 },
+      },
     },
     heroes: ['jack', 'minho', 'sophie'],   // 칸마다 싸우는 생존자 (fightArt 또는 fightFallback 에 있는 이름)
     reward: { gold: 6, ult: 0.25, heal: 0.05 },  // 격퇴 보상 (골드, 필살기 충전, 체력 회복 비율)
