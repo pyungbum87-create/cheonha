@@ -25,7 +25,7 @@ window.DX = window.DX || {};
     sophie: { name: '노트북 방전!!', col: '#c58aff' },
   };
   const FXIMG = {};
-  function fxImg(k) { if (!FXIMG[k]) { FXIMG[k] = new Image(); FXIMG[k].src = 'assets/fx/' + k + '.png'; } return FXIMG[k]; }
+  function fxImg(k) { if (!FXIMG[k]) { FXIMG[k] = new Image(); FXIMG[k].src = DX.img('assets/fx/' + k + '.png'); } return FXIMG[k]; }
 
   F.start = function (opt, done) {
     ['lightning', 'sonic', 'explosion'].forEach(fxImg);

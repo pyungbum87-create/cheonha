@@ -30,7 +30,7 @@ window.DX = window.DX || {};
   }
   UI.loadSlots = loadSlots;
   function iconHtml(src, emoji) {
-    if (src) return '<img src="' + src + '" alt="" onerror="this.replaceWith(document.createTextNode(\'' + (emoji || '★') + '\'))">';
+    if (src) return '<img src="' + DX.img(src) + '" alt="" onerror="this.replaceWith(document.createTextNode(\'' + (emoji || '★') + '\'))">';
     return emoji || '★';
   }
   // 하늘: 색 그라데이션 + (있으면) 구름 그림. 그림은 스테이지 테마의 skyImg
@@ -103,7 +103,7 @@ window.DX = window.DX || {};
   const probeOk = {};
   function probe(url) { if (!(url in probeOk) && DX.SPR.probe) { probeOk[url] = false; DX.SPR.probe(url).then(ok => { probeOk[url] = ok; }); } return probeOk[url]; }
   UI.probe = probe;
-  function skinPortrait(nm, id) { return 'assets/portraits/skin_' + nm + '_' + id + '.png'; }
+  function skinPortrait(nm, id) { return DX.img('assets/portraits/skin_' + nm + '_' + id + '.png'); }
   // 대화·만화 얼굴: 꾸미기 옷 얼굴 그림이 있으면 그걸로
   function portraitOf(sv) {
     const id = DX.save.skin && DX.save.skin[sv.art];
@@ -897,7 +897,6 @@ window.DX = window.DX || {};
     DX.track('launch', { lang: DX.lang(), pf: DX.PLATFORM, build: DX.BUILD });
     runLoading(() => {
       // 아직 없을 수도 있는 그림 자리 미리 확인 (보스 컷인·꾸미기 얼굴)
-      for (const k in C.bosses) if (C.bosses[k].cutin) probe(C.bosses[k].cutin);
       C.survivors.forEach(sv => portraitOf(sv));
       if (location.hash === '#autostart') { DX.save.seenIntro = true; DX.save.firstRunDone = true; DX.startRun(DX.save.stage || 0); return; }
       if (!DX.save.seenIntro) showIntro(); else showLobby();

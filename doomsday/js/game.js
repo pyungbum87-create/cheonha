@@ -606,6 +606,8 @@ window.DX = window.DX || {};
     if (DX.UI) DX.UI.banner('WAVE ' + (G.waveIdx + 1), w.boss ? C.texts.bossAlert : pick(C.texts.waveSubs), w.boss ? 'boss' : 'wave');
     if (w.boss) S.alarm();
     // 웨이브 사이 미니게임 (config.minigame) — 하는 동안 본게임 멈춤
+    // 다음 웨이브가 보스면 컷인 그림을 미리 받아 둠 (켤 때 7장 다 받지 않게)
+    { const nw = G.stg.waves[G.waveIdx + 1], bc = nw && nw.boss && C.bosses[nw.boss]; if (bc && bc.cutin && DX.UI && DX.UI.probe) DX.UI.probe(bc.cutin); if (w.boss && C.bosses[w.boss] && C.bosses[w.boss].cutin && DX.UI && DX.UI.probe) DX.UI.probe(C.bosses[w.boss].cutin); }
     // 구조 작전 (구조 신호)
     const ro = C.rescueOps;
     if (ro && DX.MINI && G.subType === 'rescue' && G.waveIdx === 0 && (ro.byStage[G.stg.id] || []).length) { later(2.5, rescueSignal); }

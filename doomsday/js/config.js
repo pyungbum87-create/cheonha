@@ -11,11 +11,12 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.16',
+    version: 'v0.17',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
     trainSpeed: 16,             // 열차 속도 (배경이 흘러가는 속도)
+    artVersion: 'a1',           // 그림을 바꾸면 이 값을 올리고 _dev/bake.js 다시 실행 (안 맞으면 느린 방식으로 자동 전환)
     timeScale: 0.82,            // 게임 전체 속도 (1 = 원래, 낮을수록 느리고 글을 읽을 여유)
     textLife: 1.5,              // 화면 글자·알림이 떠 있는 시간 배율
     startGold: 100,             // 처음 시작할 때 주는 골드

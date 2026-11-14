@@ -322,7 +322,7 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .btn.dark, .btn.danger { border-image-source: url(../assets/ui/kit/btn_grey.png); }
 .btn.danger { color: #ffb0a8; }
 .btn.ad { border-image-source: url(../assets/ui/kit/btn_orange.png); padding-left: 48px; position: relative; background: none; border-color: transparent; }
-.btn.ad::before { content: ''; position: absolute; left: 14px; top: 50%; width: 30px; height: 30px; transform: translateY(-50%); background: url(../assets/icons/ad.png) center/contain no-repeat; }
+.btn.ad::before { content: ''; position: absolute; left: 14px; top: 50%; width: 30px; height: 30px; transform: translateY(-50%); background: url(../assets/icons/ad.webp) center/contain no-repeat; }
 .btn.ad:disabled, .btn:disabled { filter: grayscale(1) brightness(.65); }
 .btn:active, .btn-start:active, .tab:active { transform: translateY(2px) scale(.98); box-shadow: none; }
 .btn-row .btn { padding: 13px 6px; }
@@ -332,17 +332,17 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 /* 창 (일시정지·결과·안내 등) */
 .panel {
   border: 30px solid transparent; border-radius: 0; padding: 6px 4px 8px;
-  border-image: url(../assets/ui/kit/panel.png) 14% 12% / 34px 30px stretch;
+  border-image: url(../assets/ui/kit/panel.webp) 14% 12% / 34px 30px stretch;
   background: linear-gradient(180deg, #2a2420, #1a1714) padding-box; box-shadow: 0 12px 40px rgba(0,0,0,.65);
 }
 .panel-title { color: #ffd23d; text-shadow: 0 3px 0 #5a2a00, 0 0 12px rgba(0,0,0,.5); }
 /* 로비 탭 내용 */
 .tab-body { border: 0 solid transparent; border-radius: 0; background: none; padding: 16px 14px;
-  border-image: url(../assets/ui/kit/card_normal.png) 16% 15% fill / 22px 20px stretch; }
+  border-image: url(../assets/ui/kit/card_normal.webp) 16% 15% fill / 22px 20px stretch; }
 /* 레벨업 카드: 일반 = 나무, 새 무기 = 청록 보석, 진화 = 황금 */
 .card { border: 0 solid transparent; border-radius: 0; background: none !important; box-shadow: 0 6px 14px rgba(0,0,0,.45);
-  border-image: url(../assets/ui/kit/card_normal.png) 16% 15% fill / 22px 22px stretch; padding: 16px 18px; min-height: 104px; }
-.card.new { border-image-source: url(../assets/ui/kit/card_rare.png); border-image-slice: 22% 16% 13% fill; border-image-width: 34px 24px 20px; padding-top: 22px; }
+  border-image: url(../assets/ui/kit/card_normal.webp) 16% 15% fill / 22px 22px stretch; padding: 16px 18px; min-height: 104px; }
+.card.new { border-image-source: url(../assets/ui/kit/card_rare.webp); border-image-slice: 22% 16% 13% fill; border-image-width: 34px 24px 20px; padding-top: 22px; }
 .card.evo { border-image-source: url(../assets/ui/kit/card_legend.png); border-image-slice: 22% 17% 14% fill; border-image-width: 34px 24px 22px; padding-top: 22px;
   box-shadow: 0 0 26px rgba(255,210,61,.55), 0 6px 14px rgba(0,0,0,.45); }
 .card .c-ico { background: none; border-radius: 12px; width: 74px; height: 74px; }

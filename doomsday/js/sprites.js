@@ -8,6 +8,7 @@
 window.DX = window.DX || {};
 (function (DX) {
   'use strict';
+  const BAKE_SRC = /bake=1/.test(location.search);   // 굽기 때는 원본 png 사용
   const SPR = DX.SPR = { ready: false, frames: {}, chars: {}, error: null };
 
   // 그림 1장 받기: 실패하면 최대 8회까지 다시 시도 (파일로 직접 열었을 때는 바로 내장본 사용)
@@ -16,6 +17,7 @@ window.DX = window.DX || {};
     return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('load ' + src)); i.src = src; });
   }
   async function loadImg(src, retry) {
+    if (DX.img && !BAKE_SRC) src = DX.img(src);   // webp 가 있으면 그걸로 (용량 1/3~1/5)
     const n = retry == null ? (isFile || src.indexOf('data:') === 0 ? 0 : 8) : retry;
     for (let k = 0; ; k++) {
       try { return await loadOnce(k ? src + (src.indexOf('?') < 0 ? '?' : '&') + 'r=' + k : src); }
@@ -299,6 +301,24 @@ window.DX = window.DX || {};
   // 꾸미기에서 옷을 바꾸면 두 번째 장만 다시 만듦 (빠름)
   SPR.refreshGunners = async function () {
     if (!SPR.ready) return;
+    if (SPR._baked && SPR._baked.i1) {   // 구운 판: 두 번째 장을 복사해서 옷 그림만 덧그림
+      const B = SPR._baked, size = B.meta.pages[1], C = DX.CONFIG, sk = (DX.save && DX.save.skin) || {};
+      const cv = document.createElement('canvas'); cv.width = cv.height = size; const g = cv.getContext('2d'); g.drawImage(B.i1, 0, 0);
+      for (const sv of (C.survivors || [])) {
+        const nm = sv.art, skin = sk[nm] && sk[nm] !== 'base' ? sk[nm] : null; let used = false;
+        if (skin) for (const an of (C.gunnerAnims || [])) for (let k = 0; k < 4; k++) {
+          const f = SPR.frames['gun:' + nm + ':' + an + '_' + k]; if (!f || f.t !== 1) continue;
+          const im = await SPR.cut('assets/chars/skins/' + nm + '_' + skin + '/' + an + '_' + k + '.png', 170); if (!im) continue;
+          used = true;
+          const x = Math.round(f.u0 * size), y = Math.round(f.v0 * size), w = Math.round(f.u1 * size) - x, h = Math.round(f.v1 * size) - y;
+          g.clearRect(x, y, w, h); const s2 = Math.min(w / im.width, h / im.height), dw = im.width * s2, dh = im.height * s2;
+          g.drawImage(im, x + (w - dw) / 2, y + h - dh, dw, dh);
+        }
+        SPR.gun[nm] = { skinArt: used, skin };
+      }
+      DX.E.setSpriteTexture(cv, 1);
+      return;
+    }
     SPR._swap = (await gunnerItems()).concat(SPR._trainSwap || []);
     const p1 = packPage1((SPR._left || []).concat(SPR._swap));
     if (p1) DX.E.setSpriteTexture(p1, 1);
@@ -309,7 +329,51 @@ window.DX = window.DX || {};
     return c;
   }
 
+  /* ---------- 미리 구운 그림판 (assets/baked) ----------
+     _dev/bake.js 가 지금 하는 '흰 배경 지우기·자르기·판 만들기'를 미리 해서 webp 몇 장으로 저장.
+     켤 때 270개 파일(48MB) 대신 몇 장만 받음. config game.artVersion 이 meta.v 와 같을 때만 사용 */
+  const BAKE_MODE = BAKE_SRC;
+  function cropImg(img, x, y, w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, x, y, w, h, 0, 0, w, h); return c; }
+  function frameCanvas(img, f, size) { const x = Math.round(f.u0 * size), y = Math.round(f.v0 * size); return cropImg(img, x, y, Math.round(f.u1 * size) - x, Math.round(f.v1 * size) - y); }
+  async function loadBaked() {
+    const C = DX.CONFIG || {}, av = C.game && C.game.artVersion;
+    if (!av || BAKE_MODE || /nobake=1/.test(location.search)) return false;
+    let meta; try { const r = await fetch(ver('assets/baked/meta.json')); if (!r.ok) return false; meta = await r.json(); } catch (e) { return false; }
+    if (meta.v !== av) { console.warn('baked art version mismatch', meta.v, av); return false; }
+    SPR.total = 2; SPR.done = 0;
+    let i0, i1;
+    try { [i0, i1] = await Promise.all([loadImg(ver('assets/baked/atlas0.webp')).then(x => { tick(); return x; }), meta.pages[1] ? loadImg(ver('assets/baked/atlas1.webp')).then(x => { tick(); return x; }) : null]); }
+    catch (e) { console.warn('baked load fail', e); return false; }
+    SPR.frames = meta.frames; SPR.chars = meta.chars; SPR.train = meta.train; SPR.gun = meta.gun || {};
+    DX.E.setSpriteTexture(i0, 0); if (i1) DX.E.setSpriteTexture(i1, 1);
+    SPR._baked = { i0, i1, meta };
+    // 보스 컷인용 '흰 배경 지운 전신 그림'은 판에서 잘라 씀
+    SPR.clean = {};
+    for (const k in meta.chars) Object.defineProperty(SPR.clean, k, { get() { const f = SPR.frames[k + ':full']; return f ? frameCanvas(f.t ? i1 : i0, f, meta.pages[f.t || 0]) : null; } });
+    SPR.atlas = i0; SPR.pages = meta.pages; SPR.ready = true;
+    // 실내 전투 그림은 뒤에서 천천히
+    if (meta.fight) loadImg(ver('assets/baked/fight.webp')).then(img => {
+      const F = {};
+      for (const k in meta.fight) { const v = meta.fight[k]; const arr = v.r.map(r => cropImg(img, r[0], r[1], r[2], r[3])); if (v.bg) F[k] = arr[0]; else { if (v.single) arr.single = true; F[k] = arr; } }
+      SPR.fight = F;
+    }).catch(e => console.warn('fight bake fail', e));
+    if (DX.save && DX.save.skin && Object.keys(DX.save.skin).some(k => k !== 'train' && DX.save.skin[k] !== 'base')) setTimeout(() => SPR.refreshGunners(), 500);
+    return true;
+  }
+  // 굽기용: 지금 만든 판·정보를 꺼냄 (_dev/bake.js 가 부름)
+  SPR.exportBake = function (q) {
+    const P = SPR._pageCanvas || [], meta = { v: DX.CONFIG.game.artVersion, pages: P.map(p => p.width), frames: SPR.frames, chars: SPR.chars, train: SPR.train, gun: SPR.gun, fight: {} };
+    // 실내 전투 그림을 한 장에 모음
+    const list = [];
+    for (const k in (SPR.fight || {})) { const v = SPR.fight[k]; if (Array.isArray(v)) v.forEach((c, i) => list.push([k, i, c, v.single])); else list.push([k, 0, v, false, true]); }
+    let W = 0, H = 0, x = 0, y = 0, rowH = 0; const maxW = 2048;
+    for (const it of list) { const c = it[2]; if (x + c.width > maxW) { x = 0; y += rowH + 2; rowH = 0; } it.push(x, y); x += c.width + 2; rowH = Math.max(rowH, c.height); W = Math.max(W, x); H = Math.max(H, y + rowH); }
+    const fc = document.createElement('canvas'); fc.width = Math.max(1, W); fc.height = Math.max(1, H); const g = fc.getContext('2d');
+    for (const it of list) { const [k, i, c, single, bg, px, py] = it.length === 7 ? it : [it[0], it[1], it[2], it[3], false, it[4], it[5]]; g.drawImage(c, px, py); const m = meta.fight[k] = meta.fight[k] || { r: [] }; m.r[i] = [px, py, c.width, c.height]; if (single) m.single = true; if (bg) m.bg = true; }
+    return { meta: JSON.stringify(meta), atlas0: P[0] && P[0].toDataURL('image/webp', q || 0.86), atlas1: P[1] && P[1].toDataURL('image/webp', q || 0.86), fight: list.length ? fc.toDataURL('image/webp', 0.82) : null };
+  };
   SPR.load = async function () {
+    if (await loadBaked()) return true;
     const art = (DX.CONFIG && DX.CONFIG.art) || {};
     const items = [];
     { const C = DX.CONFIG || {}; let t = 0;
@@ -431,16 +495,21 @@ window.DX = window.DX || {};
     // 바닥 질감 (코드로 그림: 모래·아스팔트·눈·콘크리트·나무판·자갈) — 이어 붙여도 이음새가 안 보이게 그림
     for (const k of ['sand', 'asphalt', 'snow', 'concrete', 'planks', 'gravel']) items.push({ name: 'ground:' + k, canvas: makeGround(k) });
     // 챕터 바닥 그림 (위에서 내려다본 그림, 가운데 자갈길 = 선로 자리)
+    // 새 챕터 바닥(chapterArt.ground)이 있는 장은 옛 바닥을 안 넣음 (용량 절약)
+    const newG = {}; for (const st of (DX.CONFIG.stages || [])) { const ca = CA[st.id]; if (ca && ca.ground && st.theme && st.theme.groundImg) newG[st.theme.groundImg] = ca.ground; }
+    const hasFile = async u => { try { await loadImg(ver(u), 0); return true; } catch (e) { return false; } };
     for (const k of ['desert', 'rest', 'city', 'neon', 'tunnel', 'lab']) {
+      if (newG[k] && await hasFile(newG[k])) continue;
       try { const d = await getPixels('assets/ground/' + k + '.jpg'); items.push({ name: 'gimg:' + k, canvas: crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 }) }); } catch (e) { console.warn('ground img fail', k, e); }
     }
     // 챕터 그림 자리의 새 바닥 (있으면 'gimgc:스테이지id' 로, 게임이 기존 바닥 대신 씀). 큰 그림은 1024 높이로 줄임
     for (const id in CA) if (CA[id].ground) {
-      try { const d = await getPixels(CA[id].ground); let cv = crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 }); cv = scaled(cv, Math.min(1, 1024 / cv.height)); items.push({ name: 'gimgc:' + id, canvas: cv }); } catch (e) { /* 아직 없음 */ }
+      try { const d = await getPixels(CA[id].ground); let cv = crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 }); cv = scaled(cv, Math.min(1, 768 / cv.height)); items.push({ name: 'gimgc:' + id, canvas: cv }); } catch (e) { /* 아직 없음 */ }
     }
     SPR._swap = await gunnerItems();
     if (!items.length) return false;
     const pages = pack(items);
+    SPR._pageCanvas = pages;
     DX.E.setSpriteTexture(pages[0], 0);
     if (pages[1]) DX.E.setSpriteTexture(pages[1], 1);
     SPR.atlas = pages[0]; SPR.pages = pages.map(p => p.width);
