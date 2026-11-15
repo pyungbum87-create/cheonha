@@ -116,6 +116,14 @@
   .fb{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.7}
   .fb .st{font-size:24px;letter-spacing:2px}
 
+  /* 실시간 거울 */
+  .mirstage{position:relative;border-radius:22px;overflow:hidden;background:#111;display:flex;justify-content:center;touch-action:pan-y}
+  .mirstage canvas{width:100%;max-height:62vh;object-fit:contain;display:block}
+  .mirtag{position:absolute;left:12px;bottom:12px;background:rgba(20,20,26,.72);color:#fff;font-weight:800;padding:7px 12px;border-radius:99px;font-size:14px;display:flex;align-items:center;gap:7px}
+  .mirtag i{width:14px;height:14px;border-radius:50%;border:1.5px solid #fff}
+  .mirhint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;text-align:center;padding:20px;background:rgba(0,0,0,.35);pointer-events:none}
+  .grp{font-size:12px;font-weight:800;color:var(--sub);margin:10px 0 0}
+
   /* 토스트 / 모달 */
   #toast{position:fixed;left:50%;top:16%;transform:translate(-50%,-8px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:15px;transition:.25s;z-index:60;text-align:center;max-width:86vw}
   #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -149,6 +157,7 @@
   </div>
   <button class="btn primary" id="btnCam">📸 셀카 찍기</button>
   <button class="btn secondary" id="btnAlbum">🖼️ 앨범에서 고르기</button>
+  <button class="btn secondary" id="btnMirror">🪞 실시간 거울로 색 대보기 <span class="small">(카메라)</span></button>
   <div class="privacy">
     🔒 사진은 <b>내 휴대폰 안에서만</b> 분석돼요. 서버로 보내지도, 저장하지도 않아요.<br>
     💡 <b>자연광 · 정면 · 어깨까지</b> 나온 본인 사진이 가장 정확해요. 색이 진한 조명이나 필터는 피해 주세요.
@@ -189,6 +198,7 @@
   <button class="btn warm" id="btnAsk">🤔 친구에게 물어보기 (1번 vs 2번)</button>
   <button class="btn primary" id="btnAvatar" style="background:linear-gradient(135deg,#2f3a8f,#7b4fd6)">🧑‍🎨 내 컬러로 아바타 코디 미션</button>
   <button class="btn primary" id="btnResultCard">💾 결과 카드 저장·공유</button>
+  <button class="btn secondary" id="btnMirror2">🪞 거울로 내 컬러 실시간 대보기</button>
   <button class="btn secondary" id="btnToLook">👗 내 컬러로 상황별 룩 입어보기</button>
   <button class="btn secondary" id="btnRetry">↺ 다른 사진으로 다시 하기</button>
   <p class="small" style="text-align:center;margin-top:14px">사진 속 조명에 따라 결과가 달라질 수 있어요. 재미로 보는 참고용 진단이에요.</p>
@@ -232,6 +242,28 @@
     <button class="btn secondary" id="btnAvCard">💾 카드 저장</button>
   </div>
   <div class="fb hidden" id="avFb"></div>
+</section>
+
+<!-- 실시간 거울 -->
+<section id="sMirror" class="wrap hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <button class="chip" id="btnMirBack">← 나가기</button>
+    <div style="font-weight:800">🪞 실시간 거울</div>
+    <div class="chip" id="mirFps" style="font-size:12px">-</div>
+  </div>
+  <div class="mirstage" id="mirStage">
+    <canvas id="mirCanvas"></canvas>
+    <div class="mirtag" id="mirTag"><i></i><span></span></div>
+    <div class="mirhint hidden" id="mirHint">얼굴이 화면 가운데 오도록<br>휴대폰을 조금 멀리 들어 주세요</div>
+  </div>
+  <video id="mirVideo" playsinline muted style="display:none"></video>
+  <div class="atabs" id="mirTabs"><button data-t="drape" class="on">천 색 대보기</button><button data-t="hair">머리 색</button></div>
+  <div id="mirOpts"></div>
+  <div class="basket">
+    <button class="btn secondary" id="btnMirShot">📸 찍기 (0/2)</button>
+    <button class="btn warm" id="btnMirAsk">🤔 친구에게 묻기</button>
+  </div>
+  <p class="small" style="text-align:center;margin-top:8px">화면을 좌우로 밀면 색이 바뀌어요 · 자연광 아래에서 가장 정확해요</p>
 </section>
 
 <div id="busy" class="hidden"><div class="spin"></div><div id="busyText"></div></div>
@@ -321,7 +353,7 @@ const $ = id=>document.getElementById(id);
 const work = document.createElement("canvas"), wctx = work.getContext("2d",{willReadFrequently:true});
 
 /* ---------- 모델 ---------- */
-let seg=null, hairSeg=null, faceLm=null, toCPU=null;
+let seg=null, hairSeg=null, faceLm=null, toCPU=null, mkVideo=null, faceV=null, hairV=null;
 const modelsReady = (async()=>{
   if (MOCK) return;
   $("modelStatus").textContent = "AI 모델 준비 중… (처음 한 번만, 약 20MB)";
@@ -340,13 +372,17 @@ const modelsReady = (async()=>{
   seg = await make(vis.ImageSegmenter, o1);
   faceLm = await make(vis.FaceLandmarker, o3);
   try { hairSeg = await make(vis.ImageSegmenter, o2); } catch(e){ hairSeg=null; }
+  mkVideo = async()=>{
+    if (!faceV) faceV = await make(vis.FaceLandmarker, {...o3, runningMode:"VIDEO"});
+    if (!hairV) { try{ hairV = await make(vis.ImageSegmenter, {...o2, runningMode:"VIDEO"}); }catch(e){ hairV=null; } }
+  };
   toCPU = async()=>{ seg = await make(vis.ImageSegmenter,o1,"CPU"); faceLm = await make(vis.FaceLandmarker,o3,"CPU");
                      try{ hairSeg = await make(vis.ImageSegmenter,o2,"CPU"); }catch(e){ hairSeg=null; } };
   $("modelStatus").textContent = "✅ AI 준비 완료";
 })().catch(e=>{ console.error(e); $("modelStatus").textContent = "⚠️ AI 모델을 불러오지 못했어요. 인터넷 연결 후 새로고침 해주세요."; });
 
 /* ---------- 화면 전환 ---------- */
-function show(id){ for (const s of ["sStart","sWc","sResult","sLook","sAvatar"]) $(s).classList.toggle("hidden", s!==id); scrollTo(0,0); }
+function show(id){ for (const s of ["sStart","sWc","sResult","sLook","sAvatar","sMirror"]) $(s).classList.toggle("hidden", s!==id); scrollTo(0,0); }
 function busy(t){ $("busy").classList.remove("hidden"); $("busyText").innerHTML=t; $("busy").querySelector(".spin").classList.remove("hidden"); }
 function busyErr(t){ busy(t); $("busy").querySelector(".spin").classList.add("hidden");
   $("busyText").innerHTML += `<br><br><button class="btn primary" style="width:auto;padding:12px 22px;display:inline-flex" onclick="location.reload()">처음으로</button>`; }
@@ -836,6 +872,146 @@ $("btnAvCard").onclick=async()=>{
   openCard(c, `${o.n} 룩`, "");
 };
 
+/* ---------- 실시간 거울 모드 ----------
+   카메라 영상을 매 프레임 분석해 목 아래에 진단용 천을, 머리카락에 염색을 실시간으로 입힌다.
+   모든 처리는 기기 안에서. 영상은 어디에도 저장·전송하지 않는다. */
+const mc=$("mirCanvas"), mctx=mc.getContext("2d",{willReadFrequently:true});
+let mir=null;
+$("btnMirror").onclick=()=>openMirror();
+$("btnMirror2").onclick=()=>openMirror();
+$("btnMirBack").onclick=()=>{ closeMirror(); show(result?"sResult":"sStart"); };
+document.querySelectorAll("#mirTabs button").forEach(b=>b.onclick=()=>{ mir.tab=b.dataset.t; mirUI(); });
+
+function mirColors(){
+  if (result){ const S=result.S;
+    return [{g:`${S.em} 내 컬러 (${S.name})`, list:S.pal}, {g:"🙅 피하면 좋은 색", list:S.avoid}]; }
+  return SKEYS.map(k=>({g:`${SEASONS[k].em} ${SEASONS[k].name}`, list:SEASONS[k].pal.slice(0,4)}));
+}
+function mirFlat(){ return mirColors().flatMap(x=>x.list); }
+function mirHairs(){ const base=[{n:"원래 색",c:null}]; return result? [...base, ...result.S.hair, ...XHAIR] : [...base, ...SKEYS.flatMap(k=>SEASONS[k].hair.slice(0,1)), ...XHAIR]; }
+
+async function openMirror(){
+  show("sMirror");
+  busy("카메라와 AI 준비 중…");
+  try{
+    await modelsReady;
+    if (!MOCK){ if (!mkVideo) throw new Error("모델 없음"); await mkVideo(); }
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:{ideal:720}, height:{ideal:960}}, audio:false});
+    const v=$("mirVideo"); v.srcObject=stream; await v.play();
+    const flat=mirFlat();
+    mir={stream, v, run:true, tab:"drape", color:flat[0], hair:null, F:null, hm:null, hairL:0.3, n:0, shots:[], t0:performance.now(), fr:0, lost:0};
+    mirUI(); unbusy(); requestAnimationFrame(mirLoop);
+  }catch(e){
+    console.error(e);
+    busyErr("📷 카메라를 열 수 없어요.<br>브라우저 설정에서 카메라 권한을 허용해 주세요.<br><span class='small'>(카카오톡 등 앱 안 브라우저라면 크롬·사파리로 열어주세요)</span>");
+  }
+}
+function closeMirror(){ if (!mir) return; mir.run=false; mir.stream.getTracks().forEach(t=>t.stop()); mir=null; }
+
+function mirUI(){
+  document.querySelectorAll("#mirTabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===mir.tab));
+  const box=$("mirOpts");
+  if (mir.tab==="drape"){
+    box.innerHTML = mirColors().map((grp,gi)=>`<div class="grp">${grp.g}</div><div class="row">`+
+      grp.list.map((x,i)=>`<button class="sw${mir.color.c===x.c?" on":""}" data-g="${gi}" data-i="${i}"><i style="background:${x.c}"></i>${x.n}</button>`).join("")+`</div>`).join("");
+    box.querySelectorAll(".sw").forEach(b=>b.onclick=()=>{ mir.color=mirColors()[+b.dataset.g].list[+b.dataset.i]; mirUI(); });
+  } else {
+    const hs=mirHairs();
+    box.innerHTML = `<div class="row">`+hs.map((x,i)=>`<button class="sw${mir.hair===x.c?" on":""}" data-i="${i}"><i style="background:${x.c||"conic-gradient(#ddd 0 25%,#fff 0 50%,#ddd 0 75%,#fff 0)"}"></i>${x.n}</button>`).join("")+`</div>`;
+    box.querySelectorAll(".sw").forEach(b=>b.onclick=()=>{ mir.hair=hs[+b.dataset.i].c; mirUI(); });
+  }
+  const t=$("mirTag"); t.querySelector("i").style.background=mir.color.c; t.querySelector("span").textContent=mir.color.n + (mir.hair? " · 염색":"");
+  $("btnMirShot").textContent=`📸 찍기 (${mir.shots.length}/2)`;
+}
+// 좌우로 밀어서 색 바꾸기
+(()=>{ let sx=0; const st=$("mirStage");
+  st.addEventListener("touchstart",e=>{ sx=e.touches[0].clientX; },{passive:true});
+  st.addEventListener("touchend",e=>{ if(!mir) return; const dx=e.changedTouches[0].clientX-sx; if (Math.abs(dx)<40) return;
+    const f=mirFlat(), i=f.findIndex(x=>x.c===mir.color.c); mir.color=f[(i+(dx<0?1:-1)+f.length)%f.length]; mir.tab="drape"; mirUI(); },{passive:true});
+})();
+
+function smoothF(o,n,k){
+  if (!o) return n;
+  const L=(a,b)=>a+(b-a)*k;
+  let ux={x:L(o.ux.x,n.ux.x), y:L(o.ux.y,n.ux.y)}; const len=Math.hypot(ux.x,ux.y); ux={x:ux.x/len,y:ux.y/len};
+  return {c:{x:L(o.c.x,n.c.x), y:L(o.c.y,n.c.y)}, ux, uy:{x:-ux.y,y:ux.x}, Wf:L(o.Wf,n.Wf), y10:L(o.y10,n.y10), chinY:L(o.chinY,n.chinY)};
+}
+
+function mirLoop(){
+  if (!mir || !mir.run) return;
+  const v=mir.v;
+  if (v.readyState<2 || !v.videoWidth){ requestAnimationFrame(mirLoop); return; }
+  const PW=Math.min(480, v.videoWidth), PH=Math.round(v.videoHeight*PW/v.videoWidth);
+  if (mc.width!==PW || mc.height!==PH){ mc.width=PW; mc.height=PH; mir.F=null; mir.hm=null; }
+  mctx.setTransform(-1,0,0,1,PW,0); mctx.drawImage(v,0,0,PW,PH); mctx.setTransform(1,0,0,1,0,0);   // 거울처럼 좌우 반전
+  const ts=performance.now();
+  let lm=null;
+  try{
+    if (MOCK){ const m=window.__mockAnalyze(mctx.getImageData(0,0,PW,PH),PW,PH); lm=m.lm; mir.hm=m.hair; }
+    else {
+      const r=faceV.detectForVideo(mc, ts); lm=r.faceLandmarks&&r.faceLandmarks[0];
+      if (hairV && (mir.n%2===0 || !mir.hm)){ const s=hairV.segmentForVideo(mc, ts); const cm=s.confidenceMasks; mir.hm=toArr(cm[cm.length-1],PW,PH); s.close&&s.close(); }
+    }
+  }catch(e){ console.warn(e); }
+  mir.n++;
+  if (lm){ mir.F = smoothF(mir.F, buildFrame(lm,PW,PH), 0.5); mir.lost=0; } else mir.lost++;
+  $("mirHint").classList.toggle("hidden", mir.lost<15);
+  if (mir.F && mir.lost<15){
+    const img=mctx.getImageData(0,0,PW,PH); paintMirror(img.data,PW,PH); mctx.putImageData(img,0,0);
+  }
+  mir.fr++; const dt=ts-mir.t0; if (dt>1000){ $("mirFps").textContent=Math.round(mir.fr*1000/dt)+" fps"; mir.fr=0; mir.t0=ts; }
+  requestAnimationFrame(mirLoop);
+}
+
+function paintMirror(d,W2,H2){
+  const {c,ux,uy,chinY,y10,Wf}=mir.F, hm=mir.hm, nw=0.34*Wf;
+  const tc=hex(mir.color.c), th=mir.hair?hex(mir.hair):null;
+  const topY=lx=>{ const a=Math.abs(lx); return a<=nw ? chinY+0.17*Wf+0.11*Wf*(1-(lx/nw)**2) : chinY+0.17*Wf+0.34*(a-nw); };
+  const midY=(y10+chinY)/2, hh=(chinY-y10)/2;
+  let sumL=0, cnt=0;
+  for (let y=0;y<H2;y++){
+    for (let x=0;x<W2;x++){
+      const i=y*W2+x, p=i*4, dx=x-c.x, dy=y-c.y;
+      const lx=dx*ux.x+dy*ux.y, ly=dx*uy.x+dy*uy.y;
+      const h = hm ? hm[i] : 0;
+      // 염색
+      if (th && h>0.08){
+        // 얼굴 아래쪽(눈 아래 타원 안)은 염색 제외
+        const inFace = ly>0.04*Wf && (lx/(0.5*Wf))**2 + ((ly-midY)/hh)**2 < 1;
+        const a = inFace ? 0 : sstep(0.15,0.75,h);
+        if (a>0.01){
+          const L=(0.299*d[p]+0.587*d[p+1]+0.114*d[p+2])/255;
+          if (h>0.8){ sumL+=L; cnt++; }
+          paint(d,p,th, 1+(L-mir.hairL)/Math.max(mir.hairL,0.24)*0.9, a*0.85);
+        }
+      }
+      // 진단용 천
+      const t=topY(lx), dd=ly-t;
+      if (dd < -0.015*Wf) continue;
+      const a = sstep(-0.012*Wf, 0.012*Wf, dd) * (1 - sstep(0.3,0.8,h));
+      if (a<0.01) continue;
+      const folds = 0.05*Math.sin(lx/(0.17*Wf) + 0.9*Math.sin(ly/(0.42*Wf))) + 0.03*Math.sin(lx/(0.075*Wf) + ly/(0.33*Wf));
+      const neck = 0.26*Math.exp(-Math.max(0,dd)/(0.05*Wf)) * sstep(0.9*Wf, 0.3*Wf, Math.abs(lx));
+      paint(d,p,tc, 1+folds-neck-0.07*Math.min(1,Math.abs(lx)/(1.6*Wf)), a);
+    }
+  }
+  if (cnt>200) mir.hairL = mir.hairL*0.8 + (sumL/cnt)*0.2;
+}
+
+$("btnMirShot").onclick=()=>{
+  if (!mir) return;
+  const c=document.createElement("canvas"); copyTo(c, mc);
+  c._name = mir.color.n;
+  if (mir.shots.length>=2) mir.shots.shift();
+  mir.shots.push(c); mirUI();
+  toast(mir.shots.length===2 ? "2장 완성! ‘친구에게 묻기’를 눌러보세요" : `📸 ${mir.color.n} 찍었어요. 다른 색으로 한 장 더!`);
+};
+$("btnMirAsk").onclick=()=>{
+  if (!mir || mir.shots.length<2){ toast("먼저 다른 색으로 사진 2장을 찍어주세요"); return; }
+  const [a,b]=mir.shots;
+  openCard(abCard(a,b,"1번 vs 2번, 뭐가 더 나아?","어느 쪽 얼굴이 더 화사해 보여?"), "1번 vs 2번?", "", `1번: <b>${a._name}</b> · 2번: <b>${b._name}</b> (카드에는 색 이름이 안 나와요)`);
+};
+
 /* ---------- 테스트용 (?mock) ---------- */
 if (MOCK){
   window.__run = async(src)=>{ const img=new Image(); img.src=src; await img.decode(); await analyze(img); };
@@ -846,6 +1022,7 @@ if (MOCK){
     await window.__run(q.get("src"));
     if (q.has("auto")){ for (let i=0;i<15;i++){ choose(q.get("auto")==="b"?1:0); await new Promise(r=>setTimeout(r,420)); } }
     if (q.get("screen")==="look"){ $("btnToLook").click(); if(q.get("occ")) pickOcc(q.get("occ")); if(q.get("hair")){ look.hair=q.get("hair"); renderLook(); } }
+    if (q.get("screen")==="mirror"){ $("btnMirror2").click(); }
     if (q.get("screen")==="avatar"){ $("btnAvatar").click(); if(q.get("tab")){ av.tab=q.get("tab"); avDraw(); } if(q.has("grade")) $("btnGrade").click(); if(q.has("avcard")) $("btnAvCard").click(); }
     if (q.get("card")==="result") $("btnResultCard").click();
     if (q.get("card")==="ab") $("btnAsk").click();
