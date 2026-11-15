@@ -201,6 +201,19 @@
   .shopgrid .item .ic img{height:70px}
   .atabs button{white-space:nowrap}
   #sTabs{overflow-x:auto}
+  .ccard.owner{border-color:#cfc3f5;background:linear-gradient(135deg,#fbf9ff,#f3eeff)}
+  .btn.weekly{background:linear-gradient(135deg,#d4a106,#e06a4f);color:#fff;margin-bottom:10px}
+  .lrow{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin-bottom:6px;font-size:14px}
+  .lrow .rk{width:28px;text-align:center;font-weight:900}
+  .lrow .nm{flex:1}
+  .lrow.me{border-color:var(--ink);background:#fffbea;font-weight:800}
+  .lrow.friend{background:#f2f7ff}
+  .coach{position:fixed;inset:0;z-index:80;pointer-events:none}
+  .coach .hole{position:fixed;border-radius:16px;box-shadow:0 0 0 9999px rgba(15,15,22,.6);transition:.2s}
+  .coach .finger{position:fixed;font-size:40px;animation:tap 1s ease-in-out infinite;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+  @keyframes tap{0%,100%{transform:translate(0,14px)}50%{transform:translate(0,0) scale(.9)}}
+  .coach .bub{position:fixed;left:16px;right:16px;max-width:460px;margin:0 auto;background:#fff;border-radius:16px;padding:14px 16px;font-weight:700;font-size:15px;line-height:1.5;pointer-events:auto;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .coach .bub button{margin-top:10px;width:100%;padding:11px;border-radius:12px;background:var(--ink);color:#fff;font-weight:800}
   /* 토스트 / 모달 */
   #toast{position:fixed;left:50%;top:16%;transform:translate(-50%,-8px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:15px;transition:.25s;z-index:60;text-align:center;max-width:86vw}
   #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -365,6 +378,8 @@
   </div>
 
   <div id="gLobby">
+    <div class="ccard owner" id="gOwner"></div>
+    <button class="btn weekly" id="gWeeklyBtn">⚔️ 주간 챌린지 · 랭킹 대결</button>
     <div class="lobbyhead"><h2>오늘의 손님</h2><button class="chip" id="gRefresh">↻ 새 손님 20🪙</button></div>
     <div id="gBoard"></div>
     <button class="btn secondary" id="gAdRefresh" style="margin-top:6px">📺 광고 보고 무료로 새 손님</button>
@@ -402,6 +417,18 @@
     <button class="btn secondary" id="gAdDouble">📺 광고 보고 코인 2배</button>
     <button class="btn warm" id="gNext">다음 손님 고르기 →</button>
     <button class="btn secondary" id="gShare">💾 코디 카드 저장·공유</button>
+  </div>
+
+  <div id="gWeekly" class="hidden">
+    <button class="chip" id="wBack">← 로비</button>
+    <h2 style="margin-top:10px">⚔️ 주간 챌린지</h2>
+    <p class="small">이번 주 모든 플레이어가 <b>같은 손님</b>을 코디해요. 점수는 코디 자체로 다시 계산돼서 조작할 수 없어요. 내 코디를 <b>도전장 링크</b>로 보내면 친구 랭킹에 내가 '고스트'로 등장해요!</p>
+    <div class="ccard" id="wCust"></div>
+    <div class="lobbyhead"><b id="wMy"></b><button class="chip" id="wName"></button></div>
+    <div id="wBoard"></div>
+    <button class="btn warm" id="wGo" style="margin-top:10px">도전하기 (90초)</button>
+    <button class="btn secondary hidden" id="wShare">📨 친구에게 도전장 보내기</button>
+    <p class="small" style="margin-top:8px">첫 도전만 코인 보상이 있고, 이후엔 최고 점수만 갱신돼요.</p>
   </div>
 
   <div id="gShop" class="hidden">
@@ -1206,7 +1233,7 @@ const DYES = [
 const PRICE = {
   hair:{bob:0,dandy:0,longstraight:0,crop:0, seebob:90,pixie:90,twoblock:90,buzz:90,comma:110,gareuma:110,layered:110,pony:110,bun:110,wolf:120,leaf:120,halfup:120,hush:130,up:130,longwave:130,curtainlong:130,hippie:150,longmen:130},
   top:{tee:0,shirt:0,stripe:80,knit:100,cardigan:100,hoodie:100,tie:120,blazer:150,coat:180,velvet:300},
-  acc:{hairpin:50,glasses:60,earring:60,sun:70,necklace:70,cap:70,scarf:80,beret:80,beanie:80,headphones:90,headband:250,silkscarf:250},
+  acc:{necklace_s:70,glasses_s:60,hairpin:50,glasses:60,earring:60,sun:70,necklace:70,cap:70,scarf:80,beret:80,beanie:80,headphones:90,headband:250,silkscarf:250},
 };
 const HIDDEN = [
   {id:"velvet",  kind:"top", item:"velvet",   n:"벨벳 수트",       t:"어떤 상황에도 통하는 만능 상의", need:"하드 손님 S등급 3회",       prog:()=>[G.st.hardS,3]},
@@ -1226,6 +1253,8 @@ const TOPN = k=>({tee:"티셔츠",stripe:"스트라이프 티",shirt:"셔츠",ti
 const TIERS = {
   basic:{n:"기본", col:"#1d9a6c", dep:0,  time:0,  wish:[0,1], hide:false, forbid:false, pay:{S:70,A:50,B:30,C:10},  rep:{S:2,A:1,B:0,C:0},  lv:1},
   mid:  {n:"중간", col:"#2f6fd6", dep:30, time:90, wish:[1,2], hide:false, forbid:false, pay:{S:170,A:110,B:40,C:0}, rep:{S:3,A:2,B:0,C:-1}, lv:2},
+  self: {n:"원장 룩", col:"#7b4fd6", dep:0, time:0, wish:[0,0], hide:false, forbid:false, pay:{S:0,A:0,B:0,C:0}, rep:{S:0,A:0,B:0,C:0}, lv:1},
+  weekly:{n:"주간", col:"#d4a106", dep:0, time:90, wish:[2,2], hide:false, forbid:false, pay:{S:150,A:100,B:50,C:20}, rep:{S:2,A:1,B:0,C:0}, lv:1},
   hard: {n:"하드", col:"#c2413b", dep:80, time:60, wish:[2,2], hide:true,  forbid:true,  pay:{S:380,A:220,B:50,C:0}, rep:{S:5,A:3,B:0,C:-2}, lv:3},
 };
 const CUSTOMERS = [
@@ -1269,12 +1298,13 @@ function gLoad(){
   try{ G=JSON.parse(localStorage.getItem("cs_game2")||"null"); }catch(e){ G=null; }
   if (!G) G={coins:150, rep:0, served:0, own:{hair:[],top:[],acc:[],col:[],dye:[]}, unlocked:[], ads:{}, meDone:false,
              st:{hardS:0, streak:0, bestStreak:0, midA:0, hardSeasons:[]}};
+  G.friends=G.friends||{};
   for (const [k,v] of Object.entries(PRICE.hair)) if(!v && !G.own.hair.includes(k)) G.own.hair.push(k);
   for (const [k,v] of Object.entries(PRICE.top))  if(!v && !G.own.top.includes(k))  G.own.top.push(k);
   for (const f of FABRICS) if(!f.price && !G.own.col.includes(f.id)) G.own.col.push(f.id);
   for (const d of DYES) if(!d.p && !G.own.dye.includes(d.c)) G.own.dye.push(d.c);
 }
-function gSave(){ try{ const {cust,look,last,board,timer,...rest}=G; localStorage.setItem("cs_game2", JSON.stringify(rest)); }catch(e){} }
+function gSave(){ try{ const {cust,look,last,timer,...rest}=G; if (rest.ownerLook&&rest.ownerLook.a instanceof Set) rest.ownerLook.a=[...rest.ownerLook.a]; localStorage.setItem("cs_game2", JSON.stringify(rest)); }catch(e){} }
 const gLevel = ()=>1+Math.floor(Math.max(0,G.rep)/8);
 const pick = a=>a[Math.floor(Math.random()*a.length)];
 function lumHex(h){ const {r,g,b}=hex(h); return 0.299*r+0.587*g+0.114*b; }
@@ -1301,8 +1331,9 @@ function meCustomer(){
 }
 function makeBoard(){
   const lv=gLevel();
-  G.board=[ makeCustomer("basic"), makeCustomer(lv>=2?"mid":"basic"), makeCustomer(lv>=3?"hard":lv>=2?"mid":"basic") ];
-  if (me && (!G.meDone || Math.random()<0.25)) G.board.unshift(meCustomer());
+  const tiers=["basic", lv>=2?"mid":"basic", lv>=3?"hard":lv>=2?"mid":"basic", lv>=2?"mid":"basic", lv>=3?"hard":"basic"];
+  G.board=tiers.slice(0,popSlots()).map(makeCustomer);
+  if (me && !G.meDone) G.board.unshift(meCustomer());
 }
 function faceHTML(C, size){
   return IMGOK.has(C.portrait||"") ? `<img src="${C.portrait}" alt="">`
@@ -1316,11 +1347,15 @@ function openGame(){
   show("sGame"); gView("lobby");
 }
 function gView(v){
-  for (const [id,k] of [["gLobby","lobby"],["gPlay","play"],["gResult","result"],["gShop","shop"]]) $(id).classList.toggle("hidden",v!==k);
-  G.view=v; gStats(); if (v==="lobby") gBoard(); if (v==="play") gDraw(); scrollTo(0,0);
+  for (const [id,k] of [["gLobby","lobby"],["gPlay","play"],["gResult","result"],["gShop","shop"],["gWeekly","weekly"]]) $(id).classList.toggle("hidden",v!==k);
+  G.view=v; gStats(); if (v==="lobby"){ renderOwner(); gBoard(); } if (v==="play") gDraw(); if (v==="weekly") renderWeekly(); scrollTo(0,0);
+  if (v==="lobby") setTimeout(()=>coach([["lobby",".ccard .go:not(#gOwnerGo)","손님을 골라 ‘받기’를 눌러요.<br>🟢 기본 손님부터 시작해 보세요!"],["owner","#gOwnerGo","원장 룩을 꾸미면 <b>살롱 인기도</b>가 올라 손님이 최대 5명까지 늘어요."],["weekly","#gWeeklyBtn","매주 모두가 같은 손님으로 대결해요.<br>친구에게 <b>도전장 링크</b>를 보내보세요!"]]),400);
+  if (v==="play") setTimeout(()=>coach([["tabs","#gTabs","탭을 눌러 헤어·머리색·상의·옷 색·소품을 바꿔요."],["opts","#gOpts","여기서 아이템을 골라요. 🛍️ 더 사기로 상점에 갈 수 있어요."],["hint","#gHint","헷갈리면 힌트! 손님 시즌의 추천 색을 알려줘요."],["judge","#gJudge","다 됐으면 심사위원 3명에게 보여줘요!"]]),400);
+  if (v==="result") setTimeout(()=>coach([["shop","#gShopBtn","번 코인으로 상점에서 아이템을 사요.<br>✨히든 탭에는 특별한 아이템이 있어요!"]]),2200);
 }
 function gStats(){ $("gCoins").textContent="🪙 "+G.coins; $("gRep").textContent="⭐ "+G.rep; $("gLv").textContent="Lv."+gLevel(); }
 $("gBack").onclick=()=>{
+  if (G.view==="play" && !TIERS[G.cust.tier].dep){ clearInterval(gTimerId); gView(G.cust.tier==="weekly"?"weekly":"lobby"); return; }
   if (G.view==="play"){ if (!confirm(`지금 나가면 보증금 ${TIERS[G.cust.tier].dep}🪙을 돌려받지 못해요. 나갈까요?`)) return; clearInterval(gTimerId); G.st.streak=0; gSave(); gView("lobby"); return; }
   if (G.view!=="lobby"){ gView(G.cust&&G.view==="shop"&&G.shopFrom==="play"?"play":"lobby"); return; }
   show("sStart");
@@ -1403,8 +1438,8 @@ $("gHint").onclick=()=>{
 };
 
 /* ---------- 채점 ---------- */
-function score(timeUp){
-  const C=G.cust, L=G.look, S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), M=MISSION[C.occ], T=TIERS[C.tier];
+function score(timeUp, C=G.cust, L=G.look){
+  const S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), M=MISSION[C.occ], T=TIERS[C.tier];
   const fab = FABRICS.find(f=>f.c===L.tc), cName = fab ? fab.n : "기본 회색", occN=o.n.split(" ")[1];
   const out=[];
   // ① 컬러 디렉터
@@ -1427,6 +1462,13 @@ function score(timeUp){
   else if (tOk&&mOk) m2=`${occN}에 딱이에요. 센스 있네요!`;
   else if (tOk) m2=`옷 종류는 좋아요. 다만 ${M.md}이면 더 좋았을 거예요.`;
   else m2=`${occN}에 ${TOPN(L.top)}은(는) 조금 안 맞아요.`;
+  if (C.occ==="interview"||C.occ==="office"){
+    if (L.tc==="#1C1C22" && C.occ==="interview"){ c2-=2; m2+=" 블랙 정장은 조문 느낌이 날 수 있어요. 짙은 네이비·차콜이 더 신뢰감 있어요."; }
+    else if (["#1F2A4D","#3A3D44","#4A5A7A","#7F93AD","#8FA8C8"].includes(L.tc)){ c2+=1; m2+=" 네이비·차콜·그레이 계열은 비즈니스룩의 정석이에요."; }
+    if (fab && hsl(L.tc).s>0.75){ c2-=2; m2+=" 너무 쨍한 색은 업무 자리에선 부담스러워요."; }
+    if (L.top==="stripe"){ c2-=1; m2+=" 패턴은 최대한 단정하게!"; }
+  }
+  c2=Math.max(0,c2);
   if (L.hc==="#E3A1C3" && C.occ==="festival"){ c2=Math.min(10,c2+1); m2+=" 오로라 핑크 머리, 페스티벌 주인공이에요!"; }
   out.push({j:JUDGES[1], sc:Math.min(10,c2), msg:m2});
   // ③ 스타일리스트
@@ -1439,21 +1481,58 @@ function score(timeUp){
   if ((C.occ==="festival"||C.occ==="travel") && L.accs.size>0){ c3+=1; notes.push("소품 포인트 좋아요."); }
   if (C.occ==="date" && ["earring","necklace","hairpin","headband"].some(k=>L.accs.has(k))){ c3+=1; notes.push("작은 액세서리가 사랑스러워요."); }
   if (L.accs.has("headband")||L.accs.has("silkscarf")){ c3+=1; }
+  // 메탈 규칙: 웜톤=골드, 쿨톤=실버, 여름쿨=진주 (컬러 컨설턴트들의 공통 기준)
+  const metals=[...L.accs].map(k=>(ACCS.find(a=>a.k===k)||{}).metal).filter(Boolean), warmS=S.temp==="warm";
+  if (metals.includes(warmS?"gold":"silver")){ c3+=1; notes.push(warmS?"골드 액세서리가 웜톤 피부를 화사하게 살려줘요.":"실버 액세서리가 쿨톤 피부를 맑게 해줘요."); }
+  if (metals.includes(warmS?"silver":"gold")){ c3-=1; notes.push(warmS?"웜톤엔 실버보다 골드가 더 잘 받아요.":"쿨톤엔 골드보다 실버가 더 깨끗해 보여요."); }
+  if (metals.includes("pearl") && C.s==="summer"){ c3+=1; notes.push("여름 쿨톤에 진주는 찰떡이에요."); }
   if (L.accs.size>=4){ c3-=2; notes.push("소품이 너무 많아서 산만해요."); }
   const con = Math.abs(lumHex(L.hc)-lumHex(L.tc));
-  const want = {winter:[0.45,1], summer:[0,0.35], spring:[0.2,0.55], autumn:[0.15,0.5]}[C.s];
-  if (fab && con>=want[0] && con<=want[1]){ c3+=2; notes.push(C.s==="winter"?"머리와 옷의 선명한 대비가 겨울답게 멋져요.":C.s==="summer"?"머리와 옷이 부드럽게 이어져요.":"머리와 옷의 밝기 균형이 좋아요."); }
-  else if (fab) notes.push(C.s==="winter"?"겨울 쿨톤은 머리·옷 대비를 더 강하게!":C.s==="summer"?"여름 쿨톤은 머리·옷 대비를 부드럽게!":"머리와 옷의 밝기 차이를 조절해 보세요.");
+  // 대비: 겨울·봄은 높은 대비, 여름·가을은 낮은 대비가 어울린다
+  const want = {winter:[0.45,1], spring:[0.3,0.7], summer:[0,0.3], autumn:[0.1,0.42]}[C.s];
+  if (fab && con>=want[0] && con<=want[1]){ c3+=2; notes.push({winter:"머리와 옷의 선명한 대비가 겨울답게 멋져요.",summer:"머리와 옷이 부드럽게 이어져 여름답게 우아해요.",spring:"또렷한 대비가 봄웜의 생기를 살려줘요.",autumn:"차분한 톤온톤이 가을웜다워요."}[C.s]); }
+  else if (fab) notes.push({winter:"겨울 쿨톤은 머리·옷 대비를 더 강하게!",summer:"여름 쿨톤은 머리·옷 대비를 부드럽게!",spring:"봄웜은 조금 더 또렷한 대비가 좋아요.",autumn:"가을웜은 대비를 줄이고 톤온톤으로!"}[C.s]);
   if (timeUp){ c3-=2; notes.unshift("⏰ 시간이 부족했어요."); }
   c3=Math.max(0,Math.min(10,c3));
   out.push({j:JUDGES[2], sc:c3, msg:notes.slice(0,2).join(" ") || "전체적으로 무난한 조합이에요."});
   const total=out.reduce((a,x)=>a+x.sc,0);
   const grade = total>=27?"S": total>=22?"A": total>=16?"B":"C";
-  return {out,total,grade, coins:T.pay[grade]+(C.me?50:0), rep:T.rep[grade]};
+  const tip = (G.pop>=27 && !["self","weekly"].includes(C.tier)) ? Math.round(T.pay[grade]*0.1) : 0;
+  return {out,total,grade, coins:T.pay[grade]+(C.me?50:0)+tip, rep:T.rep[grade]};
+}
+function showJudges(R){
+  $("rJudges").innerHTML = R.out.map(x=>{
+    const mood = x.sc>=8?"_happy":x.sc<=4?"_sad":"", src=`img/judge_${x.j.k}${mood}.jpg`, img = IMGOK.has(src)?src: IMGOK.has(JIMG(x.j.k))?JIMG(x.j.k):null;
+    return `<div class="judge"><div class="jp">${img?`<img src="${img}" alt="">`:x.j.em}</div><div style="flex:1"><div class="jn">${x.j.n}<b>${x.sc}점</b></div><div class="jc">${x.msg}</div></div></div>`;
+  }).join("");
+}
+function judgeSpecial(C,R){
+  const L={...G.look, accs:new Set(G.look.accs)};
+  G.last={R, cust:C, look:L, doubled:true};
+  $("rGrade").textContent=R.grade; $("rGrade").style.color={S:"#d4a106",A:"#2f3a8f",B:"#1d9a6c",C:"#888"}[R.grade];
+  $("gAdDouble").classList.add("hidden");
+  if (C.tier==="self"){
+    G.pop=R.total; G.ownerLook={hair:L.hair, hc:L.hc, top:L.top, tc:L.tc, a:[...L.accs]}; makeBoard();
+    $("rTotal").textContent=`원장 룩 ${R.total} / 30`; $("rCoins").textContent=`살롱 인기도 ${R.total} → 오늘 손님 ${popSlots()}명`;
+    $("rNote").textContent= R.total>=27 ? "🌟 최고 인기! 손님 5명 + 팁 10% 보너스" : "점수를 올리면 손님이 더 와요 (16·22·27점 기준)";
+    $("gNext").textContent="로비로 →";
+  } else {
+    const wk=weekKey(), first=!(G.weekly&&G.weekly.key===wk);
+    const look={hair:L.hair, hc:L.hc, top:L.top, tc:L.tc, a:[...L.accs]};
+    if (first) G.weekly={key:wk, best:R.total, look}; else if (R.total>G.weekly.best){ G.weekly.best=R.total; G.weekly.look=look; }
+    if (first){ G.coins+=R.coins; G.rep=Math.max(0,G.rep+R.rep); }
+    const rank=leaderboard().findIndex(r=>r.kind==="me")+1;
+    $("rTotal").textContent=`주간 챌린지 ${R.total} / 30`; $("rCoins").textContent= first?`+${R.coins} 🪙 · 현재 ${rank}위`:`현재 ${rank}위 (최고 ${G.weekly.best}점)`;
+    $("rNote").textContent="도전장 링크를 보내면 친구 랭킹에 내 코디가 고스트로 올라가요!";
+    $("gNext").textContent="랭킹 보기 →";
+  }
+  gSave(); showJudges(R); gView("result");
+  $("rJudges").querySelectorAll(".judge").forEach((el,i)=>setTimeout(()=>el.classList.add("in"), 250+i*450));
 }
 function judge(timeUp=false){
   clearInterval(gTimerId);
   const C=G.cust, R=score(timeUp), lv0=gLevel();
+  if (C.tier==="self" || C.tier==="weekly") return judgeSpecial(C,R);
   G.coins+=R.coins; G.rep=Math.max(0,G.rep+R.rep); G.served++; if (C.me) G.meDone=true;
   const st=G.st;
   if (R.grade==="S"){ st.streak++; st.bestStreak=Math.max(st.bestStreak,st.streak); } else st.streak=0;
@@ -1479,7 +1558,7 @@ function judge(timeUp=false){
   newly.forEach(h=>{ setTimeout(()=>toast(`✨ 히든 아이템 해금!<br>${h.n} — 상점에서 구매할 수 있어요`),delay); delay+=2400; });
 }
 $("gJudge").onclick=()=>judge(false);
-$("gNext").onclick=()=>gView("lobby");
+$("gNext").onclick=()=>{ const t=G.last&&G.last.cust.tier; $("gNext").textContent="다음 손님 고르기 →"; gView(t==="weekly"?"weekly":"lobby"); };
 $("gAdDouble").onclick=()=>{ if (!G.last||G.last.doubled) return; playAd(()=>{ G.coins+=G.last.R.coins; G.last.doubled=true; gSave(); gStats(); $("gAdDouble").classList.add("hidden"); $("rCoins").textContent=`+${G.last.R.coins*2} 🪙 (2배!)`; toast("코인 2배 받았어요!"); }); };
 $("gShare").onclick=async()=>{
   const {R,cust:C,look:L}=G.last, S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), M=MISSION[C.occ];
@@ -1559,6 +1638,7 @@ function renderHome(){
     $("meGo").onclick=()=>show("sDiag");
   }
   $("mResult").classList.toggle("hidden", !result);
+  setTimeout(()=>coach([ me ? ["home2","#btnGame0","내 퍼스널컬러가 적용된 '나'로 살롱을 운영해 보세요!"] : ["home1","#meGo","처음이라면 <b>퍼스널컬러 진단</b>부터!<br>결과가 게임 속 '나' 캐릭터가 돼요."] ]),600);
 }
 $("mDiag").onclick=()=>show("sDiag");
 $("diagBack").onclick=()=>show("sStart");
@@ -1566,6 +1646,121 @@ $("mResult").onclick=()=>show("sResult");
 function saveMe(){
   me = {key:result.key, skin:avSkin(), g:gender, best:{n:result.best.n,c:result.best.c}, worst:{n:result.worst.n,c:result.worst.c}, t:Date.now()};
   try{ localStorage.setItem("cs_me", JSON.stringify(me)); }catch(e){}
+}
+
+/* ---------- v0.8: 원장 룩(살롱 인기도) · 주간 챌린지(비동기 고스트) · 튜토리얼 ---------- */
+function popSlots(){ return G.pop==null ? 3 : 2 + (G.pop>=16) + (G.pop>=22) + (G.pop>=27); }
+function ownerCustomer(){
+  return {owner:true, name:"원장님 (나)", n:"나", s:me.key, g:me.g==="n"?"f":me.g, skin:me.skin, hair:me.g==="m"?"dandy":"bob", hc:"#3E2A20",
+          tier:"self", occ:"office", req:"오늘의 살롱 간판 룩! 손님들이 보고 반할 만큼 멋지게.", wishes:[], hidden:false};
+}
+function renderOwner(){
+  const box=$("gOwner");
+  if (!me){ box.innerHTML=`<div class="pf" style="display:flex;align-items:center;justify-content:center;font-size:30px">👤</div><div class="ci"><b>원장님이 아직 없어요</b><br>퍼스널컬러를 진단하면 '나'가 살롱 원장이 돼요. 원장 룩이 멋질수록 손님이 늘어요!</div><button class="go" id="gOwnerGo">진단</button>`;
+    $("gOwnerGo").onclick=()=>show("sDiag"); return; }
+  const L=G.ownerLook, S=SEASONS[me.key];
+  const svg=avatarSVG({skin:me.skin, hair:L?L.hair:(me.g==="m"?"dandy":"bob"), hairColor:L?L.hc:"#3E2A20", top:L?L.top:"tee", topColor:L?L.tc:"#D9D6D0", accs:new Set(L?L.a:[]), gender:me.g==="n"?"f":me.g, view:"85 60 230 230"});
+  const n=popSlots(), stars=G.pop==null?"–":"⭐".repeat(Math.max(1,n-1));
+  box.innerHTML=`<div class="pf">${svg}</div><div class="ci"><b>원장님 (${S.em} ${S.name})</b><br>살롱 인기도 ${G.pop==null?"측정 전":G.pop+"/30"} ${stars}<br>오늘 손님 <b style="font-size:13px">${n}명</b>${G.pop>=27?" · 팁 +10%":""}</div><button class="go" id="gOwnerGo">원장 룩<br>꾸미기</button>`;
+  $("gOwnerGo").onclick=()=>startSpecial(ownerCustomer());
+}
+function startSpecial(C){
+  G.cust=C; G.look={hair:C.hair, hc:C.hc, top:"tee", tc:"#D9D6D0", accs:new Set()}; G.tab="hair";
+  clearInterval(gTimerId); gView("play");
+  const T=TIERS[C.tier];
+  if (T.time){ G.left=T.time; $("gTimer").classList.remove("hidden","warn"); $("gTimer").textContent=G.left;
+    gTimerId=setInterval(()=>{ G.left--; $("gTimer").textContent=G.left; $("gTimer").classList.toggle("warn",G.left<=10);
+      if (G.left<=0){ clearInterval(gTimerId); toast("⏰ 시간 종료!"); judge(true); } },1000);
+  } else $("gTimer").classList.add("hidden");
+}
+
+/* 주간 챌린지: 이번 주 모두에게 같은 손님(시드 고정). 점수는 '코디'로 다시 계산되므로 조작 불가 */
+function weekKey(){ const d=new Date(), j=new Date(d.getFullYear(),0,1); return d.getFullYear()+"-W"+Math.ceil(((d-j)/86400000+j.getDay()+1)/7); }
+function srng(str){ let h=1779033703; for (const ch of str) h=Math.imul(h^ch.charCodeAt(0),3432918353)>>>0; return rng(h); }
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function weeklyCustomer(){
+  const R=srng("cust"+weekKey()), base=CUSTOMERS[Math.floor(R()*CUSTOMERS.length)], occ=OCCASIONS[Math.floor(R()*OCCASIONS.length)].k;
+  const w=[]; while (w.length<2){ const i=Math.floor(R()*WISHES.length); if (!w.includes(i)) w.push(i); }
+  return {...base, name:base.n+" 님", tier:"weekly", occ, req:REQ[occ][Math.floor(R()*2)], wishes:w, hidden:false, portrait:`img/cust_${String(base.id).padStart(2,"0")}.jpg`};
+}
+const GHOSTS=["모카 스튜디오","하늘 원장","코랄킴","라벤더 J","올리브 살롱","스노우 헤어","피치메이크","브릭 스타일"];
+const SKILL=[0.86,0.8,0.72,0.64,0.56,0.48,0.4,0.32];
+function ghostLook(i, C){
+  const R=srng(weekKey()+"g"+i), S=SEASONS[C.s], M=MISSION[C.occ], good=()=>R()<SKILL[i], pk=a=>a[Math.floor(R()*a.length)];
+  const tops=OCC_TOPS[C.occ].filter(t=>t!=="velvet"), allTops=TOPS.filter(t=>!t.hidden).map(t=>t.k);
+  const moodCols=[...S.pal,...S.ext].filter(x=>M.mood(hsl(x.c)));
+  const L={hair:C.hair, hc:C.hc, top:good()?pk(tops):pk(allTops), tc:good()?pk(moodCols.length?moodCols:S.pal).c:pk(FABRICS.filter(f=>!f.hidden)).c, accs:new Set()};
+  L.hc = good()? pk(S.hair).c : pk(DYES.filter(d=>!d.hidden)).c;
+  for (const wi of C.wishes){ const t=WISHES[wi].t;
+    if (!good()) continue;
+    if (t.includes("안경")) L.accs.add(S.temp==="warm"?"glasses":"glasses_s");
+    if (t.includes("헤어스타일")) L.hair=pk(HAIRSTYLES.filter(h=>h.k!==C.hair&&(h.g===C.g||h.g==="u"))).k;
+    if (t.includes("소품")||t.includes("목이")) L.accs.add(S.temp==="warm"?"necklace":"necklace_s");
+    if (t.includes("셔츠")) L.top=OCC_TOPS[C.occ].includes("shirt")?"shirt":"tie";
+    if (t.includes("밝은")){ const lc=[...S.pal,...S.ext].filter(x=>lumHex(x.c)>=0.6); if (lc.length) L.tc=pk(lc).c; }
+  }
+  if (good() && L.accs.size===0) L.accs.add(S.s==="summer"?"earring":(S.temp==="warm"?"necklace":"necklace_s"));
+  return L;
+}
+function encGhost(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function decGhost(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); while (s.length%4) s+="="; return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+function leaderboard(){
+  const C=weeklyCustomer(), wk=weekKey(), rows=[];
+  GHOSTS.forEach((n,i)=>{ const L=ghostLook(i,C); rows.push({n, sc:score(false,C,L).total, kind:"ghost"}); });
+  for (const f of (G.friends[wk]||[])){ const L={hair:f.L.hair, hc:f.L.hc, top:f.L.top, tc:f.L.tc, accs:new Set(f.L.a||[])}; rows.push({n:f.n, sc:score(false,C,L).total, kind:"friend"}); }
+  if (G.weekly && G.weekly.key===wk) rows.push({n:(G.name||"나")+" (나)", sc:G.weekly.best, kind:"me"});
+  return rows.sort((a,b)=>b.sc-a.sc || (a.kind==="me"?-1:1));
+}
+function renderWeekly(){
+  const C=weeklyCustomer(), S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), wk=weekKey(), my=G.weekly&&G.weekly.key===wk?G.weekly:null;
+  $("wCust").innerHTML=`<div class="pf">${faceHTML(C)}</div><div class="ci"><b>${C.name}</b> <span class="tbadge" style="background:#d4a106">이번 주</span><br>${S.em} ${S.name} · ${o.n}<br>“${C.req}”<br>${C.wishes.map(w=>"🙏 "+WISHES[w].t).join(" · ")}</div>`;
+  $("wMy").textContent = my ? `내 최고 점수 ${my.best}/30` : "아직 도전 전";
+  const rows=leaderboard(), medal=["🥇","🥈","🥉"];
+  $("wBoard").innerHTML=rows.map((r,i)=>`<div class="lrow ${r.kind}"><span class="rk">${medal[i]||(i+1)}</span><span class="nm">${r.n}${r.kind==="friend"?" 👥":""}</span><b>${r.sc}</b></div>`).join("");
+  $("wName").textContent="닉네임: "+(G.name||"설정하기")+" ✏️";
+  $("wShare").classList.toggle("hidden", !my);
+}
+$("gWeeklyBtn").onclick=()=>gView("weekly");
+$("wBack").onclick=()=>gView("lobby");
+$("wName").onclick=()=>{ const n=prompt("랭킹에 표시할 닉네임 (10자 이내)", G.name||""); if (n){ G.name=n.slice(0,10); gSave(); renderWeekly(); } };
+$("wGo").onclick=()=>{ if (!G.name){ const n=prompt("랭킹에 표시할 닉네임을 정해주세요 (10자 이내)","스타일리스트"); G.name=(n||"스타일리스트").slice(0,10); gSave(); } startSpecial(weeklyCustomer()); };
+$("wShare").onclick=async()=>{
+  const my=G.weekly; if (!my) return;
+  const url=location.origin+location.pathname+"?ghost="+encGhost({n:G.name||"익명", w:weekKey(), L:my.look});
+  const text=`⚔️ 컬러 스튜디오 주간 챌린지 도전장! 내 코디 ${my.best}점, 이길 수 있어? 👉 ${url}`;
+  try{ if (navigator.share) await navigator.share({title:"주간 챌린지 도전장", text}); else { await navigator.clipboard.writeText(text); toast("도전장 링크를 복사했어요!<br>카톡에 붙여넣어 보내세요"); } }catch(e){}
+};
+// 도전장 링크로 들어온 경우
+(()=>{ const g=new URLSearchParams(location.search).get("ghost"); if (!g) return;
+  try{ const o=decGhost(g); gLoad(); G.friends=G.friends||{};
+    if (o.w!==weekKey()){ toast("지난주 도전장이에요. 이번 주 챌린지에 도전해 보세요!"); return; }
+    const arr=G.friends[o.w]=(G.friends[o.w]||[]).filter(f=>f.n!==o.n); arr.push(o); gSave();
+    setTimeout(()=>toast(`⚔️ ${o.n}님의 도전장이 도착했어요!<br>살롱 → 주간 챌린지에서 대결하세요`),800);
+  }catch(e){ console.warn("도전장 해석 실패", e); }
+})();
+
+/* 손가락 튜토리얼 */
+let TUT={}; try{ TUT=JSON.parse(localStorage.getItem("cs_tut")||"{}"); }catch(e){}
+let coachQ=[], coachOn=false;
+function coach(list){ coachQ.push(...list.filter(x=>!TUT[x[0]])); if (!coachOn) nextCoach(); }
+function nextCoach(){
+  const it=coachQ.shift(); if (!it){ coachOn=false; return; }
+  const [key,sel,text]=it, el=document.querySelector(sel);
+  if (!el || el.offsetParent===null){ nextCoach(); return; }
+  coachOn=true; TUT[key]=1; try{ localStorage.setItem("cs_tut",JSON.stringify(TUT)); }catch(e){}
+  el.scrollIntoView({block:"center"});
+  setTimeout(()=>{
+    const r=el.getBoundingClientRect(), d=document.createElement("div"); d.className="coach";
+    const below = r.top < innerHeight*0.55;
+    d.innerHTML=`<div class="hole" style="left:${r.left-6}px;top:${r.top-6}px;width:${r.width+12}px;height:${r.height+12}px"></div>
+      <div class="finger" style="left:${r.left+r.width/2-10}px;top:${r.top+r.height/2}px">👆</div>
+      <div class="bub" style="${below?`top:${r.bottom+42}px`:`bottom:${innerHeight-r.top+16}px`}"><div>${text}</div><button>알겠어요</button></div>`;
+    document.body.appendChild(d);
+    const done=()=>{ d.remove(); document.removeEventListener("click",outside,true); setTimeout(nextCoach,250); };
+    const outside=e=>{ if (!d.querySelector(".bub").contains(e.target)) done(); };
+    d.querySelector("button").onclick=done;
+    setTimeout(()=>document.addEventListener("click",outside,true),300);
+  },250);
 }
 
 $("btnGame").onclick=openGame; $("btnGame0").onclick=openGame;

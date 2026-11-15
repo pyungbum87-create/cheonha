@@ -31,10 +31,11 @@ export const TOPS = [
   {k:"cardigan",n:"카디건"},{k:"hoodie",n:"후드티"},{k:"blazer",n:"블레이저"},{k:"coat",n:"트렌치코트"},{k:"velvet",n:"벨벳 수트",hidden:true},
 ];
 export const ACCS = [
-  {k:"glasses",n:"동그란 안경",ic:"👓"},{k:"sun",n:"선글라스",ic:"🕶️"},{k:"earring",n:"진주 귀걸이",ic:"🦪"},{k:"necklace",n:"목걸이",ic:"📿"},
+  {k:"glasses",n:"골드 안경",ic:"👓",metal:"gold"},{k:"glasses_s",n:"실버 안경",ic:"👓",metal:"silver"},{k:"sun",n:"선글라스",ic:"🕶️"},
+  {k:"earring",n:"진주 귀걸이",ic:"🦪",metal:"pearl"},{k:"necklace",n:"골드 목걸이",ic:"📿",metal:"gold"},{k:"necklace_s",n:"실버 목걸이",ic:"⛓️",metal:"silver"},
   {k:"hairpin",n:"헤어핀",ic:"📎"},{k:"scarf",n:"스카프",ic:"🧣"},{k:"beret",n:"베레모",ic:"🧶"},{k:"beanie",n:"비니",ic:"🧢"},
   {k:"cap",n:"볼캡",ic:"🧢"},{k:"headphones",n:"헤드폰",ic:"🎧"},
-  {k:"headband",n:"진주 헤드밴드",ic:"👑",hidden:true},{k:"silkscarf",n:"실크 스카프",ic:"🎀",hidden:true},
+  {k:"headband",n:"진주 헤드밴드",ic:"👑",hidden:true,metal:"pearl"},{k:"silkscarf",n:"실크 스카프",ic:"🎀",hidden:true},
 ];
 export const HATS = ["beret","beanie","cap"];
 
@@ -211,6 +212,7 @@ function faceSVG(skin, hairC, gender, id){
 function accNeck(accs){
   let s="";
   if (accs.has("necklace")) s+=`<path d="M180,318 Q200,346 220,318" stroke="#d6b45a" stroke-width="2.6" fill="none"/><path d="M200,334 l6,8 l-6,8 l-6,-8Z" fill="#f3e3a6" stroke="#b9953c" stroke-width="1.5"/>`;
+  if (accs.has("necklace_s")) s+=`<path d="M180,318 Q200,346 220,318" stroke="#c4c8cf" stroke-width="2.6" fill="none"/><circle cx="200" cy="340" r="6" fill="#eef1f5" stroke="#9aa0aa" stroke-width="1.5"/>`;
   if (accs.has("scarf")||accs.has("silkscarf")){
     const silk=accs.has("silkscarf"), c1=silk?"#f3d9e6":"#c0473f", c2=silk?"#cfe3f5":"#9c3530";
     s+=`<path d="M172,300 Q200,324 228,300 L232,326 Q200,350 168,326Z" fill="${c1}" stroke="${shade(c1,-0.4)}" stroke-width="2"/>
@@ -222,6 +224,8 @@ function accNeck(accs){
 function accFace(accs){
   let s="";
   if (accs.has("earring")) s+=`<circle cx="123" cy="234" r="6" fill="#f6f1e7" stroke="#cfc4ae" stroke-width="1.5"/><circle cx="277" cy="234" r="6" fill="#f6f1e7" stroke="#cfc4ae" stroke-width="1.5"/>`;
+  if (accs.has("glasses_s")) s+=`<g fill="rgba(220,235,255,.16)" stroke="#9aa0aa" stroke-width="3"><rect x="146" y="196" width="44" height="32" rx="8"/><rect x="210" y="196" width="44" height="32" rx="8"/></g>
+    <path d="M190,206 Q200,200 210,206 M146,206 L126,200 M254,206 L274,200" stroke="#9aa0aa" stroke-width="3" fill="none"/>`;
   if (accs.has("glasses")) s+=`<g fill="rgba(220,235,255,.16)" stroke="#9a7a3a" stroke-width="3.2"><circle cx="168" cy="212" r="22"/><circle cx="232" cy="212" r="22"/></g>
     <path d="M190,208 Q200,201 210,208 M146,208 L126,202 M254,208 L274,202" stroke="#9a7a3a" stroke-width="3.2" fill="none"/>`;
   if (accs.has("sun")) s+=`<g stroke="#1b1b1f" stroke-width="3.5"><rect x="142" y="198" width="52" height="34" rx="14" fill="#25222a"/><rect x="206" y="198" width="52" height="34" rx="14" fill="#25222a"/></g>
