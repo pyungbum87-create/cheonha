@@ -2,6 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<script src="lang.js?v=13"></script>
+<style>html.zhload body{visibility:hidden}</style>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f7f6f3">
 <title>퍼스널컬러 찾으러 갔을 뿐인데 원장이 된 나? · 퍼컬 원장</title>
@@ -132,7 +134,7 @@
 
   /* 실시간 거울 */
   .mirstage{position:relative;border-radius:22px;overflow:hidden;background:#111;display:flex;justify-content:center;touch-action:pan-y}
-  .mirstage canvas{width:100%;max-height:62vh;object-fit:contain;display:block}
+  .mirstage canvas{width:100%;max-height:66vh;aspect-ratio:3/4;object-fit:cover;display:block}
   .mirtag{position:absolute;left:12px;bottom:12px;background:rgba(20,20,26,.72);color:#fff;font-weight:800;padding:7px 12px;border-radius:99px;font-size:14px;display:flex;align-items:center;gap:7px}
   .mirtag i{width:14px;height:14px;border-radius:50%;border:1.5px solid #fff}
   .mirhint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;text-align:center;padding:20px;background:rgba(0,0,0,.35);pointer-events:none}
@@ -254,6 +256,8 @@
   .shelf{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.shelf span{display:flex;flex-direction:column;align-items:center;font-size:16px;line-height:1.1}.shelf i{font-size:9px;font-style:normal;color:#8b8892}
   .uidlg{position:fixed;inset:0;z-index:130;background:rgba(15,15,20,.55);display:flex;align-items:center;justify-content:center;padding:24px}.uidlg .box{background:#fff;border-radius:20px;padding:20px 18px 14px;width:100%;max-width:340px;text-align:center}.uidlg .msg{font-size:15.5px;line-height:1.55;font-weight:600}.uidlg input{width:100%;margin-top:12px;padding:12px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:16px}.uidlg .bts{display:flex;gap:8px;margin-top:16px}.uidlg .bts button{flex:1;padding:12px 6px;border-radius:12px;background:#f1efeb;font-weight:700}.uidlg .bts button.ok{background:var(--ink);color:#fff}
   .foot{text-align:center;margin-top:14px}.foot a,.foot button{color:var(--sub);text-decoration:underline;font-size:12.5px}
+  .langbtn{position:absolute;right:max(14px,env(safe-area-inset-right));top:calc(12px + env(safe-area-inset-top));z-index:5;padding:7px 12px;border-radius:99px;background:rgba(255,255,255,.9);border:1px solid var(--line);font-size:13px;font-weight:700}
+  #sStart{position:relative}
   .photoopt{display:flex;gap:6px;margin-top:6px}.photoopt span{font-size:12px;padding:5px 10px;border-radius:99px;border:1.5px solid var(--line);cursor:pointer}.photoopt span.on{background:var(--ink);color:#fff;border-color:var(--ink)}
   /* 스토리 */
   #story{position:fixed;inset:0;z-index:90;background:#1b1824 center/cover no-repeat;display:flex;flex-direction:column;justify-content:flex-end}
@@ -285,6 +289,7 @@
 <!-- 홈 -->
 <section id="sStart" class="wrap">
   <img src="img/title.webp" alt="" class="keyart" onerror="this.remove()">
+  <button id="langBtn" class="langbtn" onclick="setLang(LANG==='zh'?'ko':'zh')"></button>
   <div class="tsub">퍼컬 원장</div>
   <h1 class="ttl">퍼스널컬러 찾으러 갔을 뿐인데<br><span>원장이 된 나?</span></h1>
   <p class="lead" style="margin-bottom:14px">진단받으러 간 동네 살롱을 물려받았다!<br>내 퍼스널컬러로 키우는 <b>스타일리스트 살롱 스토리 게임</b></p>
@@ -442,6 +447,7 @@
     <div class="lobbyhead"><h2>오늘의 손님</h2><button class="chip" id="gRefresh">↻ 새 손님 20🪙</button></div>
     <div id="gBoard"></div>
     <button class="btn secondary" id="gAdRefresh" style="margin-top:6px">📺 광고 보고 무료로 새 손님</button>
+    <p class="small foot"><button id="gReset">🔄 게임 처음부터 다시 하기</button></p>
     <div class="rules">
       <b>난이도와 심사 기준</b><br>
       🟢 <b>기본</b>: 옷 색·상의·머리색 위주로 너그럽게 채점<br>
@@ -596,7 +602,9 @@ const work = document.createElement("canvas"), wctx = work.getContext("2d",{will
 
 /* ---------- 모델 ---------- */
 let seg=null, hairSeg=null, faceLm=null, toCPU=null, mkVideo=null, faceV=null, hairV=null;
-const modelsReady = (async()=>{
+// AI 모델(약 20MB)은 진단·거울 화면에 들어갈 때만 받는다 → 게임만 하는 사람은 받지 않음
+let _models=null;
+const loadModels = ()=> _models || (_models = (async()=>{
   if (MOCK) return;
   $("modelStatus").textContent = "AI 모델 준비 중… (처음 한 번만, 약 20MB)";
   const vis = await import(MP + "/vision_bundle.mjs");
@@ -621,10 +629,10 @@ const modelsReady = (async()=>{
   toCPU = async()=>{ seg = await make(vis.ImageSegmenter,o1,"CPU"); faceLm = await make(vis.FaceLandmarker,o3,"CPU");
                      try{ hairSeg = await make(vis.ImageSegmenter,o2,"CPU"); }catch(e){ hairSeg=null; } };
   $("modelStatus").textContent = "✅ AI 준비 완료";
-})().catch(e=>{ console.error(e); $("modelStatus").textContent = "⚠️ AI 모델을 불러오지 못했어요. 인터넷 연결 후 새로고침 해주세요."; });
+})().catch(e=>{ console.error(e); _models=null; $("modelStatus").textContent = "⚠️ AI 모델을 불러오지 못했어요. 인터넷 연결 후 다시 시도해 주세요."; }));
 
 /* ---------- 화면 전환 ---------- */
-function show(id){ window.SND&&SND.bgm(id==="sGame"?"salon":["sDiag","sWc","sResult","sMirror","sLook","sAvatar"].includes(id)?"diag":"salon"); for (const s of ["sStart","sDiag","sWc","sResult","sLook","sAvatar","sMirror","sGame"]) $(s).classList.toggle("hidden", s!==id); if (id==="sStart" && typeof renderHome==="function") renderHome(); scrollTo(0,0); }
+function show(id){ if (id==="sDiag"||id==="sMirror") loadModels(); window.SND&&SND.bgm(id==="sGame"?"salon":["sDiag","sWc","sResult","sMirror","sLook","sAvatar"].includes(id)?"diag":"salon"); for (const s of ["sStart","sDiag","sWc","sResult","sLook","sAvatar","sMirror","sGame"]) $(s).classList.toggle("hidden", s!==id); if (id==="sStart" && typeof renderHome==="function") renderHome(); scrollTo(0,0); }
 function busy(t){ $("busy").classList.remove("hidden"); $("busyText").innerHTML=t; $("busy").querySelector(".spin").classList.remove("hidden"); }
 function busyErr(t){ busy(t); $("busy").querySelector(".spin").classList.add("hidden");
   $("busyText").innerHTML += `<br><br><button class="btn primary" style="width:auto;padding:12px 22px;display:inline-flex" onclick="location.reload()">처음으로</button>`; }
@@ -659,7 +667,7 @@ async function analyze(img){
   const fctx=full.getContext("2d",{willReadFrequently:true}); fctx.drawImage(img,0,0,FW,FH);
 
   busy("AI가 얼굴·머리카락·옷을 찾는 중…");
-  await modelsReady;
+  await loadModels();
   let m;
   if (MOCK) m = window.__mockAnalyze(fctx.getImageData(0,0,FW,FH), FW, FH);
   else {
@@ -1167,9 +1175,11 @@ $("btnMirBack").onclick=()=>{ closeMirror(); show("sStart"); };
 document.querySelectorAll("#mirTabs button").forEach(b=>b.onclick=()=>{ mir.tab=b.dataset.t; mirUI(); });
 
 function mirColors(){
+  const all=k=>[...SEASONS[k].pal, ...(SEASONS[k].ext||[])];
   if (result){ const S=result.S;
-    return [{g:`${S.em} 내 컬러 (${S.name})`, list:S.pal}, {g:"🙅 피하면 좋은 색", list:S.avoid}]; }
-  return SKEYS.map(k=>({g:`${SEASONS[k].em} ${SEASONS[k].name}`, list:SEASONS[k].pal.slice(0,4)}));
+    return [{g:`${S.em} 내 컬러 (${S.name})`, list:all(result.key)}, {g:"🙅 피하면 좋은 색", list:S.avoid},
+      ...SKEYS.filter(k=>k!==result.key).map(k=>({g:`${SEASONS[k].em} ${SEASONS[k].name}`, list:all(k)}))]; }
+  return SKEYS.map(k=>({g:`${SEASONS[k].em} ${SEASONS[k].name} · 옆으로 밀어 더 보기 →`, list:all(k)}));
 }
 function mirFlat(){ return mirColors().flatMap(x=>x.list); }
 function mirHairs(){ const base=[{n:"원래 색",c:null}]; return result? [...base, ...result.S.hair, ...XHAIR] : [...base, ...SKEYS.flatMap(k=>SEASONS[k].hair.slice(0,1)), ...XHAIR]; }
@@ -1178,7 +1188,7 @@ async function openMirror(){
   show("sMirror");
   busy("카메라와 AI 준비 중…");
   try{
-    await modelsReady;
+    await loadModels();
     if (!MOCK){ if (!mkVideo) throw new Error("모델 없음"); await mkVideo(); }
     const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:{ideal:720}, height:{ideal:960}}, audio:false});
     const v=$("mirVideo"); v.srcObject=stream; await v.play();
@@ -1225,9 +1235,13 @@ function mirLoop(){
   if (!mir || !mir.run) return;
   const v=mir.v;
   if (v.readyState<2 || !v.videoWidth){ requestAnimationFrame(mirLoop); return; }
-  const PW=Math.min(480, v.videoWidth), PH=Math.round(v.videoHeight*PW/v.videoWidth);
+  // 자동 프레이밍: 세로(3:4) 화면에 얼굴~어깨가 꽉 차도록 얼굴을 따라 확대
+  const VW=v.videoWidth, VH=v.videoHeight, PW=360, PH=480;
   if (mc.width!==PW || mc.height!==PH){ mc.width=PW; mc.height=PH; mir.F=null; mir.hm=null; }
-  mctx.setTransform(-1,0,0,1,PW,0); mctx.drawImage(v,0,0,PW,PH); mctx.setTransform(1,0,0,1,0,0);   // 거울처럼 좌우 반전
+  const fit=()=>{ const w=Math.min(VW, VH*0.75), h=w/0.75; return {x:(VW-w)/2, y:(VH-h)/2, w, h}; };
+  if (!mir.crop) mir.crop=fit();
+  const cp=mir.crop;
+  mctx.setTransform(-1,0,0,1,PW,0); mctx.drawImage(v,cp.x,cp.y,cp.w,cp.h,0,0,PW,PH); mctx.setTransform(1,0,0,1,0,0);   // 거울처럼 좌우 반전
   const ts=performance.now();
   let lm=null;
   try{
@@ -1239,6 +1253,15 @@ function mirLoop(){
   }catch(e){ console.warn(e); }
   mir.n++;
   if (lm){ mir.F = smoothF(mir.F, buildFrame(lm,PW,PH), 0.5); mir.lost=0; } else mir.lost++;
+  { // 다음 프레임의 잘라낼 영역 갱신 (얼굴 폭이 화면의 34% 정도, 얼굴은 위에서 38% 지점)
+    let T=fit();
+    if (mir.F && mir.lost<15){
+      const fx=cp.x+(PW-mir.F.c.x)/PW*cp.w, fy=cp.y+mir.F.c.y/PH*cp.h, fw=mir.F.Wf/PW*cp.w;
+      let w=Math.min(T.w, Math.max(fw/0.34, 160)), h=w/0.75;
+      T={x:Math.min(VW-w,Math.max(0,fx-w/2)), y:Math.min(VH-h,Math.max(0,fy-0.38*h)), w, h};
+    }
+    const k=mir.lost<15?0.12:0.04; for (const key of ["x","y","w","h"]) cp[key]+= (T[key]-cp[key])*k;
+  }
   $("mirHint").classList.toggle("hidden", mir.lost<15);
   if (mir.F && mir.lost<15){
     const img=mctx.getImageData(0,0,PW,PH); paintMirror(img.data,PW,PH); mctx.putImageData(img,0,0);
@@ -1250,7 +1273,7 @@ function mirLoop(){
 function paintMirror(d,W2,H2){
   const {c,ux,uy,chinY,y10,Wf}=mir.F, hm=mir.hm, nw=0.34*Wf;
   const tc=hex(mir.color.c), th=mir.hair?hex(mir.hair):null;
-  const topY=lx=>{ const a=Math.abs(lx); return a<=nw ? chinY+0.07*Wf+0.10*Wf*(1-(lx/nw)**2) : chinY+0.07*Wf+0.34*(a-nw); };
+  const topY=lx=>{ const a=Math.abs(lx); return a<=nw ? chinY+0.07*Wf+0.10*Wf*(1-(lx/nw)**2) : chinY+0.07*Wf+0.30*(a-nw)-0.08*Math.max(0,a-1.1*Wf); };   // 어깨 바깥은 완만하게 → 화면 끝까지 덮음
   const midY=(y10+chinY)/2, hh=(chinY-y10)/2;
   let sumL=0, cnt=0;
   for (let y=0;y<H2;y++){
@@ -1305,10 +1328,15 @@ $("btnMirAsk").onclick=()=>{
    ========================================================= */
 const IMGOK = new Set();
 function preload(src){ return new Promise(r=>{ const i=new Image(); i.onload=()=>{IMGOK.add(src); r(true)}; i.onerror=()=>r(false); i.src=src; }); }
+// 첫 화면을 가볍게: 게임 그림은 게임에 들어갈 때(또는 잠시 뒤) 한꺼번에 받는다
+const LATER=[]; let warmP=null, warmDone=false;
+const later = src => { LATER.push(src); };
+const warm = ()=> warmP || (warmP = Promise.all(LATER.map(preload)).then(()=>{ warmDone=true; }));
+addEventListener("load",()=>setTimeout(warm,4000));
 const JIMG = k=>`img/judge_${k}.webp`;
 const LOC = {festival:"img/bg_festival.webp", date:"img/bg_cafe.webp", interview:"img/bg_office.webp", office:"img/bg_office.webp", travel:"img/bg_travel.webp", campus:"img/bg_campus.webp"};
-["color","trend","stylist"].forEach(k=>{ preload(JIMG(k)); preload(`img/judge_${k}_happy.webp`); preload(`img/judge_${k}_sad.webp`); });
-Object.values(LOC).forEach(preload); preload("img/salon_bg.webp");
+["color","trend","stylist"].forEach(k=>{ later(JIMG(k)); later(`img/judge_${k}_happy.webp`); later(`img/judge_${k}_sad.webp`); });
+Object.values(LOC).forEach(later); later("img/salon_bg.webp");
 
 const JUDGES = [
   {k:"color",   n:"컬러 디렉터 모나",   em:"🎨"},
@@ -1428,7 +1456,7 @@ const CUSTOMERS = [
 const IMGEXT=".webp";
 const portraitOf = c => `img/cust_${String(c.id).padStart(2,"0")}${IMGEXT}`;
 const afterOf = c => `img/cust_${String(c.id).padStart(2,"0")}_after${IMGEXT}`;
-CUSTOMERS.forEach(c=>{ preload(portraitOf(c)); if (c.real) preload(afterOf(c)); });
+CUSTOMERS.forEach(c=>{ later(portraitOf(c)); if (c.real) later(afterOf(c)); });
 const REQ = {
   festival:["이번 주말 음악 페스티벌 가요! 사진 잘 나오게 해주세요","친구들이랑 페스티벌 가는데 확 튀고 싶어요"],
   date:["다음 주에 소개팅이 있어요. 화사해 보이고 싶어요","첫 데이트예요… 부드러운 인상이면 좋겠어요"],
@@ -1513,7 +1541,9 @@ function popSlots(){
 function makeBoard(){
   const lv=gLevel();
   const tiers=["basic", lv>=2?"mid":"basic", lv>=3?"hard":lv>=2?"mid":"basic", lv>=2?"mid":"basic", lv>=3?"hard":"basic"];
-  G.board=tiers.slice(0,popSlots()).map(makeCustomer);
+  // 같은 손님이 한 판에 두 번 나오지 않게
+  const used=new Set(); G.board=[];
+  for (const t of tiers.slice(0,popSlots())){ let C; for (let k=0;k<12;k++){ C=makeCustomer(t); if (!used.has(C.id)) break; } used.add(C.id); G.board.push(C); }
   if (me && !G.meDone) G.board.unshift(meCustomer());
 }
 function faceHTML(C){
@@ -1524,7 +1554,9 @@ function faceHTML(C){
 
 /* ---------- 화면 ---------- */
 let gTimerId=0;
-function openGame(){ gLoad(); if (!G.board) makeBoard(); show("sGame"); gView("lobby"); }
+async function openGame(){
+  if (!warmDone){ busy("살롱 문 여는 중…"); await Promise.race([warm(), new Promise(r=>setTimeout(r,3000))]); unbusy(); }
+  gLoad(); if (!G.board) makeBoard(); show("sGame"); gView("lobby"); }
 function gView(v){
   for (const [id,k] of [["gLobby","lobby"],["gPlay","play"],["gResult","result"],["gShop","shop"],["gWeekly","weekly"]]) $(id).classList.toggle("hidden",v!==k);
   G.view=v; gStats();
@@ -1618,6 +1650,11 @@ function accept(i){
 }
 function startSpecial(C){ G.cust=C; G.look=defaultLook(C); G.tab="hair"; gView("play"); startTimer(TIERS[C.tier]); }
 $("gRefresh").onclick=()=>{ if (G.coins<20){ toast("코인이 부족해요. 광고로 새로고침 해보세요"); return; } G.coins-=20; makeBoard(); gSave(); gView("lobby"); };
+$("gReset").onclick=async()=>{
+  if (!await uiConfirm("코인·아이템·스토리·어워드 기록이 모두 사라지고<br><b>프롤로그부터 다시 시작해요.</b><br><span class='small'>퍼스널컬러 진단 결과와 내 사진은 그대로 남아요.</span>","처음부터","취소")) return;
+  clearInterval(gTimerId); try{ localStorage.removeItem("cs_game3"); }catch(e){}
+  G=null; gLoad(); makeBoard(); gSave(); gView("lobby"); toast("새 게임을 시작해요!");
+};
 $("gAdRefresh").onclick=()=>playAd(()=>{ makeBoard(); gSave(); gView("lobby"); toast("새 손님이 왔어요!"); });
 function playAd(done){
   const m=$("adModal"); m.classList.remove("hidden"); let n=3; $("adCount").textContent=n;
@@ -2044,7 +2081,7 @@ $("gWeeklyBtn").onclick=()=>gView("weekly");
 $("wBack").onclick=()=>gView("lobby");
 const cleanName=n=>String(n||"").replace(/[<>&"'`]/g,"").trim().slice(0,10);
 $("wName").onclick=async()=>{ const n=cleanName(await uiPrompt("랭킹에 표시할 닉네임 (10자 이내)", G.name||"")); if (n){ G.name=n; gSave(); renderWeekly(); } };
-$("wGo").onclick=async()=>{ if (!G.name){ G.name=cleanName(await uiPrompt("랭킹에 표시할 닉네임을 정해 주세요 (10자 이내)","스타일리스트"))||"스타일리스트"; gSave(); } startSpecial(weeklyCustomer()); };
+$("wGo").onclick=async()=>{ if (!G.name){ G.name=cleanName(await uiPrompt("랭킹에 표시할 닉네임을 정해 주세요 (10자 이내)",(window.TR||(x=>x))("스타일리스트")))||(window.TR||(x=>x))("스타일리스트"); gSave(); } startSpecial(weeklyCustomer()); };
 $("wShare").onclick=async()=>{
   const my=G.weekly; if (!my) return;
   const url=location.origin+location.pathname+"?ghost="+encGhost({n:G.name||"익명", w:weekKey(), L:my.look});
@@ -2063,8 +2100,8 @@ $("wShare").onclick=async()=>{
 const SIMG = {mentor_happy:"img/mentor_happy.webp", mentor_serious:"img/mentor_serious.webp", rival_smug:"img/rival_smug.webp", rival_angry:"img/rival_angry.webp",
   mona:"img/judge_color_happy.webp", jay:"img/judge_trend_happy.webp", haru:"img/judge_stylist_happy.webp", mona_s:"img/judge_color.webp", jay_s:"img/judge_trend.webp", haru_s:"img/judge_stylist.webp"};
 const SBG = {old:"img/bg_oldsalon.webp", salon:"img/salon_bg.webp", mag:"img/bg_magazine.webp", award:"img/bg_award.webp"};
-Object.values(SIMG).forEach(preload); Object.values(SBG).forEach(preload);
-["gold","silver","bronze","none"].forEach(k=>SIMG["tr_"+k]=`img/trophy_${k}${IMGEXT}`); Object.keys(SIMG).filter(k=>k.startsWith("tr_")).forEach(k=>preload(SIMG[k]));
+Object.values(SIMG).forEach(later); Object.values(SBG).forEach(later);
+["gold","silver","bronze","none"].forEach(k=>SIMG["tr_"+k]=`img/trophy_${k}${IMGEXT}`); Object.keys(SIMG).filter(k=>k.startsWith("tr_")).forEach(k=>later(SIMG[k]));
 const WHO = {trophy:["","🏆"], mentor:["봄날 원장님","👵"], rival:["레오 (블룸 스튜디오)","😎"], mona:["모나","🎨"], jay:["제이","📱"], haru:["하루","💇"], me:["나","🙂"], "":["",""]};
 const seasonTxt = ()=> me ? SEASONS[me.key].name : "네 색";
 const STORY = {
@@ -2297,6 +2334,7 @@ function saveMe(){
 }
 
 $("btnGame").onclick=openGame; $("btnGame0").onclick=openGame;
+$("langBtn").textContent = window.LANG==="zh" ? "🇰🇷 한국어" : "🇨🇳 中文";
 $("wipeAll").onclick=async()=>{
   if (!await uiConfirm("진단 결과, 얼굴 썸네일, 게임 진행(코인·아이템·스토리)을<br><b>이 휴대폰에서 모두 지울까요?</b><br><span class='small'>되돌릴 수 없어요.</span>","모두 지우기","취소")) return;
   try{ ["cs_me","cs_game3","cs_tut2","cs_sound","cs_gender","cs_av"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
