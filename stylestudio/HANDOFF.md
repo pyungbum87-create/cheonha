@@ -1,13 +1,16 @@
-# 퍼컬 원장 — 작업 인계 메모 (v1.0, 2026-11-15)
+# 퍼컬 원장 — 작업 인계 메모 (v1.1, 2026-11-15)
 
 **제목**: 퍼스널컬러 찾으러 갔을 뿐인데 원장이 된 나? (줄임말: 퍼컬 원장)
 **테스트 주소**: https://pyungbum87-create.github.io/cheonha/stylestudio/
-**저장소 위치**: `pyungbum87-create/cheonha` → `stylestudio/` 폴더 (index.html, avatar.js, img/)
+**저장소 위치**: `pyungbum87-create/cheonha` → `stylestudio/` 폴더 (index.html, avatar.js, beauty.js, sound.js, img/, PROMPTS.md)
 
 ## 파일 구성
 - `index.html` — 앱 전체 (화면, 진단, 게임, 스토리, 상점, 채점 엔진)
 - `avatar.js` — 전신 아바타 SVG (헤어 22, 상의 10, 하의 6, 신발 5, 소품 14, 메이크업 립9/블러셔8/섀도5, ✨고급 버전 렌더)
-- `img/` — 심사위원(기본/happy/sad), 손님 12명 초상화(cust_01~12), 장소 배경 5장, 살롱 배경, 대표 이미지
+- `beauty.js` — 내 사진 보정(원본/자연스럽게/화사하게): 피부 매끈·화사, 다크서클, 눈 키우기, 턱선. 기기 안 처리. 진단 화면은 원본 유지
+- `sound.js` — 효과음(WebAudio 합성, 파일 없음) + 배경음악(`audio/bgm_salon|diag|story|award.mp3`, 없으면 무음) + 왼쪽 아래 소리 버튼
+- `PROMPTS.md` — 아직 없는 그림 프롬프트, 픽사베이 배경음악 목록
+- `img/` — 모두 webp (v1.1에서 jpg→webp, 2.8MB→약 1.2MB). 심사위원(기본/happy/sad), 손님 12명 초상화(cust_01~12), 장소 배경 5장, 살롱 배경, 대표 이미지
 
 ## 핵심 시스템
 1. **퍼스널컬러 진단**: 셀카 → MediaPipe(기기 안 분석, 서버 전송 없음) → 16색 천 월드컵 → 시즌 결과 → '나' 저장(localStorage `cs_me`, 얼굴 썸네일은 선택 시에만)
@@ -23,13 +26,18 @@
 8. **광고 자리(테스트 화면)**: 아이템 ✨고급 버전 업그레이드, 히든 아이템 해금(3회), 코인 2배, 손님 새로고침
 9. **손가락 튜토리얼**, 실시간 거울 모드, 사진 상황별 룩
 
-## 대기 중인 그림 (ChatGPT로 제작 예정)
-1. 봄날 원장님(멘토) 웃음/진지 2컷 → `img/mentor_happy.jpg`, `img/mentor_serious.jpg`
-2. 라이벌 레오 여유/분함 2컷 → `img/rival_smug.jpg`, `img/rival_angry.jpg`
-3. 낡은 동네 살롱 배경 → `img/bg_oldsalon.jpg`
-4. 매거진 촬영 스튜디오 → `img/bg_magazine.jpg`
-5. 스타일 어워드 무대 → `img/bg_award.jpg`
-(파일만 넣으면 자동 적용, 없으면 살롱 배경·이모지로 대체)
+## v1.1 추가
+- 그림 5장 적용: 멘토·레오 표정 2컷씩, 낡은 살롱·매거진·어워드 배경
+- **어워드 시즌(엔드리스)**: 최종장 이후 손님 8명마다 한 달 → 월간 어워드(레오와 대결, 🥇대상/🥈우수상/🥉장려상), 12월은 연말 대상(라이벌 3곳 모두), 해가 갈수록 라이벌 실력 상승. 상태 `G.aw`
+- **상점 확장**: 가방 8종(새 탭, TPO 채점 `BAGFIT`), 소품 8종(진주 목걸이·링/드롭 귀걸이·시계 2·뱅글·리본·버킷햇), 신발 3종(뮬·옥스퍼드·청키). 같은 묶음 소품은 하나만(`ACC_GROUPS`). 요청 "가방도 골라 주세요" 추가
+- **현실 손님 12명**(id 13~24, `real:true`, 고민 `worry`): A 이상이면 결과 화면에 변신 전→후. 그림 없으면 아바타로 대신
+- 아이템 그림 자리: `img/items/<키>.webp` 있으면 상점에서 그림으로 표시. 트로피 `img/trophy_gold|silver|bronze|none.webp`
+
+## 대기 중인 그림·음악 (PROMPTS.md 참고)
+1. 현실 손님 12명 변신 전/후 → `img/cust_13~24.webp`, `img/cust_13~24_after.webp`
+2. 신발·가방·소품 아이콘(4개 묶음 시트) → 잘라서 `img/items/<키>.webp`
+3. 트로피 4종 → `img/trophy_*.webp`
+4. 배경음악 4곡 → `audio/bgm_*.mp3`
 
 ## 다음 할 일 후보
 - 밸런스 조정(코인·보증금·라이벌 성장 속도) — 실제 플레이 피드백 기반
