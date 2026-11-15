@@ -1083,8 +1083,8 @@ function capitalOf(f){
 function newGame(pid, sc, mode){
   sc = sc || 196; mode = mode || 'real';
   G = { year:sc, month:1, scen:sc, mode, people:{}, cities:{}, facs:{}, armies:[], bond:{}, sworn:[], chron:[], mnews:[], queue:[], done:{}, recent:[],
-        kids:[], spouse:null, heir:null, gen:1, dyn:[], dynScore:0, wins:0, duels:0, flags:{ sieges:0 }, nid:0, firstPid:pid,
-        firstHist:null, toast:null, sel:null, view:'map', phase:'act', maxAge:0, scout:{}, plots:{}, ambush:{}, plotWins:0, inArmy:null, campaign:null, lastEvent:0 };
+        kids:[], spouse:null, spouses:[], heir:null, gen:1, dyn:[], dynScore:0, wins:0, duels:0, flags:{ sieges:0 }, nid:0, firstPid:pid,
+        diff:(prefs().diff||'normal'), firstHist:null, toast:null, sel:null, view:'map', phase:'act', maxAge:0, scout:{}, plots:{}, ambush:{}, plotWins:0, inArmy:null, campaign:null, lastEvent:0 };
   initWorld(sc);
   const p0 = person(pid), start = Math.max(sc, p0.ap);
   G.protect = pid;
@@ -1132,6 +1132,7 @@ function calendar(ff){
       if (me().tr==='장수' && d>0) d = Math.ceil(d/2);
       if (d>0) d += ri(0,3);
       G.hp = clamp(G.hp - d);
+      for (const k of G.kids) if (k.pid && person(k.pid) && person(k.pid).alive){ const q = person(k.pid); for (const st of ['m','i','l','c']) q[st] = Math.max(q[st], kidStat(k, st)); }
       for (const k of G.kids) if (G.year-k.born===15) news(`${J(k.n,'이')} 성인이 되었다. 후계자로 세울 수 있다.`, true, true);
     }
   }
@@ -1155,7 +1156,7 @@ function monthStep(ff){
           if (c.troops < cap) c.troops += Math.round(g.l*1.2);
           if (c.dev<10 && Math.random() < (g.i-30)/1800){ c.dev++; news(`${c.n} 태수 ${g.n}의 다스림으로 개발도가 ${c.dev}(으)로 올랐다.`, false, true); }
         } else if (c.gov && c.gov!==G.pid && (!g || !active(g) || g.fac!==f.id || g.city!==c.id)) c.gov = null;
-      } else if (c.troops < cap) c.troops = Math.min(cap, c.troops + c.dev*30);
+      } else if (c.troops < cap) c.troops = Math.min(cap, c.troops + Math.round(c.dev*30*dif().grow));
     }
     if (f.id===pr) continue;
     f.gold = (f.gold||0) + cs.reduce((a,c)=>a+c.dev*8, 0);
@@ -1181,6 +1182,7 @@ function monthStep(ff){
   if (!ff && G.role==='ruler'){
     for (const p of npcs().filter(q => q.fac===G.pfac)){
       p.loy = clamp(p.loy + (55 + bond(p.id)/2 - p.loy)*.02);
+      if (p.inlaw || isInlawId(p.id)){ p.loy = Math.max(p.loy, 70); G.bond[p.id] = Math.max(G.bond[p.id]||0, 60); }
       if (p.loy < 30 && !isSworn(p.id) && !p.army && Math.random()<.03){ p.fac = 'free'; news(`${J(p.n,'이')} 불만을 품고 떠났다.`, true, true); }
     }
   }
@@ -1195,6 +1197,19 @@ function monthStep(ff){
       news(`${facName(f.id)}의 유언비어가 ${c.n}에 퍼져 병사 ${fmt(n)}이 달아났다.`, false, true);
     }
   }
+  if (!ff && G.role==='ruler') for (const _sp2 of spList()){ if (!_sp2.from) continue;
+    const rp = person(_sp2.from), f2 = rp && Object.values(G.facs).find(f => f.alive && f.ruler===rp.id);
+    if (f2 && allied(G.pfac, f2.id)){
+      if (G.month===1){ G.gold += 150; news(`처가 ${facName(f2.id)}에서 축하 선물로 금 150을 보내왔다.`, false, true); }
+      for (const c of citiesOf(G.pfac)){
+        if (!besieged(c.id) || Math.random() > .18 || G.armies.some(a => a.fac===f2.id && a.to===c.id)) continue;
+        const src = c.adj.map(city).find(x => x.owner===f2.id && x.troops>=3000); if (!src) continue;
+        const n = Math.round(src.troops*.25), g = bestGen(src.id, f2.id); src.troops -= n;
+        createArmy({ fac:f2.id, gens:g?[g.id]:[], troops:n, from:src.id, to:c.id, kind:'reinforce', food:3 });
+        news(`처가 ${facName(f2.id)}이(가) ${c.n}에 원군 ${fmt(n)}을 보냈다!`, true, true);
+      }
+    }
+  }
   for (const f of Object.values(G.facs)) for (const k of Object.keys(f.ally)){ f.ally[k]--; if (f.ally[k]<=0) delete f.ally[k]; }
   if (!ff && G.pfac && G.role==='ruler' && citiesOf(G.pfac).length>=Math.round(CITY_RAW.length*.4) && !(G.coalition > mi())){
     const rest = aliveFacs().filter(f => f.id!==G.pfac && citiesOf(f.id).length);
@@ -1205,6 +1220,11 @@ function monthStep(ff){
 
 /* ---------------- AI 전쟁 ---------------- */
 let AI_SEND = .65, AI_THRESH = 1.0, AI_RATE = .10;
+const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { rate:.55, thr:1.05, grow:.8, inc:1.3, plot:.10 }],
+  normal:['보통','기본 균형', { rate:1, thr:1, grow:1, inc:1, plot:0 }],
+  hard:['어려움','적이 더 자주, 더 크게 쳐들어온다', { rate:1.5, thr:.85, grow:1.2, inc:.85, plot:-.05 }],
+  nanse:['난세','모두가 그대를 노린다. 계략도 잘 안 통한다', { rate:2.2, thr:.7, grow:1.5, inc:.7, plot:-.10 }] };
+const dif = () => (DIFF[(G && G.diff) || 'normal'] || DIFF.normal)[2];
 function aiWar(f, ff){
   const cs = citiesOf(f.id);
   for (const c of cs){
@@ -1218,7 +1238,7 @@ function aiWar(f, ff){
     if (!ff && G.armies.some(a => a.fac===G.pfac && a.to===c.id)) news(`${facName(f.id)}이(가) ${c.n}에 원군 ${fmt(n)}을 보냈다!`, true, true);
   }
   const busy = G.armies.some(a => a.fac===f.id && a.kind==='attack');
-  if (Math.random() > (busy ? AI_RATE*.35 : AI_RATE)) return;
+  if (Math.random() > (busy ? AI_RATE*.35 : AI_RATE)*dif().rate) return;
   const targets = new Set();
   for (const c of cs) for (const t of c.adj) targets.add(t);
   let best = null;
@@ -1232,7 +1252,7 @@ function aiWar(f, ff){
     const def = t.troops * (1 + t.wall/400) * 1.1;
     const big = !ff && G.pfac && citiesOf(G.pfac).length>=Math.round(CITY_RAW.length*.35);
     const score = avail/def * (t.owner ? 1 : 1.4) * (!ff && t.owner===G.pfac ? (big ? 1.3 : .9) : 1) * rnd(.85, 1.15);
-    if (score > AI_THRESH && (!best || score > best.score)) best = { t, srcs, score };
+    if (score > AI_THRESH*dif().thr && (!best || score > best.score)) best = { t, srcs, score };
   }
   if (!best) return;
   const used = best.srcs;
@@ -1344,6 +1364,7 @@ function arrive(a, ff){
   if (a.state==='return'){ disband(a, a.home); return; }
   const t = city(a.to);
   if (t.owner===a.fac){ disband(a, t.id); if (!ff && a.kind==='reinforce' && involves(a)) news(`원군이 ${t.n}에 도착했다.`, false, true); return; }
+  if (a.kind==='reinforce' && t.owner && t.owner!==a.fac && allied(a.fac, t.owner)){ t.troops += a.troops; if (!ff) news(`${facName(a.fac)}의 원군 ${fmt(a.troops)}이 ${t.n}에 입성했다.`, true, t.owner===G.pfac); disband(a, null); return; }
   if (a.kind==='reinforce' || (t.owner && allied(a.fac, t.owner))){ sendHome(a, null, ff); return; }
   a.state = 'siege'; a.siege = 0;
   if (!ff && (involves(a) || visible(t.id))) news(`${armyName(a)}이(가) ${t.n}에 도착해 성을 에워쌌다.`, involves(a), involves(a));
@@ -1386,7 +1407,7 @@ function mkSide(gid, troops, train, fid, isPlayer){
 }
 function supportFor(cid, s){
   const h = peopleIn(cid, G.pfac).filter(p => bond(p.id)>=60).sort((a,b)=>bond(b.id)-bond(a.id)).slice(0,2);
-  s.helpers = h.map(p=>p.n); s.support = h.length*.08 + h.filter(p=>isSworn(p.id)).length*.04;
+  s.helpers = h.map(p=>p.n); s.support = h.length*.08 + h.filter(p=>isSworn(p.id) || p.inlaw || isInlawId(p.id)).length*.04;
 }
 function mkArmySide(list, fid){
   const gens = list.flatMap(a => a.gens).map(person).filter(p => p && p.alive);
@@ -1542,6 +1563,7 @@ function destroyFaction(f, ff){
 }
 function killNpc(p, cause){
   p.alive = false;
+  { const kk = G.kids && G.kids.find(x => x.pid===p.id); if (kk) kk.dead = G.year; }
   for (const c of allCities()) if (c.gov===p.id) c.gov = null;
   if (p.army){ const a = armyById(p.army); if (a) a.gens = a.gens.filter(g => g!==p.id); p.army = null; }
   if (G.pid && notable(p)) news(`${J(p.n,'이')} ${ageOf(p)}세로 세상을 떠났다${cause==='처형'?' (처형)':''}.`, true, p.fac===G.pfac || isSworn(p.id));
@@ -1893,12 +1915,13 @@ function check(stat, d){ let v = me()[stat]; const tr = me().tr; if ((tr==='맹�
 const roll = (stat, d) => Math.random() < check(stat, d);
 function trustAdd(v){ if (v<0 && me().tr==='충의') v = Math.round(v*.6); if (v>0 && me().tr==='인덕') v = Math.round(v*1.2); G.trust = clamp(G.trust+v); return v; }
 const foodCost = (troops, months) => Math.round(troops/1000*months*12);
+const plotBonus = () => clamp((me().i-65)/300, -.05, .15) + dif().plot;
 function plotChance(kind, cid, gid){
   const c = city(cid), dg = bestGen(cid, c.owner), res = dg ? dg.i : 40;
-  if (kind==='discord'){ const t = person(gid); return clamp(.15 + (me().i-60)/120 + (me().c-60)/200 + bond(gid)/200 - (t.loy||70)/250, .03, .8); }
-  return check('i', res + ({ rumor:5, arson:15, inside:10 }[kind]||10));
+  if (kind==='discord'){ const t = person(gid); return clamp(.15 + (me().i-60)/120 + (me().c-60)/200 + bond(gid)/200 - (t.loy||70)/250 + plotBonus(), .03, .85); }
+  return clamp(check('i', res + ({ rumor:5, arson:15, inside:10 }[kind]||10)) + plotBonus(), .03, .95);
 }
-function armyPlotChance(a){ const g = a.gens.map(person).find(p => p && p.alive); return check('i', (g ? g.i : 40) + 5); }
+function armyPlotChance(a){ const g = a.gens.map(person).find(p => p && p.alive); return clamp(check('i', (g ? g.i : 40) + 5) + plotBonus(), .03, .95); }
 
 const ACT = {
   train(){ const cost = G.role==='ruler' ? 60 : 0; if (!spend(cost)) return; const v = G.role==='ruler'?5:6; G.train = clamp(G.train+v); if (G.role==='officer') G.merit += 1;
@@ -2088,22 +2111,72 @@ const ACT = {
     else toast(`${J(facName(fid),'이')} 동맹 제의를 거절했다.`, [['금 -200',false]], true);
   },
   marry(target){
-    if (G.spouse || ageOf(me())<15) return;
-    if (target==='noble'){ if (!spend(300)) return; const s = pick(NOBLE); G.spouse = { n:`${s}씨`, st:{ m:ri(30,60), i:ri(45,80), l:ri(30,60), c:ri(55,85) }, from:null, y:G.year, look:spouseLook() };
+    if (spList().length>=MAXSP() || ageOf(me())<15) return;
+    if (target==='noble'){ if (!spend(300)) return; const s = pick(NOBLE); addSpouse({ n:`${s}씨`, st:{ m:ri(30,60), i:ri(45,80), l:ri(30,60), c:ri(55,85) }, from:null, y:G.year, look:spouseLook() });
       toast(`명문가 ${s}씨 집안과 혼례를 올렸다.`, [['혼인',true],['금 -300',false]]); news(`${J(me().n,'이')} ${s}씨와 혼인했다.`, true, true); return; }
     if (target.startsWith('fac:')){
       const fid = target.slice(4); if (G.role!=='ruler' || !fac(fid).alive || !spend(400)) return;
       const r = person(fac(fid).ruler);
-      if (Math.random() < clamp(.35 + (me().c-60)/100, .1, .85)){ const s = surnameOf(r.n); G.spouse = { n:`${s}씨`, st:{ m:ri(30,60), i:ri(50,80), l:ri(30,60), c:ri(60,90) }, from:r.id, y:G.year, look:spouseLook() };
+      if (isInlawId(r.id)) return;
+      if (Math.random() < clamp(.35 + (me().c-60)/100, .1, .85)){ const s = surnameOf(r.n); addSpouse({ n:`${s}씨`, st:{ m:ri(30,60), i:ri(50,80), l:ri(30,60), c:ri(60,90) }, from:r.id, y:G.year, look:spouseLook() });
         fac(G.pfac).ally[fid] = 60; fac(fid).ally[G.pfac] = 60; addBond(r.id, 30);
         toast(`${r.n}의 딸과 혼인했다. 두 세력이 5년 동맹을 맺는다.`, [['혼인',true],['동맹 5년',true]]); news(`${J(facName(G.pfac),'과')} ${facName(fid)}이(가) 혼인 동맹을 맺었다.`, true, true); }
       else toast(`${J(r.n,'이')} 혼담을 거절했다.`, [['금 -400',false]], true);
       return;
     }
-    const p = person(target); if (!active(p) || bond(target)<50 || !spend(0)) return;
+    const p = person(target); if (!active(p) || bond(target)<50 || isInlawId(target) || !spend(0)) return;
     const s = surnameOf(p.n);
-    G.spouse = { n:`${s}씨`, st:{ m:Math.round(p.m*.7), i:Math.round(p.i*.8), l:Math.round(p.l*.7), c:Math.round(p.c*.85) }, from:p.id, y:G.year, look:spouseLook() };
+    addSpouse({ n:`${s}씨`, st:{ m:Math.round(p.m*.7), i:Math.round(p.i*.8), l:Math.round(p.l*.7), c:Math.round(p.c*.85) }, from:p.id, y:G.year, look:spouseLook() });
+    if (G.pfac && p.fac===G.pfac) p.inlaw = 1;
     addBond(target, 25); toast(`${p.n}의 딸과 혼인했다. 이제 한 가족이다.`, [['혼인',true],[`${p.n} 인연 +25`,true]]); news(`${J(me().n,'이')} ${p.n}의 딸과 혼인했다.`, true, true);
+  },
+  enlist(kidId){
+    const k = G.kids.find(x => x.id===kidId); if (!k || k.pid || k.dead || k.out || !G.pfac || G.year-k.born<15 || !spend(0)) return;
+    const id = 'p'+(++G.nid);
+    G.people[id] = { id, n:k.n, fac:G.pfac, city:G.city, b:k.born, d:null, m:kidStat(k,'m'), i:kidStat(k,'i'), l:kidStat(k,'l'), c:kidStat(k,'c'), tr:pick(Object.keys(TRAITS)), ap:G.year, alive:true, active:true, loy:95, fam:1, look:k.look||kidLook(k), female:k.sex==='여', army:null };
+    k.pid = id; G.bond[id] = 80;
+    toast(`${J(k.n,'이')} 장수로 군에 들어갔다. 이제 한 부대를 맡길 수 있다.`, [[`${k.n} 출사`,true]]); news(`${J(k.n,'이')} 아버지 곁에서 장수로 출사했다.`, true, true);
+  },
+  marryKid(kidId, target){
+    const k = G.kids.find(x => x.id===kidId); if (!k || k.pid || k.dead || k.out || G.year-k.born<15) return;
+    if (target.startsWith('fac:')){
+      const fid = target.slice(4), f = fac(fid); if (!f || !f.alive || !G.pfac || fid===G.pfac || !spend(200)) return;
+      const r = person(f.ruler);
+      if (Math.random() < clamp(.4 + (me().c-60)/100, .15, .9)){
+        k.out = fid; k.outN = facName(fid); if (G.heir===k.id) G.heir = null;
+        fac(G.pfac).ally[fid] = Math.max(fac(G.pfac).ally[fid]||0, 48); f.ally[G.pfac] = Math.max(f.ally[G.pfac]||0, 48); addBond(r.id, 20);
+        toast(`${J(k.n,'이')} ${r.n}의 가문과 혼인했다. 두 세력이 4년 동맹을 맺는다.`, [['혼인 동맹',true],['금 -200',false]]); news(`${me().n}의 ${k.sex==='여'?'딸':'아들'} ${J(k.n,'이')} ${facName(fid)}과 혼인으로 맺어졌다.`, true, true);
+      } else toast(`${J(r.n,'이')} 혼담을 거절했다.`, [['금 -200',false]], true);
+      return;
+    }
+    if (target.startsWith('p:')){
+      const p = person(target.slice(2)); if (!p || !active(p) || p.fac!==G.pfac || !spend(0)) return;
+      k.out = p.id; k.outN = p.n; if (G.heir===k.id) G.heir = null; p.inlaw = 1; p.loy = 100; addBond(p.id, 25);
+      toast(`${J(k.n,'이')} ${p.n}의 가문과 혼인했다. ${p.n}은(는) 이제 한 집안이다.`, [['인척 장수',true],[`${p.n} 인연 +25`,true]]); news(`${me().n}의 ${k.sex==='여'?'딸':'아들'} ${J(k.n,'이')} ${p.n}의 가문과 혼인했다.`, true, true);
+    }
+  },
+  divorce(spId){
+    const sp = spList().find(x => x.id===spId); if (!sp || !spend(0)) return;
+    const first = spList()[0];
+    G.spouses = spList().filter(x => x!==sp); G.spouse = G.spouses[0] || null;
+    let stay = 0, go = 0, goGen = 0; const parts = [];
+    for (const k of G.kids){
+      if (k.dead || k.out || (k.mom||first.id)!==sp.id) continue;
+      const a = G.year-k.born, pp = k.pid && person(k.pid);
+      let ch = .5 + (me().c-60)/250 + (G.heir===k.id?.2:0) + (pp?.15:0) + (a<10?.1:0) - (a>=15 && sp.from ? .1:0);
+      if (pp && pp.army) ch = 1;
+      if (Math.random() < clamp(ch, .15, .92)){ stay++; continue; }
+      go++; k.out = 'mom'; k.left = 1; k.outN = sp.n; if (G.heir===k.id) G.heir = null;
+      if (pp){ goGen++; const rp = sp.from && person(sp.from), nf = rp && rp.fac!=='free' && G.facs[rp.fac] && G.facs[rp.fac].alive ? rp.fac : 'free';
+        pp.fac = nf; pp.fam = 0; pp.loy = 50; pp.inlaw = 0; G.bond[pp.id] = 20; if (nf!=='free'){ const c = capitalOf(nf); if (c) pp.city = c; } }
+    }
+    if (sp.from){ const p = person(sp.from);
+      if (p){ addBond(p.id, -35); if (p.fac===G.pfac){ p.loy = clamp(p.loy-30); p.inlaw = G.kids.some(k => k.out===p.id) ? 1 : 0; }
+        const f2 = Object.values(G.facs).find(f => f.alive && f.ruler===p.id);
+        if (f2 && G.pfac){ delete fac(G.pfac).ally[f2.id]; delete f2.ally[G.pfac]; } } }
+    G.merit = Math.max(0, G.merit-5);
+    toast(`${J(sp.n,'과')} 이혼했다. 자식 ${stay}명은 곁에 남고 ${go}명은 어머니를 따라갔다${goGen?` (장수 ${goGen}명 이탈)`:''}.`, [['이혼',false],[`곁에 ${stay}`,true],[`떠남 ${go}`,false]]);
+    news(`${J(me().n,'이')} ${J(sp.n,'과')} 이혼했다.`, true, true);
   },
   educate(kid, stat){ const k = G.kids.find(x => x.id===kid); if (!k) return; const a = G.year-k.born; if (a<5 || a>16 || !spend(0)) return;
     const v = ri(1,3); k.st[stat] = clamp(k.st[stat]+v, 1, 100); toast(`${k.n}에게 ${ST[stat]}을(를) 가르쳤다.`, [[`${k.n} ${ST[stat]} 잠재력 +${v}`,true]]); },
@@ -2220,14 +2293,15 @@ function startMonth(first){
 function endMonth(){
   if (G.phase!=='act') return;
   G.mnews = [];
-  if (G.role==='ruler'){ const inc = Math.round(citiesOf(G.pfac).reduce((a,c)=>a+c.dev*14,0)*(.6+G.trust/250)); G.gold += inc; G.lastIncome = inc; }
-  else if (G.role==='officer'){ const s = 30 + G.rank*25 + (G.gov?20:0); G.gold += s; G.lastIncome = s; if (G.month===12) G.trust = clamp(G.trust-3); }
+  if (G.role==='ruler'){ const inc = Math.round(citiesOf(G.pfac).reduce((a,c)=>a+c.dev*14,0)*(.6+G.trust/250)*dif().inc); G.gold += inc; G.lastIncome = inc; }
+  else if (G.role==='officer'){ const s = Math.round((30 + G.rank*25 + (G.gov?20:0))*dif().inc); G.gold += s; G.lastIncome = s; if (G.month===12) G.trust = clamp(G.trust-3); }
   if (G.month%6===0 && G.role==='ruler') G.trust = clamp(G.trust + (G.trust<60 ? 2 : -1));
   autoDomestic();
   G.repDate = dateStr();
   monthStep(false);
   if (ageOf(me())<55 && G.hp<100 && !G.inArmy) G.hp = clamp(G.hp+1);
-  if (G.spouse && ageOf(me())<56 && G.kids.length<6 && Math.random()<.028){ const k = makeKid(); G.kids.push(k); news(`${k.sex==='남'?'아들':'딸'} ${J(k.n,'이')} 태어났다.`, true, true); }
+  const _sp = spList().length && ageOf(me())<56 && G.kids.length<8 && Math.random()<.028*Math.min(2, 1+(spList().length-1)*.6) ? pick(spList()) : null;
+  if (_sp){ const k = makeKid(_sp); G.kids.push(k); news(`${k.sex==='남'?'아들':'딸'} ${J(k.n,'이')} 태어났다.`, true, true); }
   if (G.role==='officer' && G.mission) evalMission();
   calendar(false);
   if (G.pfac && citiesOf(G.pfac).length>=UNIFY_N) G.over = { kind:'unify' };
@@ -2267,13 +2341,18 @@ function afterBattle(){
   if (G.dead){ G.phase = 'succession'; save(); return; }
   nextQueue();
 }
-function makeKid(){
+const MAXSP = () => G.role==='ruler' ? 3 : 2;
+function spList(){ if (!G.spouses) G.spouses = G.spouse ? [G.spouse] : []; G.spouse = G.spouses[0] || null; return G.spouses; }
+function addSpouse(sp){ sp.id = sp.id || 's'+(++G.nid); spList().push(sp); G.spouse = G.spouses[0]; return sp; }
+const isInlawId = id => spList().some(x => x.from===id);
+function makeKid(mom){
+  mom = mom || G.spouse;
   const sex = Math.random()<.55 ? '남' : '여';
   const used = new Set(G.kids.map(k=>k.n));
   let n; for (let i=0;i<20;i++){ n = G.surname + pick(sex==='남'?GIVEN_M:GIVEN_F); if (!used.has(n)) break; }
   const st = {};
-  for (const s of ['m','i','l','c']) st[s] = clamp(Math.round((me()[s] + G.spouse.st[s])/2 + ri(-12,12)), 15, 95);
-  const k = { id:'kid'+(++G.nid), n, sex, born:G.year, st };
+  for (const s of ['m','i','l','c']) st[s] = clamp(Math.round((me()[s] + mom.st[s])/2 + ri(-12,12)), 15, 95);
+  const k = { id:'kid'+(++G.nid), n, sex, born:G.year, st, mom:mom.id, momN:mom.n };
   k.look = kidLook(k);
   return k;
 }
@@ -2287,7 +2366,7 @@ function genScore(){
   return Math.round(s);
 }
 function heirCands(){
-  const adults = G.kids.filter(k => G.year-k.born>=15);
+  const adults = G.kids.filter(k => G.year-k.born>=15 && !k.dead && !k.out);
   const list = [];
   const h = adults.find(k => k.id===G.heir); if (h) list.push({ kid:h.id });
   adults.forEach(k => { if (!list.some(x => x.kid===k.id)) list.push({ kid:k.id }); });
@@ -2309,11 +2388,12 @@ function succeed(ch){
   let np;
   if (ch.kid){
     const k = G.kids.find(x => x.id===ch.kid);
-    const id = 'p'+(++G.nid);
-    np = { id, n:k.n, fac:G.pfac||'free', city:G.city, b:k.born, d:null, m:kidStat(k,'m'), i:kidStat(k,'i'), l:kidStat(k,'l'), c:kidStat(k,'c'),
+    const ex = k.pid && person(k.pid) && person(k.pid).alive ? person(k.pid) : null;
+    const id = ex ? ex.id : 'p'+(++G.nid);
+    np = ex || { id, n:k.n, fac:G.pfac||'free', city:G.city, b:k.born, d:null, m:kidStat(k,'m'), i:kidStat(k,'i'), l:kidStat(k,'l'), c:kidStat(k,'c'),
            tr: Math.random()<.5 ? old.tr : pick(Object.keys(TRAITS)), ap:G.year, alive:true, active:true, loy:80, fam:1, look:k.look||kidLook(k), female:k.sex==='여', army:null };
     G.people[id] = np;
-    for (const s of G.kids){ if (s.id===k.id || G.year-s.born<15 || !G.pfac) continue;
+    for (const s of G.kids){ if (s.id===k.id || s.pid || s.dead || s.out || G.year-s.born<15 || !G.pfac) continue;
       const sid = 'p'+(++G.nid); G.people[sid] = { id:sid, n:s.n, fac:G.pfac, city:G.city, b:s.born, d:null, m:kidStat(s,'m'), i:kidStat(s,'i'), l:kidStat(s,'l'), c:kidStat(s,'c'), tr:pick(Object.keys(TRAITS)), ap:G.year, alive:true, active:true, loy:85, fam:1, look:s.look||kidLook(s), female:s.sex==='여', army:null };
       G.bond[sid] = 75; }
   } else np = person(ch.npc);
@@ -2322,7 +2402,7 @@ function succeed(ch){
   if (G.role==='ruler') fac(G.pfac).ruler = np.id;
   if (G.role==='officer'){ G.rank = Math.max(0, G.rank-2); G.trust = 50; G.troops = Math.round(G.troops*.5); if (G.gov){ city(G.gov).gov = null; G.gov = null; } }
   G.gold = Math.round(G.gold*.7); G.merit = 0; G.hp = 100; G.train = Math.round(G.train*.8);
-  G.spouse = null; G.kids = []; G.heir = null; G.gen++; G.startYear = G.year;
+  G.spouse = null; G.spouses = []; G.kids = []; G.heir = null; G.gen++; G.startYear = G.year;
   for (const k of Object.keys(G.bond)) G.bond[k] = Math.round(G.bond[k]/2);
   G.sworn = []; delete G.bond[np.id];
   G.dead = null;
@@ -2377,6 +2457,7 @@ const selRival = () => { const m = mates().filter(p => bond(p.id)<10).sort((a,b)
 const selFreeOwned = () => { const m = npcs().filter(p => p.fac==='free' && !p.army && city(p.city).owner===G.pfac); return m.length ? pick(m).id : null; };
 const selAdjEnemy = () => { const m = city(G.city).adj.map(city).filter(c => !c.owner || hostile(G.pfac, c.owner)); return m.length ? m.sort((a,b)=>a.troops-b.troops)[0].id : null; };
 const selFac = () => { const m = aliveFacs().filter(f => f.id!==G.pfac && !allied(G.pfac,f.id)); return m.length ? pick(m).id : null; };
+const selMarryOff = () => { const m = mates().filter(p => !p.fam && !isInlawId(p.id) && bond(p.id)>=35 && ageOf(p)>=30 && !p.female); return m.length ? pick(m).id : null; };
 const selKid = () => { const m = G.kids.filter(k => { const a = G.year-k.born; return a>=6 && a<=14; }); return m.length ? pick(m).id : null; };
 const kidById = id => G.kids.find(k => k.id===id);
 const RIVER_CITIES = ['xy','jl','jx','cs','lu','jy','chs','yz','ya','sc'];
@@ -2410,9 +2491,12 @@ const EVENTS = [
     { t:'공을 양보한다', ok:{ bondN:15, mer:-5, msg:`${J(N(),'이')} 머쓱해하며 고마워했다.` } },
     { t:'무예로 결판을 낸다', chk:['m',70], ok:{ mer:8, bondN:-5, msg:'단칼에 승부가 났다. 아무도 이의를 달지 못했다.' }, no:{ hp:-15, bondN:-5, msg:'망신만 당했다.' } },
     { t:'술 한 잔으로 푼다', chk:['c',60], ok:{ bondN:12, msg:'술잔이 몇 번 돌자 언제 다퉜냐는 듯 웃었다.' }, no:{ bondN:-8, msg:'술자리에서 오히려 싸움이 커졌다.' } }] },
-  { id:'marry', s:'婚', t:'혼담', cond:()=>!G.spouse && ageOf(me())>=17 && ageOf(me())<=45, x:()=>'명문가에서 딸을 시집보내겠다는 혼담이 들어왔다.', c:()=>[
+  { id:'marry', s:'婚', t:'혼담', cond:()=>spList().length<MAXSP() && ageOf(me())>=17 && ageOf(me())<=50 && (spList().length===0 || Math.random()<.3), x:()=>'명문가에서 딸을 시집보내겠다는 혼담이 들어왔다.', c:()=>[
     { t:'받아들인다', ok:{ marry:1, gold:200, c:1, msg:'성대한 혼례가 열렸다. 이제 가문을 이을 수 있다.' } },
     { t:'아직은 때가 아니다', ok:{ mer:2, msg:'그대의 눈은 오직 전장을 향한다.' } }] },
+  { id:'marryOff', s:'婚', t:'장수의 혼담', w:.6, npc:selMarryOff, cond:()=>spList().length<MAXSP() && ageOf(me())>=17 && ageOf(me())<=55, x:()=>`${J(N(),'이')} 조심스레 청한다. "제 딸을 곁에 두어 주십시오. 한 집안이 되고 싶습니다."`, c:()=>[
+    { t:'혼인을 받아들인다', ok:{ marryP:1, mer:2, msg:'혼례가 치러졌다. 두 사람은 이제 한 집안이다.' } },
+    { t:'정중히 사양한다', ok:{ bondN:-3, msg:'서운한 기색이었으나 예를 갖춰 물러났다.' } }] },
   { id:'kid', s:'子', t:'아이의 재능', npc:null, cond:()=>!!selKid(), kid:selKid, x:()=>`${kidById(G.ev.kid).n}이(가) 남다른 재능을 보인다.`, c:()=>[
     { t:'무예를 가르친다', ok:{ kidSt:['m',7], msg:'목검을 휘두르는 손끝이 예사롭지 않다.' } },
     { t:'글을 가르친다', ok:{ kidSt:['i',7], msg:'천자문을 하루 만에 외웠다.' } },
@@ -2582,7 +2666,8 @@ function applyEff(e){
       case 'fam': G.kids.forEach(k => { const s = pick(['m','i','l','c']); k.st[s] = clamp(k.st[s]+v, 1, 100); }); if (G.kids.length) add('자녀 잠재력', v); break;
       case 'kidSt': { const kd = kidById(G.ev.kid); kd.st[v[0]] = clamp(kd.st[v[0]]+v[1], 1, 100); chips.push([`${kd.n} ${ST[v[0]]} +${v[1]}`, true]); break; }
       case 'sworn': if (!isSworn(G.ev.npc)){ G.sworn.push(G.ev.npc); addBond(G.ev.npc, 100); G.flags.swornNew = 1; chips.push(['의형제',true]); news(`${J(me().n,'이')} ${J(N(),'과')} 의형제를 맺었다.`, true, false); } break;
-      case 'marry': { const s = pick(NOBLE); G.spouse = { n:`${s}씨`, st:{ m:ri(30,60), i:ri(45,80), l:ri(30,60), c:ri(55,85) }, from:null, y:G.year, look:spouseLook() }; chips.push(['혼인',true]); news(`${J(me().n,'이')} ${s}씨와 혼인했다.`, true, false); break; }
+      case 'marryP': { const p = person(G.ev.npc); if (!p || spList().length>=MAXSP()) break; const sn = surnameOf(p.n); addSpouse({ n:`${sn}씨`, st:{ m:Math.round(p.m*.7), i:Math.round(p.i*.8), l:Math.round(p.l*.7), c:Math.round(p.c*.85) }, from:p.id, y:G.year, look:spouseLook() }); if (p.fac===G.pfac){ p.inlaw = 1; p.loy = 100; } addBond(p.id, 25); chips.push(['혼인',true],[`${p.n} 인연 +25`,true]); news(`${J(me().n,'이')} ${p.n}의 딸과 혼인했다.`, true, false); break; }
+      case 'marry': { if (spList().length>=MAXSP()) break; const s = pick(NOBLE); addSpouse({ n:`${s}씨`, st:{ m:ri(30,60), i:ri(45,80), l:ri(30,60), c:ri(55,85) }, from:null, y:G.year, look:spouseLook() }); chips.push(['혼인',true]); news(`${J(me().n,'이')} ${s}씨와 혼인했다.`, true, false); break; }
       case 'ally': { const f = G.ev.fac; fac(G.pfac).ally[f] = v*12; fac(f).ally[G.pfac] = v*12; for (const a of armiesOf(f)) if (city(a.to).owner===G.pfac) sendHome(a); chips.push([`${facName(f)}과 동맹`, true]); break; }
       case 'join': { const p = person(G.ev.npc); p.fac = G.pfac; p.loy = 60; addBond(p.id, 15); chips.push([`${p.n} 합류`, true]); news(`${J(p.n,'이')} ${facName(G.pfac)}에 합류했다.`, true, false); break; }
       case 'joinCity': joinFaction(city(G.city).owner, ''); G.toast = null; chips.push(['출사',true]); break;
@@ -2988,20 +3073,23 @@ function viewPeople(){
 /* ---------- 가문 ---------- */
 function viewFamily(){
   const kids = G.kids.map(k => {
-    const a = G.year-k.born, canEdu = a>=5 && a<=16 && G.ap>0;
-    return `<div class="prow" style="flex-wrap:wrap">${kp(k,40)}<span class="nm">${esc(k.n)} ${G.heir===k.id?'<span class="badge">후계</span>':''}</span>
+    const a = G.year-k.born, canEdu = a>=5 && a<=16 && G.ap>0, adult = a>=15;
+    return `<div class="prow" style="flex-wrap:wrap">${kp(k,40)}<span class="nm">${esc(k.n)} ${G.heir===k.id?'<span class="badge">후계</span>':''}${k.momN?`<br><span class="small muted">모 ${esc(k.momN)}</span>`:''}</span>
       <span class="mini">${k.sex} · ${a}세<br>무${kidStat(k,'m')} 지${kidStat(k,'i')} 통${kidStat(k,'l')} 매${kidStat(k,'c')} <span class="muted">(잠재 ${k.st.m}/${k.st.i}/${k.st.l}/${k.st.c})</span></span>
       <div class="row wrap" style="width:100%;gap:5px">${a>=5&&a<=16 ? ['m','i','l','c'].map(s=>`<button class="ghost" data-act="educate" data-arg="${k.id}" data-arg2="${s}" ${canEdu?'':'disabled'}>${ST[s]} 교육</button>`).join('') : ''}
-      ${G.heir!==k.id ? `<button class="ghost" data-heir="${k.id}">후계로 지정</button>` : ''}</div></div>`;
+      ${adult && !k.pid && !k.out && !k.dead ? `<button class="ghost" data-act="enlist" data-arg="${k.id}" ${G.ap>0&&G.pfac?'':'disabled'}>장수로 출사</button><button class="ghost" data-sheet="kidmarry" data-arg="${k.id}">혼인 맺기</button>` : ''}
+      ${G.heir!==k.id && adult && !k.out && !k.dead ? `<button class="ghost" data-heir="${k.id}">후계로 지정</button>` : ''}
+      ${k.pid && !k.dead ? `<span class="badge">장수${person(k.pid) && person(k.pid).army ? ' · 출정 중' : ''}</span>` : ''}${k.out && k.left ? `<span class="badge">어머니를 따라감${k.pid?' · 장수':''}</span>` : k.out ? `<span class="badge">${esc(k.outN||'')} 가문과 혼인</span>` : ''}${k.dead ? `<span class="badge" style="background:#8a2a22">${k.dead}년 전사</span>` : ''}</div></div>`;
   }).join('');
-  const matches = G.spouse ? [] : mates().filter(p => bond(p.id)>=50 && !p.fam);
-  const allyFacs = G.role==='ruler' && !G.spouse ? aliveFacs().filter(f=>f.id!==G.pfac) : [];
+  const canWed = spList().length<MAXSP();
+  const matches = !canWed ? [] : mates().filter(p => bond(p.id)>=50 && !p.fam && !isInlawId(p.id) && ageOf(p)>=30).sort((a,b)=>bond(b.id)-bond(a.id)).slice(0,4);
+  const allyFacs = G.role==='ruler' && canWed ? aliveFacs().filter(f=>f.id!==G.pfac && !(person(f.ruler) && isInlawId(f.ruler))).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length).slice(0,4) : [];
   const histKids = npcs().filter(q => PARENT[q.id]===G.pid);
   return `<div class="pane">
   <div class="card"><div class="row between"><h3>${G.surname}씨 가문 · ${G.gen}대</h3><span class="chip gold">가문 점수 ${fmt(G.dynScore)}</span></div>
-    <p class="small muted">자식이 15세가 되면 후계로 세울 수 있다. 그대가 죽으면 후계자가 이어서 플레이한다.</p>
-    <div class="row">${G.spouse ? `${ptHTML(G.spouse.look||spouseLook(), Math.max(16, ageOf(me())-3), true, facColor(G.pfac), 40)}<span>배우자 <b>${esc(G.spouse.n)}</b> <span class="small muted">(${G.spouse.y}년 혼인)</span></span>` : '<span class="small">배우자 없음</span>'}</div>
-    ${!G.spouse && ageOf(me())>=15 ? `<div class="acts">${actBtn('명문가 혼담','금 300','data-act="marry" data-arg="noble"',G.ap>0&&G.gold>=300)}
+    <p class="small muted">자식이 15세가 되면 장수로 출사시켜 곁에서 싸우게 하거나, 다른 가문과 혼인시켜 관계를 굳힐 수 있다. 그대가 죽으면 후계자가 이어서 플레이한다.</p>
+    ${spList().length ? spList().map((sp,i) => `<div class="row between"><div class="row">${ptHTML(sp.look||spouseLook(), Math.max(16, ageOf(me())-3), true, facColor(G.pfac), 40)}<span>${i===0?'정실':'부인'} <b>${esc(sp.n)}</b> <span class="small muted">(${sp.y}년 혼인${sp.from&&person(sp.from)?' · '+esc(person(sp.from).n)+'의 딸':''})</span></span></div><button class="ghost" data-sheet="divorce" data-arg="${sp.id}">이혼</button></div>`).join('') : '<div class="row"><span class="small">배우자 없음</span></div>'}
+    ${canWed && ageOf(me())>=15 ? `<div class="acts">${actBtn('명문가 혼담','금 300','data-act="marry" data-arg="noble"',G.ap>0&&G.gold>=300)}
       ${matches.map(p=>actBtn(`${p.n}의 딸`,`인연 ${bond(p.id)}`,`data-act="marry" data-arg="${p.id}"`,G.ap>0)).join('')}
       ${allyFacs.map(f=>actBtn(`${person(f.ruler).n}의 딸`,'혼인 동맹 · 금 400',`data-act="marry" data-arg="fac:${f.id}"`,G.ap>0&&G.gold>=400)).join('')}</div>` : ''}
   </div>
@@ -3177,6 +3265,9 @@ function renderTitle(){
     <span class="lbl">시작 시점</span>
     <div class="three">${SCEN_YEARS.map(y=>`<button class="segb" aria-pressed="${sc===y}" data-scen="${y}"><b>${y}년</b><small>${SCEN[y].short}</small></button>`).join('')}</div>
     <p class="small muted">${SCEN[sc].desc}</p>
+    <span class="lbl">난이도</span>
+    <div class="two" style="grid-template-columns:repeat(4,1fr)">${Object.keys(DIFF).map(k=>`<button class="segb" aria-pressed="${(pr.diff||'normal')===k}" data-diff="${k}"><b>${DIFF[k][0]}</b></button>`).join('')}</div>
+    <p class="small muted">${DIFF[pr.diff||'normal'][1]}</p>
     <span class="lbl">수명 규칙</span>
     <div class="two">${[['real','현실 모드','역사 속 사망 연도 즈음에 세상을 떠난다'],['virtual','가상 모드','전사하지 않으면 천수를 누린다']].map(([k,n,d])=>`<button class="segb" aria-pressed="${pr.mode===k}" data-mode="${k}"><b>${n}</b><small>${d}</small></button>`).join('')}</div>
   </div>
@@ -3191,6 +3282,7 @@ function renderTitle(){
   <p class="small muted" style="text-align:center">가문 점수가 명성으로 쌓여 새 인물이 열립니다. 진행은 자동 저장됩니다.</p></div>`;
   $app.querySelectorAll('[data-ttab]').forEach(b => b.onclick = () => { titleTab = b.dataset.ttab; renderTitle(); });
   $app.querySelectorAll('[data-scen]').forEach(b => b.onclick = () => { prefs().scen = +b.dataset.scen; saveMeta(); renderTitle(); });
+  $app.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { prefs().diff = b.dataset.diff; saveMeta(); renderTitle(); });
   $app.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { prefs().mode = b.dataset.mode; saveMeta(); renderTitle(); });
   $app.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => openPick(b.dataset.pick));
   document.getElementById('btnAch').onclick = openAch;
@@ -3319,8 +3411,27 @@ function campaignSheet(tid){
   };
   draw();
 }
+function openDivorce(spId){
+  const sp = spList().find(x => x.id===spId); if (!sp) return;
+  const mine = G.kids.filter(k => !k.dead && !k.out && (k.mom||spList()[0].id)===sp.id);
+  const bg = sheet(`<h3>${esc(sp.n)} 이혼</h3><p class="small muted">이혼하면 ${J(sp.n,'이')} 떠난다. 그 사이의 자식 ${mine.length}명은 각자 아버지를 따를지 어머니를 따를지 스스로 정한다. ${sp.from ? '처가와의 관계는 크게 틀어지고 동맹도 깨진다.' : '명문가의 체면에 흠이 간다.'}</p>
+    <div class="acts"><button class="btn2" id="dvOk" ${G.ap>0?'':'disabled'}>이혼한다</button></div><button class="btn2" data-close>닫기</button>`);
+  const ok = bg.querySelector('#dvOk'); if (ok) ok.onclick = () => { bg.remove(); doAct('divorce', spId); };
+}
+function openKidMarry(kid){
+  const k = G.kids.find(x => x.id===kid); if (!k) return;
+  const facs = G.role==='ruler' || G.pfac ? aliveFacs().filter(f => f.id!==G.pfac) : [];
+  const offs = G.pfac ? npcs().filter(p => p.fac===G.pfac && !p.inlaw && bond(p.id)>=25).sort((a,b) => bond(b.id)-bond(a.id)).slice(0, 6) : [];
+  const bg = sheet(`<h3>${esc(k.n)}의 혼인</h3><p class="small muted">혼인으로 맺은 가문과는 관계가 굳어진다. 혼인한 자식은 후계 후보에서 빠진다.</p>
+    ${facs.length ? `<span class="lbl">다른 세력과 (동맹 4년 · 금 200)</span><div class="acts">${facs.map(f => actBtn(`${esc(person(f.ruler).n)}의 가문`, facName(f.id), `data-mk="fac:${f.id}"`, G.ap>0 && G.gold>=200)).join('')}</div>` : ''}
+    ${offs.length ? `<span class="lbl">우리 장수의 가문과 (충성 굳힘)</span><div class="acts">${offs.map(p => actBtn(`${esc(p.n)}의 가문`, `인연 ${bond(p.id)}`, `data-mk="p:${p.id}"`, G.ap>0)).join('')}</div>` : ''}
+    <button class="btn2" data-close>닫기</button>`);
+  bg.querySelectorAll('[data-mk]').forEach(b => b.onclick = () => { bg.remove(); doAct('marryKid', kid, b.dataset.mk); });
+}
 function openSheet(kind, arg){
   if (kind==='policy') return openPolicy();
+  if (kind==='kidmarry') return openKidMarry(arg);
+  if (kind==='divorce') return openDivorce(arg);
   if (kind==='war') return warSheet(arg);
   if (kind==='campaign') return campaignSheet(arg);
   if (kind==='study'){
@@ -3389,7 +3500,7 @@ function openSheet(kind, arg){
       }
       if (G.role==='ruler' && p.fac==='free' && !p.army && city(p.city).owner===G.pfac && G.phase==='act') body += `<button class="btn fac" id="recruit" ${G.ap>0?'':'disabled'}>등용한다 (${Math.round(clamp(.45+(me().c-60)/80+bond(p.id)/200,.05,.95)*100)}%)</button>`;
       if (G.role==='ruler' && p.fac!=='free' && p.fac!==G.pfac && !p.army && city(p.city).adj.some(a=>city(a).owner===G.pfac) && G.phase==='act') body += `<button class="btn2" id="recruit" ${G.ap>0&&G.gold>=100?'':'disabled'}>빼내 오기 (금 100 · ${Math.round(clamp(.1+(me().c-60)/100+bond(p.id)/150-p.loy/300,.03,.7)*100)}%)</button>`;
-      if (!G.spouse && bond(p.id)>=50 && sameFac && !p.fam && ageOf(me())>=15 && G.phase==='act') body += `<button class="btn2" id="marryP" ${G.ap>0?'':'disabled'}>${esc(p.n)}의 딸과 혼인을 청한다</button>`;
+      if (spList().length<MAXSP() && !isInlawId(p.id) && bond(p.id)>=50 && sameFac && !p.fam && ageOf(me())>=15 && G.phase==='act') body += `<button class="btn2" id="marryP" ${G.ap>0?'':'disabled'}>${esc(p.n)}의 딸과 혼인을 청한다</button>`;
     }
     body += '<button class="btn2" data-close>닫기</button>';
     const bg = sheet(body);
@@ -4093,7 +4204,7 @@ function pxDuel(ctx, A){
    BOOT
    ===================================================================== */
 if (SIM){
-  globalThis.T = { momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
 
