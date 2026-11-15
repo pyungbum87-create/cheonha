@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f7f6f3">
-<title>컬러 스튜디오 · 퍼스널컬러 드레이핑 월드컵</title>
+<title>퍼스널컬러 찾으러 갔을 뿐인데 원장이 된 나? · 퍼컬 원장</title>
 <style>
   :root{
     --bg:#f7f6f3; --card:#fff; --ink:#1f1f24; --sub:#6f6d76; --line:#e7e4de;
@@ -230,6 +230,23 @@
   .olabel{font-size:12.5px;font-weight:800;margin:8px 2px 0;color:var(--sub)}
   .btn.prem{background:linear-gradient(135deg,#f6e3a3,#e8c26a);color:#5a3d00;margin-top:8px;font-size:14px;padding:12px}
   .gstage svg{height:min(48vh,420px)}
+  .tsub{text-align:center;font-weight:900;font-size:13px;color:#7b4fd6;letter-spacing:2px;margin-top:4px}
+  h1.ttl{font-size:22px;line-height:1.35;margin:4px 0 8px}h1.ttl span{font-size:28px;background:linear-gradient(90deg,#7b4fd6,#e06a4f);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .scope{display:inline-block;font-size:11.5px;font-weight:800;background:#efeaff;color:#5b3fc4;padding:2px 7px;border-radius:99px;margin-right:4px}
+  #gTabs button.off{opacity:.3;text-decoration:line-through}
+  .photoopt{display:flex;gap:6px;margin-top:6px}.photoopt span{font-size:12px;padding:5px 10px;border-radius:99px;border:1.5px solid var(--line);cursor:pointer}.photoopt span.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  /* 스토리 */
+  #story{position:fixed;inset:0;z-index:90;background:#1b1824 center/cover no-repeat;display:flex;flex-direction:column;justify-content:flex-end}
+  #story .who{position:absolute;left:50%;bottom:190px;transform:translateX(-50%);width:min(78vw,360px);height:min(78vw,360px);border-radius:50%;overflow:hidden;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-size:90px;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:.25s}
+  #story .who img{width:100%;height:100%;object-fit:cover}
+  #story .who.none{display:none}
+  #story .box{margin:0 12px calc(14px + env(safe-area-inset-bottom));background:rgba(255,255,255,.95);border-radius:20px;padding:16px 18px 14px;min-height:150px;position:relative}
+  #story .nm{display:inline-block;background:#7b4fd6;color:#fff;font-weight:900;font-size:14px;padding:5px 12px;border-radius:99px;margin-bottom:8px}
+  #story .tx{font-size:16px;line-height:1.65;font-weight:600;white-space:pre-line}
+  #story .nx{position:absolute;right:16px;bottom:10px;font-size:12px;color:#8b8892;animation:tap 1.2s infinite}
+  #story .skip{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;background:rgba(0,0,0,.45);color:#fff;border-radius:99px;padding:7px 12px;font-size:13px;font-weight:700}
+  #story .chap{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;color:#fff;font-weight:900;font-size:13px;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:99px}
+  .storycard{border-color:#e9c76a!important;background:linear-gradient(135deg,#fffaf0,#fff3d6)!important}
   /* 토스트 / 모달 */
   #toast{position:fixed;left:50%;top:16%;transform:translate(-50%,-8px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:15px;transition:.25s;z-index:60;text-align:center;max-width:86vw}
   #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -248,8 +265,9 @@
 <!-- 홈 -->
 <section id="sStart" class="wrap">
   <img src="img/title.jpg" alt="" class="keyart" onerror="this.remove()">
-  <h1>컬러 스튜디오</h1>
-  <p class="lead" style="margin-bottom:14px">내 퍼스널컬러로 플레이하는<br><b>스타일리스트 살롱 게임</b></p>
+  <div class="tsub">퍼컬 원장</div>
+  <h1 class="ttl">퍼스널컬러 찾으러 갔을 뿐인데<br><span>원장이 된 나?</span></h1>
+  <p class="lead" style="margin-bottom:14px">진단받으러 간 동네 살롱을 물려받았다!<br>내 퍼스널컬러로 키우는 <b>스타일리스트 살롱 스토리 게임</b></p>
   <div class="mecard" id="meCard"></div>
   <div class="menu">
     <button class="mbtn main" id="btnGame0"><b>🎮 스타일리스트 살롱</b><span>손님을 코디하고, 심사위원 평가로 코인을 벌어 아이템을 모아요</span></button>
@@ -257,7 +275,7 @@
     <button class="mbtn" id="btnMirror"><b>🪞 실시간 거울</b><span>카메라로 색 천을 대보며 비교</span></button>
     <button class="mbtn hidden" id="mResult"><b>📊 이번 진단 결과</b><span>베스트·워스트 컬러, 친구에게 묻기</span></button>
   </div>
-  <div class="privacy">🔒 사진과 영상은 <b>내 휴대폰 안에서만</b> 분석돼요. 서버로 보내지도, 저장하지도 않아요.</div>
+  <div class="privacy">🔒 사진과 영상은 <b>내 휴대폰 안에서만</b> 분석돼요. '내 사진으로 표시'를 고르면 얼굴 썸네일 한 장만 이 휴대폰에 저장돼요. 서버로 보내지도, 저장하지도 않아요.</div>
   <p class="small" style="text-align:center;margin-top:10px">진단 결과는 재미로 보는 참고용이에요.</p>
 </section>
 
@@ -395,6 +413,7 @@
 
   <div id="gLobby">
     <div class="rankbar" id="gRank"></div>
+    <div id="gStoryCard"></div>
     <div class="ccard owner" id="gOwner"></div>
     <div class="market" id="gMarket"></div>
     <button class="btn weekly" id="gWeeklyBtn">⚔️ 주간 챌린지 · 랭킹 대결</button>
@@ -1282,6 +1301,18 @@ const OCC = {
   travel:  {tops:["tee","stripe","hoodie","knit","cardigan"], bottoms:["jeans","shorts","wide","skirt"], shoes:["sneakers","sandals","boots"]},
   campus:  {tops:["tee","stripe","hoodie","knit","cardigan","shirt"], bottoms:["jeans","skirt","wide","slacks","shorts"], shoes:["sneakers","loafers","boots"]},
 };
+// 의뢰 범위: 기존 이미지를 버리지 않고 '부분 의뢰'로 다양하게
+const SCOPES = {
+  full:   {n:"전체 변신",     em:"✨", parts:["hair","mk","outfit"], mult:1},
+  hairout:{n:"헤어+코디",     em:"💇👗", parts:["hair","outfit"], mult:0.8},
+  hairmk: {n:"헤어+메이크업", em:"💇💄", parts:["hair","mk"], mult:0.7},
+  outfit: {n:"코디만",        em:"👗", parts:["outfit"], mult:0.6},
+  hair:   {n:"헤어만",        em:"💇", parts:["hair"], mult:0.45},
+  mk:     {n:"메이크업만",    em:"💄", parts:["mk"], mult:0.4},
+};
+const SCOPE_BY_TIER = {basic:["hair","mk","outfit","outfit","hairmk"], mid:["hairout","hairmk","outfit","full"], hard:["full","full","hairout"]};
+const TABPART = {hair:"hair", mk:"mk", top:"outfit", bottom:"outfit", shoes:"outfit", acc:"outfit"};
+const inScope = (C,part) => (SCOPES[C.scope||"full"]).parts.includes(part);
 const TOPN = k=>(TOPS.find(t=>t.k===k)||{}).n, BOTN=k=>(BOTTOMS.find(t=>t.k===k)||{}).n, SHON=k=>(SHOES.find(t=>t.k===k)||{}).n;
 const TIERS = {
   basic:{n:"기본", col:"#1d9a6c", dep:0,  time:0,  wish:[0,1], hide:false, forbid:false, pay:{S:70,A:50,B:30,C:10},  rep:{S:2,A:1,B:0,C:0},  lv:1},
@@ -1289,6 +1320,8 @@ const TIERS = {
   hard: {n:"하드", col:"#c2413b", dep:80, time:60, wish:[2,2], hide:true,  forbid:true,  pay:{S:400,A:230,B:50,C:0}, rep:{S:5,A:3,B:0,C:-2}, lv:3},
   self: {n:"원장 룩", col:"#7b4fd6", dep:0, time:0, wish:[0,0], pay:{S:0,A:0,B:0,C:0}, rep:{S:0,A:0,B:0,C:0}, lv:2},
   weekly:{n:"주간", col:"#d4a106", dep:0, time:90, wish:[2,2], pay:{S:150,A:100,B:50,C:20}, rep:{S:2,A:1,B:0,C:0}, lv:3},
+  storymag:{n:"화보", col:"#d4a106", dep:0, time:90, wish:[2,2], pay:{S:500,A:350,B:0,C:0}, rep:{S:4,A:3,B:0,C:0}, lv:3},
+  storyfinal:{n:"결승", col:"#c2413b", dep:0, time:80, wish:[2,2], pay:{S:800,A:600,B:0,C:0}, rep:{S:6,A:4,B:0,C:0}, lv:3},
   rival:{n:"대결", col:"#e06a4f", dep:0, time:75, wish:[1,1], pay:{S:120,A:80,B:30,C:0}, rep:{S:1,A:1,B:0,C:0}, lv:3},
 };
 const CUSTOMERS = [
@@ -1315,18 +1348,18 @@ const REQ = {
   campus:["개강 첫날이에요! 산뜻하게 해주세요","동아리 첫 모임이라 가볍게 꾸미고 싶어요"],
 };
 const WISHES = [
-  {t:"안경을 써보고 싶어요",       ok:L=>L.accs.has("glasses")||L.accs.has("glasses_s")},
-  {t:"모자는 싫어요",              ok:L=>!HATS.some(k=>L.accs.has(k))},
-  {t:"머리색도 바꾸고 싶어요",      ok:(L,C)=>L.hc!==C.hc},
-  {t:"헤어스타일도 바꿔주세요",     ok:(L,C)=>L.hair!==C.hair},
-  {t:"포인트 소품 하나 넣어주세요",  ok:L=>L.accs.size>0},
-  {t:"셔츠 종류로 입고 싶어요",     ok:L=>["shirt","tie"].includes(L.top)},
-  {t:"목이 허전해요",              ok:L=>L.accs.has("necklace")||L.accs.has("necklace_s")||L.accs.has("scarf")||L.accs.has("silkscarf")||L.top==="knit"},
-  {t:"밝은 색 옷이 좋아요",         ok:L=>lumHex(L.tc)>=0.6},
-  {t:"치마를 입고 싶어요",          ok:L=>["skirt","pencil"].includes(L.bottom)},
-  {t:"오래 걸어서 편한 신발이요",    ok:L=>["sneakers","loafers"].includes(L.shoes)},
-  {t:"립은 또렷하게 해주세요",       ok:L=>L.lip && L.lip!=="#D49A8A"},
-  {t:"메이크업은 연하게요",         ok:L=>!L.shadow && (!L.lip||L.lip==="#D49A8A")},
+  {cat:"outfit",t:"안경을 써보고 싶어요",       ok:L=>L.accs.has("glasses")||L.accs.has("glasses_s")},
+  {cat:"outfit",t:"모자는 싫어요",              ok:L=>!HATS.some(k=>L.accs.has(k))},
+  {cat:"hair",t:"머리색도 바꾸고 싶어요",      ok:(L,C)=>L.hc!==C.hc},
+  {cat:"hair",t:"헤어스타일도 바꿔주세요",     ok:(L,C)=>L.hair!==C.hair},
+  {cat:"outfit",t:"포인트 소품 하나 넣어주세요",  ok:L=>L.accs.size>0},
+  {cat:"outfit",t:"셔츠 종류로 입고 싶어요",     ok:L=>["shirt","tie"].includes(L.top)},
+  {cat:"outfit",t:"목이 허전해요",              ok:L=>L.accs.has("necklace")||L.accs.has("necklace_s")||L.accs.has("scarf")||L.accs.has("silkscarf")||L.top==="knit"},
+  {cat:"outfit",t:"밝은 색 옷이 좋아요",         ok:L=>lumHex(L.tc)>=0.6},
+  {cat:"outfit",t:"치마를 입고 싶어요",          ok:L=>["skirt","pencil"].includes(L.bottom)},
+  {cat:"outfit",t:"오래 걸어서 편한 신발이요",    ok:L=>["sneakers","loafers"].includes(L.shoes)},
+  {cat:"mk",t:"립은 또렷하게 해주세요",       ok:L=>L.lip && L.lip!=="#D49A8A"},
+  {cat:"mk",t:"메이크업은 연하게요",         ok:L=>!L.shadow && (!L.lip||L.lip==="#D49A8A")},
 ];
 
 let G;
@@ -1336,7 +1369,7 @@ function gLoad(){
   try{ G=JSON.parse(localStorage.getItem("cs_game3")||"null"); }catch(e){ G=null; }
   if (!G) G={coins:200, rep:0, served:0, own:{hair:[],top:[],bottom:[],shoes:[],acc:[],col:[],dye:[],mk:[],prem:[]}, unlocked:[], ads:{}, meDone:false,
              st:{hardS:0, streak:0, bestStreak:0, midA:0, hardSeasons:[]}, friends:{},
-             rivals:[{n:"코랄 헤어",pop:13,sk:0.42},{n:"모노 살롱",pop:17,sk:0.52},{n:"블룸 스튜디오",pop:21,sk:0.62}]};
+             rivals:[{n:"코랄 헤어",pop:13,sk:0.42},{n:"모노 살롱",pop:17,sk:0.52},{n:"블룸(레오)",pop:21,sk:0.62}]};
   for (const k of ["hair","top","bottom","shoes"]) for (const [i,v] of Object.entries(PRICE[k])) if(!v && !G.own[k].includes(i)) G.own[k].push(i);
   for (const f of FABRICS) if(!f.price && !G.own.col.includes(f.id)) G.own.col.push(f.id);
   for (const d of DYES) if(!d.p && !G.own.dye.includes(d.c)) G.own.dye.push(d.c);
@@ -1364,10 +1397,11 @@ function makeCustomer(tier){
   const T=TIERS[tier], base=pick(CUSTOMERS);
   const C={...base, name:base.n+" 님", tier, occ:pick(OCCASIONS).k, portrait:`img/cust_${String(base.id).padStart(2,"0")}.jpg`};
   C.req = pick(REQ[C.occ]);
+  C.scope = pick(SCOPE_BY_TIER[tier]||["full"]);
   const nw = T.wish[0] + Math.floor(Math.random()*(T.wish[1]-T.wish[0]+1));
-  C.wishes = shuffle([...WISHES.keys()]).filter(i=>!(C.g==="m" && WISHES[i].t.includes("치마"))).slice(0,nw);
+  C.wishes = shuffle([...WISHES.keys()]).filter(i=>!(C.g==="m" && WISHES[i].t.includes("치마")) && inScope(C,WISHES[i].cat)).slice(0,nw);
   C.hidden = !!T.hide;
-  if (T.forbid){
+  if (T.forbid && inScope(C,"outfit")){
     const S=SEASONS[C.s];
     if (Math.random()<0.6){ const f=pick(S.pal.slice(0,4)); C.forbid={type:"color", c:f.c, n:`${f.n}은(는) 이미 많아요. 다른 색으로!`}; }
     else { const f=pick(OCC[C.occ].tops.filter(t=>t!=="tie")); C.forbid={type:"top", k:f, n:`${TOPN(f)}은(는) 입기 싫어요`}; }
@@ -1391,6 +1425,7 @@ function makeBoard(){
   if (me && !G.meDone) G.board.unshift(meCustomer());
 }
 function faceHTML(C){
+  if ((C.me||C.owner) && me && me.usePhoto && me.photo) return `<img src="${me.photo}" alt="">`;
   return IMGOK.has(C.portrait||"") ? `<img src="${C.portrait}" alt="">`
     : avatarSVG({skin:C.skin, hair:C.hair, hairColor:C.hc, top:"tee", topColor:"#ECE8E0", accs:new Set(), gender:C.g, view:"85 60 230 230"});
 }
@@ -1401,9 +1436,10 @@ function openGame(){ gLoad(); if (!G.board) makeBoard(); show("sGame"); gView("l
 function gView(v){
   for (const [id,k] of [["gLobby","lobby"],["gPlay","play"],["gResult","result"],["gShop","shop"],["gWeekly","weekly"]]) $(id).classList.toggle("hidden",v!==k);
   G.view=v; gStats();
-  if (v==="lobby"){ renderOwner(); renderMarket(); gBoard(); }
+  const storyPending = v==="lobby" && storyNext();
+  if (v==="lobby"){ renderOwner(); renderMarket(); gBoard(); renderStoryCard(); if (storyPending) setTimeout(checkStory,300); }
   if (v==="play") gDraw(); if (v==="weekly") renderWeekly(); scrollTo(0,0);
-  if (v==="lobby") setTimeout(()=>coach([["lobby",".ccard .go.cust-go","손님을 골라 ‘받기’를 눌러요.<br>🟢 기본 손님부터 시작해 보세요!"],["owner","#gOwnerGo","원장 룩(나)을 꾸미면 <b>살롱 인기도</b>가 올라요. 라이벌 살롱보다 인기가 높을수록 손님이 늘어요!"],["market","#gMarket","주변 라이벌 살롱과 같은 손님으로 <b>스타일 대결</b>! 이기면 손님을 뺏어 와요."],["weekly","#gWeeklyBtn","매주 모두가 같은 손님으로 대결해요. 친구에게 <b>도전장 링크</b>를 보내보세요!"]]),400);
+  if (v==="lobby" && !storyPending) setTimeout(()=>coach([["lobby",".ccard .go.cust-go","손님을 골라 ‘받기’를 눌러요.<br>🟢 기본 손님부터 시작해 보세요!"],["owner","#gOwnerGo","원장 룩(나)을 꾸미면 <b>살롱 인기도</b>가 올라요. 라이벌 살롱보다 인기가 높을수록 손님이 늘어요!"],["market","#gMarket","주변 라이벌 살롱과 같은 손님으로 <b>스타일 대결</b>! 이기면 손님을 뺏어 와요."],["weekly","#gWeeklyBtn","매주 모두가 같은 손님으로 대결해요. 친구에게 <b>도전장 링크</b>를 보내보세요!"]]),400);
   if (v==="play") setTimeout(()=>coach([["tabs","#gTabs","헤어·메이크업·상의·하의·신발·소품 탭으로 전신을 코디해요."],["opts","#gOpts","아이템을 골라요. ✨고급 버전으로 바꾸면 그림이 더 고급스러워지고 완성도 점수도 올라요."],["hint","#gHint","헷갈리면 힌트! 손님 시즌의 추천 색을 알려줘요."],["judge","#gJudge","다 됐으면 심사위원 3명에게 보여줘요!"]]),400);
   if (v==="result") setTimeout(()=>coach([["shop","#gShopBtn","번 코인으로 아이템을 사요. ✨고급 탭과 🔒히든 탭도 확인해 보세요!"]]),2200);
 }
@@ -1430,8 +1466,14 @@ function renderOwner(){
   if (!me){ box.innerHTML=`<div class="pf" style="display:flex;align-items:center;justify-content:center;font-size:30px">👤</div><div class="ci"><b>원장님이 아직 없어요</b><br>퍼스널컬러를 진단하면 '나'가 살롱 원장이 돼요. 원장 이미지가 멋질수록 손님이 늘어요!</div><button class="go" id="gOwnerGo">진단</button>`;
     $("gOwnerGo").onclick=()=>show("sDiag"); return; }
   const S=SEASONS[me.key], C=ownerCustomer(), L=G.ownerLook ? {...G.ownerLook, accs:new Set(G.ownerLook.a||[])} : defaultLook(C);
-  box.innerHTML=`<div class="pf tall">${lookSVG(C,L,{view:"60 30 280 560"})}</div><div class="ci"><b>원장님 (${S.em} ${S.name})</b><br>원장 이미지 점수 ${G.pop==null?"측정 전":G.pop+"/30"}<br>오늘 손님 <b style="font-size:13px">${popSlots()}명</b>${G.pop>=27?" · 팁 +10%":""}<br><span style="font-size:11.5px">헤어·메이크업·옷을 내 퍼스널컬러에 맞출수록 점수 UP</span></div><button class="go" id="gOwnerGo">원장 룩<br>꾸미기</button>`;
+  box.innerHTML=`<div class="pf tall">${me.usePhoto&&me.photo?`<img src="${me.photo}" alt="" style="width:100%;height:100%;object-fit:cover">`:lookSVG(C,L,{view:"60 30 280 560"})}</div><div class="ci"><b>원장님 (${S.em} ${S.name})</b><br>원장 이미지 점수 ${G.pop==null?"측정 전":G.pop+"/30"}<br>오늘 손님 <b style="font-size:13px">${popSlots()}명</b>${G.pop>=27?" · 팁 +10%":""}<br><span style="font-size:11.5px">헤어·메이크업·옷을 내 퍼스널컬러에 맞출수록 점수 UP</span></div><button class="go" id="gOwnerGo">원장 룩<br>꾸미기</button>`;
   $("gOwnerGo").onclick=()=>startSpecial(C);
+}
+function renderStoryCard(){
+  const m=storyMission(), box=$("gStoryCard");
+  if (!m){ box.innerHTML=""; return; }
+  box.innerHTML=`<div class="ccard storycard"><div class="pf" style="display:flex;align-items:center;justify-content:center;font-size:34px">📖</div><div class="ci"><b>스토리 미션: ${m.t}</b><br>${m.d}</div><button class="go" id="gStoryGo">도전</button></div>`;
+  $("gStoryGo").onclick=()=>startStoryMission(m.k);
 }
 function renderMarket(){
   const R=activeRivals(), mp=myPop(), mx=Math.max(30,...R.map(r=>r.pop),mp);
@@ -1448,7 +1490,7 @@ function gBoard(){
     return `<div class="ccard"><div class="pf">${faceHTML(C)}</div>
       <div class="ci"><b>${C.name}</b> <span class="tbadge" style="background:${C.me?"#7b4fd6":T.col}">${C.me?"나":T.n}</span><br>
         ${C.hidden?"❓ 시즌 비공개":S.em+" "+S.name} · ${o.n}<br>
-        보상 S <b style="font-size:13px">${T.pay.S+(C.me?50:0)}🪙</b>${T.dep?` · 보증금 ${T.dep}🪙`:""}${T.time?` · ⏱${T.time}초`:""}${C.wishes.length?` · 요청 ${C.wishes.length}개`:""}</div>
+        <span class="scope">${SCOPES[C.scope||"full"].em} ${SCOPES[C.scope||"full"].n}</span> 보상 S <b style="font-size:13px">${Math.round(T.pay.S*SCOPES[C.scope||"full"].mult)+(C.me?50:0)}🪙</b>${T.dep?` · 보증금 ${T.dep}🪙`:""}${T.time?` · ⏱${T.time}초`:""}${C.wishes.length?` · 요청 ${C.wishes.length}개`:""}</div>
       <button class="go cust-go" data-i="${i}">받기</button></div>`;
   }).join("") + (lv<3 ? `<div class="ccard lock"><div class="pf" style="display:flex;align-items:center;justify-content:center;font-size:30px">🔒</div><div class="ci"><b>${lv<2?"중간":"하드"} 손님</b><br>Lv.${lv<2?2:3}부터 찾아와요 (평판 ⭐ ${lv<2?8:16} 필요)</div></div>` : "");
   $("gBoard").querySelectorAll(".cust-go").forEach(b=>b.onclick=()=>accept(+b.dataset.i));
@@ -1481,13 +1523,14 @@ function gDraw(){
   $("gName").textContent = C.name;
   const sb=$("gSeason"); sb.textContent = C.hidden ? "❓ 시즌 추리" : S.em+" "+S.name; sb.style.background = C.hidden ? "#888" : S.col;
   const tb=$("gTier"); tb.textContent=C.me?"나":T.n; tb.style.background=C.me?"#7b4fd6":T.col;
-  $("gReq").innerHTML = `${o.n.split(" ")[0]} “${C.req}”`;
+  $("gReq").innerHTML = `${o.n.split(" ")[0]} “${C.req}” <span class="scope">${SCOPES[C.scope||"full"].em} ${SCOPES[C.scope||"full"].n}</span>`;
   $("gWish").innerHTML = C.wishes.map(w=>`<span>🙏 ${WISHES[w].t}</span>`).join("") + (C.forbid?`<span style="background:#fde8e6;color:#b3362f">🚫 ${C.forbid.n}</span>`:"");
   const bg = IMGOK.has(LOC[C.occ]) ? LOC[C.occ] : IMGOK.has("img/salon_bg.jpg") ? "img/salon_bg.jpg" : null;
   $("gStage").style.backgroundImage = bg?`url(${bg})`:"";
   $("gSvg").innerHTML = lookSVG(C,L);
   $("gHint").textContent = C.hidden ? "💡 손님 시즌 알려주기 (40🪙)" : "💡 이 손님 팔레트 보기";
-  document.querySelectorAll("#gTabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===G.tab));
+  if (!inScope(C,TABPART[G.tab])) G.tab=Object.keys(TABPART).find(k=>inScope(C,TABPART[k]));
+  document.querySelectorAll("#gTabs button").forEach(b=>{ b.classList.toggle("on",b.dataset.t===G.tab); const ok=inScope(C,TABPART[b.dataset.t]); b.classList.toggle("off",!ok); b.disabled=!ok; });
   const t=G.tab, rows=[];
   const sw=(key,list,label)=>rows.push({key,label,html:list.map(x=>`<button class="sw${L[key]===x.c?" on":""}" data-k="${key}" data-v="${x.c??"null"}"><i style="background:${x.c||"conic-gradient(#ddd 0 25%,#fff 0 50%,#ddd 0 75%,#fff 0)"}"></i>${x.n}</button>`).join("")});
   const th=(key,list,label,view)=>rows.push({key,label,html:list.map(x=>`<button class="thumb${L[key]===x.k?" on":""}" data-k="${key}" data-v="${x.k}"><div class="tb">${x.svg||lookSVG(C,{...L,[key]:x.k,accs:new Set()},{view,noPrem:true})}</div>${x.n}${G.own.prem.includes(key+":"+x.k)?" ✨":""}</button>`).join("")});
@@ -1547,23 +1590,24 @@ const LENIENCY = {1:0.3, 2:0.12, 3:0};
 function score(timeUp, C=G.cust, L=G.look){
   const S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), T=TIERS[C.tier], lv=T.lv, M=MISSION[C.occ], R=OCC[C.occ], occN=o.n.split(" ")[1];
   const J=[[],[],[]], adj=[0,0,0], fatal=[];
-  const add=(j,w,v,good,bad,min=1)=>{ if (lv>=min) J[j].push({w,v,good,bad}); if (lv>=3 && v<=0.25 && j<2) fatal.push(bad); };
+  let CAT="outfit";
+  const add=(j,w,v,good,bad,min=1)=>{ if (lv<min || !inScope(C,CAT)) return; J[j].push({w,v,good,bad}); if (lv>=3 && v<=0.25 && j<2) fatal.push(bad); };
   const warmS=S.temp==="warm", seasonOf=c=>{ for (const k of SKEYS) if (seasonGood(SEASONS[k],c)) return k; return null; };
   // ── ① 컬러 디렉터 모나: 퍼스널컬러
-  const fab=FABRICS.find(f=>f.c===L.tc), cN=colName(L.tc);
+  const fab=FABRICS.find(f=>f.c===L.tc), cN=colName(L.tc); CAT="outfit";
   let v1 = fab&&fab.id==="pearl" ? 0.8 : S.pal.slice(0,4).some(x=>x.c===L.tc) ? 1 : seasonGood(S,L.tc) ? 0.9 : S.avoid.some(x=>x.c===L.tc) ? 0.05 : !fab ? 0.35 : SEASONS[fab.s].temp===S.temp ? 0.6 : 0.3;
   add(0,4,v1, `상의 ${cN}! ${S.name} 피부가 확 살아나요.`, S.avoid.some(x=>x.c===L.tc)?`상의 ${cN}은(는) ${S.name}의 워스트 컬러예요. 얼굴이 칙칙해 보여요.`:`상의 ${cN}보다 ${S.pal[0].n}·${S.pal[1].n} 같은 ${S.name} 색이 더 잘 받아요.`);
-  const hairOk=S.hair.some(x=>x.c===L.hc)||(L.hc==="#D8D2C4"&&!warmS), hs=seasonOf(L.hc)||SKEYS.find(k=>SEASONS[k].hair.some(h=>h.c===L.hc));
+  CAT="hair"; const hairOk=S.hair.some(x=>x.c===L.hc)||(L.hc==="#D8D2C4"&&!warmS), hs=seasonOf(L.hc)||SKEYS.find(k=>SEASONS[k].hair.some(h=>h.c===L.hc));
   const v2 = hairOk?1 : L.hc===C.hc?0.7 : hs&&SEASONS[hs].temp!==S.temp?0.25 : 0.55;
   add(0,2,v2, hairOk?"머리색까지 시즌에 딱 맞췄어요.":"자연 머리색도 무난해요.", `머리색이 피부톤과 반대 온도예요. ${S.hair.map(h=>h.n).join("·")}을 추천해요.`);
-  const mkv=(list,c)=>{ if (!c) return null; const x=list.find(y=>y.c===c); if (!x||!x.s) return 0.75; return x.s===C.s?1: SEASONS[x.s].temp===S.temp?0.6:0.2; };
+  CAT="mk"; const mkv=(list,c)=>{ if (!c) return null; const x=list.find(y=>y.c===c); if (!x||!x.s) return 0.75; return x.s===C.s?1: SEASONS[x.s].temp===S.temp?0.6:0.2; };
   const lipV=mkv(LIPS,L.lip), lipN=(LIPS.find(x=>x.c===L.lip)||{}).n, recLip=LIPS.filter(x=>x.s===C.s).map(x=>x.n).join("·");
   add(0,2,lipV??0.5, `립 ${lipN}은(는) ${S.name} 찰떡 컬러예요.`, `립 ${lipN||"없음"}은 ${S.name}에겐 떠 보여요. ${recLip} 계열을 추천해요.`, 2);
   const blV=mkv(BLUSH,L.blush);
   add(0,1,blV??0.55, "블러셔 톤이 피부와 자연스럽게 어우러져요.", L.blush?`블러셔가 피부톤과 안 맞아요. ${BLUSH.filter(x=>x.s===C.s).map(x=>x.n).join("·")} 추천!`:"블러셔로 생기를 조금 더해 보세요.", 2);
   const shV=L.shadow?mkv(SHADOWS,L.shadow):0.7;
   add(0,1,shV, "아이섀도 음영이 눈매를 또렷하게 살려줘요.", `아이섀도는 ${SHADOWS.find(x=>x.s===C.s).n} 계열이 더 어울려요.`, 3);
-  const bV = S.avoid.some(x=>x.c===L.bc)?0.2 : seasonGood(S,L.bc)||isNeutral(L.bc)?1:0.6;
+  CAT="outfit"; const bV = S.avoid.some(x=>x.c===L.bc)?0.2 : seasonGood(S,L.bc)||isNeutral(L.bc)?1:0.6;
   add(0,1,bV, "하의 색도 톤에 맞춰 안정적이에요.", `하의 ${colName(L.bc)}이(가) ${S.name}와 부딪혀요.`, 3);
   // ── ② TPO 에디터 제이: 상황 적합도
   const tOk=R.tops.includes(L.top)||L.top==="velvet";
@@ -1583,13 +1627,21 @@ function score(timeUp, C=G.cust, L=G.look){
     add(1,1.5,v,good,bad||"비즈니스룩 기본을 다시 챙겨보세요.");
   }
   if (C.occ==="festival"||C.occ==="travel") add(1,1, L.accs.size>0?1:0.6, "포인트 소품으로 사진발 살렸어요.", "포인트 소품 하나면 사진이 더 살아나요.", 2);
+  // 헤어·메이크업도 TPO가 있다 (면접·출근은 단정하게)
+  CAT="hair"; const messy=["hippie","wolf","longmen","hush","bun"].includes(L.hair), formal=C.occ==="interview"||C.occ==="office";
+  add(1,2, formal&&messy?0.4:1, formal?"단정한 헤어라 신뢰감이 느껴져요.":`${occN}에 어울리는 헤어예요.`, "면접·출근엔 볼륨이 큰 펌보다 단정한 스타일이 좋아요.");
+  const hdye=DYES.find(d=>d.c===L.hc), vivid=hdye&&["#E3A1C3","#B56C80","#4F5C74","#6E2233","#CFA96E","#D8D2C4"].includes(L.hc);
+  add(1,1, formal&&vivid?0.35:1, C.occ==="festival"&&vivid?"화려한 염색, 페스티벌에 딱!":"머리색이 상황에 잘 맞아요.", "면접·출근엔 너무 튀는 염색은 피해요.");
+  CAT="mk"; const strongLip=["#C8102E","#8A2E55","#A9483A"].includes(L.lip), strongEye=["#7D6478","#9C6B4E"].includes(L.shadow);
+  add(1,2, formal&&(strongLip&&strongEye)?0.35: C.occ==="festival"&&!L.blush&&!strongLip?0.6 : 1, formal?"과하지 않은 메이크업, 신뢰감 있어요.":`${occN}에 맞는 메이크업이에요.`, formal?"업무 자리엔 립·눈 둘 다 진하면 부담스러워요. 포인트는 한 곳만!":"페스티벌엔 블러셔·립으로 생기를 더 줘도 좋아요.");
   // ── ③ 스타일리스트 하루: 조화
-  const con=Math.abs(lumHex(L.hc)-lumHex(L.tc)), want={winter:[0.45,1], spring:[0.3,0.7], summer:[0,0.3], autumn:[0.1,0.42]}[C.s];
+  CAT = inScope(C,"outfit") ? "outfit" : "hair";
+  const con=Math.abs(lumHex(L.hc)-lumHex(inScope(C,"outfit")?L.tc:C.skin)), want={winter:[0.45,1], spring:[0.3,0.7], summer:[0,0.3], autumn:[0.1,0.42]}[C.s];
   const cOk = con>=want[0] && con<=want[1];
   add(2,2,cOk?1:0.45, {winter:"머리·옷의 선명한 대비가 겨울답게 멋져요.",summer:"머리·옷이 부드럽게 이어져 여름답게 우아해요.",spring:"또렷한 대비가 봄웜의 생기를 살려줘요.",autumn:"차분한 톤온톤이 가을웜다워요."}[C.s],
       {winter:"겨울 쿨톤은 머리·옷 대비를 더 강하게!",summer:"여름 쿨톤은 머리·옷 대비를 부드럽게!",spring:"봄웜은 조금 더 또렷한 대비가 좋아요.",autumn:"가을웜은 대비를 줄이고 톤온톤으로!"}[C.s]);
   // 3색 규칙 + 60-30-10: 무채색 제외 유채색이 3개 이하, 상·하의가 둘 다 유채색이면 톤온톤/톤인톤이어야
-  const cols=[L.tc,L.bc,L.sc].filter(c=>!isNeutral(c)), uniq=[]; cols.forEach(c=>{ if (!uniq.some(u=>hueDiff(u,c)<20)) uniq.push(c); });
+  CAT="outfit"; const cols=[L.tc,L.bc,L.sc].filter(c=>!isNeutral(c)), uniq=[]; cols.forEach(c=>{ if (!uniq.some(u=>hueDiff(u,c)<20)) uniq.push(c); });
   let v3 = uniq.length<=2 ? 1 : uniq.length===3 ? 0.75 : 0.3, m3good="색 개수를 절제해서 세련돼 보여요 (3색 규칙).", m3bad="색이 너무 많아 산만해요. 무채색을 섞어 3색 이내로!";
   if (!isNeutral(L.tc) && !isNeutral(L.bc)){
     const tot=hueDiff(L.tc,L.bc)<30, tin=Math.abs(hsl(L.tc).l-hsl(L.bc).l)<0.15&&Math.abs(hsl(L.tc).s-hsl(L.bc).s)<0.2;
@@ -1599,8 +1651,9 @@ function score(timeUp, C=G.cust, L=G.look){
   const shoeOk = isNeutral(L.sc) || L.sc===L.tc || L.sc===L.bc || hueDiff(L.sc,L.bc)<20;
   add(2,1,shoeOk?1:0.4, L.sc===L.bc||L.sc===L.tc?"신발까지 깔맞춤, 디테일 좋아요.":"신발 색이 전체를 잘 받쳐줘요.", "신발 색이 따로 놀아요. 옷 색이나 무채색으로 맞춰 보세요.", 2);
   const lt=L.lip&&LIPS.find(x=>x.c===L.lip)?.s, bt=L.blush&&BLUSH.find(x=>x.c===L.blush)?.s;
+  CAT="mk"; if (L.lip&&L.shadow) add(2,1, (["#C8102E","#8A2E55"].includes(L.lip)&&["#7D6478","#9C6B4E"].includes(L.shadow))?0.5:1, "립과 눈 중 한 곳에만 포인트를 줘서 세련됐어요.", "립과 눈을 둘 다 진하게 하면 과해 보여요.", 2);
   if (lt&&bt) add(2,1,SEASONS[lt].temp===SEASONS[bt].temp?1:0.35,"립과 블러셔 톤을 통일했어요.","립과 블러셔의 온도가 달라요. 같은 톤으로 맞춰야 자연스러워요.",3);
-  const metals=[...L.accs].map(k=>(ACCS.find(a=>a.k===k)||{}).metal).filter(Boolean);
+  CAT="outfit"; const metals=[...L.accs].map(k=>(ACCS.find(a=>a.k===k)||{}).metal).filter(Boolean);
   if (metals.length){
     const good=metals.includes(warmS?"gold":"silver")||(metals.includes("pearl")&&C.s==="summer"), bad=metals.includes(warmS?"silver":"gold");
     add(2,1, bad&&!good?0.2: good?1:0.75, warmS?"골드 액세서리가 웜톤 피부를 화사하게 살려줘요.":C.s==="summer"&&metals.includes("pearl")?"여름 쿨톤에 진주는 찰떡이에요.":"실버 액세서리가 쿨톤 피부를 맑게 해줘요.", warmS?"웜톤엔 실버보다 골드가 더 잘 받아요.":"쿨톤엔 골드보다 실버가 더 깨끗해 보여요.");
@@ -1630,7 +1683,8 @@ function score(timeUp, C=G.cust, L=G.look){
   let capped=false; if (lv>=3 && fatal.length && total>=27){ total=26; capped=true; }
   const grade = total>=27?"S": total>=22?"A": total>=16?"B":"C";
   const tip = (G.pop>=27 && !["self","weekly","rival"].includes(C.tier)) ? Math.round(T.pay[grade]*0.1) : 0;
-  return {out,total,grade,capped, coins:T.pay[grade]+(C.me?50:0)+tip, rep:T.rep[grade]};
+  const mult=SCOPES[C.scope||"full"].mult;
+  return {out,total,grade,capped, coins:Math.round(T.pay[grade]*mult)+(C.me?50:0)+tip, rep:T.rep[grade]};
 }
 
 function showJudges(R){
@@ -1663,6 +1717,14 @@ function judge(timeUp=false){
     const rank=leaderboard().findIndex(r=>r.kind==="me")+1;
     setGrade(R,"주간 챌린지"); $("rCoins").textContent= first?`+${R.coins} 🪙 · 현재 ${rank}위`:`현재 ${rank}위 (최고 ${G.weekly.best}점)`;
     $("rNote").textContent="도전장 링크를 보내면 친구 랭킹에 내 코디가 고스트로 올라가요!"; $("gNext").textContent="랭킹 보기 →";
+  } else if (C.story){
+    const st=G.story||(G.story={seen:{}});
+    if (C.story==="mag"){ const ok=R.grade==="S"||R.grade==="A"; if (ok){ st.ch3done=true; G.coins+=R.coins; G.rep+=R.rep; }
+      setGrade(R,"매거진 화보"); $("rCoins").textContent= ok?`📸 화보 성공! +${R.coins} 🪙 ⭐+${R.rep}`:"😢 화보 실패… A 이상이 필요해요. 다시 도전!"; }
+    else { const rs=score(false,C,ghostLook(31,C,0.85)).total, win=R.total>rs;
+      if (win){ st.finalWon=true; G.coins+=R.coins; G.rep+=R.rep; G.rivals[2].pop=Math.max(8,G.rivals[2].pop-6); }
+      setGrade(R,`결승 vs 레오 ${rs}점`); $("rCoins").textContent= win?`🏆 결승 우승! +${R.coins} 🪙`:`😢 레오 ${rs}점에 패배… 다시 도전!`; }
+    $("gNext").textContent="로비로 →";
   } else if (C.tier==="rival"){
     const rv=G.rivals[C.rival], rs=score(false,C,ghostLook(C.rival+9,C,rv.sk)).total, win=R.total>rs;
     if (win){ rv.pop=Math.max(8,rv.pop-3); G.coins+=R.coins; G.rep+=R.rep; } else rv.pop=Math.min(29,rv.pop+1);
@@ -1847,6 +1909,111 @@ $("wShare").onclick=async()=>{
   }catch(e){ console.warn("도전장 해석 실패", e); }
 })();
 
+/* ---------- 스토리: 퍼스널컬러 찾으러 갔을 뿐인데 원장이 된 나? ---------- */
+const SIMG = {mentor_happy:"img/mentor_happy.jpg", mentor_serious:"img/mentor_serious.jpg", rival_smug:"img/rival_smug.jpg", rival_angry:"img/rival_angry.jpg",
+  mona:"img/judge_color_happy.jpg", jay:"img/judge_trend_happy.jpg", haru:"img/judge_stylist_happy.jpg", mona_s:"img/judge_color.jpg", jay_s:"img/judge_trend.jpg", haru_s:"img/judge_stylist.jpg"};
+const SBG = {old:"img/bg_oldsalon.jpg", salon:"img/salon_bg.jpg", mag:"img/bg_magazine.jpg", award:"img/bg_award.jpg"};
+Object.values(SIMG).forEach(preload); Object.values(SBG).forEach(preload);
+const WHO = {mentor:["봄날 원장님","👵"], rival:["레오 (블룸 스튜디오)","😎"], mona:["모나","🎨"], jay:["제이","📱"], haru:["하루","💇"], me:["나","🙂"], "":["",""]};
+const seasonTxt = ()=> me ? SEASONS[me.key].name : "네 색";
+const STORY = {
+  pro:{t:"프롤로그", sc:()=>[
+    ["old","","","그날 나는 그냥… 내 퍼스널컬러가 궁금했을 뿐이다."],
+    ["old","","","골목 끝, 간판 글씨가 반쯤 지워진 작은 동네 살롱 '컬러 스튜디오'."],
+    ["old","mentor","mentor_happy","어서 와요~ 퍼스널컬러 진단받으러 왔구먼?"],
+    ["old","mentor","mentor_serious", me?`…${seasonTxt()}이네. 그런데 자네, 천 고르는 눈이 보통이 아니야.`:"자네, 천 고르는 눈이 보통이 아니야."],
+    ["old","mentor","mentor_serious","나는 이제 좀 쉬고 싶어서 말이지.\n이 가게… 자네가 맡아보지 않겠나?"],
+    ["old","me","","…네? 저요?"],
+    ["old","","","그렇게 나는, 퍼스널컬러 찾으러 갔다가 원장이 되었다."],
+    ["salon","mentor","mentor_happy","걱정 말게. 단골 심사단이 도와줄 거야.\n자, 첫 손님을 받아 보게!"],
+  ]},
+  ch1:{t:"1장 · 동네 살롱", sc:()=>[
+    ["salon","mona","mona_s","흠, 첫 손님치곤 나쁘지 않네. 난 컬러 디렉터 모나.\n색은 거짓말을 안 해."],
+    ["salon","jay","jay_s","난 제이. 장소와 상황, 그러니까 TPO에 맞는지를 봐."],
+    ["salon","haru","haru","난 하루! 머리부터 발끝까지 조화를 봐요.\n우리 셋이 매번 점수를 줄게요~"],
+    ["salon","mentor","mentor_serious","평판이 쌓이면 손님이 늘고 가게도 커질 게야.\n그리고 원장인 자네 이미지도 잊지 말고!"],
+  ]},
+  ch2:{t:"2장 · 입소문", sc:()=>[
+    ["salon","","","요즘 '컬러 스튜디오' 입소문이 심상치 않다. 그런데…"],
+    ["salon","rival","rival_smug","여기가 요즘 뜬다는 그 동네 살롱? 난 블룸 스튜디오 원장, 레오."],
+    ["salon","rival","rival_smug","색 좀 맞춘다고 다 스타일리스트는 아니지.\n손님들은 결국 우리 가게로 올걸?"],
+    ["salon","mentor","mentor_serious","상권 경쟁이 시작됐구먼. 라이벌보다 인기가 높아야 손님이 와.\n'대결'로 실력을 보여주게!"],
+  ]},
+  ch3:{t:"3장 · 핫플", sc:()=>[
+    ["mag","jay","jay","대박! 패션 매거진에서 우리 살롱 화보 촬영 의뢰가 왔어!"],
+    ["mag","mona","mona_s","화보는 하드 기준이야. 실수 하나도 용납 안 해."],
+    ["mag","haru","haru","로비의 📖 스토리 미션에서 시작할 수 있어요. 화이팅!"],
+  ]},
+  ch3w:{t:"3장 · 화보 성공", sc:()=>[
+    ["mag","haru","haru","화보 반응 대박이에요! 우리 살롱, 이제 진짜 핫플이에요!"],
+    ["mag","mentor","mentor_happy","허허, 내 눈이 틀리지 않았구먼."],
+  ]},
+  ch4:{t:"4장 · 트렌드 세터", sc:()=>[
+    ["salon","rival","rival_angry","…인정하지. 실력은 있네.\n하지만 진짜 승부는 '스타일 어워드' 결승이야."],
+    ["salon","rival","rival_smug","결승에서 보자고. 같은 손님, 한 판 승부."],
+    ["salon","mentor","mentor_serious","로비의 📖 스토리 미션에 결승 대결이 열렸네. 자네 실력을 믿어."],
+  ]},
+  ch4w:{t:"4장 · 결승 승리", sc:()=>[
+    ["award","rival","rival_angry","…졌다. 다음엔 안 져."],
+    ["award","mentor","mentor_happy","자네, 정말 많이 컸구먼."],
+  ]},
+  ch5:{t:"최종장 · 이미지 변신 아이콘", sc:()=>[
+    ["award","","","스타일 어워드 대상 — '컬러 스튜디오'."],
+    ["award","mentor","mentor_happy","퍼스널컬러 찾으러 왔던 그 손님이…\n이제 이미지 변신의 아이콘이 됐구먼."],
+    ["award","mona","mona","…인정. 완벽한 컬러 감각이야."],
+    ["award","jay","jay","오늘부로 우리 살롱이 이 동네 트렌드야!"],
+    ["award","haru","haru","원장님 최고예요~!"],
+    ["award","","","THE END … 그리고 살롱은 계속된다."],
+  ]},
+};
+function storyNext(){
+  const s=G.story||(G.story={seen:{}});
+  const q=[];
+  if (!s.seen.pro) q.push("pro");
+  if (G.served>=1 && !s.seen.ch1) q.push("ch1");
+  if (G.rep>=8 && !s.seen.ch2) q.push("ch2");
+  if (G.rep>=16 && !s.seen.ch3) q.push("ch3");
+  if (s.ch3done && !s.seen.ch3w) q.push("ch3w");
+  if (G.rep>=28 && s.ch3done && !s.seen.ch4) q.push("ch4");
+  if (s.finalWon && !s.seen.ch4w) q.push("ch4w");
+  if (G.rep>=45 && s.finalWon && !s.seen.ch5) q.push("ch5");
+  return q[0];
+}
+function playStory(id, done){
+  const st=STORY[id], scenes=st.sc(); let i=0;
+  const d=document.createElement("div"); d.id="story";
+  d.innerHTML=`<div class="chap">${st.t}</div><button class="skip">건너뛰기 ⏭</button><div class="who"></div><div class="box"><div class="nm"></div><div class="tx"></div><div class="nx">탭해서 계속 ▶</div></div>`;
+  document.body.appendChild(d);
+  const fin=()=>{ d.remove(); G.story.seen[id]=true; gSave(); done&&done(); };
+  const render=()=>{
+    const [bg,who,face,text]=scenes[i], src=SBG[bg];
+    d.style.backgroundImage = IMGOK.has(src)?`url(${src})`: IMGOK.has(SBG.salon)?`url(${SBG.salon})`:"";
+    const w=d.querySelector(".who"), [nm,em]=WHO[who]||["",""];
+    w.classList.toggle("none",!who);
+    if (who==="me" && me && me.usePhoto && me.photo) w.innerHTML=`<img src="${me.photo}" alt="">`;
+    else if (who==="me" && me) w.innerHTML=avatarSVG({skin:me.skin, hair:me.g==="m"?"dandy":"bob", hairColor:"#3E2A20", accs:new Set(), gender:me.g==="n"?"f":me.g, view:"85 60 230 230"});
+    else w.innerHTML = face && IMGOK.has(SIMG[face]) ? `<img src="${SIMG[face]}" alt="">` : em;
+    const n=d.querySelector(".nm"); n.textContent=nm; n.style.display=nm?"":"none";
+    d.querySelector(".tx").textContent=text;
+  };
+  d.onclick=e=>{ if (e.target.classList.contains("skip")){ fin(); return; } i++; if (i>=scenes.length) fin(); else render(); };
+  render();
+}
+function checkStory(){ const id=storyNext(); if (id && G.view==="lobby" && !document.getElementById("story")) playStory(id, ()=>{ gView("lobby"); }); }
+// 스토리 미션 (3장 화보, 4장 결승)
+function storyMission(){
+  const s=G.story||{seen:{}};
+  if (s.seen.ch3 && !s.ch3done) return {k:"mag", t:"📸 매거진 화보 촬영", d:"하드 기준 · 전체 변신 · 실수하면 S 불가 · A 이상이면 성공"};
+  if (s.seen.ch4 && !s.finalWon) return {k:"final", t:"🏆 스타일 어워드 결승 vs 레오", d:"같은 손님으로 한 판 승부 · 이기면 결승 우승"};
+  return null;
+}
+function startStoryMission(k){
+  const base=pick(CUSTOMERS), occ = k==="mag" ? "date" : pick(OCCASIONS).k;
+  const C={...base, name:base.n+" 님", tier:k==="mag"?"storymag":"storyfinal", occ, scope:"full", req: k==="mag"?"매거진 화보 모델이에요. 제 퍼스널컬러로 완벽하게 부탁해요!":"결승전 모델이에요. 레오 원장님과 같은 조건이래요!",
+    wishes: shuffle([...WISHES.keys()]).filter(i=>!(base.g==="m"&&WISHES[i].t.includes("치마"))).slice(0,2), hidden:false, portrait:`img/cust_${String(base.id).padStart(2,"0")}.jpg`, story:k};
+  startSpecial(C);
+}
+
 /* ---------- 손가락 튜토리얼 ---------- */
 let TUT={}; try{ TUT=JSON.parse(localStorage.getItem("cs_tut2")||"{}"); }catch(e){}
 let coachQ=[], coachOn=false;
@@ -1858,6 +2025,7 @@ function nextCoach(){
   coachOn=true; TUT[key]=1; try{ localStorage.setItem("cs_tut2",JSON.stringify(TUT)); }catch(e){}
   el.scrollIntoView({block:"center"});
   setTimeout(()=>{
+    if (el.offsetParent===null || document.getElementById("story")){ coachOn=false; coachQ.unshift(it); TUT[key]=0; return; }
     const r=el.getBoundingClientRect(), d=document.createElement("div"); d.className="coach";
     const below = r.top < innerHeight*0.55;
     d.innerHTML=`<div class="hole" style="left:${r.left-6}px;top:${r.top-6}px;width:${r.width+12}px;height:${r.height+12}px"></div>
@@ -1876,10 +2044,12 @@ function renderHome(){
   const box=$("meCard");
   if (me){
     const S=SEASONS[me.key];
-    box.innerHTML = `<div class="mf">${avatarSVG({skin:me.skin, hair:me.g==="m"?"dandy":"bob", hairColor:"#3E2A20", top:"tee", topColor:me.best?me.best.c:S.pal[0].c, accs:new Set(), mk:{lip:(LIPS.find(x=>x.s===me.key)||{}).c}, gender:me.g==="n"?"f":me.g, view:"85 60 230 230"})}</div>
+    box.innerHTML = `<div class="mf">${me.usePhoto&&me.photo?`<img src="${me.photo}" alt="" style="width:100%;height:100%;object-fit:cover">`:avatarSVG({skin:me.skin, hair:me.g==="m"?"dandy":"bob", hairColor:"#3E2A20", top:"tee", topColor:me.best?me.best.c:S.pal[0].c, accs:new Set(), mk:{lip:(LIPS.find(x=>x.s===me.key)||{}).c}, gender:me.g==="n"?"f":me.g, view:"85 60 230 230"})}</div>
       <div><div class="mt">나는 ${S.em} ${S.name}</div><div class="md">게임 속 '나'(살롱 원장)에 적용됐어요.<br>원장 이미지를 꾸밀수록 손님이 늘어요!${me.best?` · BEST ${me.best.n}`:""}</div>
+      ${me.photo?`<div class="photoopt"><span data-p="0" class="${me.usePhoto?"":"on"}">아바타로 표시</span><span data-p="1" class="${me.usePhoto?"on":""}">내 사진으로 표시</span></div>`:""}
       <button id="meRe">다시 진단하기</button></div>`;
     $("meRe").onclick=()=>show("sDiag");
+    box.querySelectorAll(".photoopt span").forEach(b=>b.onclick=()=>{ me.usePhoto=b.dataset.p==="1"; try{localStorage.setItem("cs_me",JSON.stringify(me))}catch(e){} renderHome(); });
   } else {
     box.innerHTML = `<div class="mf">👤</div><div><div class="mt">아직 '나' 캐릭터가 없어요</div>
       <div class="md">퍼스널컬러를 진단하면 내 피부톤과 시즌으로<br>게임 속 '나'(살롱 원장)가 만들어져요.</div><button id="meGo">진단하러 가기 →</button></div>`;
@@ -1892,7 +2062,10 @@ $("mDiag").onclick=()=>show("sDiag");
 $("diagBack").onclick=()=>show("sStart");
 $("mResult").onclick=()=>show("sResult");
 function saveMe(){
-  me = {key:result.key, skin:avSkin(), g:gender, best:{n:result.best.n,c:result.best.c}, worst:{n:result.worst.n,c:result.worst.c}, t:Date.now()};
+  let photo=null;
+  try{ const sz=Math.min(W,H, F.Wf*2.2), c=document.createElement("canvas"); c.width=c.height=240;
+    c.getContext("2d").drawImage(work, F.c.x-sz/2, F.c.y-sz*0.45, sz, sz, 0,0,240,240); photo=c.toDataURL("image/jpeg",0.82); }catch(e){}
+  me = {key:result.key, skin:avSkin(), g:gender, best:{n:result.best.n,c:result.best.c}, worst:{n:result.worst.n,c:result.worst.c}, t:Date.now(), photo, usePhoto:false};
   try{ localStorage.setItem("cs_me", JSON.stringify(me)); }catch(e){}
 }
 
