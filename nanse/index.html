@@ -2433,20 +2433,26 @@ function endGame(){
     G.end = { total, prev, best: total>prev, got, unlocked, unify };
     G.dynEnded = true;
     saveMeta();
-    if (!SIM) try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+    if (!SIM && G.slot!=null) try { localStorage.removeItem(slotKey(G.slot)); } catch(e) {}
   }
   G.phase = 'over';
 }
 function noHeir(){ G.over = { kind:'end' }; endGame(); }
 
 /* ---------------- 저장 ---------------- */
-const SAVE_KEY = 'nanse4-save';
+const SAVE_KEY = 'nanse4-save', SLOTS = 5;
+const slotKey = i => `nanse4-slot${i}`;
+function loadSlot(i){ if (SIM) return null; try { return JSON.parse(localStorage.getItem(slotKey(i))); } catch(e) { return null; } }
+function freeSlot(){ for (let i=0;i<SLOTS;i++) if (!loadSlot(i)) return i; return -1; }
+function slotLabel(sv){ const q = sv && sv.people && sv.people[sv.pid]; return q ? `${q.n} · ${sv.surname}씨 ${sv.gen}대 · ${sv.year}년 ${sv.month}월` : '(손상된 기록)'; }
+if (!SIM) try { const old = localStorage.getItem(SAVE_KEY); if (old){ if (!localStorage.getItem(slotKey(0))) localStorage.setItem(slotKey(0), old); localStorage.removeItem(SAVE_KEY); } } catch(e) {}
 function save(){
   if (SIM || !G || G.phase==='over') return;
   if (G.rank>=5) G.flags.grand = 1;
-  try { const t = G.toast; G.toast = null; localStorage.setItem(SAVE_KEY, JSON.stringify(G)); G.toast = t; } catch(e) {}
+  if (G.slot==null) return;
+  try { const t = G.toast; G.toast = null; localStorage.setItem(slotKey(G.slot), JSON.stringify(G)); G.toast = t; } catch(e) {}
 }
-function loadSave(){ if (SIM) return null; try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch(e) { return null; } }
+function loadSave(){ return null; }
 
 /* EVENTS */
 const N = () => G.ev && G.ev.npc ? person(G.ev.npc).n : '';
@@ -3240,22 +3246,31 @@ function renderOver(){
   <!-- 광고 자리 2: 게임 종료 화면. 광고 코드를 이 div 안에 붙여넣으세요. -->
   <div class="ad-slot" data-ad="end-bottom">광고 영역<br>320 × 100</div></div>`;
   const first = G.firstPid, sc = G.scen, md = G.mode;
-  document.getElementById('again').onclick = () => { newGame(first, sc, md); render(); };
+  document.getElementById('again').onclick = () => startNew(first, sc, md);
   document.getElementById('other').onclick = () => { G = null; renderTitle(); };
 }
 
 /* ---------- 타이틀 ---------- */
 function prefs(){ if (!META.prefs) META.prefs = { scen:196, mode:'real' }; return META.prefs; }
 function rowLook(id){ const r = PEOPLE_RAW.find(x => x[0]===id); return lookOf({ id, n:r[1], m:r[6], i:r[7], l:r[8], c:r[9] }); }
+function startNew(pid, sc, md, after){
+  const go = slot => { newGame(pid, sc, md); G.slot = slot; save(); render(); if (after) after(); };
+  const f = freeSlot(); if (f>=0) return go(f);
+  const rows = []; for (let i=0;i<SLOTS;i++) rows.push(`<button class="btn2" data-ow="${i}" style="text-align:left">칸 ${i+1} · ${esc(slotLabel(loadSlot(i)))}</button>`);
+  const bg = sheet(`<h3>저장 칸이 가득 찼다</h3><p class="small muted">덮어쓸 칸을 고르면 그 칸의 기록은 사라진다.</p>${rows.join('')}<button class="btn2" data-close>취소</button>`);
+  bg.querySelectorAll('[data-ow]').forEach(b => b.onclick = () => { bg.remove(); go(+b.dataset.ow); });
+}
 function renderTitle(){
-  const sv = loadSave(), pr = prefs(), sc = pr.scen;
+  const pr = prefs(), sc = pr.scen;
   if (!['wei','shu','wu','qun','ruler'].includes(titleTab)) titleTab = 'wei';
   const col = KINGDOM[titleTab][2];
   document.documentElement.style.setProperty('--fac', col);
   const list = picksFor(titleTab, sc);
   let cont = '';
-  if (sv && sv.pid && sv.people && sv.people[sv.pid]){ const q = sv.people[sv.pid];
-    cont = `<button class="card" id="cont" style="flex-direction:row;align-items:center;text-align:left;border-left:4px solid var(--red)">${ptHTML(q.look || (LOOK[q.id] ? rowLook(q.id) : DEFAULT_LOOK), sv.year - q.b, !!q.female, '#8f8574', 48)}<span><span class="lbl">이어하기</span><br><b style="font-family:var(--display);font-size:18px;font-weight:400">${esc(q.n)} · ${esc(sv.surname)}씨 ${sv.gen}대 · ${sv.year}년 ${sv.month}월</b></span></button>`; }
+  const svs = [];
+  for (let i=0;i<SLOTS;i++){ const sv = loadSlot(i); if (sv && sv.pid && sv.people && sv.people[sv.pid]) svs.push([i, sv]); }
+  if (svs.length) cont = `<div class="card"><span class="lbl">저장된 게임 (${svs.length}/${SLOTS})</span>` + svs.map(([i, sv]) => { const q = sv.people[sv.pid];
+    return `<div class="row between" style="gap:6px;margin-top:6px"><button class="ghost" data-cont="${i}" style="flex:1;display:flex;align-items:center;gap:8px;text-align:left;border-left:4px solid var(--red)">${ptHTML(q.look || (LOOK[q.id] ? rowLook(q.id) : DEFAULT_LOOK), sv.year - q.b, !!q.female, '#8f8574', 40)}<span><span class="small muted">칸 ${i+1}</span><br><b style="font-family:var(--display);font-weight:400">${esc(slotLabel(sv))}</b></span></button><button class="ghost" data-del="${i}">삭제</button></div>`; }).join('') + `</div>`;
   $app.innerHTML = `<div class="page">
   <div class="brand"><span class="seal">乱</span><div><h1>난세일생</h1><p class="small muted">장수로 태어나 군단을 이끌고, 가문을 일으켜 천하를 다투라</p></div></div>
   ${cont}
@@ -3287,7 +3302,10 @@ function renderTitle(){
   $app.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => openPick(b.dataset.pick));
   document.getElementById('btnAch').onclick = openAch;
   document.getElementById('btnHelp').onclick = openHelp;
-  const ct = document.getElementById('cont'); if (ct) ct.onclick = () => { G = sv; if (G.battle) G.battle.anim = null; G.panel = false; render(); };
+  $app.querySelectorAll('[data-cont]').forEach(b => b.onclick = () => { const sv = loadSlot(+b.dataset.cont); if (!sv) return renderTitle(); G = sv; G.slot = +b.dataset.cont; if (G.battle) G.battle.anim = null; G.panel = false; render(); });
+  $app.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const i = +b.dataset.del, sv = loadSlot(i);
+    const bg = sheet(`<h3>칸 ${i+1} 삭제</h3><p class="small muted">${esc(slotLabel(sv))}<br>이 기록은 되돌릴 수 없다.</p><button class="btn2" id="dOk">삭제한다</button><button class="btn2" data-close>취소</button>`);
+    bg.querySelector('#dOk').onclick = () => { bg.remove(); try { localStorage.removeItem(slotKey(i)); } catch(e) {} renderTitle(); }; });
 }
 function sheet(html){
   const bg = document.createElement('div'); bg.className = 'sheet-bg';
@@ -3311,7 +3329,7 @@ function openPick(id){
     <p class="small"><b>${sc}년 시나리오</b> · ${pr.mode==='real'?'현실 모드':'가상 모드'}</p>
     ${locked ? `<button class="btn2" disabled>누적 명성 ${fmt(cost)}에 열립니다</button>` : `<button class="btn" id="go">이 인물로 시작</button>`}
     <button class="btn2" data-close>닫기</button>`);
-  const go = bg.querySelector('#go'); if (go) go.onclick = () => { bg.remove(); newGame(id, sc, pr.mode); render(); if (!META.helpSeen3){ META.helpSeen3 = 1; saveMeta(); openHelp(); } };
+  const go = bg.querySelector('#go'); if (go) go.onclick = () => { bg.remove(); startNew(id, sc, pr.mode, () => { if (!META.helpSeen3){ META.helpSeen3 = 1; saveMeta(); openHelp(); } }); };
 }
 function openAch(){ sheet(`<h2>업적</h2>${ACH.map(([id,h,t,d])=>`<div class="ach${META.ach[id]?'':' off'}"><span class="seal">${h}</span><div><b>${t}</b><small>${d}</small></div></div>`).join('')}<button class="btn2" data-close>닫기</button>`); }
 function openHelp(){
@@ -3332,10 +3350,14 @@ function openHelp(){
 function openMenu(){
   const bg = sheet(`<h3>메뉴</h3>
     <button class="btn2" id="mChron">연대기</button><button class="btn2" id="mHelp">게임 방법</button><button class="btn2" id="mAch">업적</button>
-    <button class="btn2" id="mTitle">저장하고 처음 화면으로</button><button class="btn2" data-close>닫기</button>`);
+    <button class="btn2" id="mCopy">💾 저장 칸에 저장하기</button><button class="btn2" id="mTitle">처음 화면으로</button><button class="btn2" data-close>닫기</button>`);
   bg.querySelector('#mChron').onclick = () => { bg.remove(); sheet(`<h3>연대기</h3><div class="news">${G.chron.slice(-80).reverse().map(c=>`<div><b>${c.y}.${c.m||1}</b> ${esc(c.t)}</div>`).join('')}</div><button class="btn2" data-close>닫기</button>`); };
   bg.querySelector('#mHelp').onclick = () => { bg.remove(); openHelp(); };
   bg.querySelector('#mAch').onclick = () => { bg.remove(); openAch(); };
+  bg.querySelector('#mCopy').onclick = () => { bg.remove(); save();
+    const rows = []; for (let i=0;i<SLOTS;i++){ const sv = loadSlot(i); rows.push(`<button class="btn2" data-cp="${i}" style="text-align:left" ${i===G.slot?'disabled':''}>칸 ${i+1} · ${i===G.slot?'지금 플레이 중 · 자동 저장':sv?esc(slotLabel(sv))+' (덮어쓰기)':'비어 있음'}</button>`); }
+    const b2 = sheet(`<h3>저장 칸 (${SLOTS}칸)</h3><p class="small muted">고른 칸에 지금 상태를 따로 저장한다. 장수마다 칸을 나눠 쓸 수 있다. 진행 중에는 지금 칸에 자동 저장된다.</p>${rows.join('')}<button class="btn2" data-close>닫기</button>`);
+    b2.querySelectorAll('[data-cp]').forEach(x => x.onclick = () => { const i = +x.dataset.cp; try { const t = G.toast, sl = G.slot; G.toast = null; G.slot = i; localStorage.setItem(slotKey(i), JSON.stringify(G)); G.slot = sl; G.toast = t; b2.remove(); toast(`칸 ${i+1}에 저장했다.`, [['저장',true]]); render(); } catch(e) { b2.remove(); } }); };
   bg.querySelector('#mTitle').onclick = () => { bg.remove(); save(); G = null; renderTitle(); };
 }
 
