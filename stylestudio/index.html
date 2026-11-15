@@ -244,7 +244,7 @@ const state = {hair:null, bangs:null, cloth:null, items:new Set(), intensity:0.8
 let W=0, H=0, orig=null;            // 원본 ImageData
 let hairM=null, clothM=null;        // Float32 마스크(0~1)
 let hairAvg=null, clothAvg=null;    // 영역 평균 {r,g,b,L}
-let F=null;                          // 얼굴 좌표계
+let F=null, hasBangs=false;                          // 얼굴 좌표계
 let missionIdx = Math.floor(Math.random()*MISSIONS.length), missionDone=false;
 let stars = 0;
 try{ stars = +localStorage.getItem("bs_stars")||0 }catch(e){}
@@ -342,6 +342,13 @@ async function loadImage(img){
   const r = Math.max(1, Math.round(Math.max(W,H)/350));
   boxBlur(hairM, W, H, r); boxBlur(clothM, W, H, r);
   hairAvg = regionAvg(hairM); clothAvg = regionAvg(clothM);
+  hasBangs = false;
+  if (F){ let sum=0, cnt=0;
+    for (let gy=0; gy<6; gy++) for (let gx=0; gx<9; gx++){
+      const x=(-0.25+0.5*gx/8)*F.Wf, y=F.y10+(F.browY-0.02*F.Wf-F.y10)*(0.3+0.7*gy/5);
+      const px=Math.round(F.c.x+x*F.ux.x+y*F.uy.x), py=Math.round(F.c.y+x*F.ux.y+y*F.uy.y);
+      if (px>=0&&py>=0&&px<W&&py<H){ sum+=hairM[py*W+px]; cnt++; } }
+    hasBangs = cnt>0 && sum/cnt > 0.5; }
 
   resetState(false);
   hideBusy();
@@ -454,7 +461,8 @@ function render(){
 function tint(d, p, t, avgL, a, contrast){
   const r=d[p], g=d[p+1], b=d[p+2];
   const L = (0.299*r+0.587*g+0.114*b)/255;
-  let s = 1 + (L/avgL - 1)*contrast; if (s<0) s=0; if (s>2.2) s=2.2;
+  // 어두운 머리는 평균 밝기가 낮아 잡티가 크게 튀므로 분모를 바닥값으로 막는다
+  let s = 1 + (L - avgL)/Math.max(avgL, 0.24)*contrast; if (s<0.3) s=0.3; if (s>1.8) s=1.8;
   let nr,ng,nb;
   if (s<=1){ nr=t.r*s; ng=t.g*s; nb=t.b*s; }
   else { const q=Math.min(1,(s-1)*0.85); nr=t.r+(1-t.r)*q; ng=t.g+(1-t.g)*q; nb=t.b+(1-t.b)*q; }
@@ -464,110 +472,89 @@ function tint(d, p, t, avgL, a, contrast){
   d[p+2] = b + (nb*255 - b)*a;
 }
 
-/* ---------- 앞머리 (얼굴 위치에 맞춰 머리카락 결을 한 올씩 그림) ---------- */
+/* ---------- 앞머리: 그려 넣지 않고, 내 머리카락을 아래로 "빗어 내리듯" 늘려서 만든다 ----------
+   정수리 쪽 머리카락(실제 사진 픽셀)을 이마 쪽으로 늘려 붙이므로
+   색·결·조명이 원본과 똑같다. 원본에 머리카락이 없는 곳은 아무것도 생기지 않는다. */
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
-function shadeCol(f, alpha){ const c=hairAvg; return `rgba(${Math.min(255,c.r*f)|0},${Math.min(255,c.g*f)|0},${Math.min(255,c.b*f)|0},${alpha})`; }
-function strand(g, x0,y0, cx,cy, x1,y1, w){
-  g.beginPath();
-  g.moveTo(x0-w,y0);
-  g.quadraticCurveTo(cx-w*0.55,cy, x1,y1);
-  g.quadraticCurveTo(cx+w*0.55,cy, x0+w,y0);
-  g.closePath(); g.fill();
+function noise1(seed, n){
+  const R=rng(seed), p=Array.from({length:n+2},()=>R());
+  return t=>{ const f=Math.max(0,Math.min(n,t*n)), i=Math.floor(f), u=f-i, s=u*u*(3-2*u); return p[i]+(p[i+1]-p[i])*s; };
 }
-function bangGeom(){
-  const {Wf, y10, browY, halfW} = F;
-  const top = y10 - 0.12*Wf;
-  return { Wf, halfW, browY, y10, top, topY: x => top + 0.22*Wf*(x/halfW)**2 };
+const sstep=(a,b,v)=>{ let t=(v-a)/(b-a); t=t<0?0:t>1?1:t; return t*t*(3-2*t); };
+
+function bangShape(type){
+  const {Wf, halfW, browY, y10} = F;
+  const hw = halfW*1.08;
+  let botY;
+  if (type==="full")      botY = x => browY + 0.005*Wf + 0.08*Wf*(x/hw)**2;
+  else if (type==="see")  botY = x => browY + 0.03*Wf + 0.06*Wf*(x/hw)**2;
+  else                    botY = x => { const t=Math.min(1,Math.abs(x)/hw); return y10 + 0.03*Wf + Math.pow(t,1.7)*(browY + 0.34*Wf - y10); };
+  return { hw, botY, ys0: y10 - 0.62*Wf, ySrcBot: y10 - 0.04*Wf, tip: 0.07*Wf };
 }
+
 function drawBangs(g, type){
   g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,W,H);
-  setFrame(g);
-  const G = bangGeom(), {Wf, halfW, browY, topY} = G;
-  const R = rng(type==="see"?11:type==="full"?23:37);
-  if (hasFilter) g.filter = `blur(${Math.max(0.4, Wf/420)}px)`;
-
-  if (type==="full" || type==="see"){
-    const full = type==="full";
-    const bot = browY + (full ? 0.025 : 0.045)*Wf;
-    const botY = x => bot + 0.06*Wf*(x/halfW)**2;
-    if (full){
-      // 바탕 덩어리
-      g.fillStyle = shadeCol(0.82, 0.96);
-      g.beginPath();
-      for (let i=0;i<=24;i++){ const x=-halfW+2*halfW*i/24; g.lineTo(x, topY(x)); }
-      for (let i=24;i>=0;i--){ const x=-halfW+2*halfW*i/24; g.lineTo(x, botY(x) - (i%2?0.035:0.005)*Wf*(0.5+R())); }
-      g.closePath(); g.fill();
-    }
-    const N = full ? 170 : 110;
-    const clusters = 9;
-    for (let i=0;i<N;i++){
-      let x0;
-      if (full) x0 = -halfW + 2*halfW*R();
-      else { const ci = Math.floor(R()*clusters); x0 = -halfW*0.92 + (2*halfW*0.92)*(ci+0.5)/clusters + (R()-0.5)*halfW*0.09; }
-      const x1 = x0*1.04 + (R()-0.5)*0.03*Wf;
-      const y0 = topY(x0) - 0.02*Wf;
-      const y1 = botY(x1) + (R()-0.5)*(full?0.025:0.05)*Wf - (full?0:R()*0.03*Wf);
-      const cx = (x0+x1)/2 + (R()-0.5)*0.04*Wf, cy = y0 + (y1-y0)*0.5;
-      const w = Wf*(full? 0.006+R()*0.012 : 0.004+R()*0.008);
-      g.fillStyle = shadeCol(0.68 + R()*0.55, full?0.95:0.82);
-      strand(g, x0,y0, cx,cy, x1,y1, w);
-    }
-    // 하이라이트 몇 가닥
-    for (let i=0;i<(full?26:16);i++){
-      const x0 = -halfW*0.8 + 1.6*halfW*R(), y0 = topY(x0);
-      const y1 = y0 + (botY(x0)-y0)*(0.45+R()*0.3);
-      g.fillStyle = shadeCol(1.35+R()*0.3, 0.35);
-      strand(g, x0,y0, x0+(R()-0.5)*0.02*Wf,(y0+y1)/2, x0*1.03,y1, Wf*0.003);
-    }
-  } else if (type==="curtain"){
-    for (const s of [-1,1]){
-      const P0 = {x:s*0.02*Wf, y:topY(0)};
-      const C  = {x:s*halfW*0.28, y:browY - 0.03*Wf};
-      const P1 = {x:s*halfW*0.8,  y:browY + 0.15*Wf};
-      // 바탕 덩어리
-      g.fillStyle = shadeCol(0.82, 0.95);
-      g.beginPath(); g.moveTo(P0.x,P0.y);
-      g.quadraticCurveTo(C.x,C.y,P1.x,P1.y);
-      g.lineTo(s*halfW*1.12, browY + 0.33*Wf);
-      g.lineTo(s*halfW*1.1, topY(halfW));
-      for (let i=12;i>=0;i--){ const x=s*halfW*1.05*i/12; g.lineTo(x, topY(x)); }
-      g.closePath(); g.fill();
-      // 결
-      for (let i=0;i<95;i++){
-        const u = R();
-        const x0 = s*halfW*(0.03+0.75*u), y0 = topY(x0) - 0.02*Wf;
-        const x1 = s*halfW*(0.8+0.32*u) + (R()-0.5)*0.03*Wf;
-        const y1 = browY + Wf*(0.15+0.18*u) + (R()-0.5)*0.03*Wf;
-        const cx = s*halfW*(0.28+0.62*u), cy = browY - 0.03*Wf + 0.07*Wf*u;
-        g.fillStyle = shadeCol(0.68+R()*0.55, 0.92);
-        strand(g, x0,y0, cx,cy, x1,y1, Wf*(0.005+R()*0.01));
-      }
-      for (let i=0;i<14;i++){
-        const u = R();
-        g.fillStyle = shadeCol(1.35+R()*0.3, 0.35);
-        strand(g, s*halfW*(0.05+0.6*u), topY(0), s*halfW*(0.3+0.6*u), browY, s*halfW*(0.7+0.3*u), browY+0.12*Wf, Wf*0.003);
-      }
+  const {Wf, c, ux, uy} = F, S = bangShape(type), {hw, botY, ys0, ySrcBot, tip} = S;
+  const tipN  = noise1(type==="see"?5:type==="full"?9:13, 48);   // 끝선 들쭉날쭉
+  const strN  = noise1(31, 80);                                    // 시스루 가닥 사이 틈
+  const part  = type==="curtain";
+  // 처리할 영역(사각형) 계산
+  const maxBot = Math.max(botY(0), botY(hw)) + tip;
+  const pts = [[-hw,ys0],[hw,ys0],[-hw,maxBot],[hw,maxBot]].map(([x,y])=>[c.x+x*ux.x+y*uy.x, c.y+x*ux.y+y*uy.y]);
+  const x0=Math.max(0,Math.floor(Math.min(...pts.map(p=>p[0])))), x1=Math.min(W-1,Math.ceil(Math.max(...pts.map(p=>p[0]))));
+  const y0=Math.max(0,Math.floor(Math.min(...pts.map(p=>p[1])))), y1=Math.min(H-1,Math.ceil(Math.max(...pts.map(p=>p[1]))));
+  if (x1<=x0 || y1<=y0) return;
+  const bw=x1-x0+1, bh=y1-y0+1, out=g.createImageData(bw,bh), o=out.data, d=orig.data;
+  for (let py=y0; py<=y1; py++){
+    for (let px=x0; px<=x1; px++){
+      const dx=px-c.x, dy=py-c.y;
+      const x = dx*ux.x+dy*ux.y, y = dx*uy.x+dy*uy.y;
+      if (x<-hw || x>hw || y<ys0) continue;
+      const u = x/(2*hw)+0.5;
+      const yb = botY(x) + (tipN(u)-0.5)*tip*1.3;
+      if (y > yb + tip*0.5) continue;
+      // 늘리기: [ys0, ySrcBot] 구간의 머리카락을 [ys0, yb]까지 늘림
+      const t = (y-ys0)/(yb-ys0);
+      const sy = ys0 + (y-ys0)*(ySrcBot-ys0)/(yb-ys0);
+      const sx = part ? x*(1-0.16*t*t) : x*(1-0.04*t);
+      const ix = c.x+sx*ux.x+sy*uy.x, iy = c.y+sx*ux.y+sy*uy.y;
+      // 양선형 샘플링
+      const fx=Math.floor(ix), fy=Math.floor(iy);
+      if (fx<0||fy<0||fx>=W-1||fy>=H-1) continue;
+      const ax=ix-fx, ay=iy-fy, i00=fy*W+fx, i10=i00+1, i01=i00+W, i11=i01+1;
+      const w00=(1-ax)*(1-ay), w10=ax*(1-ay), w01=(1-ax)*ay, w11=ax*ay;
+      let m = hairM[i00]*w00+hairM[i10]*w10+hairM[i01]*w01+hairM[i11]*w11;
+      if (m<0.02) continue;
+      let a = m;
+      a *= sstep(0, 1, (yb + tip*0.5 - y)/tip);                 // 끝부분 자연스럽게
+      a *= sstep(0, 1, (hw - Math.abs(x))/(0.12*Wf));            // 양옆 경계
+      if (part) a *= 1 - (1-sstep(0.012*Wf, 0.05*Wf, Math.abs(x))) * sstep(ySrcBot-0.05*Wf, ySrcBot+0.02*Wf, y); // 가르마
+      if (type==="see" && y > ySrcBot) a *= 0.45 + 0.55*sstep(0.25, 0.75, strN(u));   // 가닥 사이로 이마가 비침
+      if (a<0.01) continue;
+      const q=((py-y0)*bw+(px-x0))*4;
+      for (let ch=0; ch<3; ch++)
+        o[q+ch] = d[i00*4+ch]*w00 + d[i10*4+ch]*w10 + d[i01*4+ch]*w01 + d[i11*4+ch]*w11;
+      o[q+3] = Math.min(255, a*255);
     }
   }
-  g.filter = "none";
-  g.setTransform(1,0,0,1,0,0);
+  g.putImageData(out, x0, y0);
 }
 function drawBangShadow(g, type){
-  const G = bangGeom(), {Wf, halfW, browY} = G;
+  const {Wf} = F, {hw, botY} = bangShape(type);
   setFrame(g);
   g.save();
-  if (hasFilter) g.filter = `blur(${Math.max(1.5, Wf/60)}px)`;
-  g.strokeStyle = "rgba(70,40,30,0.28)"; g.lineWidth = 0.05*Wf; g.lineCap="round";
+  if (hasFilter) g.filter = `blur(${Math.max(1.5, Wf/50)}px)`;
+  g.strokeStyle = type==="see" ? "rgba(60,35,25,0.12)" : "rgba(60,35,25,0.2)";
+  g.lineWidth = 0.045*Wf; g.lineCap="round";
   g.beginPath();
   if (type==="curtain"){
-    for (const s of [-1,1]){ g.moveTo(s*0.03*Wf, G.topY(0)+0.04*Wf); g.quadraticCurveTo(s*halfW*0.3, browY+0.0*Wf, s*halfW*0.82, browY+0.19*Wf); }
+    for (const s of [-1,1]){ for (let i=2;i<=20;i++){ const x=s*hw*0.95*i/20; const y=botY(x)+0.015*Wf; i===2?g.moveTo(x,y):g.lineTo(x,y); } }
   } else {
-    const bot = browY + (type==="full"?0.055:0.07)*Wf;
-    for (let i=0;i<=20;i++){ const x=-halfW*0.95+1.9*halfW*i/20; g.lineTo(x, bot + 0.06*Wf*(x/halfW)**2); }
+    for (let i=0;i<=20;i++){ const x=-hw*0.9+1.8*hw*i/20; g.lineTo(x, botY(x)+0.01*Wf); }
   }
   g.stroke(); g.restore(); g.filter="none";
+  g.setTransform(1,0,0,1,0,0);
 }
-
 /* ---------- 소품 ---------- */
 function drawRoundGlasses(g){
   setFrame(g);
@@ -658,6 +645,7 @@ function buildOptions(){
       : "옷 영역을 찾지 못했어요. 상반신까지 나오게 찍어주세요.";
     note.classList.remove("hidden"); return;
   }
+  if (t==="bangs" && hasBangs){ note.textContent="이미 앞머리가 있어서 변화가 작게 보일 수 있어요. 이마가 드러난 사진에서 차이가 가장 커요."; note.classList.remove("hidden"); }
   const list = t==="hair"?HAIR : t==="bangs"?BANGS : t==="cloth"?CLOTH : ITEMS;
   for (const o of list){
     const el=document.createElement("button"); el.className="opt";
@@ -783,6 +771,7 @@ function toast(html){ const t=$("toast"); t.innerHTML=html; t.classList.add("sho
 
 /* ---------- 테스트용 가짜 데이터 (?mock) ---------- */
 function mockAnalyze(){
+  if (window.__mockAnalyze) { const r=window.__mockAnalyze(orig,W,H); r.F=buildFrame(r.lm); return r; }
   // 테스트 그림에서 색으로 영역을 판별
   const d=orig.data, n=W*H, hair=new Float32Array(n), face=new Float32Array(n), cloth=new Float32Array(n);
   for (let i=0;i<n;i++){ const r=d[i*4],g=d[i*4+1],b=d[i*4+2];
@@ -814,7 +803,7 @@ if (MOCK){
     g.beginPath(); g.ellipse(300,370,108,140,0,0,Math.PI*2); g.fill();
     g.fillStyle="#3a2a20"; g.beginPath(); g.ellipse(265,337,10,6,0,0,Math.PI*2); g.ellipse(335,337,10,6,0,0,Math.PI*2); g.fill();
     g.fillStyle="#c76a6a"; g.beginPath(); g.ellipse(300,440,22,8,0,0,Math.PI*2); g.fill();
-    await window.__mock(c.toDataURL());
+    await window.__mock(q.get("src") || c.toDataURL());
     if (q.get("hair")) state.hair=q.get("hair");
     if (q.get("bangs")) state.bangs=q.get("bangs");
     if (q.get("cloth")) state.cloth=q.get("cloth");
