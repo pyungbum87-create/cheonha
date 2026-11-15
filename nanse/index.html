@@ -2198,6 +2198,28 @@ const ACT = {
     toast(`관인을 내려놓고 ${J(facName(old),'을')} 떠났다. 이제 재야의 몸이다.${follow.length ? ' '+J(follow.map(p=>p.n).join(', '),'이')+' 뒤따랐다.' : ''}`, [['하야',false],...(follow.length?[[`따르는 이 ${follow.length}`,true]]:[])]);
     news(`${J(me().n,'이')} ${facName(old)}에서 하야했다.`, true, true);
   },
+  abdicate(sid, mode){
+    if (G.role!=='ruler' || G.inArmy) return;
+    const fid = G.pfac, F = fac(fid), sp = person(sid);
+    if (!sp || !active(sp) || sp.fac!==fid || sp.id===G.pid || !spend(0)) return;
+    const kid = G.kids.find(k => k.pid===sid);
+    if (sp.army){ const a = armyById(sp.army); if (a){ a.gens = a.gens.filter(g => g!==sid); if (!a.gens.length) sendHome(a); } sp.army = null; }
+    const cap = capitalOf(fid); if (cap) sp.city = cap;
+    F.ruler = sid; F.seal = SEALS[surnameOf(sp.n)] || F.seal; sp.loy = 100; addBond(sid, 20);
+    for (const c of citiesOf(fid)) if (c.gov===sid) c.gov = null;
+    F.gold = (F.gold||0) + Math.round(G.gold*.7); G.gold = Math.round(G.gold*.3);
+    G.flags.abdicated = 1;
+    news(`${J(me().n,'이')} 물러나고 ${J(sp.n,'이')} ${kid?'아버지의 뒤를 이어 ':''}군주가 되었다.`, true, true);
+    if (mode==='stay'){
+      joinFaction(fid, '', 4); G.trust = kid ? 95 : 85;
+      for (const p of npcs()) if (p.fac===fid) addBond(p.id, 5);
+      toast(`${sp.n+'에게'} 나라를 넘기고 원로로 남았다. 이제 새 군주를 보좌한다.`, [['하야',false],['원로',true],[`${sp.n} 즉위`,true]]);
+    } else {
+      G.pfac = null; G.role = 'ronin'; me().fac = 'free'; G.rank = 0; G.mission = null; G.campaign = null; G.gov = null;
+      G.troops = Math.min(G.troops, 1000); G.retinue = [];
+      toast(`${sp.n+'에게'} 나라를 넘기고 홀로 길을 떠났다. 이제 재야의 몸이다.`, [['하야',false],['재야',false],[`${sp.n} 즉위`,true]]);
+    }
+  },
   defect(fid){
     if (G.role!=='officer' || G.inArmy || fid===G.pfac || !fac(fid).alive) return;
     const dest = city(G.city).adj.map(city).find(c => c.owner===fid); if (!dest || !spend(0)) return;
@@ -2415,6 +2437,7 @@ function succeed(ch){
   if (np.army){ const a = armyById(np.army); if (a) a.gens = a.gens.filter(g => g!==np.id); np.army = null; }
   G.pid = np.id; np.city = G.city; np.fac = G.pfac || 'free';
   if (G.role==='ruler') fac(G.pfac).ruler = np.id;
+  else if (G.pfac && fac(G.pfac) && fac(G.pfac).ruler===np.id){ G.role = 'ruler'; G.rank = 0; G.mission = null; G.campaign = null; G.trust = 70; if (G.gov){ city(G.gov).gov = null; G.gov = null; } }
   if (G.role==='officer'){ G.rank = Math.max(0, G.rank-2); G.trust = 50; G.troops = Math.round(G.troops*.5); if (G.gov){ city(G.gov).gov = null; G.gov = null; } }
   G.gold = Math.round(G.gold*.7); G.merit = 0; G.hp = 100; G.train = Math.round(G.train*.8);
   G.spouse = null; G.spouses = []; G.kids = []; G.heir = null; G.gen++; G.startYear = G.year;
@@ -2981,6 +3004,7 @@ function viewPanel(){
       b.push(actBtn('훈련','금 60','data-act="train"',ap && G.gold>=60));
       b.push(actBtn('태수 임명','행동력 없이',`data-sheet="appoint" data-arg="${cid}"`,peopleIn(cid,G.pfac).length>0));
       b.push(actBtn('내정','금 300 · 개발+1',`data-act="develop" data-arg="${cid}"`,ap && G.gold>=300 && c.dev<10));
+      if (here && !G.inArmy) b.push(actBtn('하야','나라를 넘긴다','data-sheet="abdicate"',ap));
     } else {
       if (c.owner) b.push(actBtn('사관',`${person(fac(c.owner).ruler).n}에게`,'data-act="seek"',ap));
       b.push(actBtn('의병','금 40',`data-act="draft"`,ap && G.gold>=40 && G.troops<troopCap()));
@@ -3512,6 +3536,16 @@ function openSheet(kind, arg){
       ${srcs.map(o=>`<div class="prow"><span class="nm">${o.n}</span><span class="mini">병력 ${fmt(o.troops)}</span>${[.3,.5,.8].map(p=>`<button class="ghost" data-src="${o.id}" data-p="${p}">${Math.round(p*100)}%</button>`).join('')}</div>`).join('')}
       <button class="btn2" data-close>닫기</button>`);
     bg.querySelectorAll('[data-src]').forEach(b => b.onclick = () => { bg.remove(); doAct('transport', arg, b.dataset.src, b.dataset.p); });
+  } else if (kind==='abdicate'){
+    const cands = npcs().filter(p => p.fac===G.pfac && active(p)).sort((a,b) => (b.fam?1000:0)+(b.m+b.i+b.l+b.c) - ((a.fam?1000:0)+(a.m+a.i+a.l+a.c))).slice(0,6);
+    const bg = sheet(`<h3>하야 · 나라를 넘긴다</h3><p class="small">뒤를 이을 사람을 고른다. 나라는 그 사람이 다스리고, 그대는 원로로 남아 보좌하거나 재야로 떠날 수 있다. 군자금의 7할은 나라에 남긴다.</p>
+      ${cands.length ? cands.map(p => `<div class="prow"><span class="nm">${esc(p.n)}${p.fam?' <span class="badge">자식</span>':''}</span><span class="mini">무${p.m} 지${p.i} 통${p.l} 매${p.c}</span><button class="ghost" data-ab="${p.id}">고른다</button></div>`).join('') : '<p class="small muted">넘길 장수가 없다.</p>'}
+      <button class="btn2" data-close>닫기</button>`);
+    bg.querySelectorAll('[data-ab]').forEach(b => b.onclick = () => { bg.remove(); const p = person(b.dataset.ab);
+      const b2 = sheet(`<h3>${esc(p.n)}에게 넘긴다</h3><p class="small">원로로 남으면 높은 계급의 장수로 새 군주를 섬기며 전쟁에 계속 나설 수 있다. 재야로 떠나면 어디든 떠돌다 다른 군주를 찾거나 다시 일어설 수 있다.</p>
+        <button class="btn fac" id="abStay">원로로 남는다</button><button class="btn2" id="abLeave">재야로 떠난다</button><button class="btn2" data-close>취소</button>`);
+      b2.querySelector('#abStay').onclick = () => { b2.remove(); doAct('abdicate', p.id, 'stay'); };
+      b2.querySelector('#abLeave').onclick = () => { b2.remove(); doAct('abdicate', p.id, 'leave'); }; });
   } else if (kind==='resign'){
     const fl = npcs().filter(p => p.fac===G.pfac && p.city===G.city && !p.army && !p.gov && (isSworn(p.id) || bond(p.id)>=75 || p.fam));
     const bg = sheet(`<h3>하야</h3><p class="small">${esc(person(fac(G.pfac).ruler).n)}의 곁을 떠나 재야가 된다. 계급과 관직은 사라지고, 사병은 1,000명까지만 데려간다. 재야가 되면 어느 나라 땅이든 이동할 수 있고, 마음에 드는 군주를 찾아가 다시 출사할 수 있다.</p>
