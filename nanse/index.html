@@ -239,6 +239,10 @@ p{margin:0}
 .dlog{margin:4px 0;font-size:13px;color:#4a3a22;font-weight:700}
 .tacs.three{grid-template-columns:repeat(3,1fr)}
 .tacs.three .tac small{font-size:10.5px}
+button.stat{border:0;font:inherit;cursor:pointer}
+button.stat.pol{background:#e4d3a2;color:#3b2c14}
+button.stat.pol.off{background:#e3ddd0;color:#7a7060}
+.tac.on{outline:2px solid var(--gold);background:#f3e7c4}
 /* ===== title & full pages ===== */
 .page{height:100%;overflow:auto;padding:14px max(14px,env(safe-area-inset-left,0px)) 28px;display:flex;flex-direction:column;gap:10px}
 .brand{display:flex;align-items:center;gap:12px}
@@ -2147,6 +2151,63 @@ function joinFaction(fid, msg, rank){
   if (msg) toast(msg, [['출사',true]]);
 }
 
+/* ---------------- 내정 위임 (방침): 내정·징병·훈련·수송은 알아서, 나는 전쟁과 전략에 ---------------- */
+const POL = { balanced:['균형','개발과 징병을 고르게. 전선 성은 병력을, 후방 성은 개발을 챙긴다.'], grow:['부국','개발 중심. 징병은 전선 성만 절반 수준으로 채운다.'], army:['강병','징병과 훈련 중심. 개발은 뒤로 미루고 민심이 더 빨리 닳는다.'], front:['전선','후방 성의 병력을 전선으로 보내고, 전선 성은 한도까지 징병한다.'] };
+const POLP = { balanced:{ dev:1, fill:.8, train:70, floor:50, ship:1 }, grow:{ dev:2, fill:.5, train:60, floor:55, ship:0 }, army:{ dev:0, devLow:3, fill:.95, train:90, floor:40, ship:1 }, front:{ dev:1, backOnly:1, fill:1, train:80, floor:45, ship:2 } };
+function polOf(){ if (!G.pol) G.pol = { on:true, focus:'balanced', reserve:600 }; return G.pol; }
+function autoDomestic(){
+  const pol = polOf(); G.autoRep = null;
+  if (!pol.on || G.role==='ronin' || !G.pfac) return;
+  const P = POLP[pol.focus] || POLP.balanced, L = [], keep = G.role==='ruler' ? pol.reserve : 50; let spent = 0;
+  const pay = g => { if (G.gold - g < keep) return false; G.gold -= g; spent += g; return true; };
+  if (G.role==='ruler'){
+    const mine = citiesOf(G.pfac), front = c => c.adj.some(a => { const o = city(a).owner; return !o || hostile(G.pfac, o); });
+    const devd = [], slots = Math.max(P.dev, P.devLow ? 1 : 0);
+    for (const c of mine.filter(c => c.dev<10 && (!P.backOnly || !front(c)) && (P.dev>0 || c.dev<(P.devLow||0))).sort((a,b) => a.dev-b.dev)){
+      if (devd.length >= slots) break; if (pay(300)){ c.dev++; devd.push(c.n); } }
+    if (devd.length) L.push(`개발 ${devd.join('·')}`);
+    let drafted = 0; const dn = [];
+    for (const c of mine.filter(c => (c.pool||0) >= 200).sort((a,b) => (front(b)-front(a)) || (b.pool-a.pool))){
+      if (dn.length >= 3 || G.trust < P.floor) break;
+      const cap = cityCap(c), room = Math.floor(cap*(front(c) ? P.fill : Math.min(P.fill, .45)) - c.troops);
+      const n = Math.min(1500, Math.floor(c.pool), room); if (n < 200) continue;
+      if (!pay(Math.round(n*.12))) continue;
+      c.pool -= n; c.troops += n; trustAdd(-1); drafted += n; dn.push(c.n);
+    }
+    if (drafted) L.push(`징병 ${fmt(drafted)}(${dn.join('·')})`);
+    let ships = 0;
+    if (P.ship) for (const to of mine.filter(c => front(c) && c.troops < cityCap(c)*.7)){
+      if (ships >= P.ship) break;
+      const from = to.adj.map(city).filter(s => s.owner===G.pfac && !front(s) && s.troops >= 2500 && s.troops >= cityCap(s)*.6).sort((a,b) => b.troops-a.troops)[0];
+      if (!from) continue;
+      const n = Math.min(Math.floor(from.troops*.4), Math.floor(cityCap(to)*.9 - to.troops)); if (n < 1000) continue;
+      from.troops -= n; to.troops += n; ships++; L.push(`수송 ${from.n}→${to.n} ${fmt(n)}`);
+    }
+    if (G.train < P.train && pay(60)){ G.train = clamp(G.train+5); L.push('훈련 +5'); }
+    if (mi()%3===0){ const t = G.toast; ACT.autoAssign(); G.toast = t; }
+  } else if (G.role==='officer' && !G.inArmy){
+    if (G.gov && G.gov===G.city && city(G.gov).dev<10 && pol.focus!=='army' && Math.random()<.5){ const c = city(G.gov); if (roll('i', 75)){ c.dev++; G.merit += 8; L.push(`${c.n} 개발 ${c.dev}`); } else G.merit += 1; }
+    if (G.troops < troopCap()*(P.fill||.8)){ const c = city(G.city), n = Math.min(400 + me().c*4, troopCap()-G.troops, Math.floor(c.pool||0)); if (n >= 100 && pay(60)){ c.pool -= n; G.troops += n; L.push(`징병 ${fmt(n)}`); } }
+    if (G.train < P.train && Math.random()<.5){ G.train = clamp(G.train+6); G.merit += 1; L.push('훈련 +6'); }
+  }
+  if (L.length) G.autoRep = { date: dateStr(), msg: '자동 내정 · ' + L.join(' / '), spent };
+}
+function openPolicy(){
+  const bg = sheet(''), box = bg.querySelector('.sheet');
+  const paint = () => {
+    const pol = polOf(), ruler = G.role==='ruler';
+    box.innerHTML = `<h3>내정 방침</h3><p class="small muted">${ruler ? '내정·징병·훈련·병력 수송을 매달 알아서 처리한다.' : '내 성의 개발과 내 부대의 징병·훈련을 알아서 처리한다.'} 행동력은 쓰지 않는다.</p>
+      <div class="row"><button class="${pol.on?'btn':'btn2'} grow" data-pol="on:1">위임 (자동)</button><button class="${pol.on?'btn2':'btn'} grow" data-pol="on:0">직접 한다</button></div>
+      ${pol.on ? `<div class="tacs">${Object.keys(POL).map(k => `<button class="tac ${pol.focus===k?'on':''}" data-pol="focus:${k}"><b>${POL[k][0]}</b><small>${POL[k][1]}</small></button>`).join('')}</div>
+      ${ruler ? `<p class="small" style="margin:10px 0 4px"><b>전쟁 자금</b> · 이만큼의 금은 남겨 둔다</p><div class="row wrap">${[0,300,600,1000,2000].map(v => `<button class="${pol.reserve===v?'btn':'btn2'}" style="flex:1;min-width:58px" data-pol="res:${v}">${v}</button>`).join('')}</div>` : ''}` : ''}
+      <div class="card" style="margin-top:10px"><div class="tiny muted">지난 처리</div><div class="small">${G.autoRep ? esc(G.autoRep.date + ' ' + G.autoRep.msg) + (G.autoRep.spent ? ` (금 -${fmt(G.autoRep.spent)})` : '') : '아직 처리한 내역이 없다.'}</div></div>
+      <button class="btn2" data-close>닫기</button>`;
+    box.querySelectorAll('[data-close]').forEach(x => x.onclick = () => bg.remove());
+    box.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => { const [k, v] = b.dataset.pol.split(':'); const p = polOf(); if (k==='on') p.on = v==='1'; else if (k==='focus') p.focus = v; else if (k==='res') p.reserve = +v; save(); render(); paint(); });
+  };
+  paint();
+}
+
 /* ---------------- 한 달의 흐름 ---------------- */
 function startMonth(first){
   G.ap = apMax(); G.toast = null;
@@ -2162,6 +2223,7 @@ function endMonth(){
   if (G.role==='ruler'){ const inc = Math.round(citiesOf(G.pfac).reduce((a,c)=>a+c.dev*14,0)*(.6+G.trust/250)); G.gold += inc; G.lastIncome = inc; }
   else if (G.role==='officer'){ const s = 30 + G.rank*25 + (G.gov?20:0); G.gold += s; G.lastIncome = s; if (G.month===12) G.trust = clamp(G.trust-3); }
   if (G.month%6===0 && G.role==='ruler') G.trust = clamp(G.trust + (G.trust<60 ? 2 : -1));
+  autoDomestic();
   G.repDate = dateStr();
   monthStep(false);
   if (ageOf(me())<55 && G.hp<100 && !G.inArmy) G.hp = clamp(G.hp+1);
@@ -2197,6 +2259,7 @@ function afterReport(){
   if (G.dead){ G.phase = 'succession'; return save(); }
   startMonth(false);
   if (!G.dead && G.mnews.length && G.phase==='act') toast(`${dateStr()} · ${G.mnews[0].t}${G.mnews.length>1?` 외 ${G.mnews.length-1}건`:''}`);
+  else if (!G.dead && G.autoRep && G.phase==='act') toast(G.autoRep.msg, G.autoRep.spent ? [[`금 -${fmt(G.autoRep.spent)}`, false]] : []);
   save();
 }
 function afterBattle(){
@@ -2620,6 +2683,7 @@ function viewTop(){
       <button class="icon" id="menuBtn" aria-label="메뉴">≡</button>
     </div>
     <div class="stats">
+      ${G.role!=='ronin' ? `<button class="stat pol ${polOf().on?'':'off'}" data-sheet="policy">내정 <b>${polOf().on ? POL[polOf().focus][0] : '수동'}</b></button>` : ''}
       <span class="stat">금 <b>${fmt(G.gold)}</b></span>
       <span class="stat">${G.role==='ruler'?'총병력':'병력'} <b>${fmt(troops)}</b></span>
       <span class="stat ${G.role!=='ronin' && trv<35?'warn':''}">${tr} <b>${Math.round(trv)}</b></span>
@@ -3256,6 +3320,7 @@ function campaignSheet(tid){
   draw();
 }
 function openSheet(kind, arg){
+  if (kind==='policy') return openPolicy();
   if (kind==='war') return warSheet(arg);
   if (kind==='campaign') return campaignSheet(arg);
   if (kind==='study'){
