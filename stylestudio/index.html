@@ -166,6 +166,41 @@
   .jrow{display:flex;justify-content:center;gap:14px;margin:10px 0 2px}
   .jrow div{text-align:center;font-size:11px;color:var(--sub);font-weight:700}
   .jrow img{width:52px;height:52px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 3px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+  /* 홈 메뉴 */
+  .mecard{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:20px;padding:12px 14px;margin-bottom:12px}
+  .mecard .mf{width:72px;height:72px;border-radius:50%;overflow:hidden;background:#f1eee8;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:34px}
+  .mecard .mf svg{width:100%;height:100%}
+  .mecard .mt{font-weight:900;font-size:16px}
+  .mecard .md{font-size:13px;color:var(--sub);line-height:1.5;margin-top:2px}
+  .mecard button{margin-top:6px;padding:6px 12px;border-radius:99px;background:var(--ink);color:#fff;font-size:12.5px;font-weight:800}
+  .menu{display:grid;gap:10px}
+  .mbtn{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:3px}
+  .mbtn b{font-size:16.5px}
+  .mbtn span{font-size:12.5px;color:var(--sub)}
+  .mbtn.main{background:linear-gradient(135deg,#2f3a8f,#7b4fd6);border:0;color:#fff;padding:18px}
+  .mbtn.main span{color:#e6e2ff}
+  /* 로비 */
+  .lobbyhead{display:flex;justify-content:space-between;align-items:center}
+  .ccard{display:flex;gap:12px;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:12px;margin-bottom:10px;align-items:center}
+  .ccard.lock{opacity:.5}
+  .ccard .pf{width:78px;height:78px;border-radius:16px;overflow:hidden;background:#f1eee8;flex:0 0 auto}
+  .ccard .pf img,.ccard .pf svg{width:100%;height:100%;object-fit:cover}
+  .ccard .ci{flex:1;min-width:0;font-size:12.5px;color:var(--sub);line-height:1.5}
+  .ccard .ci b{color:var(--ink);font-size:15px}
+  .ccard .go{padding:10px 12px;border-radius:12px;background:var(--ink);color:#fff;font-weight:800;font-size:13px;white-space:nowrap}
+  .tbadge{font-size:11.5px;font-weight:800;padding:3px 8px;border-radius:99px;color:#fff;vertical-align:middle}
+  .rules{margin-top:12px;font-size:12.5px;color:var(--sub);line-height:1.7;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+  .timer{position:absolute;right:12px;top:10px;background:rgba(31,31,36,.85);color:#fff;font-weight:900;font-size:18px;padding:6px 12px;border-radius:99px;z-index:2}
+  .timer.warn{background:#c2413b}
+  .gstage{background-size:cover;background-position:center}
+  #adModal{position:fixed;inset:0;background:rgba(10,10,14,.85);z-index:70;display:flex;align-items:center;justify-content:center}
+  .adbox{background:#fff;border-radius:20px;padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:300px}
+  #adCount{font-size:30px;font-weight:900}
+  .hid .nm{color:#7b4fd6}
+  .hid .cond{font-size:11px;color:var(--sub);margin:2px 0 6px;line-height:1.35}
+  .shopgrid .item .ic img{height:70px}
+  .atabs button{white-space:nowrap}
+  #sTabs{overflow-x:auto}
   /* 토스트 / 모달 */
   #toast{position:fixed;left:50%;top:16%;transform:translate(-50%,-8px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:15px;transition:.25s;z-index:60;text-align:center;max-width:86vw}
   #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -181,16 +216,31 @@
 </head>
 <body>
 
-<!-- 시작 -->
+<!-- 홈 -->
 <section id="sStart" class="wrap">
   <img src="img/title.jpg" alt="" class="keyart" onerror="this.remove()">
-  <div class="seasonbar"><i style="background:var(--spring)"></i><i style="background:var(--summer)"></i><i style="background:var(--autumn)"></i><i style="background:var(--winter)"></i></div>
   <h1>컬러 스튜디오</h1>
-  <p class="lead">내 사진에 16가지 색 천을 대보고<br>더 잘 어울리는 쪽을 고르면<br><b>나의 퍼스널컬러</b>가 나와요</p>
+  <p class="lead" style="margin-bottom:14px">내 퍼스널컬러로 플레이하는<br><b>스타일리스트 살롱 게임</b></p>
+  <div class="mecard" id="meCard"></div>
+  <div class="menu">
+    <button class="mbtn main" id="btnGame0"><b>🎮 스타일리스트 살롱</b><span>손님을 코디하고, 심사위원 평가로 코인을 벌어 아이템을 모아요</span></button>
+    <button class="mbtn" id="mDiag"><b>🔬 퍼스널컬러 진단</b><span>셀카로 진단하고 게임 속 '나' 만들기</span></button>
+    <button class="mbtn" id="btnMirror"><b>🪞 실시간 거울</b><span>카메라로 색 천을 대보며 비교</span></button>
+    <button class="mbtn hidden" id="mResult"><b>📊 이번 진단 결과</b><span>베스트·워스트 컬러, 친구에게 묻기</span></button>
+  </div>
+  <div class="privacy">🔒 사진과 영상은 <b>내 휴대폰 안에서만</b> 분석돼요. 서버로 보내지도, 저장하지도 않아요.</div>
+  <p class="small" style="text-align:center;margin-top:10px">진단 결과는 재미로 보는 참고용이에요.</p>
+</section>
+
+<!-- 진단 시작 -->
+<section id="sDiag" class="wrap hidden">
+  <button class="chip" id="diagBack">← 홈</button>
+  <h2 style="margin-top:12px">🔬 퍼스널컬러 진단</h2>
+  <p class="lead" style="text-align:left">셀카 한 장으로 진단하면, 결과가 <b>게임 속 '나' 캐릭터</b>(피부톤·시즌)로 저장돼요. 살롱에 '나'가 손님으로 찾아와요!</p>
   <div class="steps">
     <div><b>📸</b>셀카 한 장</div>
-    <div><b>🏆</b>컬러 월드컵<br>15번 고르기</div>
-    <div><b>🎨</b>내 컬러 &<br>상황별 룩</div>
+    <div><b>🏆</b>16색 천 월드컵<br>15번 고르기</div>
+    <div><b>🎮</b>게임 속<br>'나' 완성</div>
   </div>
   <div class="small" style="text-align:center">나는</div>
   <div class="chips" id="genderChips">
@@ -200,16 +250,12 @@
   </div>
   <button class="btn primary" id="btnCam">📸 셀카 찍기</button>
   <button class="btn secondary" id="btnAlbum">🖼️ 앨범에서 고르기</button>
-  <button class="btn warm" id="btnGame0">🎮 스타일리스트 게임 바로 시작</button>
-  <button class="btn secondary" id="btnMirror">🪞 실시간 거울로 색 대보기 <span class="small">(카메라)</span></button>
-  <div class="privacy">
-    🔒 사진은 <b>내 휴대폰 안에서만</b> 분석돼요. 서버로 보내지도, 저장하지도 않아요.<br>
-    💡 <b>자연광 · 정면 · 어깨까지</b> 나온 본인 사진이 가장 정확해요. 색이 진한 조명이나 필터는 피해 주세요.
-  </div>
+  <div class="privacy">💡 <b>자연광 · 정면 · 어깨까지</b> 나온 본인 사진이 가장 정확해요. 진한 조명·필터는 피해 주세요.<br>🙅 다른 사람 사진은 사용하지 말아 주세요.</div>
   <p class="small" id="modelStatus" style="text-align:center;margin-top:12px"></p>
   <input type="file" id="fileCam" accept="image/*" capture="user" hidden>
   <input type="file" id="fileAlbum" accept="image/*" hidden>
 </section>
+
 
 <!-- 월드컵 -->
 <section id="sWc" class="wrap hidden">
@@ -310,51 +356,64 @@
   <p class="small" style="text-align:center;margin-top:8px">화면을 좌우로 밀면 색이 바뀌어요 · 자연광 아래에서 가장 정확해요</p>
 </section>
 
-<!-- 스타일리스트 게임 -->
+<!-- 스타일리스트 살롱 -->
 <section id="sGame" class="wrap hidden">
   <div class="gtop">
-    <button class="chip" id="gBack">← 메뉴</button>
+    <button class="chip" id="gBack">← 홈</button>
     <div class="gstat"><span id="gCoins">🪙 0</span><span id="gRep">⭐ 0</span><span id="gLv">Lv.1</span></div>
     <button class="chip" id="gShopBtn">🛍️ 상점</button>
   </div>
 
-  <!-- 손님 / 코디 -->
-  <div id="gPlay">
+  <div id="gLobby">
+    <div class="lobbyhead"><h2>오늘의 손님</h2><button class="chip" id="gRefresh">↻ 새 손님 20🪙</button></div>
+    <div id="gBoard"></div>
+    <button class="btn secondary" id="gAdRefresh" style="margin-top:6px">📺 광고 보고 무료로 새 손님</button>
+    <div class="rules">
+      <b>난이도 안내</b><br>
+      🟢 <b>기본</b>: 보증금 없음 · 시간 제한 없음<br>
+      🔵 <b>중간</b> (Lv.2~): 보증금 30 · 90초 · 요청 1~2개 · C등급이면 평판 -1<br>
+      🔴 <b>하드</b> (Lv.3~): 보증금 80 · 60초 · 시즌 비공개 · 금지 조건 · C등급이면 평판 -2<br>
+      도중에 나가면 보증금은 돌려받지 못해요. 하드에서 S를 받으면 <b>히든 아이템</b>이 열려요!
+    </div>
+  </div>
+
+  <div id="gPlay" class="hidden">
     <div class="cust">
       <div class="cface" id="gFace"></div>
       <div class="cinfo">
-        <div class="cname"><span id="gName"></span> <span class="sbadge" id="gSeason"></span></div>
+        <div class="cname"><span id="gName"></span> <span class="sbadge" id="gSeason"></span> <span class="tbadge" id="gTier"></span></div>
         <div class="creq" id="gReq"></div>
         <div class="cwish" id="gWish"></div>
       </div>
     </div>
-    <div class="avstage gstage" id="gStage"><div class="em" id="gEm"></div><div id="gSvg"></div></div>
+    <div class="avstage gstage" id="gStage"><div class="timer hidden" id="gTimer">60</div><div id="gSvg"></div></div>
     <div class="atabs" id="gTabs">
       <button data-t="hair" class="on">헤어</button><button data-t="hc">머리색</button><button data-t="top">상의</button><button data-t="tc">옷 색</button><button data-t="acc">소품</button>
     </div>
     <div class="row" id="gOpts"></div>
     <div class="jrow"><div><img src="img/judge_color.jpg" alt="">모나 · 컬러</div><div><img src="img/judge_trend.jpg" alt="">제이 · 트렌드</div><div><img src="img/judge_stylist.jpg" alt="">하루 · 스타일</div></div>
     <button class="btn warm" id="gJudge" style="margin-top:10px">🎤 심사위원에게 보여주기</button>
-    <button class="btn secondary" id="gHint" style="margin-top:8px">💡 팔레트 힌트 보기</button>
+    <button class="btn secondary" id="gHint" style="margin-top:8px">💡 팔레트 힌트</button>
   </div>
 
-  <!-- 심사 결과 -->
   <div id="gResult" class="hidden">
-    <div class="grade"><div class="gl" id="rGrade">S</div><div class="gs" id="rTotal">28 / 30</div><div class="gc" id="rCoins">+120 🪙</div></div>
+    <div class="grade"><div class="gl" id="rGrade">S</div><div class="gs" id="rTotal"></div><div class="gc" id="rCoins"></div><div class="small" id="rNote"></div></div>
     <div id="rJudges"></div>
-    <button class="btn warm" id="gNext" style="margin-top:12px">다음 손님 받기 →</button>
+    <button class="btn secondary" id="gAdDouble">📺 광고 보고 코인 2배</button>
+    <button class="btn warm" id="gNext">다음 손님 고르기 →</button>
     <button class="btn secondary" id="gShare">💾 코디 카드 저장·공유</button>
   </div>
 
-  <!-- 상점 -->
   <div id="gShop" class="hidden">
     <h2>🛍️ 상점</h2>
-    <p class="small">코인으로 새 헤어·옷·소품·원단 컬러를 열 수 있어요. 아이템이 많을수록 높은 점수를 받기 쉬워요!</p>
-    <div class="atabs" id="sTabs"><button data-t="col" class="on">원단 컬러</button><button data-t="top">상의</button><button data-t="hair">헤어</button><button data-t="acc">소품</button></div>
+    <div class="atabs" id="sTabs"><button data-t="col" class="on">원단</button><button data-t="dye">염색약</button><button data-t="top">상의</button><button data-t="hair">헤어</button><button data-t="acc">소품</button><button data-t="hidden">✨히든</button></div>
     <div class="shopgrid" id="sGrid"></div>
-    <button class="btn primary" id="gShopClose" style="margin-top:12px">← 손님에게 돌아가기</button>
+    <button class="btn primary" id="gShopClose" style="margin-top:12px">← 돌아가기</button>
   </div>
 </section>
+
+<div id="adModal" class="hidden"><div class="adbox"><div class="spin"></div><b>광고 재생 중… (테스트)</b><p class="small">실제 출시 때는 여기서 보상형 광고가 나와요</p><div id="adCount">3</div></div></div>
+
 
 <div id="busy" class="hidden"><div class="spin"></div><div id="busyText"></div></div>
 <div id="toast"></div>
@@ -376,7 +435,7 @@
    - 모든 분석은 기기 안에서 (MediaPipe). 사진은 서버로 가지 않는다.
    - 얼굴 픽셀은 절대 건드리지 않고, 천(드레이프)·옷·머리카락 영역에만 색을 입힌다.
    ========================================================= */
-import {avatarSVG, HAIRSTYLES, TOPS, ACCS, shade} from "./avatar.js";
+import {avatarSVG, HAIRSTYLES, TOPS, ACCS, HATS, shade} from "./avatar.js";
 const MP = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 const SEG_URL  = "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite";
 const HAIR_URL = "https://storage.googleapis.com/mediapipe-models/image_segmenter/hair_segmenter/float32/latest/hair_segmenter.tflite";
@@ -472,7 +531,7 @@ const modelsReady = (async()=>{
 })().catch(e=>{ console.error(e); $("modelStatus").textContent = "⚠️ AI 모델을 불러오지 못했어요. 인터넷 연결 후 새로고침 해주세요."; });
 
 /* ---------- 화면 전환 ---------- */
-function show(id){ for (const s of ["sStart","sWc","sResult","sLook","sAvatar","sMirror","sGame"]) $(s).classList.toggle("hidden", s!==id); scrollTo(0,0); }
+function show(id){ for (const s of ["sStart","sDiag","sWc","sResult","sLook","sAvatar","sMirror","sGame"]) $(s).classList.toggle("hidden", s!==id); if (id==="sStart" && typeof renderHome==="function") renderHome(); scrollTo(0,0); }
 function busy(t){ $("busy").classList.remove("hidden"); $("busyText").innerHTML=t; $("busy").querySelector(".spin").classList.remove("hidden"); }
 function busyErr(t){ busy(t); $("busy").querySelector(".spin").classList.add("hidden");
   $("busyText").innerHTML += `<br><br><button class="btn primary" style="width:auto;padding:12px 22px;display:inline-flex" onclick="location.reload()">처음으로</button>`; }
@@ -488,7 +547,7 @@ document.querySelectorAll("#genderChips .chip").forEach(b=>{
 $("btnCam").onclick=()=>$("fileCam").click();
 $("btnAlbum").onclick=()=>$("fileAlbum").click();
 for (const id of ["fileCam","fileAlbum"]) $(id).onchange=e=>{ const f=e.target.files[0]; e.target.value=""; if(f) openPhoto(f); };
-$("btnRetry").onclick=()=>show("sStart");
+$("btnRetry").onclick=()=>show("sDiag");
 
 async function openPhoto(file){
   busy("사진 불러오는 중…");
@@ -596,7 +655,7 @@ function buildDrape(){
   drapeA=new Float32Array(W*H); drapeS=new Float32Array(W*H);
   const nw=0.34*Wf;
   const topY = lx=>{ const a=Math.abs(lx);
-    return a<=nw ? chinY+0.17*Wf + 0.11*Wf*(1-(lx/nw)**2) : chinY+0.17*Wf + 0.34*(a-nw); };
+    return a<=nw ? chinY+0.07*Wf + 0.10*Wf*(1-(lx/nw)**2) : chinY+0.07*Wf + 0.34*(a-nw); };
   for (let y=0;y<H;y++) for (let x=0;x<W;x++){
     const i=y*W+x, dx=x-c.x, dy=y-c.y;
     const lx=dx*ux.x+dy*ux.y, ly=dx*uy.x+dy*uy.y;
@@ -634,7 +693,7 @@ function renderTo(canvas, {cloth=null, hair=null, mode="drape"}={}){
   for (let i=0,p=0;i<W*H;i++,p+=4){
     if (th && hairAvg && hairM[i]>0.01){
       const L=(0.299*d[p]+0.587*d[p+1]+0.114*d[p+2])/255;
-      paint(d,p,th, 1+(L-hairAvg.L)/Math.max(hairAvg.L,0.24)*0.9, hairM[i]*0.88);
+      paintHair(d,p,th,L,hairAvg.L,hairM[i]*0.78);
     }
     if (tc){
       if (useDrape){ if (drapeA[i]>0.01) paint(d,p,tc, drapeS[i], drapeA[i]); }
@@ -646,6 +705,14 @@ function renderTo(canvas, {cloth=null, hair=null, mode="drape"}={}){
   }
   canvas.getContext("2d").putImageData(img,0,0);
   return canvas;
+}
+// 염색: 밝기는 원본 결을 따르되, 하이라이트를 흰색으로 날리지 않는다
+function paintHair(d,p,t,L,avg,a){
+  let s = 1 + (L-avg)/Math.max(avg,0.24)*0.55; if (s<0.45) s=0.45; if (s>1.12) s=1.12;
+  const q = s>1 ? (s-1)*0.5 : 0, k = s>1 ? 1 : s;
+  const nr=(t.r*k+(1-t.r)*q)*255, ng=(t.g*k+(1-t.g)*q)*255, nb=(t.b*k+(1-t.b)*q)*255;
+  if (a>1) a=1;
+  d[p]+=(nr-d[p])*a; d[p+1]+=(ng-d[p+1])*a; d[p+2]+=(nb-d[p+2])*a;
 }
 function drapeCanvas(hexc){
   if (!cache.has(hexc)) cache.set(hexc, renderTo(document.createElement("canvas"), {cloth:hexc, mode:"drape"}));
@@ -723,7 +790,7 @@ function finish(){
   const S=SEASONS[best];
   const worst = wc.all.find(x=>x.r1lost && SEASONS[x.s].temp!==S.temp) || {...S.avoid[0], s:null};
   result={key:best, S, sc, best:wc.champ, worst};
-  renderResult(); show("sResult");
+  renderResult(); try{ saveMe(); }catch(e){ console.warn(e); } show("sResult");
 }
 function swatches(el, list){ el.innerHTML=list.map(x=>`<div><i style="background:${x.c}"></i>${x.n}</div>`).join(""); }
 function renderResult(){
@@ -969,7 +1036,7 @@ const mc=$("mirCanvas"), mctx=mc.getContext("2d",{willReadFrequently:true});
 let mir=null;
 $("btnMirror").onclick=()=>openMirror();
 $("btnMirror2").onclick=()=>openMirror();
-$("btnMirBack").onclick=()=>{ closeMirror(); show(result?"sResult":"sStart"); };
+$("btnMirBack").onclick=()=>{ closeMirror(); show("sStart"); };
 document.querySelectorAll("#mirTabs button").forEach(b=>b.onclick=()=>{ mir.tab=b.dataset.t; mirUI(); });
 
 function mirColors(){
@@ -1056,7 +1123,7 @@ function mirLoop(){
 function paintMirror(d,W2,H2){
   const {c,ux,uy,chinY,y10,Wf}=mir.F, hm=mir.hm, nw=0.34*Wf;
   const tc=hex(mir.color.c), th=mir.hair?hex(mir.hair):null;
-  const topY=lx=>{ const a=Math.abs(lx); return a<=nw ? chinY+0.17*Wf+0.11*Wf*(1-(lx/nw)**2) : chinY+0.17*Wf+0.34*(a-nw); };
+  const topY=lx=>{ const a=Math.abs(lx); return a<=nw ? chinY+0.07*Wf+0.10*Wf*(1-(lx/nw)**2) : chinY+0.07*Wf+0.34*(a-nw); };
   const midY=(y10+chinY)/2, hh=(chinY-y10)/2;
   let sumL=0, cnt=0;
   for (let y=0;y<H2;y++){
@@ -1072,7 +1139,7 @@ function paintMirror(d,W2,H2){
         if (a>0.01){
           const L=(0.299*d[p]+0.587*d[p+1]+0.114*d[p+2])/255;
           if (h>0.8){ sumL+=L; cnt++; }
-          paint(d,p,th, 1+(L-mir.hairL)/Math.max(mir.hairL,0.24)*0.9, a*0.85);
+          paintHair(d,p,th,L,mir.hairL,a*0.72);
         }
       }
       // 진단용 천
@@ -1103,196 +1170,331 @@ $("btnMirAsk").onclick=()=>{
 };
 
 /* =========================================================
-   스타일리스트 게임 (v0.6)
-   손님 의뢰 → 아바타 코디 → 심사위원 3명 채점 → 코인 → 상점
-   채점은 컬러 이론 규칙 기반: 같은 코디엔 항상 같은 점수 + 이유 설명
+   스타일리스트 살롱 (v0.7)
+   로비(손님 3명, 난이도) → 코디 → 심사위원 3명 → 코인/평판 → 상점(히든 포함)
+   채점은 컬러 이론 규칙 기반: 같은 코디 = 같은 점수 + 이유 설명
    ========================================================= */
-const IMG = { color:"img/judge_color.jpg", trend:"img/judge_trend.jpg", stylist:"img/judge_stylist.jpg", bg:"img/salon_bg.jpg", title:"img/title.jpg" };
+const IMGOK = new Set();
+function preload(src){ return new Promise(r=>{ const i=new Image(); i.onload=()=>{IMGOK.add(src); r(true)}; i.onerror=()=>r(false); i.src=src; }); }
+const JIMG = k=>`img/judge_${k}.jpg`;
+const LOC = {festival:"img/bg_festival.jpg", date:"img/bg_cafe.jpg", interview:"img/bg_office.jpg", office:"img/bg_office.jpg", travel:"img/bg_travel.jpg", campus:"img/bg_campus.jpg"};
+["color","trend","stylist"].forEach(k=>{ preload(JIMG(k)); preload(`img/judge_${k}_happy.jpg`); preload(`img/judge_${k}_sad.jpg`); });
+Object.values(LOC).forEach(preload); preload("img/salon_bg.jpg");
+
 const JUDGES = [
-  {k:"color",   n:"컬러 디렉터 모나",   em:"🎨", role:"색이 손님 피부톤에 맞는지"},
-  {k:"trend",   n:"트렌드 에디터 제이", em:"📱", role:"상황에 맞는 옷인지"},
-  {k:"stylist", n:"스타일리스트 하루",  em:"💇", role:"전체 조화와 손님 요청"},
+  {k:"color",   n:"컬러 디렉터 모나",   em:"🎨"},
+  {k:"trend",   n:"트렌드 에디터 제이", em:"📱"},
+  {k:"stylist", n:"스타일리스트 하루",  em:"💇"},
 ];
-// 원단(옷 색): 4계절 팔레트 32색. 처음엔 계절별 3색씩 보유
-const FABRICS = SKEYS.flatMap(k=>SEASONS[k].pal.map((x,i)=>({...x, s:k, id:k+i, price: i<3?0:40})));
-const PRICE = {
-  hair:{bob:0,dandy:0,longstraight:0,crop:0, seebob:90,pixie:90,twoblock:90,comma:110,gareuma:110,layered:110,pony:110,up:130,longwave:130,curtainlong:130,longmen:130},
-  top:{tee:0,shirt:0,knit:100,hoodie:100,tie:120,blazer:150},
-  acc:{glasses:60,earring:70,beret:80,beanie:80},
+// 시즌별 추가 원단(4색)
+const EXT = {
+  spring:[C("코랄 핑크","#FF8FA3"),C("살구","#FFC9A0"),C("라이트 그린","#C5E384"),C("버터","#FFF1A8")],
+  summer:[C("라일락","#C8A2C8"),C("베이비 블루","#BFD7EA"),C("소프트 로즈","#E8B4C0"),C("더스티 블루","#8FA8C8")],
+  autumn:[C("러스트","#A0522D"),C("모스 그린","#6B7B3A"),C("골드","#C8A04A"),C("버건디 브라운","#7A3B2E")],
+  winter:[C("레드","#C8102E"),C("아이시 블루","#DDEBFA"),C("퍼플","#5B2A86"),C("실버 그레이","#B8BCC4")],
 };
-const NAMES_F=["지은","서연","하린","민지","유나","수아","예린","다은","소희","나연"];
-const NAMES_M=["준호","민재","도윤","현우","지훈","태오","시우","건우","우진","서준"];
-const SKIN = {spring:["#f7d9bf","#f3cfae"], summer:["#f5d6d0","#efcac4"], autumn:["#e6b994","#d9a57e"], winter:["#ecd0c6","#c9998a"]};
-const BASEHAIR = ["#1C1C1F","#3E2A20","#2B2422","#4A3426"];
+for (const k of SKEYS) SEASONS[k].ext = EXT[k];
+const PEARL = {n:"펄 화이트(만능)", c:"#F4F1EA", s:null, id:"pearl", price:200, hidden:"pearl"};
+const FABRICS = [...SKEYS.flatMap(k=>[...SEASONS[k].pal.map((x,i)=>({...x, s:k, id:k+i, price:i<3?0:40})),
+                                     ...EXT[k].map((x,i)=>({...x, s:k, id:k+"x"+i, price:60}))]), PEARL];
+const DYES = [
+  {n:"블랙",c:"#1C1C1F",p:0},{n:"다크브라운",c:"#3E2A20",p:0},{n:"초콜릿브라운",c:"#5B3826",p:0},{n:"애쉬브라운",c:"#86766A",p:0},{n:"밀크브라운",c:"#A8835E",p:0},
+  {n:"오렌지브라운",c:"#9A5A33",p:50},{n:"골드브라운",c:"#8A6A3A",p:50},{n:"로즈브라운",c:"#8A5A5C",p:50},{n:"쿨브라운",c:"#6B5A52",p:50},{n:"카키브라운",c:"#6F6447",p:50},
+  {n:"블루블랙",c:"#1C1D26",p:50},{n:"와인",c:"#6E2233",p:60},{n:"다크애쉬",c:"#3A3A40",p:60},{n:"애쉬블루",c:"#4F5C74",p:60},{n:"핑크브라운",c:"#B56C80",p:60},{n:"블론드",c:"#CFA96E",p:70},
+  {n:"오로라 핑크",c:"#E3A1C3",p:250,hidden:"aurora"},{n:"실버 블론드",c:"#D8D2C4",p:250,hidden:"silver"},
+];
+const PRICE = {
+  hair:{bob:0,dandy:0,longstraight:0,crop:0, seebob:90,pixie:90,twoblock:90,buzz:90,comma:110,gareuma:110,layered:110,pony:110,bun:110,wolf:120,leaf:120,halfup:120,hush:130,up:130,longwave:130,curtainlong:130,hippie:150,longmen:130},
+  top:{tee:0,shirt:0,stripe:80,knit:100,cardigan:100,hoodie:100,tie:120,blazer:150,coat:180,velvet:300},
+  acc:{hairpin:50,glasses:60,earring:60,sun:70,necklace:70,cap:70,scarf:80,beret:80,beanie:80,headphones:90,headband:250,silkscarf:250},
+};
+const HIDDEN = [
+  {id:"velvet",  kind:"top", item:"velvet",   n:"벨벳 수트",       t:"어떤 상황에도 통하는 만능 상의", need:"하드 손님 S등급 3회",       prog:()=>[G.st.hardS,3]},
+  {id:"headband",kind:"acc", item:"headband", n:"진주 헤드밴드",   t:"스타일 점수 +1 보너스 소품",     need:"하드 손님 S등급 1회",       prog:()=>[G.st.hardS,1]},
+  {id:"silkscarf",kind:"acc",item:"silkscarf",n:"실크 스카프",     t:"스타일 점수 +1 보너스 소품",     need:"S등급 연속 5회",            prog:()=>[G.st.bestStreak,5]},
+  {id:"pearl",   kind:"col", item:"pearl",    n:"펄 화이트 원단",  t:"모든 시즌에 무난한 만능 원단",   need:"중간·하드 손님 A등급 이상 10회", prog:()=>[G.st.midA,10]},
+  {id:"aurora",  kind:"dye", item:"#E3A1C3",  n:"오로라 핑크 염색", t:"페스티벌 보너스 염색",          need:"사계절 손님 모두 하드 S",   prog:()=>[G.st.hardSeasons.length,4]},
+  {id:"silver",  kind:"dye", item:"#D8D2C4",  n:"실버 블론드 염색", t:"겨울·여름 손님 보너스 염색",    need:"손님 30명 응대",            prog:()=>[G.served,30]},
+];
+const ADS_FOR_HIDDEN = 3;
+const OCC_TOPS = {
+  festival:["tee","hoodie","stripe","velvet"], date:["shirt","knit","blazer","cardigan","coat","stripe","velvet"],
+  interview:["tie","blazer","shirt","velvet"], office:["shirt","knit","blazer","tie","cardigan","coat","velvet"],
+  travel:["tee","hoodie","knit","stripe","cardigan","velvet"], campus:["tee","hoodie","knit","shirt","cardigan","stripe","velvet"],
+};
+const TOPN = k=>({tee:"티셔츠",stripe:"스트라이프 티",shirt:"셔츠",tie:"셔츠+타이",knit:"니트",cardigan:"카디건",hoodie:"후드티",blazer:"블레이저",coat:"트렌치코트",velvet:"벨벳 수트"}[k]);
+const TIERS = {
+  basic:{n:"기본", col:"#1d9a6c", dep:0,  time:0,  wish:[0,1], hide:false, forbid:false, pay:{S:70,A:50,B:30,C:10},  rep:{S:2,A:1,B:0,C:0},  lv:1},
+  mid:  {n:"중간", col:"#2f6fd6", dep:30, time:90, wish:[1,2], hide:false, forbid:false, pay:{S:170,A:110,B:40,C:0}, rep:{S:3,A:2,B:0,C:-1}, lv:2},
+  hard: {n:"하드", col:"#c2413b", dep:80, time:60, wish:[2,2], hide:true,  forbid:true,  pay:{S:380,A:220,B:50,C:0}, rep:{S:5,A:3,B:0,C:-2}, lv:3},
+};
+const CUSTOMERS = [
+  {id:1, n:"지은", g:"f", s:"spring", skin:"#f7d9bf", hair:"bob",          hc:"#A8835E"},
+  {id:2, n:"도윤", g:"m", s:"spring", skin:"#f5d5b8", hair:"dandy",        hc:"#7A5236"},
+  {id:3, n:"서연", g:"f", s:"summer", skin:"#f5d6d0", hair:"longstraight", hc:"#86766A"},
+  {id:4, n:"민재", g:"m", s:"summer", skin:"#f3d8d0", hair:"gareuma",      hc:"#86766A"},
+  {id:5, n:"하린", g:"f", s:"autumn", skin:"#e8bf98", hair:"longwave",     hc:"#5B3826"},
+  {id:6, n:"태오", g:"m", s:"autumn", skin:"#d9a57e", hair:"crop",         hc:"#3E2A20"},
+  {id:7, n:"유나", g:"f", s:"winter", skin:"#f1dcd6", hair:"seebob",       hc:"#16161A"},
+  {id:8, n:"준호", g:"m", s:"winter", skin:"#ecd0c6", hair:"twoblock",     hc:"#16161A"},
+  {id:9, n:"수아", g:"f", s:"summer", skin:"#f2d4cf", hair:"pixie",        hc:"#8A5A5C"},
+  {id:10,n:"현우", g:"m", s:"winter", skin:"#ead0c8", hair:"up",           hc:"#1C1D26"},
+  {id:11,n:"예린", g:"f", s:"spring", skin:"#f7d6b6", hair:"pony",         hc:"#9A5A33"},
+  {id:12,n:"건우", g:"m", s:"autumn", skin:"#e2b48f", hair:"longmen",      hc:"#6F6447"},
+];
+CUSTOMERS.forEach(c=>preload(`img/cust_${String(c.id).padStart(2,"0")}.jpg`));
 const REQ = {
   festival:["이번 주말 음악 페스티벌 가요! 사진 잘 나오게 해주세요","친구들이랑 페스티벌 가는데 확 튀고 싶어요"],
   date:["다음 주에 소개팅이 있어요. 화사해 보이고 싶어요","첫 데이트예요… 부드러운 인상이면 좋겠어요"],
   interview:["내일 면접이에요. 신뢰감 있어 보이게 해주세요","최종 면접이라 단정하게 부탁드려요"],
-  office:["첫 출근이에요. 깔끔하게 부탁해요","회사 워크숍 발표가 있어요. 너무 튀지 않게요"],
+  office:["첫 출근이에요. 깔끔하게 부탁해요","회사 발표가 있어요. 너무 튀지 않게요"],
   travel:["제주도 여행 가요! 밝고 활기차게요","여행 사진 인생샷 남기고 싶어요"],
   campus:["개강 첫날이에요! 산뜻하게 해주세요","동아리 첫 모임이라 가볍게 꾸미고 싶어요"],
 };
 const WISHES = [
-  {t:"안경을 써보고 싶어요",      ok:L=>L.accs.has("glasses")},
-  {t:"모자는 싫어요",             ok:L=>!L.accs.has("beret")&&!L.accs.has("beanie")},
-  {t:"머리색도 바꾸고 싶어요",     ok:(L,C)=>L.hc!==C.hc0},
-  {t:"헤어스타일도 바꿔주세요",    ok:(L,C)=>L.hair!==C.hair0},
-  {t:"포인트 소품 하나 넣어주세요", ok:L=>L.accs.size>0},
-  {t:"셔츠 종류로 입고 싶어요",    ok:L=>["shirt","tie"].includes(L.top)},
+  {t:"안경을 써보고 싶어요",       ok:L=>L.accs.has("glasses")},
+  {t:"모자는 싫어요",              ok:L=>!HATS.some(k=>L.accs.has(k))},
+  {t:"머리색도 바꾸고 싶어요",      ok:(L,C)=>L.hc!==C.hc},
+  {t:"헤어스타일도 바꿔주세요",     ok:(L,C)=>L.hair!==C.hair},
+  {t:"포인트 소품 하나 넣어주세요",  ok:L=>L.accs.size>0},
+  {t:"셔츠 종류로 입고 싶어요",     ok:L=>["shirt","tie"].includes(L.top)},
+  {t:"목이 허전해요",              ok:L=>L.accs.has("necklace")||L.accs.has("scarf")||L.accs.has("silkscarf")||L.top==="knit"},
+  {t:"밝은 색 옷이 좋아요",         ok:L=>lumHex(L.tc)>=0.6},
 ];
 
 let G;
+const ME = (()=>{ try{ return JSON.parse(localStorage.getItem("cs_me")||"null"); }catch(e){ return null; } })();
+let me = ME;
 function gLoad(){
-  try{ G=JSON.parse(localStorage.getItem("cs_game")||"null"); }catch(e){ G=null; }
-  if (!G) G={coins:150, rep:0, served:0, own:{hair:[],top:[],acc:[],col:[]}, meDone:false};
+  try{ G=JSON.parse(localStorage.getItem("cs_game2")||"null"); }catch(e){ G=null; }
+  if (!G) G={coins:150, rep:0, served:0, own:{hair:[],top:[],acc:[],col:[],dye:[]}, unlocked:[], ads:{}, meDone:false,
+             st:{hardS:0, streak:0, bestStreak:0, midA:0, hardSeasons:[]}};
   for (const [k,v] of Object.entries(PRICE.hair)) if(!v && !G.own.hair.includes(k)) G.own.hair.push(k);
   for (const [k,v] of Object.entries(PRICE.top))  if(!v && !G.own.top.includes(k))  G.own.top.push(k);
   for (const f of FABRICS) if(!f.price && !G.own.col.includes(f.id)) G.own.col.push(f.id);
+  for (const d of DYES) if(!d.p && !G.own.dye.includes(d.c)) G.own.dye.push(d.c);
 }
-function gSave(){ try{ localStorage.setItem("cs_game", JSON.stringify({...G, cust:undefined, look:undefined, last:undefined})); }catch(e){} }
-const gLevel = ()=>1+Math.floor(G.rep/6);
+function gSave(){ try{ const {cust,look,last,board,timer,...rest}=G; localStorage.setItem("cs_game2", JSON.stringify(rest)); }catch(e){} }
+const gLevel = ()=>1+Math.floor(Math.max(0,G.rep)/8);
 const pick = a=>a[Math.floor(Math.random()*a.length)];
+function lumHex(h){ const {r,g,b}=hex(h); return 0.299*r+0.587*g+0.114*b; }
+function seasonGood(S,c){ return S.pal.some(x=>x.c===c) || S.ext.some(x=>x.c===c); }
 
-function newCustomer(){
-  const lv=gLevel();
-  let C;
-  if (result && !G.meDone){
-    C={me:true, name:"나 (진단 결과)", s:result.key, g:gender==="n"?"f":gender, skin:avSkin(), occ:"date"};
-    C.hc0 = "#3E2A20";
-  } else {
-    const g=Math.random()<0.55?"f":"m", s=pick(SKEYS);
-    C={name:pick(g==="f"?NAMES_F:NAMES_M)+" 님", s, g, skin:pick(SKIN[s]), occ:pick(OCCASIONS).k};
-    C.hc0 = pick(BASEHAIR);
-  }
-  C.hair0 = C.g==="m" ? pick(["dandy","crop"]) : pick(["bob","longstraight"]);
+/* ---------- 손님 만들기 ---------- */
+function makeCustomer(tier){
+  const T=TIERS[tier], base=pick(CUSTOMERS);
+  const C={...base, name:base.n+" 님", tier, occ:pick(OCCASIONS).k, portrait:`img/cust_${String(base.id).padStart(2,"0")}.jpg`};
   C.req = pick(REQ[C.occ]);
-  const nw = lv>=3?2 : lv>=2?1 : 0;
-  C.wishes = shuffle([...WISHES]).slice(0,nw);
-  C.hidden = lv>=4 && !C.me;        // Lv4부터 손님 시즌을 직접 추리
-  G.cust=C;
-  G.look={hair:C.hair0, hc:C.hc0, top:"tee", tc:"#D9D6D0", accs:new Set()};
-  G.tab="hair";
+  const nw = T.wish[0] + Math.floor(Math.random()*(T.wish[1]-T.wish[0]+1));
+  C.wishes = shuffle([...WISHES]).slice(0,nw).map(w=>WISHES.indexOf(w));
+  C.hidden = T.hide;
+  if (T.forbid){
+    const S=SEASONS[C.s];
+    if (Math.random()<0.6){ const f=pick(S.pal.slice(0,4)); C.forbid={type:"color", c:f.c, n:`${f.n}은(는) 이미 많아요. 다른 색으로!`}; }
+    else { const f=pick(OCC_TOPS[C.occ].filter(t=>t!=="velvet")); C.forbid={type:"top", k:f, n:`${TOPN(f)}은(는) 입기 싫어요`}; }
+  }
+  return C;
+}
+function meCustomer(){
+  return {me:true, name:"나", n:"나", s:me.key, g:me.g==="n"?"f":me.g, skin:me.skin, hair:me.g==="m"?"dandy":"bob", hc:"#3E2A20",
+          tier:"basic", occ:"date", req:"내 퍼스널컬러에 맞게, 나를 제일 예쁘게 꾸며줘!", wishes:[], hidden:false};
+}
+function makeBoard(){
+  const lv=gLevel();
+  G.board=[ makeCustomer("basic"), makeCustomer(lv>=2?"mid":"basic"), makeCustomer(lv>=3?"hard":lv>=2?"mid":"basic") ];
+  if (me && (!G.meDone || Math.random()<0.25)) G.board.unshift(meCustomer());
+}
+function faceHTML(C, size){
+  return IMGOK.has(C.portrait||"") ? `<img src="${C.portrait}" alt="">`
+    : avatarSVG({skin:C.skin, hair:C.hair, hairColor:C.hc, top:"tee", topColor:"#ECE8E0", accs:new Set(), gender:C.g, view:"85 60 230 230"});
 }
 
+/* ---------- 화면 ---------- */
+let gTimerId=0;
 function openGame(){
-  gLoad(); if (!G.cust) newCustomer();
-  show("sGame"); gView("play");
-  const bg=new Image(); bg.onload=()=>{ $("gStage").style.backgroundImage=`url(${IMG.bg})`; }; bg.src=IMG.bg;
+  gLoad(); if (!G.board) makeBoard();
+  show("sGame"); gView("lobby");
 }
-function gView(v){ $("gPlay").classList.toggle("hidden",v!=="play"); $("gResult").classList.toggle("hidden",v!=="result"); $("gShop").classList.toggle("hidden",v!=="shop"); gStats(); if(v==="play") gDraw(); scrollTo(0,0); }
+function gView(v){
+  for (const [id,k] of [["gLobby","lobby"],["gPlay","play"],["gResult","result"],["gShop","shop"]]) $(id).classList.toggle("hidden",v!==k);
+  G.view=v; gStats(); if (v==="lobby") gBoard(); if (v==="play") gDraw(); scrollTo(0,0);
+}
 function gStats(){ $("gCoins").textContent="🪙 "+G.coins; $("gRep").textContent="⭐ "+G.rep; $("gLv").textContent="Lv."+gLevel(); }
-$("gBack").onclick=()=>show(result?"sResult":"sStart");
-$("gShopBtn").onclick=()=>{ G.shopTab=G.shopTab||"col"; gView("shop"); gShop(); };
-$("gShopClose").onclick=()=>gView("play");
+$("gBack").onclick=()=>{
+  if (G.view==="play"){ if (!confirm(`지금 나가면 보증금 ${TIERS[G.cust.tier].dep}🪙을 돌려받지 못해요. 나갈까요?`)) return; clearInterval(gTimerId); G.st.streak=0; gSave(); gView("lobby"); return; }
+  if (G.view!=="lobby"){ gView(G.cust&&G.view==="shop"&&G.shopFrom==="play"?"play":"lobby"); return; }
+  show("sStart");
+};
+$("gShopBtn").onclick=()=>{ G.shopFrom=G.view==="play"?"play":"lobby"; G.shopTab=G.shopTab||"col"; gView("shop"); gShop(); };
+$("gShopClose").onclick=()=>gView(G.shopFrom==="play"?"play":"lobby");
 document.querySelectorAll("#gTabs button").forEach(b=>b.onclick=()=>{ G.tab=b.dataset.t; gDraw(); });
 document.querySelectorAll("#sTabs button").forEach(b=>b.onclick=()=>{ G.shopTab=b.dataset.t; gShop(); });
 
+function gBoard(){
+  const lv=gLevel();
+  $("gBoard").innerHTML = G.board.map((C,i)=>{
+    const T=TIERS[C.tier], S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ);
+    return `<div class="ccard"><div class="pf">${faceHTML(C)}</div>
+      <div class="ci"><b>${C.name}</b> <span class="tbadge" style="background:${C.me?"#7b4fd6":T.col}">${C.me?"나":T.n}</span><br>
+        ${C.hidden?"❓ 시즌 비공개":S.em+" "+S.name} · ${o.n}<br>
+        보상 S <b style="font-size:13px">${T.pay.S+(C.me?50:0)}🪙</b>${T.dep?` · 보증금 ${T.dep}🪙`:""}${T.time?` · ⏱${T.time}초`:""}${C.wishes.length?` · 요청 ${C.wishes.length}개`:""}</div>
+      <button class="go" data-i="${i}">받기</button></div>`;
+  }).join("") + (lv<3 ? `<div class="ccard lock"><div class="pf" style="display:flex;align-items:center;justify-content:center;font-size:30px">🔒</div><div class="ci"><b>${lv<2?"중간":"하드"} 손님</b><br>Lv.${lv<2?2:3}부터 찾아와요 (평판 ⭐ ${lv<2?8:16} 필요)</div></div>` : "");
+  $("gBoard").querySelectorAll(".go").forEach(b=>b.onclick=()=>accept(+b.dataset.i));
+}
+function accept(i){
+  const C=G.board[i], T=TIERS[C.tier];
+  if (G.coins<T.dep){ toast(`보증금 ${T.dep}🪙이 부족해요`); return; }
+  G.coins-=T.dep; G.cust=C; G.board.splice(i,1); gSave();
+  G.look={hair:C.hair, hc:C.hc, top:"tee", tc:"#D9D6D0", accs:new Set()}; G.tab="hair";
+  gView("play");
+  clearInterval(gTimerId);
+  if (T.time){ G.left=T.time; $("gTimer").classList.remove("hidden","warn"); $("gTimer").textContent=G.left;
+    gTimerId=setInterval(()=>{ G.left--; $("gTimer").textContent=G.left; $("gTimer").classList.toggle("warn",G.left<=10);
+      if (G.left<=0){ clearInterval(gTimerId); toast("⏰ 시간 종료! 지금 상태로 심사해요"); judge(true); } },1000);
+  } else $("gTimer").classList.add("hidden");
+}
+$("gRefresh").onclick=()=>{ if (G.coins<20){ toast("코인이 부족해요. 광고로 새로고침 해보세요"); return; } G.coins-=20; makeBoard(); gSave(); gView("lobby"); };
+$("gAdRefresh").onclick=()=>playAd(()=>{ makeBoard(); gSave(); gView("lobby"); toast("새 손님이 왔어요!"); });
+
+function playAd(done){
+  const m=$("adModal"); m.classList.remove("hidden"); let n=3; $("adCount").textContent=n;
+  const t=setInterval(()=>{ n--; $("adCount").textContent=n; if (n<=0){ clearInterval(t); m.classList.add("hidden"); done(); } },1000);
+}
+
 function gAvatar(extra={}){ const C=G.cust, L=G.look; return {skin:C.skin, hair:L.hair, hairColor:L.hc, top:L.top, topColor:L.tc, accs:L.accs, gender:C.g, ...extra}; }
 function gDraw(){
-  const C=G.cust, L=G.look, S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), M=MISSION[C.occ];
-  $("gFace").innerHTML = avatarSVG({skin:C.skin, hair:C.hair0, hairColor:C.hc0, top:"tee", topColor:"#D9D6D0", accs:new Set(), gender:C.g, view:"95 40 210 210"});
+  const C=G.cust, L=G.look, S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), T=TIERS[C.tier];
+  $("gFace").innerHTML = faceHTML(C);
   $("gName").textContent = C.name;
   const sb=$("gSeason"); sb.textContent = C.hidden ? "❓ 시즌 추리" : S.em+" "+S.name; sb.style.background = C.hidden ? "#888" : S.col;
+  const tb=$("gTier"); tb.textContent=C.me?"나":T.n; tb.style.background=C.me?"#7b4fd6":T.col;
   $("gReq").innerHTML = `${o.n.split(" ")[0]} “${C.req}”`;
-  $("gWish").innerHTML = C.wishes.map(w=>`<span>🙏 ${w.t}</span>`).join("");
-  $("gEm").textContent = M.em;
+  $("gWish").innerHTML = C.wishes.map(w=>`<span>🙏 ${WISHES[w].t}</span>`).join("") + (C.forbid?`<span style="background:#fde8e6;color:#b3362f">🚫 ${C.forbid.n}</span>`:"");
+  const bg = IMGOK.has(LOC[C.occ]) ? LOC[C.occ] : IMGOK.has("img/salon_bg.jpg") ? "img/salon_bg.jpg" : null;
+  $("gStage").style.backgroundImage = bg?`url(${bg})`:"";
   $("gSvg").innerHTML = avatarSVG(gAvatar());
-  $("gHint").textContent = C.hidden ? "💡 손님 시즌 알려주기 (30🪙)" : "💡 이 손님 팔레트 보기";
+  $("gHint").textContent = C.hidden ? "💡 손님 시즌 알려주기 (40🪙)" : "💡 이 손님 팔레트 보기";
   document.querySelectorAll("#gTabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===G.tab));
   const box=$("gOpts"), t=G.tab, head=gAvatar({view:"95 30 210 210", accs:new Set()});
   let items=[];
-  if (t==="hair") items = HAIRSTYLES.filter(h=>G.own.hair.includes(h.k)).map(h=>({v:h.k, on:L.hair===h.k, html:`<div class="tb">${avatarSVG({...head, hair:h.k})}</div>${h.n}`, cls:"thumb"}));
-  else if (t==="hc") items = [{n:"원래 색",c:C.hc0}, ...SKEYS.map(k=>SEASONS[k].hair[0]), ...SKEYS.map(k=>SEASONS[k].hair[1]), ...XHAIR.slice(2)]
-      .filter((x,i,a)=>a.findIndex(y=>y.c===x.c)===i).map(x=>({v:x.c, on:L.hc===x.c, html:`<i style="background:${x.c}"></i>${x.n}`, cls:"sw"}));
+  if (t==="hair") items = [{k:C.hair,n:"원래 머리"}, ...HAIRSTYLES.filter(h=>G.own.hair.includes(h.k)&&h.k!==C.hair)]
+      .map(h=>({v:h.k, on:L.hair===h.k, html:`<div class="tb">${avatarSVG({...head, hair:h.k})}</div>${h.n}`, cls:"thumb"}));
+  else if (t==="hc") items = [{n:"원래 색",c:C.hc}, ...DYES.filter(d=>G.own.dye.includes(d.c)&&d.c!==C.hc)]
+      .map(x=>({v:x.c, on:L.hc===x.c, html:`<i style="background:${x.c}"></i>${x.n}`, cls:"sw"}));
   else if (t==="top") items = TOPS.filter(x=>G.own.top.includes(x.k)).map(x=>({v:x.k, on:L.top===x.k, html:`<div class="tb">${avatarSVG({...gAvatar(), top:x.k, view:"40 300 320 180"})}</div>${x.n}`, cls:"thumb"}));
   else if (t==="tc") items = FABRICS.filter(f=>G.own.col.includes(f.id)).map(f=>({v:f.c, on:L.tc===f.c, html:`<i style="background:${f.c}"></i>${f.n}`, cls:"sw"}));
-  else items = ACCS.filter(a=>G.own.acc.includes(a.k)).map(a=>({v:a.k, on:L.accs.has(a.k), html:`<div class="tb">${{glasses:"👓",beret:"🧶",beanie:"🧢",earring:"🦪"}[a.k]}</div>${a.n}`, cls:"thumb"}));
+  else items = ACCS.filter(a=>G.own.acc.includes(a.k)).map(a=>({v:a.k, on:L.accs.has(a.k), html:`<div class="tb">${a.ic}</div>${a.n}`, cls:"thumb"}));
   box.innerHTML = items.map(x=>`<button class="${x.cls}${x.on?" on":""}" data-v="${x.v}">${x.html}</button>`).join("") +
-    `<button class="thumb" data-shop="1"><div class="tb">🛍️</div>더 보기<br>(상점)</button>`;
+    `<button class="thumb" data-shop="1"><div class="tb">🛍️</div>더 사기</button>`;
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{
-    if (b.dataset.shop){ G.shopTab = t==="tc"?"col": t==="hc"?"col": t; gView("shop"); gShop(); return; }
+    if (b.dataset.shop){ G.shopFrom="play"; G.shopTab = t==="tc"?"col": t==="hc"?"dye": t; gView("shop"); gShop(); return; }
     const v=b.dataset.v;
     if (t==="hair") L.hair=v; else if (t==="hc") L.hc=v; else if (t==="top") L.top=v; else if (t==="tc") L.tc=v;
-    else { if (L.accs.has(v)) L.accs.delete(v); else { L.accs.add(v); if(v==="beret") L.accs.delete("beanie"); if(v==="beanie") L.accs.delete("beret"); } }
+    else { if (L.accs.has(v)) L.accs.delete(v); else { L.accs.add(v); if (HATS.includes(v)) HATS.filter(h=>h!==v).forEach(h=>L.accs.delete(h)); if(v==="sun") L.accs.delete("glasses"); if(v==="glasses") L.accs.delete("sun"); if(v==="scarf") L.accs.delete("silkscarf"); if(v==="silkscarf") L.accs.delete("scarf"); } }
     const sx=box.scrollLeft; gDraw(); $("gOpts").scrollLeft=sx;
   });
 }
 $("gHint").onclick=()=>{
   const C=G.cust;
-  if (C.hidden){
-    if (G.coins<30){ toast("코인이 부족해요"); return; }
-    G.coins-=30; C.hidden=false; gSave(); gStats(); gDraw(); toast(`이 손님은 ${SEASONS[C.s].em} ${SEASONS[C.s].name}이에요!`); return;
-  }
+  if (C.hidden){ if (G.coins<40){ toast("코인이 부족해요"); return; } G.coins-=40; C.hidden=false; gSave(); gStats(); gDraw(); toast(`이 손님은 ${SEASONS[C.s].em} ${SEASONS[C.s].name}이에요!`); return; }
   const S=SEASONS[C.s];
   toast(`${S.em} ${S.name} 추천: ${S.pal.slice(0,5).map(x=>x.n).join(", ")}<br>🙅 피할 색: ${S.avoid.map(x=>x.n).join(", ")}`);
 };
 
 /* ---------- 채점 ---------- */
-function score(){
-  const C=G.cust, L=G.look, S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), M=MISSION[C.occ];
-  const fab = FABRICS.find(f=>f.c===L.tc);
-  const cName = fab ? fab.n : "기본 회색";
+function score(timeUp){
+  const C=G.cust, L=G.look, S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), M=MISSION[C.occ], T=TIERS[C.tier];
+  const fab = FABRICS.find(f=>f.c===L.tc), cName = fab ? fab.n : "기본 회색", occN=o.n.split(" ")[1];
   const out=[];
-  // ① 컬러 디렉터: 옷 색이 손님 시즌에 맞나 + 머리색 보너스
+  // ① 컬러 디렉터
   let c1, m1;
-  if (S.pal.some(x=>x.c===L.tc)){ c1 = S.pal.slice(0,4).some(x=>x.c===L.tc) ? 9 : 8; m1=`${cName}! ${S.name} 피부가 확 살아나요.`; }
-  else if (S.avoid.some(x=>x.c===L.tc)){ c1=2; m1=`${cName}은(는) ${S.name} 얼굴을 칙칙하게 만들어요. 피해야 할 색이에요.`; }
-  else if (!fab){ c1=4; m1="무난한 회색이네요. 손님만의 색을 찾아 주세요."; }
+  if (fab && fab.id==="pearl"){ c1=8; m1="펄 화이트는 누구에게나 무난하죠. 안전한 선택이에요."; }
+  else if (S.pal.slice(0,4).some(x=>x.c===L.tc)){ c1=9; m1=`${cName}! ${S.name} 피부가 확 살아나요.`; }
+  else if (seasonGood(S,L.tc)){ c1=8; m1=`${cName}, ${S.name}에게 잘 어울리는 색이에요.`; }
+  else if (S.avoid.some(x=>x.c===L.tc)){ c1=1; m1=`${cName}은(는) ${S.name} 얼굴을 칙칙하게 만들어요. 피해야 할 색이에요.`; }
+  else if (!fab){ c1=3; m1="무난한 회색이네요. 손님만의 색을 찾아 주세요."; }
   else if (SEASONS[fab.s].temp===S.temp){ c1=6; m1=`온도감은 맞지만, ${S.name}에겐 ${S.pal[0].n} 같은 색이 더 잘 받아요.`; }
-  else { c1=4; m1=`${cName}은(는) ${SEASONS[fab.s].temp==="warm"?"따뜻한":"차가운"} 색이라 ${S.name}와는 온도감이 달라요.`; }
-  if (S.hair.some(x=>x.c===L.hc)){ c1=Math.min(10,c1+1); m1+=" 머리색 선택도 아주 좋아요!"; }
+  else { c1=3; m1=`${cName}은(는) ${SEASONS[fab.s].temp==="warm"?"따뜻한":"차가운"} 색이라 ${S.name}와는 온도감이 달라요.`; }
+  const hairOk = S.hair.some(x=>x.c===L.hc) || (L.hc==="#D8D2C4" && (C.s==="winter"||C.s==="summer"));
+  if (hairOk){ c1=Math.min(10,c1+1); m1+=" 머리색 선택도 아주 좋아요!"; }
+  else if (L.hc!==C.hc && !hairOk){ const dye=DYES.find(d=>d.c===L.hc); if (dye && SKEYS.some(k=>k!==C.s && SEASONS[k].temp!==S.temp && SEASONS[k].hair.some(h=>h.c===L.hc))){ c1=Math.max(0,c1-1); m1+=" 다만 머리색이 피부톤과 반대 온도예요."; } }
   out.push({j:JUDGES[0], sc:c1, msg:m1});
-  // ② 트렌드 에디터: 상황에 맞는 상의 + 분위기 색
-  const topN = TOPS.find(x=>x.k===L.top).n;
-  const tOk = M.tops.includes(L.top), mOk = fab ? M.mood(hsl(L.tc)) : false;
+  // ② 트렌드 에디터
+  const tOk = OCC_TOPS[C.occ].includes(L.top), mOk = fab ? (fab.id==="pearl" ? C.occ!=="festival" : M.mood(hsl(L.tc))) : false;
   let c2 = (tOk?6:2) + (mOk?4:1), m2;
-  if (tOk&&mOk) m2=`${o.n.split(" ")[1]}에 딱이에요. 센스 있네요!`;
+  if (L.top==="velvet") m2="벨벳 수트라니, 어디서든 시선 집중이에요!";
+  else if (tOk&&mOk) m2=`${occN}에 딱이에요. 센스 있네요!`;
   else if (tOk) m2=`옷 종류는 좋아요. 다만 ${M.md}이면 더 좋았을 거예요.`;
-  else m2=`${o.n.split(" ")[1]}에 ${topN}은(는) 조금 안 맞아요. ${M.tn} 쪽을 추천해요.`;
-  out.push({j:JUDGES[1], sc:c2, msg:m2});
-  // ③ 스타일리스트: 손님 요청 + 소품 매너 + 머리·옷 대비
+  else m2=`${occN}에 ${TOPN(L.top)}은(는) 조금 안 맞아요.`;
+  if (L.hc==="#E3A1C3" && C.occ==="festival"){ c2=Math.min(10,c2+1); m2+=" 오로라 핑크 머리, 페스티벌 주인공이에요!"; }
+  out.push({j:JUDGES[1], sc:Math.min(10,c2), msg:m2});
+  // ③ 스타일리스트
   let c3=6; const notes=[];
-  for (const w of C.wishes){ if (w.ok(L,C)){ c3+=2; notes.push(`“${w.t}” 요청 반영 고마워요!`); } else { c3-=3; notes.push(`손님이 “${w.t}”라고 했는데 놓쳤어요.`); } }
-  if (C.occ==="interview" && (L.accs.has("beret")||L.accs.has("beanie"))){ c3-=3; notes.push("면접에 모자는 피하는 게 좋아요."); }
+  for (const wi of C.wishes){ const w=WISHES[wi]; if (w.ok(L,C)){ c3+=2; notes.push(`“${w.t}” 요청 반영 고마워요!`); } else { c3-=3; notes.push(`손님이 “${w.t}”라고 했는데 놓쳤어요.`); } }
+  if (C.forbid){ const bad = C.forbid.type==="color" ? L.tc===C.forbid.c : L.top===C.forbid.k; if (bad){ c3-=4; notes.unshift("🚫 손님이 싫다고 한 걸 골랐어요!"); } }
+  const hat = HATS.some(k=>L.accs.has(k));
+  if (C.occ==="interview" && (hat||L.accs.has("sun")||L.accs.has("headphones"))){ c3-=3; notes.push("면접에 모자·선글라스·헤드폰은 피해요."); }
+  if (C.occ==="office" && (L.accs.has("cap")||L.accs.has("beanie")||L.accs.has("headphones"))){ c3-=2; notes.push("출근룩엔 캐주얼 모자는 빼는 게 좋아요."); }
   if ((C.occ==="festival"||C.occ==="travel") && L.accs.size>0){ c3+=1; notes.push("소품 포인트 좋아요."); }
+  if (C.occ==="date" && ["earring","necklace","hairpin","headband"].some(k=>L.accs.has(k))){ c3+=1; notes.push("작은 액세서리가 사랑스러워요."); }
+  if (L.accs.has("headband")||L.accs.has("silkscarf")){ c3+=1; }
+  if (L.accs.size>=4){ c3-=2; notes.push("소품이 너무 많아서 산만해요."); }
   const con = Math.abs(lumHex(L.hc)-lumHex(L.tc));
   const want = {winter:[0.45,1], summer:[0,0.35], spring:[0.2,0.55], autumn:[0.15,0.5]}[C.s];
-  if (fab && con>=want[0] && con<=want[1]){ c3+=2; notes.push(C.s==="winter"?"머리와 옷의 선명한 대비가 겨울 쿨톤답게 멋져요.":C.s==="summer"?"머리와 옷이 부드럽게 이어져서 여름 쿨톤에 잘 맞아요.":"머리와 옷의 밝기 균형이 좋아요."); }
-  else if (fab){ notes.push(C.s==="winter"?"겨울 쿨톤은 머리·옷 대비를 더 강하게 주면 좋아요.":C.s==="summer"?"여름 쿨톤은 머리·옷 대비를 부드럽게 줄이면 좋아요.":"머리와 옷의 밝기 차이를 조금 조절해 보세요."); }
+  if (fab && con>=want[0] && con<=want[1]){ c3+=2; notes.push(C.s==="winter"?"머리와 옷의 선명한 대비가 겨울답게 멋져요.":C.s==="summer"?"머리와 옷이 부드럽게 이어져요.":"머리와 옷의 밝기 균형이 좋아요."); }
+  else if (fab) notes.push(C.s==="winter"?"겨울 쿨톤은 머리·옷 대비를 더 강하게!":C.s==="summer"?"여름 쿨톤은 머리·옷 대비를 부드럽게!":"머리와 옷의 밝기 차이를 조절해 보세요.");
+  if (timeUp){ c3-=2; notes.unshift("⏰ 시간이 부족했어요."); }
   c3=Math.max(0,Math.min(10,c3));
   out.push({j:JUDGES[2], sc:c3, msg:notes.slice(0,2).join(" ") || "전체적으로 무난한 조합이에요."});
-  const total=c1+c2+c3;
+  const total=out.reduce((a,x)=>a+x.sc,0);
   const grade = total>=27?"S": total>=22?"A": total>=16?"B":"C";
-  const coins = {S:120,A:80,B:50,C:20}[grade] + (C.me?50:0);
-  const rep = {S:3,A:2,B:1,C:0}[grade];
-  return {out,total,grade,coins,rep};
+  return {out,total,grade, coins:T.pay[grade]+(C.me?50:0), rep:T.rep[grade]};
 }
-function lumHex(h){ const {r,g,b}=hex(h); return 0.299*r+0.587*g+0.114*b; }
-
-$("gJudge").onclick=()=>{
-  const R=score(), lv0=gLevel();
-  G.coins+=R.coins; G.rep+=R.rep; G.served++; if (G.cust.me) G.meDone=true;
-  G.last={R, cust:G.cust, look:{...G.look, accs:new Set(G.look.accs)}};
-  gSave();
+function judge(timeUp=false){
+  clearInterval(gTimerId);
+  const C=G.cust, R=score(timeUp), lv0=gLevel();
+  G.coins+=R.coins; G.rep=Math.max(0,G.rep+R.rep); G.served++; if (C.me) G.meDone=true;
+  const st=G.st;
+  if (R.grade==="S"){ st.streak++; st.bestStreak=Math.max(st.bestStreak,st.streak); } else st.streak=0;
+  if (C.tier==="hard" && R.grade==="S"){ st.hardS++; if (!st.hardSeasons.includes(C.s)) st.hardSeasons.push(C.s); }
+  if (C.tier!=="basic" && (R.grade==="S"||R.grade==="A")) st.midA++;
+  const newly = HIDDEN.filter(h=>!G.unlocked.includes(h.id) && (()=>{ const [a,b]=h.prog(); return a>=b; })());
+  newly.forEach(h=>G.unlocked.push(h.id));
+  G.last={R, cust:C, look:{...G.look, accs:new Set(G.look.accs)}, doubled:false};
+  makeBoard(); gSave();
   $("rGrade").textContent=R.grade; $("rGrade").style.color={S:"#d4a106",A:"#2f3a8f",B:"#1d9a6c",C:"#888"}[R.grade];
-  $("rTotal").textContent=`${R.total} / 30`; $("rCoins").textContent=`+${R.coins} 🪙` + (R.rep?`  ⭐+${R.rep}`:"");
-  $("rJudges").innerHTML = R.out.map(x=>`<div class="judge"><div class="jp" data-k="${x.j.k}">${x.j.em}</div><div style="flex:1"><div class="jn">${x.j.n}<b>${x.sc}점</b></div><div class="jc">${x.msg}</div></div></div>`).join("");
-  $("rJudges").querySelectorAll(".jp").forEach(el=>{ const im=new Image(); im.onload=()=>{ el.innerHTML=""; el.appendChild(im); }; im.src=IMG[el.dataset.k]; });
+  $("rTotal").textContent=`${R.total} / 30 · ${C.me?"나":TIERS[C.tier].n} 손님`;
+  $("rCoins").textContent=`+${R.coins} 🪙` + (R.rep>0?`  ⭐+${R.rep}`:R.rep<0?`  ⭐${R.rep}`:"");
+  $("rNote").textContent = R.rep<0 ? "😢 평판이 떨어졌어요. 하드 손님은 신중하게!" : (C.tier!=="basic"&&R.grade==="C") ? "보증금을 잃었어요…" : "";
+  $("gAdDouble").classList.toggle("hidden", R.coins<=0);
+  $("rJudges").innerHTML = R.out.map(x=>{
+    const mood = x.sc>=8?"_happy":x.sc<=4?"_sad":"", src=`img/judge_${x.j.k}${mood}.jpg`, img = IMGOK.has(src)?src: IMGOK.has(JIMG(x.j.k))?JIMG(x.j.k):null;
+    return `<div class="judge"><div class="jp">${img?`<img src="${img}" alt="">`:x.j.em}</div><div style="flex:1"><div class="jn">${x.j.n}<b>${x.sc}점</b></div><div class="jc">${x.msg}</div></div></div>`;
+  }).join("");
   gView("result");
   $("rJudges").querySelectorAll(".judge").forEach((el,i)=>setTimeout(()=>el.classList.add("in"), 250+i*450));
-  if (gLevel()>lv0) setTimeout(()=>toast(`🎉 레벨 업! Lv.${gLevel()}`+(gLevel()===2?"<br>손님 요청이 생겨요":gLevel()===3?"<br>요청이 2개로 늘어요":gLevel()===4?"<br>이제 손님 시즌을 직접 추리해요!":"")),1800);
-};
-$("gNext").onclick=()=>{ newCustomer(); gView("play"); };
+  let delay=1800;
+  if (gLevel()>lv0){ setTimeout(()=>toast(`🎉 레벨 업! Lv.${gLevel()}`+(gLevel()===2?"<br>중간 손님이 찾아와요":gLevel()===3?"<br>하드 손님이 찾아와요!":"")),delay); delay+=2400; }
+  newly.forEach(h=>{ setTimeout(()=>toast(`✨ 히든 아이템 해금!<br>${h.n} — 상점에서 구매할 수 있어요`),delay); delay+=2400; });
+}
+$("gJudge").onclick=()=>judge(false);
+$("gNext").onclick=()=>gView("lobby");
+$("gAdDouble").onclick=()=>{ if (!G.last||G.last.doubled) return; playAd(()=>{ G.coins+=G.last.R.coins; G.last.doubled=true; gSave(); gStats(); $("gAdDouble").classList.add("hidden"); $("rCoins").textContent=`+${G.last.R.coins*2} 🪙 (2배!)`; toast("코인 2배 받았어요!"); }); };
 $("gShare").onclick=async()=>{
   const {R,cust:C,look:L}=G.last, S=SEASONS[C.s], o=OCCASIONS.find(x=>x.k===C.occ), M=MISSION[C.occ];
   const svg=avatarSVG({skin:C.skin, hair:L.hair, hairColor:L.hc, top:L.top, topColor:L.tc, accs:L.accs, gender:C.g});
   const img=new Image(); img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg); await img.decode();
   const h=1400, [c,g]=cardBase(h);
-  const grd=g.createLinearGradient(0,0,1080,1100); const m=M.bg.match(/#[0-9a-f]{6}/gi);
-  grd.addColorStop(0,m[0]); grd.addColorStop(1,m[1]); g.fillStyle=grd; rrect(g,40,40,1000,1150,40); g.fill();
-  g.drawImage(img,140,150,800,960);
-  g.fillStyle="#1f1f24"; g.font=`900 56px ${FONT}`; g.fillText(`${o.n} 코디`,540,120);
-  g.font=`900 120px ${FONT}`; g.fillStyle={S:"#d4a106",A:"#2f3a8f",B:"#1d9a6c",C:"#888"}[R.grade]; g.fillText(R.grade,930,170);
+  g.save(); rrect(g,40,40,1000,1150,40); g.clip();
+  if (IMGOK.has(LOC[C.occ])){ const bg=new Image(); bg.src=LOC[C.occ]; await bg.decode(); g.drawImage(bg,40,40,1000,1250); }
+  else { const grd=g.createLinearGradient(0,0,1080,1100); const m=M.bg.match(/#[0-9a-f]{6}/gi); grd.addColorStop(0,m[0]); grd.addColorStop(1,m[1]); g.fillStyle=grd; g.fillRect(40,40,1000,1150); }
+  g.restore();
+  g.drawImage(img,140,190,800,960);
+  g.fillStyle="rgba(255,255,255,.85)"; rrect(g,70,70,640,80,40); g.fill();
+  g.fillStyle="#1f1f24"; g.font=`900 48px ${FONT}`; g.textAlign="left"; g.fillText(`${o.n} 코디`,100,127); g.textAlign="center";
+  g.fillStyle="rgba(255,255,255,.9)"; g.beginPath(); g.arc(930,140,80,0,7); g.fill();
+  g.font=`900 110px ${FONT}`; g.fillStyle={S:"#d4a106",A:"#2f3a8f",B:"#1d9a6c",C:"#888"}[R.grade]; g.fillText(R.grade,930,178);
   g.fillStyle="#1f1f24"; g.font=`800 42px ${FONT}`; g.fillText(`${C.name} · ${S.em} ${S.name} · ${R.total}점`,540,1260);
   footer(g,h);
   openCard(c,"내 코디",`${R.grade}등급 받았어! 너도 해봐 👉 ${location.href.split("?")[0]}`);
@@ -1301,11 +1503,29 @@ $("gShare").onclick=async()=>{
 /* ---------- 상점 ---------- */
 function gShop(){
   document.querySelectorAll("#sTabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===G.shopTab));
-  const t=G.shopTab, grid=$("sGrid"); let list=[];
-  if (t==="col") list = FABRICS.map(f=>({id:f.id, n:f.n, sub:SEASONS[f.s].em, price:f.price, own:G.own.col.includes(f.id), ic:`<i style="background:${f.c}"></i>`}));
-  if (t==="top") list = TOPS.map(x=>({id:x.k, n:x.n, price:PRICE.top[x.k], own:G.own.top.includes(x.k), ic:avatarSVG({skin:"#f2cfb3",hair:"dandy",hairColor:"#3E2A20",top:x.k,topColor:"#9CC3E6",accs:new Set(),view:"40 300 320 180"})}));
+  const t=G.shopTab, grid=$("sGrid");
+  if (t==="hidden"){
+    grid.innerHTML = HIDDEN.map(h=>{
+      const [a,b]=h.prog(), unl=G.unlocked.includes(h.id), own=hiddenOwned(h), ads=G.ads[h.id]||0, price=hiddenPrice(h);
+      return `<div class="item hid${own?" own":""}"><div class="ic">${hiddenIcon(h)}</div><div class="nm">${unl||own?h.n:"???"}</div>
+        <div class="cond">${unl||own?h.t:`🔒 ${h.need}<br>(${Math.min(a,b)}/${b})`}</div>
+        <button data-id="${h.id}" data-act="${own?"own":unl?"buy":"ad"}">${own?"보유 중":unl?`🪙 ${price}`:`📺 광고로 해금 ${ads}/${ADS_FOR_HIDDEN}`}</button></div>`;
+    }).join("");
+    grid.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      const h=HIDDEN.find(x=>x.id===b.dataset.id), act=b.dataset.act;
+      if (act==="own") return;
+      if (act==="ad"){ playAd(()=>{ G.ads[h.id]=(G.ads[h.id]||0)+1; if (G.ads[h.id]>=ADS_FOR_HIDDEN){ G.unlocked.push(h.id); toast(`✨ ${h.n} 해금! 이제 구매할 수 있어요`); } gSave(); gShop(); }); return; }
+      const price=hiddenPrice(h); if (G.coins<price){ toast("코인이 부족해요"); return; }
+      G.coins-=price; giveHidden(h); gSave(); gStats(); gShop(); toast(`✨ ${h.n} 획득!`);
+    });
+    return;
+  }
+  let list=[];
+  if (t==="col") list = FABRICS.filter(f=>!f.hidden).map(f=>({id:f.id, n:f.n, sub:SEASONS[f.s].em, price:f.price, own:G.own.col.includes(f.id), ic:`<i style="background:${f.c}"></i>`}));
+  if (t==="dye") list = DYES.filter(d=>!d.hidden).map(d=>({id:d.c, n:d.n, price:d.p, own:G.own.dye.includes(d.c), ic:`<i style="background:${d.c}"></i>`, key:"dye"}));
+  if (t==="top") list = TOPS.filter(x=>!x.hidden).map(x=>({id:x.k, n:x.n, price:PRICE.top[x.k], own:G.own.top.includes(x.k), ic:avatarSVG({skin:"#f2cfb3",hair:"dandy",hairColor:"#3E2A20",top:x.k,topColor:"#9CC3E6",accs:new Set(),view:"40 300 320 180"})}));
   if (t==="hair") list = HAIRSTYLES.map(h=>({id:h.k, n:h.n, price:PRICE.hair[h.k], own:G.own.hair.includes(h.k), ic:avatarSVG({skin:"#f2cfb3",hair:h.k,hairColor:"#6B4A35",top:"tee",topColor:"#ddd",accs:new Set(),gender:h.g,view:"95 30 210 210"})}));
-  if (t==="acc") list = ACCS.map(a=>({id:a.k, n:a.n, price:PRICE.acc[a.k], own:G.own.acc.includes(a.k), ic:{glasses:"👓",beret:"🧶",beanie:"🧢",earring:"🦪"}[a.k]}));
+  if (t==="acc") list = ACCS.filter(a=>!a.hidden).map(a=>({id:a.k, n:a.n, price:PRICE.acc[a.k], own:G.own.acc.includes(a.k), ic:a.ic}));
   list.sort((a,b)=>(a.own-b.own)||(a.price-b.price));
   grid.innerHTML = list.map(x=>`<div class="item${x.own?" own":G.coins<x.price?" poor":""}"><div class="ic">${x.ic}</div><div class="nm">${x.sub?x.sub+" ":""}${x.n}</div>
     <button data-id="${x.id}">${x.own?"보유 중":`🪙 ${x.price}`}</button></div>`).join("");
@@ -1315,8 +1535,41 @@ function gShop(){
     G.coins-=x.price; G.own[t].push(x.id); gSave(); gStats(); gShop(); toast(`✨ ${x.n} 구매 완료!`);
   });
 }
+function hiddenOwned(h){ return h.kind==="top"?G.own.top.includes(h.item): h.kind==="acc"?G.own.acc.includes(h.item): h.kind==="col"?G.own.col.includes(h.item): G.own.dye.includes(h.item); }
+function hiddenPrice(h){ return h.kind==="top"?PRICE.top[h.item]: h.kind==="acc"?PRICE.acc[h.item]: h.kind==="col"?PEARL.price: DYES.find(d=>d.c===h.item).p; }
+function hiddenIcon(h){
+  if (h.kind==="top") return avatarSVG({skin:"#f2cfb3",hair:"dandy",hairColor:"#3E2A20",top:"velvet",topColor:"#5B2A86",accs:new Set(),view:"40 300 320 180"});
+  if (h.kind==="acc") return ACCS.find(a=>a.k===h.item).ic;
+  return `<i style="background:${h.kind==="col"?PEARL.c:h.item}"></i>`;
+}
+function giveHidden(h){ (h.kind==="top"?G.own.top: h.kind==="acc"?G.own.acc: h.kind==="col"?G.own.col: G.own.dye).push(h.item); }
+
+/* ---------- 홈: '나' 카드 ---------- */
+function renderHome(){
+  const box=$("meCard");
+  if (me){
+    const S=SEASONS[me.key];
+    box.innerHTML = `<div class="mf">${avatarSVG({skin:me.skin, hair:me.g==="m"?"dandy":"bob", hairColor:"#3E2A20", top:"tee", topColor:me.best?me.best.c:S.pal[0].c, accs:new Set(), gender:me.g==="n"?"f":me.g, view:"85 60 230 230"})}</div>
+      <div><div class="mt">나는 ${S.em} ${S.name}</div><div class="md">게임 속 '나' 캐릭터에 적용됐어요.<br>살롱에 '나'가 손님으로 찾아와요!${me.best?` · BEST ${me.best.n}`:""}</div>
+      <button id="meRe">다시 진단하기</button></div>`;
+    $("meRe").onclick=()=>show("sDiag");
+  } else {
+    box.innerHTML = `<div class="mf">👤</div><div><div class="mt">아직 '나' 캐릭터가 없어요</div>
+      <div class="md">퍼스널컬러를 진단하면 내 피부톤과 시즌으로<br>게임 속 '나'가 만들어져요.</div><button id="meGo">진단하러 가기 →</button></div>`;
+    $("meGo").onclick=()=>show("sDiag");
+  }
+  $("mResult").classList.toggle("hidden", !result);
+}
+$("mDiag").onclick=()=>show("sDiag");
+$("diagBack").onclick=()=>show("sStart");
+$("mResult").onclick=()=>show("sResult");
+function saveMe(){
+  me = {key:result.key, skin:avSkin(), g:gender, best:{n:result.best.n,c:result.best.c}, worst:{n:result.worst.n,c:result.worst.c}, t:Date.now()};
+  try{ localStorage.setItem("cs_me", JSON.stringify(me)); }catch(e){}
+}
 
 $("btnGame").onclick=openGame; $("btnGame0").onclick=openGame;
+renderHome();
 
 /* ---------- 테스트용 (?mock) ---------- */
 if (MOCK){
@@ -1328,9 +1581,12 @@ if (MOCK){
     await window.__run(q.get("src"));
     if (q.has("auto")){ for (let i=0;i<15;i++){ choose(q.get("auto")==="b"?1:0); await new Promise(r=>setTimeout(r,420)); } }
     if (q.get("screen")==="look"){ $("btnToLook").click(); if(q.get("occ")) pickOcc(q.get("occ")); if(q.get("hair")){ look.hair=q.get("hair"); renderLook(); } }
-    if (q.get("screen")==="game"){ try{localStorage.removeItem("cs_game")}catch(e){} openGame(); if(q.has("coins")){G.coins=999;G.rep=+q.get("rep")||0;gStats();} if(q.get("tab")){G.tab=q.get("tab");gDraw();}
-      if(q.has("dress")){ const S=SEASONS[G.cust.s]; G.look.tc=S.pal[0].c; G.look.top=MISSION[G.cust.occ].tops.find(t=>G.own.top.includes(t))||"shirt"; G.look.hc=S.hair[0].c; gDraw(); }
-      if(q.has("judge")) $("gJudge").click(); if(q.has("shop")){ $("gShopBtn").click(); } }
+    if (q.get("screen")==="game"){ try{localStorage.removeItem("cs_game2")}catch(e){} openGame();
+      if(q.has("coins")){G.coins=2000;G.rep=+q.get("rep")||0;makeBoard();gView("lobby");}
+      if(q.get("accept")) accept(+q.get("accept"));
+      if(q.has("dress")){ const S=SEASONS[G.cust.s]; G.look.tc=S.pal[0].c; G.look.top=OCC_TOPS[G.cust.occ].find(t=>G.own.top.includes(t))||"shirt"; G.look.hc=S.hair.find(h=>G.own.dye.includes(h.c))?.c||G.look.hc; G.look.accs.add("glasses"); gDraw(); }
+      if(q.get("tab")){G.tab=q.get("tab");gDraw();}
+      if(q.has("judge")) judge(); if(q.has("shop")){ $("gShopBtn").click(); if(q.get("shop")) { G.shopTab=q.get("shop"); gShop(); } } }
     if (q.get("screen")==="mirror"){ $("btnMirror2").click(); }
     if (q.get("card")==="result") $("btnResultCard").click();
     if (q.get("card")==="ab") $("btnAsk").click();
