@@ -38,6 +38,24 @@ export const ACCS = [
   {k:"headband",n:"진주 헤드밴드",ic:"👑",hidden:true,metal:"pearl"},{k:"silkscarf",n:"실크 스카프",ic:"🎀",hidden:true},
 ];
 export const HATS = ["beret","beanie","cap"];
+export const BOTTOMS = [
+  {k:"slacks",n:"슬랙스"},{k:"jeans",n:"청바지",fixed:"#4C6A92"},{k:"skirt",n:"A라인 스커트"},{k:"wide",n:"와이드 팬츠"},{k:"shorts",n:"반바지"},{k:"pencil",n:"H라인 스커트"},
+];
+export const SHOES = [
+  {k:"sneakers",n:"스니커즈"},{k:"loafers",n:"로퍼"},{k:"heels",n:"펌프스 힐"},{k:"boots",n:"앵클부츠"},{k:"sandals",n:"샌들"},
+];
+export const SHOECOLS = [{n:"화이트",c:"#F4F2EE"},{n:"블랙",c:"#24242A"},{n:"브라운",c:"#6B4630"},{n:"베이지",c:"#D8C3A5"},{n:"실버",c:"#C9CDD3"},{n:"버건디",c:"#6E2233"}];
+export const LIPS = [
+  {n:"코랄",c:"#F2766A",s:"spring"},{n:"피치",c:"#F59A84",s:"spring"},{n:"딸기 핑크",c:"#E7708E",s:"summer"},{n:"로즈",c:"#C9677F",s:"summer"},
+  {n:"브릭",c:"#A9483A",s:"autumn"},{n:"테라코타",c:"#B85B42",s:"autumn"},{n:"레드",c:"#C8102E",s:"winter"},{n:"플럼",c:"#8A2E55",s:"winter"},{n:"누드 베이지",c:"#D49A8A",s:null},
+];
+export const BLUSH = [
+  {n:"피치",c:"#F7A98B",s:"spring"},{n:"코랄",c:"#F48C78",s:"spring"},{n:"라벤더 핑크",c:"#E6A2C2",s:"summer"},{n:"로즈",c:"#E0899E",s:"summer"},
+  {n:"베이지 브라운",c:"#C98E6E",s:"autumn"},{n:"오렌지 브라운",c:"#D9805C",s:"autumn"},{n:"쿨 핑크",c:"#E36D9A",s:"winter"},{n:"플럼",c:"#B45A80",s:"winter"},
+];
+export const SHADOWS = [
+  {n:"골드 피치",c:"#E8B07A",s:"spring"},{n:"핑크 모브",c:"#C99AB5",s:"summer"},{n:"브라운 음영",c:"#9C6B4E",s:"autumn"},{n:"그레이 플럼",c:"#7D6478",s:"winter"},{n:"없음",c:null,s:null},
+];
 
 function hx(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
 function toHex(r,g,b){ return "#"+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join(""); }
@@ -127,59 +145,116 @@ function strands(type){
   return L.map(([x0,y0,x1,y1])=>`M${x0},${y0} Q${(x0+x1)/2+6},${(y0+y1)/2} ${x1},${y1}`).join(" ");
 }
 
-const BODY = "M38,480 C46,404 104,358 172,340 L228,340 C296,358 354,404 362,480Z";
-function topSVG(type, col, id){
+/* ---------- 전신: 상의(몸통+팔) ---------- */
+const TORSO = "M172,338 L228,338 C252,342 272,350 284,362 L268,404 L262,534 L138,534 L132,404 L116,362 C128,350 148,342 172,338Z";
+const COATT = "M172,338 L228,338 C252,342 272,350 284,362 L268,404 L274,640 L126,640 L132,404 L116,362 C128,350 148,342 172,338Z";
+const SLV_L = "M116,362 C104,382 96,424 94,470 L92,524 L118,526 L122,472 L132,404Z";
+const SLV_S = "M116,362 C106,378 100,400 98,420 L124,424 L132,404Z";
+const ARM_L = "M100,418 L96,470 L94,524 L116,526 L120,472 L124,424Z";
+const mir = d => `<g transform="translate(400,0) scale(-1,1)">${d}</g>`;
+function topSVG(type, col, id, skin, prem){
   const dark = shade(col,-0.2), line = shade(col,-0.42), light=shade(col,0.18);
   const inner = lum(col)>0.6 ? "#3a3a42" : "#f6f3ee";
   const st = `stroke="${line}" stroke-width="2.4" stroke-linejoin="round"`;
-  const body = `<path d="${BODY}" fill="${col}" ${st}/>
-    <path d="M44,480 C52,410 104,366 168,346 C130,372 104,420 98,480Z" fill="${dark}" opacity=".3"/>
-    <path d="M300,400 C320,420 334,450 340,480" stroke="${light}" stroke-width="10" fill="none" opacity=".35" stroke-linecap="round"/>`;
-  const neckline = `<path d="M170,340 C182,366 218,366 230,340" fill="none" stroke="${line}" stroke-width="4" stroke-linecap="round"/>`;
+  const sk = `fill="${skin}" stroke="#7a5242" stroke-width="2"`;
+  const short = type==="tee"||type==="stripe";
+  const T = type==="coat" ? COATT : TORSO;
+  const fillT = type==="velvet" ? `url(#${id}v)` : col;
+  let s = type==="velvet" ? `<linearGradient id="${id}v" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${shade(col,0.28)}"/><stop offset=".5" stop-color="${col}"/><stop offset="1" stop-color="${shade(col,-0.35)}"/></linearGradient>` : "";
+  // 팔
+  const arm = short ? `<path d="${ARM_L}" ${sk}/><path d="${SLV_S}" fill="${col}" ${st}/>` : `<path d="${SLV_L}" fill="${fillT}" ${st}/><path d="M94,500 L118,502" stroke="${line}" stroke-width="2" opacity=".6"/>`;
+  s += arm + mir(arm);
+  if (type==="hoodie") s += `<path d="M140,356 C146,318 254,318 260,356 C244,374 156,374 140,356Z" fill="${dark}" ${st}/>`;
+  s += `<path d="${T}" fill="${fillT}" ${st}/>
+    <path d="M140,410 C136,450 138,500 140,532 L150,532 C146,490 146,446 150,410Z" fill="${dark}" opacity=".28"/>`;
+  const neckline = `<path d="M172,340 C182,362 218,362 228,340" fill="none" stroke="${line}" stroke-width="4" stroke-linecap="round"/>`;
   switch(type){
-    case "tee": return body+neckline;
+    case "tee": s += neckline; break;
     case "stripe": { const sc = lum(col)>0.7 ? "#2b3a67" : "#f7f5f0";
-      let s=`<clipPath id="${id}st"><path d="${BODY}"/></clipPath>`+body+`<g clip-path="url(#${id}st)">`;
-      for (let y=372;y<480;y+=22) s+=`<rect x="30" y="${y}" width="340" height="9" fill="${sc}" opacity=".9"/>`;
-      return s+`</g>`+neckline; }
-    case "velvet":
-      return `<linearGradient id="${id}v" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${shade(col,0.25)}"/><stop offset=".5" stop-color="${col}"/><stop offset="1" stop-color="${shade(col,-0.35)}"/></linearGradient>
-        <path d="${BODY}" fill="url(#${id}v)" ${st}/><path d="M172,340 L200,424 L228,340Z" fill="#f6f3ee"/>
-        <path d="M172,340 L200,424 L184,434 L148,362Z" fill="${shade(col,-0.3)}" ${st}/><path d="M228,340 L200,424 L216,434 L252,362Z" fill="${shade(col,-0.3)}" ${st}/>
-        <circle cx="160" cy="400" r="9" fill="#f3e3a6" stroke="#b9953c" stroke-width="2"/><circle cx="160" cy="400" r="3.5" fill="#fff"/>
-        <path d="M110,430 Q150,400 172,436" stroke="#fff" stroke-width="6" fill="none" opacity=".25"/>`;
-    case "shirt": case "tie": {
-      let s = body+`<path d="M200,372 L200,480" stroke="${line}" stroke-width="2.5"/>`+
-        [400,430,460].map(y=>`<circle cx="207" cy="${y}" r="3" fill="${line}"/>`).join("")+
+      s += `<clipPath id="${id}st"><path d="${TORSO}"/></clipPath><g clip-path="url(#${id}st)">`;
+      for (let y=376;y<534;y+=20) s+=`<rect x="110" y="${y}" width="180" height="8" fill="${sc}" opacity=".9"/>`;
+      s += `</g>`+neckline; break; }
+    case "shirt": case "tie":
+      s += `<path d="M200,372 L200,534" stroke="${line}" stroke-width="2.5"/>`+[400,440,480,520].map(y=>`<circle cx="206" cy="${y}" r="3" fill="${line}"/>`).join("")+
         `<path d="M170,334 L200,372 L184,392 L156,350Z" fill="${shade(col,0.12)}" ${st}/><path d="M230,334 L200,372 L216,392 L244,350Z" fill="${shade(col,0.12)}" ${st}/>`;
       if (type==="tie"){ const tc = lum(col)>0.55 ? "#26355c" : "#8e2a35";
-        s += `<path d="M192,368 L208,368 L205,384 L195,384Z" fill="${shade(tc,-0.2)}"/><path d="M195,384 L205,384 L213,466 L200,480 L187,466Z" fill="${tc}" stroke="${shade(tc,-0.4)}" stroke-width="2"/>`; }
-      return s; }
-    case "knit": {
-      let s = `<path d="M174,296 L226,296 L230,346 C214,354 186,354 170,346Z" fill="${col}" ${st}/>`+body+
-        `<path d="M168,338 C180,352 220,352 232,338 L230,350 C214,360 186,360 170,350Z" fill="${dark}"/>`;
+        s += `<path d="M192,368 L208,368 L205,384 L195,384Z" fill="${shade(tc,-0.2)}"/><path d="M195,384 L205,384 L211,494 L200,506 L189,494Z" fill="${tc}" stroke="${shade(tc,-0.4)}" stroke-width="2"/>`; }
+      break;
+    case "knit":
+      s = `<path d="M174,296 L226,296 L230,346 C214,354 186,354 170,346Z" fill="${col}" ${st}/>`+s+
+        `<path d="M168,338 C180,352 220,352 232,338 L230,350 C214,360 186,360 170,350Z" fill="${dark}"/><rect x="138" y="518" width="124" height="16" fill="${dark}" opacity=".5"/>`;
       for (let x=180;x<=222;x+=7) s+=`<path d="M${x},300 L${x},344" stroke="${dark}" stroke-width="2" opacity=".55"/>`;
-      return s; }
+      break;
     case "cardigan":
-      return body+`<path d="M176,340 L200,440 L224,340 C214,360 186,360 176,340Z" fill="${inner}"/>
-        <path d="M176,340 L200,440 M224,340 L200,440" stroke="${line}" stroke-width="3"/>
-        ${[400,425,450,474].map(y=>`<circle cx="203" cy="${y}" r="4" fill="${shade(col,0.4)}" stroke="${line}" stroke-width="1.5"/>`).join("")}`;
+      s += `<path d="M176,340 L200,520 L224,340 C214,358 186,358 176,340Z" fill="${inner}"/><path d="M176,340 L200,534 M224,340 L200,534" stroke="${line}" stroke-width="3"/>`+
+        [420,450,480,510].map(y=>`<circle cx="204" cy="${y}" r="4" fill="${shade(col,0.4)}" stroke="${line}" stroke-width="1.5"/>`).join("");
+      break;
     case "hoodie":
-      return `<path d="M136,352 C140,312 260,312 264,352 C246,372 154,372 136,352Z" fill="${dark}" ${st}/>`+body+
-        `<path d="M168,342 C182,372 218,372 232,342" fill="${shade(col,-0.1)}" stroke="${line}" stroke-width="3"/>
-         <path d="M188,364 L184,420 M212,364 L216,420" stroke="#f2f0ec" stroke-width="4" stroke-linecap="round"/>
-         <path d="M110,440 L290,440 L280,480 L120,480Z" fill="${dark}" opacity=".25"/>`;
-    case "blazer":
-      return body+`<path d="M172,340 L200,424 L228,340Z" fill="${inner}"/>
-        <path d="M172,340 L200,424 L184,434 L148,362Z" fill="${dark}" ${st}/><path d="M228,340 L200,424 L216,434 L252,362Z" fill="${dark}" ${st}/>
-        <circle cx="200" cy="452" r="4" fill="${line}"/>`;
+      s += `<path d="M168,342 C182,370 218,370 232,342" fill="${shade(col,-0.1)}" stroke="${line}" stroke-width="3"/>
+        <path d="M188,362 L185,420 M212,362 L215,420" stroke="#f2f0ec" stroke-width="4" stroke-linecap="round"/>
+        <path d="M156,470 L244,470 L250,520 L150,520Z" fill="${dark}" opacity=".3" ${st}/>`; break;
+    case "blazer": case "velvet":
+      s += `<path d="M172,340 L200,430 L228,340Z" fill="${type==="velvet"?"#f6f3ee":inner}"/>
+        <path d="M172,340 L200,430 L186,440 L150,366Z" fill="${shade(col,-0.25)}" ${st}/><path d="M228,340 L200,430 L214,440 L250,366Z" fill="${shade(col,-0.25)}" ${st}/>
+        <circle cx="204" cy="470" r="4" fill="${line}"/><circle cx="204" cy="500" r="4" fill="${line}"/><path d="M150,486 L178,486 M222,486 L250,486" stroke="${line}" stroke-width="2.5"/>`;
+      if (type==="velvet") s += `<circle cx="166" cy="404" r="8" fill="#f3e3a6" stroke="#b9953c" stroke-width="2"/><circle cx="166" cy="404" r="3" fill="#fff"/><path d="M146,450 Q170,420 186,460" stroke="#fff" stroke-width="6" fill="none" opacity=".22"/>`;
+      break;
     case "coat":
-      return body+`<path d="M174,340 L200,410 L226,340Z" fill="${inner}"/>
-        <path d="M174,340 L200,410 L178,440 L136,360Z" fill="${light}" ${st}/><path d="M226,340 L200,410 L222,440 L264,360Z" fill="${light}" ${st}/>
-        <rect x="60" y="452" width="280" height="14" fill="${dark}" ${st}/><rect x="190" y="448" width="22" height="22" rx="3" fill="none" stroke="${line}" stroke-width="3"/>
-        ${[388,418].map(y=>`<circle cx="226" cy="${y}" r="4" fill="${line}"/><circle cx="246" cy="${y}" r="4" fill="${line}"/>`).join("")}`;
+      s += `<path d="M174,340 L200,410 L226,340Z" fill="${inner}"/>
+        <path d="M174,340 L200,410 L180,440 L136,362Z" fill="${light}" ${st}/><path d="M226,340 L200,410 L220,440 L264,362Z" fill="${light}" ${st}/>
+        <path d="M200,410 L200,640" stroke="${line}" stroke-width="2"/><rect x="128" y="518" width="144" height="14" fill="${dark}" ${st}/><rect x="190" y="514" width="22" height="22" rx="3" fill="none" stroke="${line}" stroke-width="3"/>
+        ${[440,480].map(y=>`<circle cx="214" cy="${y}" r="4" fill="${line}"/><circle cx="234" cy="${y}" r="4" fill="${line}"/>`).join("")}`; break;
   }
-  return body;
+  if (prem){ // 프리미엄: 원단 결 + 광택 + 디테일 자수
+    s += `<clipPath id="${id}pt"><path d="${T}"/></clipPath><g clip-path="url(#${id}pt)" opacity=".16">`;
+    for (let k=-200;k<300;k+=9) s+=`<path d="M${100+k},330 L${300+k},650" stroke="${lum(col)>0.5?"#000":"#fff"}" stroke-width="1.2"/>`;
+    s += `</g><path d="M246,380 C258,420 262,470 258,520" stroke="#fff" stroke-width="10" fill="none" opacity=".22" stroke-linecap="round"/>
+      <path d="M140,530 L260,530" stroke="#d9b45a" stroke-width="2" stroke-dasharray="5 4"/>
+      <g transform="translate(234,414)"><circle r="7" fill="#f6e3a3" stroke="#b9953c" stroke-width="1.5"/><path d="M-4,0 L4,0 M0,-4 L0,4" stroke="#b9953c" stroke-width="1.5"/></g>`;
+  }
+  // 손
+  s += `<circle cx="105" cy="538" r="13" ${sk}/><circle cx="295" cy="538" r="13" ${sk}/>`;
+  return s;
+}
+/* ---------- 하의 ---------- */
+function legs(skin,y0){ const sk=`fill="${skin}" stroke="#7a5242" stroke-width="2"`; return `<path d="M160,${y0} L188,${y0} L186,762 L162,762Z" ${sk}/><path d="M212,${y0} L240,${y0} L238,762 L214,762Z" ${sk}/>`; }
+function bottomSVG(type, col, skin, id, prem){
+  if (type==="jeans") col="#4C6A92";
+  const line=shade(col,-0.42), dark=shade(col,-0.2), st=`stroke="${line}" stroke-width="2.4" stroke-linejoin="round"`;
+  let s="", P="";
+  switch(type){
+    case "slacks": P="M138,528 L262,528 L266,600 L258,760 L212,760 L203,604 L197,604 L188,760 L142,760 L134,600Z";
+      s=`<path d="${P}" fill="${col}" ${st}/><path d="M165,560 L166,756 M235,560 L234,756" stroke="${dark}" stroke-width="2" opacity=".6"/>`; break;
+    case "jeans": P="M138,528 L262,528 L266,600 L258,760 L212,760 L203,604 L197,604 L188,760 L142,760 L134,600Z";
+      s=`<path d="${P}" fill="${col}" ${st}/><path d="M146,548 Q160,560 176,546 M254,548 Q240,560 224,546" stroke="#d9a65a" stroke-width="2" fill="none"/>
+        <path d="M142,744 L188,744 M212,744 L258,744" stroke="${shade(col,0.25)}" stroke-width="5"/><path d="M168,580 L170,740" stroke="${shade(col,0.2)}" stroke-width="6" opacity=".35"/>`; break;
+    case "wide": P="M136,528 L264,528 L292,760 L206,760 L200,612 L194,760 L108,760Z";
+      s=`<path d="${P}" fill="${col}" ${st}/><path d="M160,560 L150,756 M240,560 L250,756" stroke="${dark}" stroke-width="2" opacity=".5"/>`; break;
+    case "skirt": P="M140,528 L260,528 L290,686 Q200,700 110,686Z";
+      s=legs(skin,680)+`<path d="${P}" fill="${col}" ${st}/><path d="M170,540 L156,690 M200,540 L200,694 M230,540 L244,690" stroke="${dark}" stroke-width="2" opacity=".45"/>`; break;
+    case "pencil": P="M138,528 L262,528 L258,672 L142,672Z";
+      s=legs(skin,666)+`<path d="${P}" fill="${col}" ${st}/><path d="M220,640 L220,672" stroke="${line}" stroke-width="2"/>`; break;
+    case "shorts": P="M138,528 L262,528 L272,624 L206,628 L200,588 L194,628 L128,624Z";
+      s=legs(skin,618)+`<path d="${P}" fill="${col}" ${st}/>`; break;
+  }
+  s += `<rect x="138" y="526" width="124" height="12" fill="${dark}" ${st}/>`;
+  if (prem) s += `<clipPath id="${id}pb"><path d="${P}"/></clipPath><path d="M232,560 C244,620 246,690 240,750" stroke="#fff" stroke-width="9" fill="none" opacity=".2" clip-path="url(#${id}pb)"/>
+    <rect x="186" y="527" width="28" height="10" rx="2" fill="#f3e3a6" stroke="#b9953c" stroke-width="1.5"/>`;
+  return s;
+}
+/* ---------- 신발 ---------- */
+function shoeSVG(type, col, skin, prem){
+  const line=shade(col,-0.45), st=`stroke="${line}" stroke-width="2.2" stroke-linejoin="round"`;
+  let one="";
+  switch(type){
+    case "sneakers": one=`<path d="M140,752 L190,752 L194,778 Q192,788 182,788 L134,788 Q128,786 130,778Z" fill="${col}" ${st}/><path d="M130,780 L194,780" stroke="#fff" stroke-width="4"/><path d="M150,760 L176,758 M152,768 L178,766" stroke="${line}" stroke-width="2"/>`; break;
+    case "loafers": one=`<path d="M146,754 L188,754 L192,780 Q190,788 180,788 L140,788 Q134,786 136,780Z" fill="${col}" ${st}/><path d="M154,766 L182,766" stroke="${line}" stroke-width="2.5"/>`; break;
+    case "heels": one=`<path d="M152,748 L186,748 L192,784 L184,788 L178,772 L150,786 L142,784 L146,770Z" fill="${col}" ${st}/><path d="M184,770 L186,790" stroke="${line}" stroke-width="5"/>`; break;
+    case "boots": one=`<path d="M152,700 L188,700 L192,780 Q190,790 180,790 L138,790 Q132,788 134,780 L150,744Z" fill="${col}" ${st}/><path d="M152,712 L188,712" stroke="${line}" stroke-width="2"/>`; break;
+    case "sandals": one=`<path d="M146,756 L188,756 L190,784 L140,786Z" fill="${skin}" stroke="#7a5242" stroke-width="2"/><path d="M144,766 L190,762 M144,778 L190,776" stroke="${col}" stroke-width="5"/><path d="M138,788 L192,788" stroke="${line}" stroke-width="4"/>`; break;
+  }
+  if (prem) one += `<ellipse cx="170" cy="768" rx="10" ry="4" fill="#fff" opacity=".45"/><rect x="164" y="752" width="12" height="7" rx="2" fill="#f3e3a6" stroke="#b9953c" stroke-width="1.2"/>`;
+  return one + mir(one);
 }
 
 function eye(cx, cy, id, irisId, g){
@@ -192,7 +267,7 @@ function eye(cx, cy, id, irisId, g){
   ${g==="f"?`<path d="M${L?cx-17:cx+18},${cy-1} l${L?-6:6},-5" stroke="#3b2a22" stroke-width="3" stroke-linecap="round"/>`:""}
   <path d="M${cx-11},${cy+8} Q${cx},${cy+12} ${cx+11},${cy+7}" stroke="#7a5444" stroke-width="1.4" fill="none" opacity=".6"/>`;
 }
-function faceSVG(skin, hairC, gender, id){
+function faceSVG(skin, hairC, gender, id, mk={}){
   const OL="#7a5242", sk2 = shade(skin,-0.12), brow = shade(hairC,-0.1), m=gender==="m";
   return `<radialGradient id="${id}i" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="#a8774f"/><stop offset=".6" stop-color="#6e4630"/><stop offset="1" stop-color="#3b2418"/></radialGradient>
   <path d="M178,276 L178,346 C190,356 210,356 222,346 L222,276Z" fill="${sk2}" stroke="${OL}" stroke-width="2"/>
@@ -201,12 +276,14 @@ function faceSVG(skin, hairC, gender, id){
   <path d="M125,190 C125,120 275,120 275,190 C275,252 246,302 200,306 C154,302 125,252 125,190Z" fill="${skin}" stroke="${OL}" stroke-width="2.4"/>
   <path d="M154,${m?184:186} Q168,${m?178:180} 184,186" stroke="${brow}" stroke-width="${m?5:3.6}" fill="none" stroke-linecap="round"/>
   <path d="M216,186 Q232,${m?178:180} 246,${m?184:186}" stroke="${brow}" stroke-width="${m?5:3.6}" fill="none" stroke-linecap="round"/>
+  ${mk.shadow?`<path d="M150,206 C156,192 182,190 188,204 C178,198 160,198 150,206Z M212,204 C218,190 244,192 250,206 C240,198 222,198 212,204Z" fill="${mk.shadow}" opacity=".55"/>`:""}
   ${eye(168,212,id+"e1",id+"i",gender)}${eye(232,212,id+"e2",id+"i",gender)}
   <path d="M201,236 q3,6 -3,8" stroke="${shade(skin,-0.3)}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-  <ellipse cx="150" cy="246" rx="15" ry="8" fill="#f28c8c" opacity=".25"/><ellipse cx="250" cy="246" rx="15" ry="8" fill="#f28c8c" opacity=".25"/>
+  <ellipse cx="150" cy="246" rx="16" ry="9" fill="${mk.blush||"#f28c8c"}" opacity="${mk.blush?.42:.25}"/><ellipse cx="250" cy="246" rx="16" ry="9" fill="${mk.blush||"#f28c8c"}" opacity="${mk.blush?.42:.25}"/>
   <path d="M142,248 l5,-6 M150,248 l5,-6 M242,248 l5,-6 M250,248 l5,-6" stroke="#e7807e" stroke-width="1.6" opacity=".45" stroke-linecap="round"/>
-  ${gender==="f"?`<path d="M189,264 Q200,272 211,264 Q200,276 189,264Z" fill="#e88c8c"/>`:""}
-  <path d="M187,263 Q200,271 213,263" stroke="#b5615f" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  <path d="M188,263 Q200,258 212,263 Q200,277 188,263Z" fill="${mk.lip||"#e88c8c"}" opacity="${mk.lip?(gender==="m"?.55:.95):(gender==="f"?.9:.4)}"/>
+  <path d="M187,263 Q200,271 213,263" stroke="${mk.lip?shade(mk.lip,-0.35):"#b5615f"}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  ${mk.lip&&gender!=="m"?`<path d="M195,267 Q199,269 203,267" stroke="#fff" stroke-width="1.6" opacity=".6" fill="none" stroke-linecap="round"/>`:""}`;
 }
 
 function accNeck(accs){
@@ -252,7 +329,8 @@ function accHair(accs){
 }
 
 let seq=0;
-export function avatarSVG({skin="#f2cfb3", hair="dandy", hairColor="#3e2a20", top="tee", topColor="#f4f2ee", accs=new Set(), gender="n", bg=null, size=null, view="0 0 400 480"}){
+export function avatarSVG({skin="#f2cfb3", hair="dandy", hairColor="#3e2a20", top="tee", topColor="#f4f2ee", bottom="slacks", bottomColor="#2B2D33", shoes="sneakers", shoeColor="#F4F2EE",
+    mk={}, prem=new Set(), accs=new Set(), gender="n", bg=null, size=null, view="0 0 400 800"}){
   const H = HAIRSTYLES.find(h=>h.k===hair) || HAIRSTYLES[0];
   const hc = hairColor, hd = shade(hc,-0.32), hl = shade(hc,0.3);
   const id = "a"+(++seq).toString(36);
@@ -262,21 +340,26 @@ export function avatarSVG({skin="#f2cfb3", hair="dandy", hairColor="#3e2a20", to
   const hatOn = HATS.some(k=>accs.has(k));
   const shine = hatOn ? "" : `<path d="M146,112 Q200,94 254,112" stroke="${hl}" stroke-width="9" fill="none" stroke-linecap="round" opacity=".55"/>
     <path d="M160,108 l6,10 M184,101 l4,11 M214,101 l-3,11 M240,107 l-5,10" stroke="${hl}" stroke-width="3" opacity=".6" stroke-linecap="round"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view}"${size?` width="${size}" height="${size*1.2}"`:""}>
+  const premHair = prem.has("hair") && !hatOn ? `<path d="M138,128 Q200,104 262,128" stroke="#fff" stroke-width="4" fill="none" opacity=".45" stroke-linecap="round"/>
+    <path d="M150,150 q10,40 4,80 M250,150 q-10,40 -4,80 M200,96 q-6,20 -2,40" stroke="${hl}" stroke-width="2.4" fill="none" opacity=".7"/>
+    <path d="M262,96 l4,-10 l4,10 l10,4 l-10,4 l-4,10 l-4,-10 l-10,-4Z" fill="#fff6c8" opacity=".95"/>` : "";
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view}"${size?` width="${size}" height="${size*2}"`:""}>
   <defs>${grad}</defs>
-  ${bg?`<rect width="400" height="480" fill="${bg}"/>`:""}
+  ${bg?`<rect width="400" height="800" fill="${bg}"/>`:""}
   ${H.back==="pony" ? `<path d="${ponytail()}" ${fill}/>` : ""}
   ${H.bun ? `<path d="${bunPath(H.bun)}" ${fill}/>` : ""}
   <path d="${backHair(H.back, H.wave)}" ${fill}/>
-  ${topSVG(top, topColor, id)}
-  ${faceSVG(skin, hc, gender, id)}
+  ${bottomSVG(bottom, bottomColor, skin, id, prem.has("bottom"))}
+  ${shoeSVG(shoes, shoeColor, skin, prem.has("shoes"))}
+  ${topSVG(top, topColor, id, skin, prem.has("top"))}
+  ${faceSVG(skin, hc, gender, id, mk)}
   ${accNeck(accs)}${accFace(accs)}
   <path d="${crown(H.sides||"normal", H.bangs==="up")}" ${fill}/>
   ${twoblock}
   <path d="${bangs(H.bangs)}" ${fill}/>
   <path d="${strands(H.bangs)}" stroke="${hd}" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".55"/>
   <path d="${locks(H.locks, H.wave)}" ${fill}/>
-  ${shine}
+  ${shine}${premHair}
   ${H.back==="pony" ? `<circle cx="276" cy="128" r="7" fill="#e06a4f"/>` : ""}
   ${accHair(accs)}
 </svg>`;
