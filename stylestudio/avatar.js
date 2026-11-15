@@ -283,15 +283,16 @@ function shoeSVG(type, col, skin, prem){
 }
 
 function eye(cx, cy, id, irisId, g){
-  const w=`M${cx-17},${cy} C${cx-12},${cy-12} ${cx+12},${cy-12} ${cx+17},${cy-1} C${cx+12},${cy+9} ${cx-12},${cy+9} ${cx-17},${cy}Z`;
-  const L=cx<200;
-  return `<clipPath id="${id}"><path d="${w}"/></clipPath><path d="${w}" fill="#fff"/>
-  <g clip-path="url(#${id})"><ellipse cx="${cx}" cy="${cy+1}" rx="10" ry="12" fill="url(#${irisId})"/><ellipse cx="${cx}" cy="${cy+2}" rx="4.2" ry="5.5" fill="#2a1a12"/></g>
-  <circle cx="${cx+3.5}" cy="${cy-4}" r="3.4" fill="#fff"/><circle cx="${cx-3.5}" cy="${cy+5}" r="1.6" fill="#fff" opacity=".85"/>
-  <path d="M${cx-18},${cy+1} C${cx-12},${cy-13} ${cx+12},${cy-14} ${cx+19},${cy-3}" stroke="#3b2a22" stroke-width="${g==="f"?4.4:3.6}" fill="none" stroke-linecap="round"/>
-  ${g==="f"?`<path d="M${L?cx-17:cx+18},${cy-1} l${L?-6:6},-5" stroke="#3b2a22" stroke-width="3" stroke-linecap="round"/>`:""}
-  <path d="M${cx-11},${cy+8} Q${cx},${cy+12} ${cx+11},${cy+7}" stroke="#7a5444" stroke-width="1.4" fill="none" opacity=".6"/>
-  <path d="M${cx-14},${cy-12} Q${cx},${cy-20} ${cx+15},${cy-11}" stroke="#7a5444" stroke-width="1.5" fill="none" opacity=".45"/>`;
+  const L=cx<200, w=`M${cx-20},${cy+1} C${cx-15},${cy-15} ${cx+14},${cy-16} ${cx+21},${cy-2} C${cx+15},${cy+12} ${cx-14},${cy+13} ${cx-20},${cy+1}Z`;
+  const f=g==="f";
+  return `<clipPath id="${id}"><path d="${w}"/></clipPath><path d="${w}" fill="#fffdfb"/>
+  <g clip-path="url(#${id})"><ellipse cx="${cx}" cy="${cy+1}" rx="12.5" ry="15" fill="url(#${irisId})"/><ellipse cx="${cx}" cy="${cy+3}" rx="5.2" ry="6.6" fill="#22140d"/>
+    <path d="M${cx-20},${cy-9} L${cx+21},${cy-9} L${cx+21},${cy-3} C${cx+8},${cy-8} ${cx-8},${cy-8} ${cx-20},${cy-3}Z" fill="#3b2418" opacity=".28"/></g>
+  <circle cx="${cx+4.5}" cy="${cy-4.5}" r="4.2" fill="#fff"/><circle cx="${cx-4}" cy="${cy+6.5}" r="2" fill="#fff" opacity=".9"/>
+  <path d="M${cx-21},${cy+2} C${cx-15},${cy-16} ${cx+14},${cy-17} ${cx+22},${cy-3}" stroke="#2c1d16" stroke-width="${f?5:4.2}" fill="none" stroke-linecap="round"/>
+  ${f?`<path d="M${L?cx-20:cx+21},${cy} l${L?-7:7},-6 M${L?cx-15:cx+16},${cy-8} l${L?-5:5},-6" stroke="#2c1d16" stroke-width="2.6" stroke-linecap="round"/>`:""}
+  <path d="M${cx-13},${cy+11} Q${cx},${cy+15} ${cx+13},${cy+10}" stroke="#7a5444" stroke-width="1.5" fill="none" opacity=".55"/>
+  <path d="M${cx-16},${cy-15} Q${cx},${cy-24} ${cx+17},${cy-14}" stroke="#7a5444" stroke-width="1.6" fill="none" opacity=".45"/>`;
 }
 function faceSVG(skin, hairC, gender, id, mk={}){
   const OL="#7a5242", sk2 = shade(skin,-0.12), brow = shade(hairC,-0.1), m=gender==="m";
@@ -299,25 +300,25 @@ function faceSVG(skin, hairC, gender, id, mk={}){
   <path d="M178,276 L178,346 C190,356 210,356 222,346 L222,276Z" fill="${sk2}" stroke="${OL}" stroke-width="2"/>
   <path d="M178,290 Q200,306 222,290 L222,302 Q200,316 178,302Z" fill="${shade(skin,-0.22)}" opacity=".5"/>
   <ellipse cx="125" cy="210" rx="11" ry="17" fill="${skin}" stroke="${OL}" stroke-width="2"/><ellipse cx="275" cy="210" rx="11" ry="17" fill="${skin}" stroke="${OL}" stroke-width="2"/>
-  <path d="M125,190 C125,120 275,120 275,190 C275,252 246,302 200,306 C154,302 125,252 125,190Z" fill="${skin}" stroke="${OL}" stroke-width="2.4"/>
-  <path d="M154,${m?184:186} Q168,${m?178:180} 184,186" stroke="${brow}" stroke-width="${m?5:3.6}" fill="none" stroke-linecap="round"/>
-  <path d="M216,186 Q232,${m?178:180} 246,${m?184:186}" stroke="${brow}" stroke-width="${m?5:3.6}" fill="none" stroke-linecap="round"/>
+  <path d="M126,186 C126,118 274,118 274,186 C274,238 258,276 228,298 C216,306 184,306 172,298 C142,276 126,238 126,186Z" fill="${skin}" stroke="${OL}" stroke-width="2.4"/>
+  <path d="M146,${m?182:184} Q164,${m?172:175} 186,181" stroke="${brow}" stroke-width="${m?5.4:3.8}" fill="none" stroke-linecap="round"/>
+  <path d="M214,181 Q236,${m?172:175} 254,${m?182:184}" stroke="${brow}" stroke-width="${m?5.4:3.8}" fill="none" stroke-linecap="round"/>
   ${mk.shadow?`<path d="M150,206 C156,192 182,190 188,204 C178,198 160,198 150,206Z M212,204 C218,190 244,192 250,206 C240,198 222,198 212,204Z" fill="${mk.shadow}" opacity=".55"/>`:""}
-  ${eye(168,212,id+"e1",id+"i",gender)}${eye(232,212,id+"e2",id+"i",gender)}
+  ${eye(166,214,id+"e1",id+"i",gender)}${eye(234,214,id+"e2",id+"i",gender)}
   <path d="M201,236 q3,6 -3,8" stroke="${shade(skin,-0.3)}" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="199" cy="232" rx="2" ry="4" fill="#fff" opacity=".45"/>
-  <path d="M262,200 C262,250 240,292 206,302 C240,286 256,250 258,206Z" fill="${shade(skin,-0.15)}" opacity=".45"/>
-  <ellipse cx="150" cy="246" rx="16" ry="9" fill="${mk.blush||"#f28c8c"}" opacity="${mk.blush?.42:.25}"/><ellipse cx="250" cy="246" rx="16" ry="9" fill="${mk.blush||"#f28c8c"}" opacity="${mk.blush?.42:.25}"/>
+  <path d="M262,196 C262,244 248,278 214,300 C240,280 254,248 258,202Z" fill="${shade(skin,-0.15)}" opacity=".45"/>
+  <ellipse cx="150" cy="248" rx="16" ry="9" fill="${mk.blush||"#f28c8c"}" opacity="${mk.blush?.42:.25}"/><ellipse cx="250" cy="248" rx="16" ry="9" fill="${mk.blush||"#f28c8c"}" opacity="${mk.blush?.42:.25}"/>
   <path d="M142,248 l5,-6 M150,248 l5,-6 M242,248 l5,-6 M250,248 l5,-6" stroke="#e7807e" stroke-width="1.6" opacity=".45" stroke-linecap="round"/>
-  <path d="M188,263 Q200,258 212,263 Q200,277 188,263Z" fill="${mk.lip||"#e88c8c"}" opacity="${mk.lip?(gender==="m"?.55:.95):(gender==="f"?.9:.4)}"/>
-  <path d="M187,263 Q200,271 213,263" stroke="${mk.lip?shade(mk.lip,-0.35):"#b5615f"}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-  ${mk.lip&&gender!=="m"?`<path d="M195,267 Q199,269 203,267" stroke="#fff" stroke-width="1.6" opacity=".6" fill="none" stroke-linecap="round"/>`:""}`;
+  <path d="M189,266 Q200,261 211,266 Q200,278 189,266Z" fill="${mk.lip||"#e88c8c"}" opacity="${mk.lip?(gender==="m"?.55:.95):(gender==="f"?.9:.4)}"/>
+  <path d="M188,266 Q200,273 212,266" stroke="${mk.lip?shade(mk.lip,-0.35):"#b5615f"}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  ${mk.lip&&gender!=="m"?`<path d="M195,270 Q199,272 203,270" stroke="#fff" stroke-width="1.6" opacity=".6" fill="none" stroke-linecap="round"/>`:""}`;
 }
 
 function accNeck(accs){
   let s="";
-  if (accs.has("necklace")) s+=`<path d="M180,318 Q200,346 220,318" stroke="#d6b45a" stroke-width="2.6" fill="none"/><path d="M200,334 l6,8 l-6,8 l-6,-8Z" fill="#f3e3a6" stroke="#b9953c" stroke-width="1.5"/>`;
-  if (accs.has("pearlneck")) for (let i=0;i<=10;i++){ const t=i/10, x=(1-t)*(1-t)*180+2*(1-t)*t*200+t*t*220, y=(1-t)*(1-t)*318+2*(1-t)*t*346+t*t*318; s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.4" fill="#fbf8f2" stroke="#d3cbbb" stroke-width="1"/>`; }
-  if (accs.has("necklace_s")) s+=`<path d="M180,318 Q200,346 220,318" stroke="#c4c8cf" stroke-width="2.6" fill="none"/><circle cx="200" cy="340" r="6" fill="#eef1f5" stroke="#9aa0aa" stroke-width="1.5"/>`;
+  if (accs.has("necklace")) s+=`<path d="M178,336 Q200,366 222,336" stroke="#d6b45a" stroke-width="2.6" fill="none"/><path d="M200,354 l6,8 l-6,8 l-6,-8Z" fill="#f3e3a6" stroke="#b9953c" stroke-width="1.5"/>`;
+  if (accs.has("pearlneck")) for (let i=0;i<=10;i++){ const t=i/10, x=(1-t)*(1-t)*178+2*(1-t)*t*200+t*t*222, y=(1-t)*(1-t)*318+2*(1-t)*t*346+t*t*318; s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.4" fill="#fbf8f2" stroke="#d3cbbb" stroke-width="1"/>`; }
+  if (accs.has("necklace_s")) s+=`<path d="M178,336 Q200,366 222,336" stroke="#c4c8cf" stroke-width="2.6" fill="none"/><circle cx="200" cy="360" r="6" fill="#eef1f5" stroke="#9aa0aa" stroke-width="1.5"/>`;
   if (accs.has("scarf")||accs.has("silkscarf")){
     const silk=accs.has("silkscarf"), c1=silk?"#f3d9e6":"#c0473f", c2=silk?"#cfe3f5":"#9c3530";
     s+=`<path d="M172,300 Q200,324 228,300 L232,326 Q200,350 168,326Z" fill="${c1}" stroke="${shade(c1,-0.4)}" stroke-width="2"/>
@@ -383,6 +384,15 @@ function accBody(accs, top){
   return s;
 }
 
+/* v1.2 비율: 머리 0.66배(약 5등신), 몸통·다리는 세로로 늘려 늘씬하게. 그림 코드는 기존 좌표 그대로 쓰고 묶음 변환만 한다 */
+const HK=0.66;
+const G_HEAD=`translate(${200-200*HK},${36-48*HK}) scale(${HK})`;                 // 머리 위 y≈36, 턱 y≈206
+const G_BODY="translate(200,226) scale(.92,1.143) translate(-200,-338)";          // 어깨 y≈226, 손 y≈455
+const G_LEGS="translate(200,444) scale(.92,1.305) translate(-200,-528)";          // 허리 y≈444, 발목 y≈750
+const G_SHOE="translate(200,-2) scale(.92,1) translate(-200,0)";
+// 썸네일용 보기 영역
+export const VIEW = {head:"110 28 180 180", hair:"110 18 180 180", top:"68 200 264 272", topwide:"50 190 300 210",
+  bottom:"86 420 228 380", shoes:"112 690 176 115", bag:"226 410 136 150", backpack:"104 224 192 250", upper:"66 20 268 500"};
 let seq=0;
 export function avatarSVG({skin="#f2cfb3", hair="dandy", hairColor="#3e2a20", top="tee", topColor="#f4f2ee", bottom="slacks", bottomColor="#2B2D33", shoes="sneakers", shoeColor="#F4F2EE",
     mk={}, prem=new Set(), accs=new Set(), gender="n", bg=null, size=null, view="0 0 400 800"}){
@@ -401,15 +411,15 @@ export function avatarSVG({skin="#f2cfb3", hair="dandy", hairColor="#3e2a20", to
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view}"${size?` width="${size}" height="${size*2}"`:""}>
   <defs>${grad}<linearGradient id="${id}sh" x1="0" y1="0" x2="1" y2="0.25"><stop offset="0" stop-color="#fff" stop-opacity=".26"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset=".68" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".24"/></linearGradient></defs>
   ${bg?`<rect width="400" height="800" fill="${bg}"/>`:""}
-  <ellipse cx="200" cy="792" rx="96" ry="9" fill="#000" opacity=".13"/>
-  ${H.back==="pony" ? `<path d="${ponytail()}" ${fill}/>` : ""}
+  <ellipse cx="200" cy="790" rx="92" ry="8" fill="#000" opacity=".13"/>
+  <g transform="${G_HEAD}">${H.back==="pony" ? `<path d="${ponytail()}" ${fill}/>` : ""}
   ${H.bun ? `<path d="${bunPath(H.bun)}" ${fill}/>` : ""}
-  <path d="${backHair(H.back, H.wave)}" ${fill}/>
-  ${bottomSVG(bottom, bottomColor, skin, id, prem.has("bottom"))}
-  ${shoeSVG(shoes, shoeColor, skin, prem.has("shoes"))}
-  ${topSVG(top, topColor, id, skin, prem.has("top"))}
-  ${faceSVG(skin, hc, gender, id, mk)}
-  ${accBody(accs, top)}${accNeck(accs)}${accFace(accs)}
+  <path d="${backHair(H.back, H.wave)}" ${fill}/></g>
+  <g transform="${G_LEGS}">${bottomSVG(bottom, bottomColor, skin, id, prem.has("bottom"))}</g>
+  <g transform="${G_SHOE}">${shoeSVG(shoes, shoeColor, skin, prem.has("shoes"))}</g>
+  <g transform="${G_BODY}">${topSVG(top, topColor, id, skin, prem.has("top"))}${accBody(accs, top)}${accNeck(accs)}</g>
+  <g transform="${G_HEAD}">${faceSVG(skin, hc, gender, id, mk)}
+  ${accFace(accs)}
   <path d="${crown(H.sides||"normal", H.bangs==="up")}" ${fill}/>
   ${twoblock}
   <path d="${bangs(H.bangs)}" ${fill}/>
@@ -417,6 +427,6 @@ export function avatarSVG({skin="#f2cfb3", hair="dandy", hairColor="#3e2a20", to
   <path d="${locks(H.locks, H.wave)}" ${fill}/>
   ${shine}${premHair}
   ${H.back==="pony" ? `<circle cx="276" cy="128" r="7" fill="#e06a4f"/>` : ""}
-  ${accHair(accs)}
+  ${accHair(accs)}</g>
 </svg>`;
 }
