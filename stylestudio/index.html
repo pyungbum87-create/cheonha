@@ -98,6 +98,24 @@
   .basket{display:flex;gap:8px;margin-top:12px}
   .basket .btn{padding:14px 8px;font-size:15px}
 
+  /* 아바타 */
+  .avstage{border-radius:22px;overflow:hidden;display:flex;justify-content:center;position:relative;transition:background .3s}
+  .avstage svg{height:min(44vh,360px);width:auto;display:block}
+  .avstage .em{position:absolute;right:12px;top:8px;font-size:34px;opacity:.85}
+  .mcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:10px}
+  .mcard .t{font-weight:800;font-size:15px;display:flex;justify-content:space-between}
+  .mcard .d{font-size:13px;color:var(--sub);margin-top:3px}
+  .atabs{display:flex;gap:4px;margin:10px 0 2px}
+  .atabs button{flex:1;padding:9px 2px;border-radius:12px;font-weight:700;font-size:13.5px;color:var(--sub)}
+  .atabs button.on{background:var(--ink);color:#fff}
+  .thumb{flex:0 0 auto;width:74px;text-align:center;font-size:11px;color:var(--sub);line-height:1.25}
+  .thumb .tb{width:66px;height:66px;margin:0 auto 4px;border-radius:16px;background:#fff;border:2px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:26px}
+  .thumb .tb svg{width:100%;height:100%}
+  .thumb.on .tb{border-color:var(--ink)}
+  .thumb.on{color:var(--ink);font-weight:700}
+  .fb{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.7}
+  .fb .st{font-size:24px;letter-spacing:2px}
+
   /* 토스트 / 모달 */
   #toast{position:fixed;left:50%;top:16%;transform:translate(-50%,-8px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:15px;transition:.25s;z-index:60;text-align:center;max-width:86vw}
   #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -169,6 +187,7 @@
     <div class="small" id="skinText" style="margin-top:6px"></div>
   </div>
   <button class="btn warm" id="btnAsk">🤔 친구에게 물어보기 (1번 vs 2번)</button>
+  <button class="btn primary" id="btnAvatar" style="background:linear-gradient(135deg,#2f3a8f,#7b4fd6)">🧑‍🎨 내 컬러로 아바타 코디 미션</button>
   <button class="btn primary" id="btnResultCard">💾 결과 카드 저장·공유</button>
   <button class="btn secondary" id="btnToLook">👗 내 컬러로 상황별 룩 입어보기</button>
   <button class="btn secondary" id="btnRetry">↺ 다른 사진으로 다시 하기</button>
@@ -194,6 +213,27 @@
   <p class="small" style="text-align:center;margin-top:10px">룩 두 개를 담으면 “1번 vs 2번” 질문 카드가 만들어져요.</p>
 </section>
 
+<!-- 아바타 코디 미션 -->
+<section id="sAvatar" class="wrap hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <button class="chip" id="btnAvBack">← 결과</button>
+    <div style="font-weight:800;font-size:14px" id="avSeason"></div>
+    <div class="chip" id="avStars" style="background:#fff6d9;border-color:#f3dc95;color:#8a6200">⭐ 0</div>
+  </div>
+  <div class="occ" id="avOcc"></div>
+  <div class="mcard"><div class="t"><span id="avMt"></span><span id="avMs"></span></div><div class="d" id="avMd"></div></div>
+  <div class="avstage" id="avStage"><div class="em" id="avEm"></div><div id="avSvg"></div></div>
+  <div class="atabs" id="avTabs">
+    <button data-t="hair" class="on">헤어</button><button data-t="hc">머리색</button><button data-t="top">상의</button><button data-t="tc">옷 색</button><button data-t="acc">소품</button>
+  </div>
+  <div class="row" id="avOpts"></div>
+  <div class="basket">
+    <button class="btn warm" id="btnGrade">⭐ 평가받기</button>
+    <button class="btn secondary" id="btnAvCard">💾 카드 저장</button>
+  </div>
+  <div class="fb hidden" id="avFb"></div>
+</section>
+
 <div id="busy" class="hidden"><div class="spin"></div><div id="busyText"></div></div>
 <div id="toast"></div>
 <div id="modal" class="hidden">
@@ -214,6 +254,7 @@
    - 모든 분석은 기기 안에서 (MediaPipe). 사진은 서버로 가지 않는다.
    - 얼굴 픽셀은 절대 건드리지 않고, 천(드레이프)·옷·머리카락 영역에만 색을 입힌다.
    ========================================================= */
+import {avatarSVG, HAIRSTYLES, TOPS, ACCS, shade} from "./avatar.js";
 const MP = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 const SEG_URL  = "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite";
 const HAIR_URL = "https://storage.googleapis.com/mediapipe-models/image_segmenter/hair_segmenter/float32/latest/hair_segmenter.tflite";
@@ -305,7 +346,7 @@ const modelsReady = (async()=>{
 })().catch(e=>{ console.error(e); $("modelStatus").textContent = "⚠️ AI 모델을 불러오지 못했어요. 인터넷 연결 후 새로고침 해주세요."; });
 
 /* ---------- 화면 전환 ---------- */
-function show(id){ for (const s of ["sStart","sWc","sResult","sLook"]) $(s).classList.toggle("hidden", s!==id); scrollTo(0,0); }
+function show(id){ for (const s of ["sStart","sWc","sResult","sLook","sAvatar"]) $(s).classList.toggle("hidden", s!==id); scrollTo(0,0); }
 function busy(t){ $("busy").classList.remove("hidden"); $("busyText").innerHTML=t; $("busy").querySelector(".spin").classList.remove("hidden"); }
 function busyErr(t){ busy(t); $("busy").querySelector(".spin").classList.add("hidden");
   $("busyText").innerHTML += `<br><br><button class="btn primary" style="width:auto;padding:12px 22px;display:inline-flex" onclick="location.reload()">처음으로</button>`; }
@@ -497,7 +538,7 @@ function skinTone(){
   const f=t=>t>0.008856? Math.cbrt(t) : 7.787*t+16/116;
   const L=116*f(Y)-16, a=500*(f(X)-f(Y)), bb=200*(f(Y)-f(Z));
   const hue=Math.atan2(bb,a)*180/Math.PI;
-  return {L, a, b:bb, hue, warm: Math.max(0,Math.min(1,(hue-45)/20))};   // 0 쿨 ~ 1 웜
+  return {L, a, b:bb, hue, warm: Math.max(0,Math.min(1,(hue-45)/20)), rgb:[r/n,g/n,b/n]};   // 0 쿨 ~ 1 웜
 }
 
 /* ---------- 컬러 월드컵 ---------- */
@@ -690,6 +731,111 @@ $("btnAskLook").onclick=()=>{
   openCard(abCard(look.basket[0], look.basket[1], `${o.n} 룩, 뭐가 나아?`, "1번 vs 2번 골라줘!"), "어떤 룩이 나아?", "");
 };
 
+/* ---------- 아바타 코디 미션 ---------- */
+const MISSION = {
+  festival:{tops:["tee","hoodie"],      tn:"티셔츠·후드티",       mood:h=>h.s>=0.4,                md:"선명하고 눈에 띄는 색",  bg:"linear-gradient(160deg,#ffe3d3,#ffd0e6)", em:"🎪"},
+  date:    {tops:["shirt","knit","blazer"], tn:"셔츠·니트·블레이저", mood:h=>h.l>=0.55,               md:"밝고 부드러운 색",       bg:"linear-gradient(160deg,#ffeef2,#fff6e8)", em:"💘"},
+  interview:{tops:["tie","blazer","shirt"], tn:"셔츠+타이·블레이저", mood:h=>h.l<=0.45||h.s<=0.3,     md:"차분하고 신뢰감 있는 색", bg:"linear-gradient(160deg,#e8ecf5,#f4f4f2)", em:"💼"},
+  office:  {tops:["shirt","knit","blazer","tie"], tn:"셔츠·니트·블레이저", mood:h=>h.s<=0.5,          md:"튀지 않는 깔끔한 색",    bg:"linear-gradient(160deg,#eef1ee,#f6f4ef)", em:"🏢"},
+  travel:  {tops:["tee","hoodie","knit"],  tn:"티셔츠·후드티·니트",  mood:h=>h.s>=0.3&&h.l>=0.4,      md:"밝고 활기찬 색",         bg:"linear-gradient(160deg,#dff3ff,#fff3d6)", em:"✈️"},
+  campus:  {tops:["tee","hoodie","knit","shirt"], tn:"캐주얼 상의",   mood:h=>h.l>=0.5,                md:"가볍고 산뜻한 색",       bg:"linear-gradient(160deg,#eaf7e8,#fffbe6)", em:"🎓"},
+};
+const XHAIR = [C("블랙","#1C1C1F"),C("다크브라운","#3E2A20"),C("애쉬블루","#4F5C74"),C("핑크브라운","#B56C80"),C("블론드","#CFA96E")];
+let av=null, avBest={};
+try{ avBest = JSON.parse(localStorage.getItem("cs_av")||"{}"); }catch(e){}
+function avSkin(){
+  if (!skin) return "#f2cfb3";
+  const [r,g,b]=skin.rgb, base=[242,207,179];
+  return "#"+[r,g,b].map((v,i)=>Math.round(Math.min(255, v*0.6 + base[i]*0.4 + 10)).toString(16).padStart(2,"0")).join("");
+}
+$("btnAvatar").onclick=()=>{
+  const S=result.S;
+  if (!av || av.season!==result.key){
+    const colors = shuffle([...S.pal.map(x=>({...x,ok:true})), ...S.avoid.map(x=>({...x,ok:false}))]);
+    av = {season:result.key, occ:"festival", tab:"hair",
+      hair: gender==="m"?"dandy": gender==="f"?"bob":"pixie",
+      hc: "#3E2A20", top:"tee", tc: "#D9D6D0", accs:new Set(), colors,   // 시작은 무난한 회색 티셔츠
+      hairs:[...S.hair.map(x=>({...x,ok:true})), ...XHAIR.filter(x=>!S.hair.some(y=>y.c===x.c)).map(x=>({...x,ok:false}))]};
+  }
+  $("avSeason").textContent = S.em+" "+S.name;
+  $("avOcc").innerHTML = OCCASIONS.map(o=>`<button class="chip" data-k="${o.k}">${o.n}</button>`).join("");
+  $("avOcc").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ av.occ=b.dataset.k; $("avFb").classList.add("hidden"); avDraw(); });
+  show("sAvatar"); avDraw();
+};
+$("btnAvBack").onclick=()=>show("sResult");
+document.querySelectorAll("#avTabs button").forEach(b=>b.onclick=()=>{ av.tab=b.dataset.t; avDraw(); });
+function avOpts(){ return {skin:avSkin(), hair:av.hair, hairColor:av.hc, top:av.top, topColor:av.tc, accs:av.accs, gender}; }
+function avStarsTotal(){ return Object.values(avBest).reduce((a,b)=>a+b,0); }
+function avDraw(){
+  const o=OCCASIONS.find(x=>x.k===av.occ), M=MISSION[av.occ];
+  $("avOcc").querySelectorAll(".chip").forEach(b=>b.classList.toggle("on",b.dataset.k===av.occ));
+  $("avMt").textContent = o.n+" 코디 미션";
+  const best=avBest[av.occ]||0; $("avMs").textContent = "⭐".repeat(best)+"☆".repeat(3-best);
+  $("avMd").textContent = `상의: ${M.tn} · 색: 내 팔레트 중 ${M.md}`;
+  $("avStars").textContent = "⭐ "+avStarsTotal()+" / 18";
+  $("avStage").style.background = M.bg; $("avEm").textContent = M.em;
+  $("avSvg").innerHTML = avatarSVG(avOpts());
+  document.querySelectorAll("#avTabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===av.tab));
+  const box=$("avOpts"); let html="";
+  const head = {...avOpts(), view:"95 30 210 210"};
+  if (av.tab==="hair"){
+    const list=[...HAIRSTYLES].sort((a,b)=>(a.g===gender?0:a.g==="u"?1:2)-(b.g===gender?0:b.g==="u"?1:2));
+    html = list.map(h=>`<button class="thumb${av.hair===h.k?" on":""}" data-v="${h.k}"><div class="tb">${avatarSVG({...head, hair:h.k, accs:new Set()})}</div>${h.n}</button>`).join("");
+  } else if (av.tab==="hc"){
+    html = av.hairs.map(x=>`<button class="sw${av.hc===x.c?" on":""}" data-v="${x.c}"><i style="background:${x.c}"></i>${x.n}</button>`).join("");
+  } else if (av.tab==="top"){
+    html = TOPS.map(t=>`<button class="thumb${av.top===t.k?" on":""}" data-v="${t.k}"><div class="tb">${avatarSVG({...avOpts(), top:t.k, view:"40 300 320 180"})}</div>${t.n}</button>`).join("");
+  } else if (av.tab==="tc"){
+    html = av.colors.map(x=>`<button class="sw${av.tc===x.c?" on":""}" data-v="${x.c}"><i style="background:${x.c}"></i>${x.n}</button>`).join("");
+  } else {
+    html = ACCS.map(a=>`<button class="thumb${av.accs.has(a.k)?" on":""}" data-v="${a.k}"><div class="tb">${{glasses:"👓",beret:"🧶",beanie:"🧢",earring:"🦪"}[a.k]}</div>${a.n}</button>`).join("");
+  }
+  box.innerHTML = html;
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    const v=b.dataset.v;
+    if (av.tab==="hair") av.hair=v; else if (av.tab==="hc") av.hc=v; else if (av.tab==="top") av.top=v; else if (av.tab==="tc") av.tc=v;
+    else { if (av.accs.has(v)) av.accs.delete(v); else { av.accs.add(v); if (v==="beret") av.accs.delete("beanie"); if (v==="beanie") av.accs.delete("beret"); } }
+    const sx=box.scrollLeft; avDraw(); $("avOpts").scrollLeft=sx;
+  });
+}
+function avGrade(){
+  const M=MISSION[av.occ], S=result.S, h=hsl(av.tc);
+  const col = av.colors.find(x=>x.c===av.tc);
+  const okTop = M.tops.includes(av.top), okPal = !!(col&&col.ok), okMood = M.mood(h);
+  const okHair = S.hair.some(x=>x.c===av.hc);
+  const stars = okTop+okPal+okMood;
+  return {stars, okTop, okPal, okMood, okHair, col};
+}
+$("btnGrade").onclick=()=>{
+  const g=avGrade(), M=MISSION[av.occ], S=result.S;
+  const prev=avBest[av.occ]||0;
+  if (g.stars>prev){ avBest[av.occ]=g.stars; try{localStorage.setItem("cs_av",JSON.stringify(avBest))}catch(e){} }
+  const line=(ok,t,f)=>`<div>${ok?"✅":"❌"} ${ok?t:f}</div>`;
+  $("avFb").innerHTML = `<div class="st">${"⭐".repeat(g.stars)}${"☆".repeat(3-g.stars)}</div>`+
+    line(g.okTop, "상황에 딱 맞는 상의예요", `이 상황엔 ${M.tn}가 더 잘 맞아요`)+
+    line(g.okPal, `${g.col.n}은(는) ${S.name}에게 어울리는 색이에요`, `${g.col?g.col.n:"이 색"}은(는) ${S.name}가 피하면 좋은 색이에요`)+
+    line(g.okMood, `분위기에 맞는 색이에요 (${M.md})`, `이 상황엔 ${M.md}이 좋아요`)+
+    (g.okHair? `<div>✨ 보너스: 머리색도 ${S.name} 추천 컬러!</div>` : `<div class="small">💡 머리색은 ${S.hair.map(x=>x.n).join("·")}이 추천이에요</div>`);
+  $("avFb").classList.remove("hidden");
+  if (g.stars===3) toast(prev<3 ? "🎉 완벽한 코디! ⭐⭐⭐" : "역시 완벽해요 ⭐⭐⭐");
+  avDraw();
+  setTimeout(()=>$("avFb").scrollIntoView({behavior:"smooth",block:"nearest"}),50);
+};
+$("btnAvCard").onclick=async()=>{
+  const o=OCCASIONS.find(x=>x.k===av.occ), M=MISSION[av.occ], S=result.S, g=avGrade();
+  const svg=avatarSVG({...avOpts()});
+  const img=new Image(); img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg); await img.decode();
+  const h=1400; const [c,gx]=cardBase(h);
+  const grd=gx.createLinearGradient(0,0,1080,1100); const m=M.bg.match(/#[0-9a-f]{6}/gi)||["#eee","#fff"];
+  grd.addColorStop(0,m[0]); grd.addColorStop(1,m[1]); gx.fillStyle=grd; rrect(gx,40,40,1000,1150,40); gx.fill();
+  gx.drawImage(img, 140, 150, 800, 960);
+  gx.font=`90px ${FONT}`; gx.fillText(M.em, 930, 150);
+  gx.fillStyle="#1f1f24"; gx.font=`900 58px ${FONT}`; gx.fillText(`${o.n} 룩`, 540, 125);
+  gx.font=`800 44px ${FONT}`; gx.fillText(`${S.em} ${S.name}  ${"⭐".repeat(g.stars)}${"☆".repeat(3-g.stars)}`, 540, 1260);
+  footer(gx,h);
+  openCard(c, `${o.n} 룩`, "");
+};
+
 /* ---------- 테스트용 (?mock) ---------- */
 if (MOCK){
   window.__run = async(src)=>{ const img=new Image(); img.src=src; await img.decode(); await analyze(img); };
@@ -700,6 +846,7 @@ if (MOCK){
     await window.__run(q.get("src"));
     if (q.has("auto")){ for (let i=0;i<15;i++){ choose(q.get("auto")==="b"?1:0); await new Promise(r=>setTimeout(r,420)); } }
     if (q.get("screen")==="look"){ $("btnToLook").click(); if(q.get("occ")) pickOcc(q.get("occ")); if(q.get("hair")){ look.hair=q.get("hair"); renderLook(); } }
+    if (q.get("screen")==="avatar"){ $("btnAvatar").click(); if(q.get("tab")){ av.tab=q.get("tab"); avDraw(); } if(q.has("grade")) $("btnGrade").click(); if(q.has("avcard")) $("btnAvCard").click(); }
     if (q.get("card")==="result") $("btnResultCard").click();
     if (q.get("card")==="ab") $("btnAsk").click();
   })();
