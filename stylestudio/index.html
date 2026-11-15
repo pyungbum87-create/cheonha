@@ -147,7 +147,7 @@
   .grade .gc{font-size:22px;font-weight:900;color:#b07800;margin-top:6px}
   .judge{display:flex;gap:10px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:10px 12px;margin-bottom:8px;align-items:flex-start;opacity:0;transform:translateY(8px);transition:.35s}
   .judge.in{opacity:1;transform:none}
-  .judge .jp{width:56px;height:56px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#f1eee8;display:flex;align-items:center;justify-content:center;font-size:28px}
+  .judge .jp{width:64px;height:64px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#f1eee8;display:flex;align-items:center;justify-content:center;font-size:28px}
   .judge .jp img{width:100%;height:100%;object-fit:cover}
   .judge .jn{font-weight:800;font-size:13.5px;display:flex;justify-content:space-between}
   .judge .jn b{font-size:17px}
@@ -162,6 +162,10 @@
   .item.own button{background:#e9f6ef;color:var(--ok)}
   .item.poor button{background:#eee;color:#aaa}
 
+  .keyart{display:block;width:100%;max-height:34vh;object-fit:cover;object-position:center 30%;border-radius:22px;margin-bottom:14px}
+  .jrow{display:flex;justify-content:center;gap:14px;margin:10px 0 2px}
+  .jrow div{text-align:center;font-size:11px;color:var(--sub);font-weight:700}
+  .jrow img{width:52px;height:52px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 3px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
   /* 토스트 / 모달 */
   #toast{position:fixed;left:50%;top:16%;transform:translate(-50%,-8px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:15px;transition:.25s;z-index:60;text-align:center;max-width:86vw}
   #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -179,6 +183,7 @@
 
 <!-- 시작 -->
 <section id="sStart" class="wrap">
+  <img src="img/title.jpg" alt="" class="keyart" onerror="this.remove()">
   <div class="seasonbar"><i style="background:var(--spring)"></i><i style="background:var(--summer)"></i><i style="background:var(--autumn)"></i><i style="background:var(--winter)"></i></div>
   <h1>컬러 스튜디오</h1>
   <p class="lead">내 사진에 16가지 색 천을 대보고<br>더 잘 어울리는 쪽을 고르면<br><b>나의 퍼스널컬러</b>가 나와요</p>
@@ -328,6 +333,7 @@
       <button data-t="hair" class="on">헤어</button><button data-t="hc">머리색</button><button data-t="top">상의</button><button data-t="tc">옷 색</button><button data-t="acc">소품</button>
     </div>
     <div class="row" id="gOpts"></div>
+    <div class="jrow"><div><img src="img/judge_color.jpg" alt="">모나 · 컬러</div><div><img src="img/judge_trend.jpg" alt="">제이 · 트렌드</div><div><img src="img/judge_stylist.jpg" alt="">하루 · 스타일</div></div>
     <button class="btn warm" id="gJudge" style="margin-top:10px">🎤 심사위원에게 보여주기</button>
     <button class="btn secondary" id="gHint" style="margin-top:8px">💡 팔레트 힌트 보기</button>
   </div>
@@ -1101,7 +1107,7 @@ $("btnMirAsk").onclick=()=>{
    손님 의뢰 → 아바타 코디 → 심사위원 3명 채점 → 코인 → 상점
    채점은 컬러 이론 규칙 기반: 같은 코디엔 항상 같은 점수 + 이유 설명
    ========================================================= */
-const IMG = { color:"img/judge_color.png", trend:"img/judge_trend.png", stylist:"img/judge_stylist.png", bg:"img/salon_bg.png", title:"img/title.png" };
+const IMG = { color:"img/judge_color.jpg", trend:"img/judge_trend.jpg", stylist:"img/judge_stylist.jpg", bg:"img/salon_bg.jpg", title:"img/title.jpg" };
 const JUDGES = [
   {k:"color",   n:"컬러 디렉터 모나",   em:"🎨", role:"색이 손님 피부톤에 맞는지"},
   {k:"trend",   n:"트렌드 에디터 제이", em:"📱", role:"상황에 맞는 옷인지"},
