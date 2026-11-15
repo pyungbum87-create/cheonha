@@ -237,6 +237,7 @@
   .beautyopt{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:6px}.beautyopt .bl{font-size:12px;font-weight:700;margin-right:2px}.beautyopt span[data-b]{font-size:12px;padding:4px 9px;border-radius:99px;border:1.5px solid var(--line);cursor:pointer;background:#fff}.beautyopt span.on{background:linear-gradient(135deg,#ff8fb1,#b48cff);color:#fff;border-color:transparent}
   .bpick{display:flex;gap:10px;justify-content:center;margin:10px 0 6px}.bpick figure{margin:0;text-align:center;cursor:pointer;flex:1;max-width:110px}.bpick img{width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover;border:3px solid transparent;transition:.15s}.bpick figure.on img{border-color:#ff8fb1;box-shadow:0 4px 14px rgba(255,120,170,.35)}.bpick figcaption{font-size:12px;margin-top:4px;color:#6f6d76}.bpick figure.on figcaption{color:#1f1f24;font-weight:800}.buse{display:flex;gap:6px;align-items:center;justify-content:center;font-size:13px;margin-top:4px}
   #rBA{margin:10px 0}.ba{display:flex;align-items:center;justify-content:center;gap:8px}.ba figure{margin:0;width:42%;text-align:center}.ba img,.ba svg{width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px;background:#f1eee9}.ba .af img,.ba .af svg{box-shadow:0 0 0 3px #ffd56b,0 6px 18px rgba(212,161,6,.35)}.ba figcaption{font-size:12px;margin-top:4px;font-weight:700}.ba .arr{font-size:20px}
+  .shelf{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.shelf span{display:flex;flex-direction:column;align-items:center;font-size:16px;line-height:1.1}.shelf i{font-size:9px;font-style:normal;color:#8b8892}
   .photoopt{display:flex;gap:6px;margin-top:6px}.photoopt span{font-size:12px;padding:5px 10px;border-radius:99px;border:1.5px solid var(--line);cursor:pointer}.photoopt span.on{background:var(--ink);color:#fff;border-color:var(--ink)}
   /* 스토리 */
   #story{position:fixed;inset:0;z-index:90;background:#1b1824 center/cover no-repeat;display:flex;flex-direction:column;justify-content:flex-end}
@@ -1625,9 +1626,10 @@ function gDraw(){
     th("shoes",SHOES.filter(x=>G.own.shoes.includes(x.k)),"신발 종류","110 680 180 130");
     sw("sc",SHOECOLS,"신발 색");
   } else {
+    askItemImgs();
     const ownBags=ACCS.filter(a=>a.bag&&G.own.acc.includes(a.k));
-    rows.push({key:"accs",label:"가방 (상황에 맞으면 가점)",html:ownBags.length?ownBags.map(a=>`<button class="thumb${L.accs.has(a.k)?" on":""}" data-k="accs" data-v="${a.k}"><div class="tb">${a.ic}</div>${a.n}</button>`).join(""):`<span class="small" style="align-self:center">상점에서 가방을 사 보세요</span>`});
-    rows.push({key:"accs",label:"소품 (최대 3개 추천)",html:ACCS.filter(a=>!a.bag&&G.own.acc.includes(a.k)).map(a=>`<button class="thumb${L.accs.has(a.k)?" on":""}" data-k="accs" data-v="${a.k}"><div class="tb">${a.ic}</div>${a.n}</button>`).join("")});
+    rows.push({key:"accs",label:"가방 (상황에 맞으면 가점)",html:ownBags.length?ownBags.map(a=>`<button class="thumb${L.accs.has(a.k)?" on":""}" data-k="accs" data-v="${a.k}"><div class="tb">${withImg(a.k,a.ic)}</div>${a.n}</button>`).join(""):`<span class="small" style="align-self:center">상점에서 가방을 사 보세요</span>`});
+    rows.push({key:"accs",label:"소품 (최대 3개 추천)",html:ACCS.filter(a=>!a.bag&&G.own.acc.includes(a.k)).map(a=>`<button class="thumb${L.accs.has(a.k)?" on":""}" data-k="accs" data-v="${a.k}"><div class="tb">${withImg(a.k,a.ic)}</div>${a.n}</button>`).join("")});
   }
   const premKey = {hair:"hair",top:"top",bottom:"bottom",shoes:"shoes"}[t];
   const premId = premKey ? premKey+":"+L[premKey] : null;
@@ -1875,7 +1877,7 @@ const SHOPDESC={col:"상의·하의에 쓰는 원단 컬러예요. 계절 이모
 const itemImg = k => `img/items/${k}${IMGEXT}`;
 let itemImgAsked=false;
 function askItemImgs(){ if (itemImgAsked) return; itemImgAsked=true;
-  Promise.all([...ACCS.map(a=>a.k),...SHOES.map(x=>x.k)].map(k=>preload(itemImg(k)))).then(()=>{ if (G.view==="shop") gShop(); }); }
+  Promise.all([...ACCS.map(a=>a.k),...SHOES.map(x=>x.k)].map(k=>preload(itemImg(k)))).then(()=>{ if (G.view==="shop") gShop(); else if (G.view==="play") gDraw(); }); }
 const withImg = (k, fb) => IMGOK.has(itemImg(k)) ? `<img src="${itemImg(k)}" alt="" style="width:100%;height:100%;object-fit:contain">` : fb;
 function gShop(){
   askItemImgs();
@@ -2135,7 +2137,7 @@ function judgeAward(R,C){
 function trophyShelf(){ const a=G.aw; if (!a||!a.log.length) return "";
   const cnt=k=>a.log.filter(x=>x.p===k).length;
   return `<div class="small" style="margin-top:6px">🏆 진열장 · 🥇${cnt("gold")} 🥈${cnt("silver")} 🥉${cnt("bronze")} · 연말 대상 ${a.log.filter(x=>x.m===11&&x.p==="gold").length}회</div>
-    <div class="shelf">${a.log.slice(-12).map(x=>`<span title="${x.y}년 ${x.m+1}월">${AW_PRIZE[x.p].em}<i>${x.m+1}월</i></span>`).join("")}</div>`; }
+    <div class="shelf">${a.log.slice(-12).map(x=>`<span title="${x.y}년 ${x.m+1}월">${IMGOK.has(SIMG["tr_"+x.p])?`<img src="${SIMG["tr_"+x.p]}" alt="" style="width:22px;height:22px;vertical-align:middle">`:AW_PRIZE[x.p].em}<i>${x.m+1}월</i></span>`).join("")}</div>`; }
 function storyNext(){
   const s=G.story||(G.story={seen:{}});
   const q=[];

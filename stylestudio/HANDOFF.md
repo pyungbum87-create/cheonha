@@ -33,11 +33,10 @@
 - **현실 손님 12명**(id 13~24, `real:true`, 고민 `worry`): A 이상이면 결과 화면에 변신 전→후. 그림 없으면 아바타로 대신
 - 아이템 그림 자리: `img/items/<키>.webp` 있으면 상점에서 그림으로 표시. 트로피 `img/trophy_gold|silver|bronze|none.webp`
 
-## 대기 중인 그림·음악 (PROMPTS.md 참고)
-1. 현실 손님 12명 변신 전/후 → `img/cust_13~24.webp`, `img/cust_13~24_after.webp`
-2. 신발·가방·소품 아이콘(4개 묶음 시트) → 잘라서 `img/items/<키>.webp`
-3. 트로피 4종 → `img/trophy_*.webp`
-4. 배경음악 4곡 → `audio/bgm_*.mp3`
+## 그림·음악 (v1.1 적용 완료)
+- 현실 손님 12명 변신 전/후 `img/cust_13~24(_after).webp`, 아이템 아이콘 38종 `img/items/<키>.webp`, 트로피 4종 `img/trophy_*.webp`
+- 배경음악 4곡(픽사베이, 96kbps로 줄임) `audio/bgm_salon|diag|story|award.mp3`
+- 새 그림 추가 방법은 PROMPTS.md 참고 (4개 묶음 시트 → 잘라서 200px webp)
 
 ## 다음 할 일 후보
 - 밸런스 조정(코인·보증금·라이벌 성장 속도) — 실제 플레이 피드백 기반
