@@ -1173,7 +1173,7 @@ function monthStep(ff){
     if (q && Math.random() < q) killNpc(p, '병사');
   }
   for (const p of npcs()){
-    if (p.fac!=='free' || p.army) continue;
+    if (p.fac!=='free' || p.army || (G.retinue && G.retinue.includes(p.id))) continue;
     const c = city(p.city);
     const canAI = c.owner && !(!ff && G.role==='ruler' && c.owner===G.pfac);
     if (canAI && Math.random()<.025){ p.fac = c.owner; if (!ff && notable(p)) news(`${J(p.n,'이')} ${facName(c.owner)}에 출사했다.`, false, c.owner===G.pfac); }
@@ -1947,7 +1947,7 @@ const ACT = {
     if (roll('i', 75)){ c.dev++; G.merit += 8; toast(`태수로서 ${c.n}을(를) 잘 다스렸다.`, [[`개발 ${c.dev}`,true],['공적 +8',true]]); }
     else { G.merit += 1; toast('공사가 지지부진했다.', [['공적 +1',true]], true); }
   },
-  move(cid){ const c = city(cid); if (G.inArmy || !city(G.city).adj.includes(cid)) return; if (G.role!=='ronin' && c.owner!==G.pfac) return; if (!spend(0)) return; G.city = cid; me().city = cid; G.sel = cid; toast(`${c.n}(으)로 이동했다.`); },
+  move(cid){ const c = city(cid); if (G.inArmy || !city(G.city).adj.includes(cid)) return; if (G.role!=='ronin' && c.owner!==G.pfac) return; if (!spend(0)) return; G.city = cid; me().city = cid; G.sel = cid; for (const id of (G.retinue||[])){ const p = person(id); if (p && p.fac==='free' && active(p)) p.city = cid; } toast(`${c.n}(으)로 이동했다.`); },
   transport(cid, fromId, pct){ const from = city(fromId), to = city(cid); pct = +pct || .5;
     if (G.role!=='ruler' || to.owner!==G.pfac || from.owner!==G.pfac || !from.adj.includes(cid) || from.troops<1000 || !spend(0)) return;
     const n = Math.round(from.troops*pct); from.troops -= n; to.troops += n; toast(`${from.n}에서 ${to.n}(으)로 병력 ${fmt(n)}을 옮겼다.`, [[`${to.n} +${fmt(n)}`,true]]); },
@@ -2181,10 +2181,23 @@ const ACT = {
   educate(kid, stat){ const k = G.kids.find(x => x.id===kid); if (!k) return; const a = G.year-k.born; if (a<5 || a>16 || !spend(0)) return;
     const v = ri(1,3); k.st[stat] = clamp(k.st[stat]+v, 1, 100); toast(`${k.n}에게 ${ST[stat]}을(를) 가르쳤다.`, [[`${k.n} ${ST[stat]} 잠재력 +${v}`,true]]); },
   seek(){ const c = city(G.city); if (G.role!=='ronin' || !c.owner || !spend(0)) return;
+    if (c.owner===G.exFac && mi()<G.exUntil){ toast(`${person(fac(c.owner).ruler).n}이(가) 떠난 자를 다시 받을 수 없다며 문을 닫았다.`, [], true); return; }
     const ch = clamp(.4 + (Math.max(me().m,me().i,me().l)-70)/60 + (me().c-60)/100, .1, .95);
     if (Math.random()<ch) joinFaction(c.owner, `${person(fac(c.owner).ruler).n}이(가) 그대를 맞아들였다.`);
     else toast(`${person(fac(c.owner).ruler).n}이(가) 그대를 받아주지 않았다.`, [], true); },
   work(){ if (G.role!=='ronin' || !spend(0)) return; G.gold += 60; toast('글을 써주고 품을 팔아 노자를 벌었다.', [['금 +60',true]]); },
+  resign(){
+    if (G.role!=='officer' || G.inArmy || !spend(0)) return;
+    const old = G.pfac, lord = person(fac(old).ruler), follow = [];
+    for (const p of npcs().filter(p => p.fac===old && p.city===G.city && !p.army && !p.gov && (isSworn(p.id) || bond(p.id)>=75 || p.fam))) if (p.fam || Math.random()<.5){ p.fac = 'free'; p.loy = 60; follow.push(p); }
+    if (lord) addBond(lord.id, -15);
+    if (G.gov){ city(G.gov).gov = null; G.gov = null; }
+    G.pfac = null; G.role = 'ronin'; me().fac = 'free'; G.rank = 0; G.mission = null; G.campaign = null;
+    G.troops = Math.min(G.troops, 1000); G.exFac = old; G.exUntil = mi() + 24;
+    G.retinue = follow.map(p => p.id);
+    toast(`관인을 내려놓고 ${J(facName(old),'을')} 떠났다. 이제 재야의 몸이다.${follow.length ? ' '+J(follow.map(p=>p.n).join(', '),'이')+' 뒤따랐다.' : ''}`, [['하야',false],...(follow.length?[[`따르는 이 ${follow.length}`,true]]:[])]);
+    news(`${J(me().n,'이')} ${facName(old)}에서 하야했다.`, true, true);
+  },
   defect(fid){
     if (G.role!=='officer' || G.inArmy || fid===G.pfac || !fac(fid).alive) return;
     const dest = city(G.city).adj.map(city).find(c => c.owner===fid); if (!dest || !spend(0)) return;
@@ -2219,6 +2232,8 @@ const ACT = {
 function joinFaction(fid, msg, rank){
   G.pfac = fid; me().fac = fid; G.role = 'officer'; G.rank = rank ?? (Math.max(me().m,me().i,me().l)>=90 ? 1 : 0);
   G.trust = 60; G.gov = null;
+  const rt = (G.retinue||[]).map(person).filter(p => p && p.fac==='free' && active(p)); for (const p of rt){ p.fac = fid; p.city = G.city; p.loy = Math.max(p.loy, 75); } G.retinue = [];
+  if (rt.length) msg = (msg||'') + ` ${rt.map(p=>p.n).join(', ')}도 함께 출사했다.`;
   for (const p of npcs()) if (p.fac===fid && (G.bond[p.id]??0) < 15) G.bond[p.id] = 15;
   newMission();
   if (msg) toast(msg, [['출사',true]]);
@@ -2957,6 +2972,7 @@ function viewPanel(){
       b.push(actBtn('알현','주공을 뵙다','data-sheet="audience"',ap));
       if (G.gov===cid) b.push(actBtn('내정','지력 판정','data-act="develop"',ap && c.dev<10));
       if (G.gov===cid && G.rank>=3) b.push(actBtn('독립','군주가 된다','data-sheet="indep"',ap,'war'));
+      if (here && !G.inArmy) b.push(actBtn('하야','주군을 떠난다','data-sheet="resign"',ap));
     } else if (G.role==='ruler'){
       b.push(actBtn('장수 배치','행동력 없이',`data-sheet="assign" data-arg="${cid}"`,true));
       b.push(actBtn('징병',`장정 ${fmt(c.pool||0)}`,`data-act="draft" data-arg="${cid}"`,ap && (c.pool||0)>=200 && G.gold>=24));
@@ -3496,6 +3512,12 @@ function openSheet(kind, arg){
       ${srcs.map(o=>`<div class="prow"><span class="nm">${o.n}</span><span class="mini">병력 ${fmt(o.troops)}</span>${[.3,.5,.8].map(p=>`<button class="ghost" data-src="${o.id}" data-p="${p}">${Math.round(p*100)}%</button>`).join('')}</div>`).join('')}
       <button class="btn2" data-close>닫기</button>`);
     bg.querySelectorAll('[data-src]').forEach(b => b.onclick = () => { bg.remove(); doAct('transport', arg, b.dataset.src, b.dataset.p); });
+  } else if (kind==='resign'){
+    const fl = npcs().filter(p => p.fac===G.pfac && p.city===G.city && !p.army && !p.gov && (isSworn(p.id) || bond(p.id)>=75 || p.fam));
+    const bg = sheet(`<h3>하야</h3><p class="small">${esc(person(fac(G.pfac).ruler).n)}의 곁을 떠나 재야가 된다. 계급과 관직은 사라지고, 사병은 1,000명까지만 데려간다. 재야가 되면 어느 나라 땅이든 이동할 수 있고, 마음에 드는 군주를 찾아가 다시 출사할 수 있다.</p>
+      <p class="small muted">옛 주군과의 인연 -15, 2년 동안은 옛 주군이 다시 받아주지 않는다.${fl.length ? ` 함께 떠날 수 있는 이: ${fl.map(p=>esc(p.n)).join(', ')} (의형제·자식·인연 75 이상, 새 주군에게 함께 출사)` : ''}</p>
+      <button class="btn fac" id="go">하야한다</button><button class="btn2" data-close>닫기</button>`);
+    bg.querySelector('#go').onclick = () => { bg.remove(); doAct('resign'); };
   } else if (kind==='defect'){
     const bg = sheet(`<h3>${esc(facName(arg))}(으)로 망명</h3><p class="small">성공 확률 매력 ${Math.round(check('c',50)*100)}%. 성공하면 계급이 한 단계 내려가고, 인연 70 이상인 같은 성의 동료가 따라올 수 있다.</p><button class="btn fac" id="go">망명한다</button><button class="btn2" data-close>닫기</button>`);
     bg.querySelector('#go').onclick = () => { bg.remove(); doAct('defect', arg); };
@@ -4226,7 +4248,7 @@ function pxDuel(ctx, A){
    BOOT
    ===================================================================== */
 if (SIM){
-  globalThis.T = { spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
 
