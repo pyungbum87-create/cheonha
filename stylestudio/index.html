@@ -1306,24 +1306,25 @@ const EXT = {
 };
 for (const k of SKEYS) SEASONS[k].ext = EXT[k];
 const PEARL = {n:"펄 화이트(만능)", c:"#F4F1EA", s:null, id:"pearl", price:200, hidden:"pearl"};
-const FABRICS = [...SKEYS.flatMap(k=>[...SEASONS[k].pal.map((x,i)=>({...x, s:k, id:k+i, price:i<3?0:40})),
+const FABRICS = [...SKEYS.flatMap(k=>[...SEASONS[k].pal.map((x,i)=>({...x, s:k, id:k+i, price:i<5?0:40})),
                                      ...EXT[k].map((x,i)=>({...x, s:k, id:k+"x"+i, price:60}))]), PEARL];
 const BOTCOLS = [C("블랙","#2B2D33"),C("차콜","#3A3D44"),C("네이비","#1F2A4D"),C("그레이","#9AA3AD"),C("베이지","#D6C2A3"),C("아이보리","#F4F1EA"),C("브라운","#6B4630"),C("카키","#6C6A45")];
 const NEUTRAL = new Set(["#1C1C22","#24242A","#2B2D33","#3A3D44","#1F2A4D","#26355c","#9AA3AD","#C9CBD1","#B8BCC4","#D6C2A3","#E3C9A8","#C2A27A","#F6EEDC","#D8C3A5","#F4F1EA","#F7F7FA","#F3F3F1","#F4F2EE","#6B4630","#5A3A28","#4C6A92","#6C6A45","#D9D6D0","#ECE8E0"]);
 const isNeutral = c => NEUTRAL.has(c) || hsl(c).s < 0.15;
 const DYES = [
   {n:"블랙",c:"#1C1C1F",p:0},{n:"다크브라운",c:"#3E2A20",p:0},{n:"초콜릿브라운",c:"#5B3826",p:0},{n:"애쉬브라운",c:"#86766A",p:0},{n:"밀크브라운",c:"#A8835E",p:0},
-  {n:"오렌지브라운",c:"#9A5A33",p:50},{n:"골드브라운",c:"#8A6A3A",p:50},{n:"로즈브라운",c:"#8A5A5C",p:50},{n:"쿨브라운",c:"#6B5A52",p:50},{n:"카키브라운",c:"#6F6447",p:50},
-  {n:"블루블랙",c:"#1C1D26",p:50},{n:"와인",c:"#6E2233",p:60},{n:"다크애쉬",c:"#3A3A40",p:60},{n:"애쉬블루",c:"#4F5C74",p:60},{n:"핑크브라운",c:"#B56C80",p:60},{n:"블론드",c:"#CFA96E",p:70},
+  {n:"오렌지브라운",c:"#9A5A33",p:0},{n:"골드브라운",c:"#8A6A3A",p:0},{n:"로즈브라운",c:"#8A5A5C",p:0},{n:"쿨브라운",c:"#6B5A52",p:0},{n:"카키브라운",c:"#6F6447",p:0},
+  {n:"블루블랙",c:"#1C1D26",p:0},{n:"와인",c:"#6E2233",p:60},{n:"다크애쉬",c:"#3A3A40",p:60},{n:"애쉬블루",c:"#4F5C74",p:60},{n:"핑크브라운",c:"#B56C80",p:60},{n:"블론드",c:"#CFA96E",p:70},
   {n:"오로라 핑크",c:"#E3A1C3",p:250,hidden:"aurora"},{n:"실버 블론드",c:"#D8D2C4",p:250,hidden:"silver"},
 ];
 const MK = { lip:LIPS, blush:BLUSH, shadow:SHADOWS };
-const MKFREE = new Set(["lip:#D49A8A","lip:#F2766A","lip:#C9677F","lip:#A9483A","lip:#C8102E","blush:#F7A98B","blush:#E0899E","blush:#C98E6E","blush:#E36D9A","shadow:null","shadow:#9C6B4E"]);
+const ACC_FREE = ["glasses_s","earring","necklace","hairpin","cap","tote","eco"];   // 기본 제공 소품·가방
+const MKFREE = new Set(["lip:#F59A84","lip:#E7708E","lip:#B85B42","blush:#F48C78","blush:#D9805C","shadow:#E8B07A","shadow:#C99AB5","lip:#D49A8A","lip:#F2766A","lip:#C9677F","lip:#A9483A","lip:#C8102E","blush:#F7A98B","blush:#E0899E","blush:#C98E6E","blush:#E36D9A","shadow:null","shadow:#9C6B4E"]);
 const PRICE = {
-  hair:{bob:0,dandy:0,longstraight:0,crop:0, seebob:90,pixie:90,twoblock:90,buzz:90,comma:110,gareuma:110,layered:110,pony:110,bun:110,wolf:120,leaf:120,halfup:120,hush:130,up:130,longwave:130,curtainlong:130,hippie:150,longmen:130},
-  top:{tee:0,shirt:0,stripe:80,knit:100,cardigan:100,hoodie:100,tie:120,blazer:150,coat:180,velvet:300},
-  bottom:{slacks:0,jeans:0,skirt:80,wide:90,pencil:100,shorts:70},
-  shoes:{sneakers:0,loafers:0,heels:90,boots:110,sandals:70,mules:100,oxford:120,chunky:110},
+  hair:{bob:0,dandy:0,longstraight:0,crop:0, seebob:0,pixie:0,twoblock:0,buzz:0,comma:0,gareuma:110,layered:0,pony:0,bun:110,wolf:120,leaf:120,halfup:120,hush:130,up:130,longwave:130,curtainlong:130,hippie:150,longmen:130},
+  top:{tee:0,shirt:0,stripe:0,knit:0,cardigan:0,hoodie:0,tie:120,blazer:150,coat:180,velvet:300},
+  bottom:{slacks:0,jeans:0,skirt:0,wide:0,pencil:100,shorts:70},
+  shoes:{sneakers:0,loafers:0,heels:0,boots:0,sandals:70,mules:100,oxford:120,chunky:110},
   acc:{necklace_s:70,glasses_s:60,hairpin:50,glasses:60,earring:60,sun:70,necklace:70,cap:70,scarf:80,beret:80,beanie:80,headphones:90,headband:250,silkscarf:250,
     pearlneck:110,hoop:80,drop_s:80,watch_g:140,watch_s:140,bangle:90,ribbon:50,bucket:90,
     tote:160,briefcase:170,shoulder:150,cross:120,chain:180,clutch:130,backpack:110,eco:60},
@@ -1447,6 +1448,7 @@ function gLoad(){
   for (const f of FABRICS) if(!f.price && !G.own.col.includes(f.id)) G.own.col.push(f.id);
   for (const d of DYES) if(!d.p && !G.own.dye.includes(d.c)) G.own.dye.push(d.c);
   for (const m of MKFREE) if (!G.own.mk.includes(m)) G.own.mk.push(m);
+  for (const a of ACC_FREE) if (!G.own.acc.includes(a)) G.own.acc.push(a);
   G.friends=G.friends||{};
 }
 function gSave(){ try{ const {cust,look,last,timer,...rest}=G; localStorage.setItem("cs_game3", JSON.stringify(rest)); }catch(e){} }
