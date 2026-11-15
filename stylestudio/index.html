@@ -5,6 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f7f6f3">
 <title>퍼스널컬러 찾으러 갔을 뿐인데 원장이 된 나? · 퍼컬 원장</title>
+<meta name="description" content="셀카 한 장으로 퍼스널컬러를 진단하고, 동네 살롱 원장이 되어 손님을 변신시키는 스타일링 게임. 사진은 내 휴대폰 안에서만 분석돼요.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="퍼컬 원장">
+<meta property="og:title" content="퍼스널컬러 찾으러 갔을 뿐인데 원장이 된 나?">
+<meta property="og:description" content="셀카 한 장으로 퍼스널컬러 진단 → 동네 살롱 원장이 되어 손님 변신시키기!">
+<meta property="og:url" content="https://pyungbum87-create.github.io/cheonha/stylestudio/">
+<meta property="og:image" content="https://pyungbum87-create.github.io/cheonha/stylestudio/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="퍼컬 원장">
 <style>
   :root{
     --bg:#f7f6f3; --card:#fff; --ink:#1f1f24; --sub:#6f6d76; --line:#e7e4de;
@@ -238,6 +252,8 @@
   .bpick{display:flex;gap:10px;justify-content:center;margin:10px 0 6px}.bpick figure{margin:0;text-align:center;cursor:pointer;flex:1;max-width:110px}.bpick img{width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover;border:3px solid transparent;transition:.15s}.bpick figure.on img{border-color:#ff8fb1;box-shadow:0 4px 14px rgba(255,120,170,.35)}.bpick figcaption{font-size:12px;margin-top:4px;color:#6f6d76}.bpick figure.on figcaption{color:#1f1f24;font-weight:800}.buse{display:flex;gap:6px;align-items:center;justify-content:center;font-size:13px;margin-top:4px}
   #rBA{margin:10px 0}.ba{display:flex;align-items:center;justify-content:center;gap:8px}.ba figure{margin:0;width:42%;text-align:center}.ba img,.ba svg{width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px;background:#f1eee9}.ba .af img,.ba .af svg{box-shadow:0 0 0 3px #ffd56b,0 6px 18px rgba(212,161,6,.35)}.ba figcaption{font-size:12px;margin-top:4px;font-weight:700}.ba .arr{font-size:20px}
   .shelf{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.shelf span{display:flex;flex-direction:column;align-items:center;font-size:16px;line-height:1.1}.shelf i{font-size:9px;font-style:normal;color:#8b8892}
+  .uidlg{position:fixed;inset:0;z-index:130;background:rgba(15,15,20,.55);display:flex;align-items:center;justify-content:center;padding:24px}.uidlg .box{background:#fff;border-radius:20px;padding:20px 18px 14px;width:100%;max-width:340px;text-align:center}.uidlg .msg{font-size:15.5px;line-height:1.55;font-weight:600}.uidlg input{width:100%;margin-top:12px;padding:12px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:16px}.uidlg .bts{display:flex;gap:8px;margin-top:16px}.uidlg .bts button{flex:1;padding:12px 6px;border-radius:12px;background:#f1efeb;font-weight:700}.uidlg .bts button.ok{background:var(--ink);color:#fff}
+  .foot{text-align:center;margin-top:14px}.foot a,.foot button{color:var(--sub);text-decoration:underline;font-size:12.5px}
   .photoopt{display:flex;gap:6px;margin-top:6px}.photoopt span{font-size:12px;padding:5px 10px;border-radius:99px;border:1.5px solid var(--line);cursor:pointer}.photoopt span.on{background:var(--ink);color:#fff;border-color:var(--ink)}
   /* 스토리 */
   #story{position:fixed;inset:0;z-index:90;background:#1b1824 center/cover no-repeat;display:flex;flex-direction:column;justify-content:flex-end}
@@ -279,8 +295,9 @@
     <button class="mbtn" id="btnMirror"><b>🪞 실시간 거울</b><span>카메라로 색 천을 대보며 비교</span></button>
     <button class="mbtn hidden" id="mResult"><b>📊 이번 진단 결과</b><span>베스트·워스트 컬러, 친구에게 묻기</span></button>
   </div>
-  <div class="privacy">🔒 사진과 영상은 <b>내 휴대폰 안에서만</b> 분석돼요. '내 사진으로 표시'를 고르면 얼굴 썸네일 한 장만 이 휴대폰에 저장돼요. 서버로 보내지도, 저장하지도 않아요.</div>
+  <div class="privacy">🔒 사진과 영상은 <b>내 휴대폰 안에서만</b> 분석돼요. 서버로 보내지 않아요. 게임 속 '나' 표시용 얼굴 썸네일만 이 휴대폰에 저장되고, 아래에서 언제든 지울 수 있어요.</div>
   <p class="small" style="text-align:center;margin-top:10px">진단 결과는 재미로 보는 참고용이에요.</p>
+  <p class="small foot"><a href="privacy.html">개인정보 처리방침</a> · <button id="wipeAll">내 데이터 모두 지우기</button> · v1.2</p>
 </section>
 
 <!-- 진단 시작 -->
@@ -1519,9 +1536,21 @@ function gView(v){
   if (v==="result") setTimeout(()=>coach([["shop","#gShopBtn","번 코인으로 아이템을 사요. ✨고급 탭과 🔒히든 탭도 확인해 보세요!"]]),2200);
 }
 function gStats(){ $("gCoins").textContent="🪙 "+G.coins; $("gRep").textContent="⭐ "+G.rep; $("gLv").textContent="Lv."+gLevel(); }
-$("gBack").onclick=()=>{
+/* 앱 안 브라우저(카톡·인스타 등)는 confirm/prompt가 막힐 수 있어 자체 대화상자를 쓴다 */
+function uiDialog({msg, buttons, input=null}){
+  return new Promise(res=>{
+    const d=document.createElement("div"); d.className="uidlg";
+    d.innerHTML=`<div class="box"><div class="msg">${msg}</div>${input!==null?`<input maxlength="10" value="${esc(input)}">`:""}<div class="bts">${buttons.map((b,i)=>`<button data-i="${i}" class="${b.cls||""}">${b.t}</button>`).join("")}</div></div>`;
+    document.body.appendChild(d);
+    const inp=d.querySelector("input"); if (inp) setTimeout(()=>inp.focus(),50);
+    d.querySelectorAll("button").forEach(b=>b.onclick=()=>{ const v=buttons[+b.dataset.i].v; d.remove(); res(inp&&v===true?inp.value.trim():v); });
+  });
+}
+const uiConfirm=(msg,ok="확인",no="취소")=>uiDialog({msg,buttons:[{t:no,v:false},{t:ok,v:true,cls:"ok"}]});
+const uiPrompt=(msg,def="")=>uiDialog({msg,input:def,buttons:[{t:"취소",v:null},{t:"확인",v:true,cls:"ok"}]});
+$("gBack").onclick=async()=>{
   if (G.view==="play" && !TIERS[G.cust.tier].dep){ clearInterval(gTimerId); gView(G.cust.tier==="weekly"?"weekly":"lobby"); return; }
-  if (G.view==="play"){ if (!confirm(`지금 나가면 보증금 ${TIERS[G.cust.tier].dep}🪙을 돌려받지 못해요. 나갈까요?`)) return; clearInterval(gTimerId); G.st.streak=0; gSave(); gView("lobby"); return; }
+  if (G.view==="play"){ if (!await uiConfirm(`지금 나가면 보증금 <b>${TIERS[G.cust.tier].dep}🪙</b>을 돌려받지 못해요.<br>나갈까요?`,"나가기","계속하기")) return; clearInterval(gTimerId); G.st.streak=0; gSave(); gView("lobby"); return; }
   if (G.view==="shop"){ gView(G.shopFrom==="play"?"play":"lobby"); return; }
   if (G.view!=="lobby"){ gView("lobby"); return; }
   show("sStart");
@@ -1648,10 +1677,11 @@ function gDraw(){
   box.querySelectorAll("button[data-shop]").forEach(b=>b.onclick=()=>{ G.shopFrom="play"; G.shopTab = {hair:"hair",mk:"mk",top:"top",bottom:"bottom",shoes:"shoes",acc:"acc"}[t]; gView("shop"); gShop(); });
   if ($("gPrem")) $("gPrem").onclick=()=>premChoice(premId);
 }
-function premChoice(id){
+async function premChoice(id){
   const buy=()=>{ G.own.prem.push(id); gSave(); gStats(); toast("✨ 고급 버전으로 업그레이드!"); if (G.view==="play") gDraw(); else gShop(); };
-  if (G.coins>=PRICE.prem && confirm(`${PRICE.prem}🪙으로 업그레이드할까요?\n(취소를 누르면 광고 보기로 업그레이드)`)){ G.coins-=PRICE.prem; buy(); }
-  else playAd(buy);
+  const btns=[{t:"닫기",v:null},{t:"📺 광고 보기",v:"ad"}]; if (G.coins>=PRICE.prem) btns.push({t:`🪙 ${PRICE.prem}`,v:"coin",cls:"ok"});
+  const v=await uiDialog({msg:"✨ 고급 버전으로 업그레이드할까요?<br><span class='small'>그림이 더 정교해지고 완성도 가점을 받아요.</span>", buttons:btns});
+  if (v==="coin"){ G.coins-=PRICE.prem; buy(); } else if (v==="ad") playAd(buy);
 }
 $("gHint").onclick=()=>{
   const C=G.cust;
@@ -1983,6 +2013,16 @@ function ghostLook(i, C, skill){
   return L;
 }
 function encGhost(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+const esc = t => String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// 도전장 링크는 외부 입력: 이름은 글자만, 코디는 게임에 있는 값만 받는다
+function cleanGhost(o){
+  if (!o || typeof o!=="object" || !o.L || typeof o.L!=="object") throw new Error("bad ghost");
+  const hexOk=v=>typeof v==="string"&&/^#[0-9a-fA-F]{6}$/.test(v), inK=(v,list)=>list.some(x=>x.k===v);
+  const L=o.L, c={hair:inK(L.hair,HAIRSTYLES)?L.hair:"bob", hc:hexOk(L.hc)?L.hc:"#3E2A20", top:inK(L.top,TOPS)?L.top:"tee", tc:hexOk(L.tc)?L.tc:"#D9D6D0",
+    bottom:inK(L.bottom,BOTTOMS)?L.bottom:"slacks", bc:hexOk(L.bc)?L.bc:"#2B2D33", shoes:inK(L.shoes,SHOES)?L.shoes:"sneakers", sc:hexOk(L.sc)?L.sc:"#F4F2EE",
+    lip:hexOk(L.lip)?L.lip:null, blush:hexOk(L.blush)?L.blush:null, shadow:hexOk(L.shadow)?L.shadow:null, a:(Array.isArray(L.a)?L.a:[]).filter(k=>inK(k,ACCS)).slice(0,6)};
+  return {n:String(o.n||"익명").replace(/[<>&"'`]/g,"").slice(0,10)||"익명", w:String(o.w||"").slice(0,12), L:c};
+}
 function decGhost(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); while (s.length%4) s+="="; return JSON.parse(decodeURIComponent(escape(atob(s)))); }
 function leaderboard(){
   const C=weeklyCustomer(), wk=weekKey(), rows=[];
@@ -1996,14 +2036,15 @@ function renderWeekly(){
   $("wCust").innerHTML=`<div class="pf">${faceHTML(C)}</div><div class="ci"><b>${C.name}</b> <span class="tbadge" style="background:#d4a106">이번 주</span><br>${S.em} ${S.name} · ${o.n}<br>“${C.req}”<br>${C.wishes.map(w=>"🙏 "+WISHES[w].t).join(" · ")}</div>`;
   $("wMy").textContent = my ? `내 최고 점수 ${my.best}/30` : "아직 도전 전";
   const rows=leaderboard(), medal=["🥇","🥈","🥉"];
-  $("wBoard").innerHTML=rows.map((r,i)=>`<div class="lrow ${r.kind}"><span class="rk">${medal[i]||(i+1)}</span><span class="nm">${r.n}${r.kind==="friend"?" 👥":""}</span><b>${r.sc}</b></div>`).join("");
-  $("wName").textContent="닉네임: "+(G.name||"설정하기")+" ✏️";
+  $("wBoard").innerHTML=rows.map((r,i)=>`<div class="lrow ${r.kind}"><span class="rk">${medal[i]||(i+1)}</span><span class="nm">${esc(r.n)}${r.kind==="friend"?" 👥":""}</span><b>${r.sc}</b></div>`).join("");
+  $("wName").textContent="닉네임: "+(G.name||"설정하기")+" ✏️";   // textContent라 안전
   $("wShare").classList.toggle("hidden", !my);
 }
 $("gWeeklyBtn").onclick=()=>gView("weekly");
 $("wBack").onclick=()=>gView("lobby");
-$("wName").onclick=()=>{ const n=prompt("랭킹에 표시할 닉네임 (10자 이내)", G.name||""); if (n){ G.name=n.slice(0,10); gSave(); renderWeekly(); } };
-$("wGo").onclick=()=>{ if (!G.name){ const n=prompt("랭킹에 표시할 닉네임을 정해주세요 (10자 이내)","스타일리스트"); G.name=(n||"스타일리스트").slice(0,10); gSave(); } startSpecial(weeklyCustomer()); };
+const cleanName=n=>String(n||"").replace(/[<>&"'`]/g,"").trim().slice(0,10);
+$("wName").onclick=async()=>{ const n=cleanName(await uiPrompt("랭킹에 표시할 닉네임 (10자 이내)", G.name||"")); if (n){ G.name=n; gSave(); renderWeekly(); } };
+$("wGo").onclick=async()=>{ if (!G.name){ G.name=cleanName(await uiPrompt("랭킹에 표시할 닉네임을 정해 주세요 (10자 이내)","스타일리스트"))||"스타일리스트"; gSave(); } startSpecial(weeklyCustomer()); };
 $("wShare").onclick=async()=>{
   const my=G.weekly; if (!my) return;
   const url=location.origin+location.pathname+"?ghost="+encGhost({n:G.name||"익명", w:weekKey(), L:my.look});
@@ -2011,10 +2052,10 @@ $("wShare").onclick=async()=>{
   try{ if (navigator.share) await navigator.share({title:"주간 챌린지 도전장", text}); else { await navigator.clipboard.writeText(text); toast("도전장 링크를 복사했어요!<br>카톡에 붙여넣어 보내세요"); } }catch(e){}
 };
 (()=>{ const g=new URLSearchParams(location.search).get("ghost"); if (!g) return;
-  try{ const o=decGhost(g); gLoad();
+  try{ const o=cleanGhost(decGhost(g)); gLoad();
     if (o.w!==weekKey()){ toast("지난주 도전장이에요. 이번 주 챌린지에 도전해 보세요!"); return; }
     const arr=G.friends[o.w]=(G.friends[o.w]||[]).filter(f=>f.n!==o.n); arr.push(o); gSave();
-    setTimeout(()=>toast(`⚔️ ${o.n}님의 도전장이 도착했어요!<br>살롱 → 주간 챌린지에서 대결하세요`),800);
+    setTimeout(()=>toast(`⚔️ ${esc(o.n)}님의 도전장이 도착했어요!<br>살롱 → 주간 챌린지에서 대결하세요`),800);
   }catch(e){ console.warn("도전장 해석 실패", e); }
 })();
 
@@ -2256,6 +2297,11 @@ function saveMe(){
 }
 
 $("btnGame").onclick=openGame; $("btnGame0").onclick=openGame;
+$("wipeAll").onclick=async()=>{
+  if (!await uiConfirm("진단 결과, 얼굴 썸네일, 게임 진행(코인·아이템·스토리)을<br><b>이 휴대폰에서 모두 지울까요?</b><br><span class='small'>되돌릴 수 없어요.</span>","모두 지우기","취소")) return;
+  try{ ["cs_me","cs_game3","cs_tut2","cs_sound","cs_gender","cs_av"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  location.href=location.pathname;
+};
 renderHome();
 
 /* ---------- 테스트용 (?mock) ---------- */
