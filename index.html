@@ -1550,7 +1550,7 @@ function drawHUD(){
    else{const id='upT';BTN.push({id,x:3,y:34,w:46,h:30});ctx.fillStyle='rgba(48,28,18,.96)';rr(ctx,3,34,46,30,6);ctx.fill();ctx.strokeStyle='#d6a94a';ctx.lineWidth=1.2;rr(ctx,3.5,34.5,45,29,6);ctx.stroke();
      txt((ZH?'强化 ':'강화 ')+(G.upOpen?'◂':'▸'),26,53,10,'#f2c14e','center','"Gowun Dodum"',0);
      if(G.upOpen)fs.forEach((f,k)=>upBtn(f,3,68+k*50));}
-   const fc=fameCost(),o=FAME_ODDS[G.fame];button('fame',3,308,46,46,(ZH?'名声':'명성')+G.fame,fc==null?(ZH?'最高':'최고'):fc+(ZH?'金':'금'),{dis:fc==null||G.gold<fc,col:'#f2c14e'});}
+   const fc=fameCost(),o=FAME_ODDS[G.fame];button('fame',3,308,46,46,(ZH?'名声':'명성')+G.fame,G.round<5?(ZH?'5回合起':'5R부터'):fc==null?(ZH?'最高':'최고'):fc+(ZH?'金':'금'),{dis:G.round<5||fc==null||G.gold<fc,col:'#f2c14e'});}
   // right panel
   const PX=528,PW=108,u=G.sel>=0?G.slots[G.sel]:null,mo=u?mergeOptions(G.sel):null,ho=u?hiddenOption(G.sel):null;
   if(u){drawToken(ctx,u,PX+PW/2,70,20,{});
@@ -2152,7 +2152,7 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
     else if(G.paused&&!anyOpen())showOnly('pause');},700);
   // 게임 중에 약관을 열면 판이 날아가지 않도록 새 창으로
   const lb=document.getElementById('optLegal');if(lb)lb.onclick=()=>{const u=V30ZH?'legal-zh.html':'legal.html';if(G&&!G.over){if(!window.open(u,'_blank'))flash(u);}else location.href=u;};
-  window.__verTxt='v30.3 · 1112-1030';
+  window.__verTxt='v31 · 1115';
 })();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
@@ -2180,5 +2180,6 @@ document.getElementById('title').classList.remove('wait');artStatus();
 window.__dmg=(e,v)=>dmgEnemy(e,v,false);window.__sg={get G(){return G;},newGame,update,recruit,doMerge,mergeOptions,hiddenOption,doHidden,upgrade,upCost,UID,U,SAVE,render,placeUnit,sell,canReward,rewardRemaining,openRewardModal,rewardGrant,closeRewardModal,DIFF,scnTierOpen,scnStarsAt,SCN,openStory,renderDiff,victory,defeat,earnMerit,v28ScenarioEvent,V28_SCENE_EVENTS};
 </script>
 
+<script src="v31.js"></script>
 <script>if('serviceWorker' in navigator&&location.protocol.startsWith('http')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body></html>
