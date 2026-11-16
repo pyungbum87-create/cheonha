@@ -104,6 +104,7 @@ window.DX = window.DX || {};
     if (DX.UI) DX.UI.setSky(th.skyTop, th.skyBottom, th.skyImg);
     // 챕터 그림 자리: 새 먼 풍경 그림이 있으면 바꿔 끼움
     if (ca.sky && SPR.probe && DX.UI) SPR.probe(ca.sky).then(ok => { if (ok && world.stageIdx === idx) DX.UI.setSky(th.skyTop, th.skyBottom, ca.sky); });
+    if (SPR.useGround) SPR.useGround(['gimgc:' + world.stageId, th.groundImg && 'gimg:' + th.groundImg]);
     buildProps(th);
   }
   // 그림 소품 (폐차·경찰차·상자·모래주머니 등). h = 세계 높이
@@ -371,6 +372,7 @@ window.DX = window.DX || {};
     const xo = ghost ? GHOST_X : 0, zo = ghost ? (st.ghostZ || 0) : 0;
     // 꾸미기 열차: 그림이 있으면 기관차 모양 교체, 없으면 열차 전체에 색만 입힘
     const tsk = trainSkin(), tskArt = tsk && SPR.train['skin_' + tsk.id];
+    if (tsk && !tskArt && SPR.useTrainSkin) SPR.useTrainSkin(tsk.id);
     let safeN = 0;
     for (const p of pieces) {
       const own = (p.kind === 'engine' && tskArt) || SPR.train[p.kind] || {}, gunA = SPR.train.gun || {};
@@ -499,6 +501,7 @@ window.DX = window.DX || {};
   function subDone(id) { return DX.save.cleared[id] ? 5 : ((DX.save.sub || {})[id] || 0); }
   DX.subDone = subDone;
   DX.startRun = function (stageIdx, sub, endless) {
+    if (SPR.loadFight) SPR.loadFight();
     const base = C.stages[stageIdx];
     if (sub == null) { const sel = (DX.save.subSel || {})[base.id]; sub = sel != null ? sel : Math.min(4, subDone(base.id)); }
     const SS = C.subStages && C.subStages[sub];

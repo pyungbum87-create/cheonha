@@ -29,7 +29,9 @@ window.DX = window.DX || {};
   }
   const imgCache = {};
   const fetchImg = src => imgCache[src] || (imgCache[src] = loadImg(src));
-  const ver = u => (u.indexOf('data:') === 0 || !DX.BUILD) ? u : u + (u.indexOf('?') < 0 ? '?v=' : '&v=') + DX.BUILD;
+  // 그림 주소 뒤 버전: 그림(assets/)은 그림 버전(artVersion)만 → 코드만 고친 배포 때 그림을 다시 받지 않음 (깃허브는 10분 뒤 '바뀐 것만' 확인)
+  const ver = u => { if (u.indexOf('data:') === 0 || !DX.BUILD) return u; const a = u.indexOf('assets/') === 0 && DX.CONFIG && DX.CONFIG.game && DX.CONFIG.game.artVersion; return u + (u.indexOf('?') < 0 ? '?v=' : '&v=') + (a || DX.BUILD); };
+  SPR.ver = ver;
   SPR.progress = 0; SPR.total = 1; SPR.done = 0;
   const tick = () => { SPR.done++; SPR.progress = Math.min(1, SPR.done / SPR.total); if (SPR.onProgress) try { SPR.onProgress(SPR.progress); } catch (e) {} };
   // 이미지 → 픽셀 데이터 (파일로 직접 열어서 막히면 내장 백업본 사용)
@@ -300,10 +302,12 @@ window.DX = window.DX || {};
   }
   // 꾸미기에서 옷을 바꾸면 두 번째 장만 다시 만듦 (빠름)
   SPR.refreshGunners = async function () {
-    if (!SPR.ready) return;
+    if (!SPR.ready && !SPR._baked) return;
     if (SPR._baked && SPR._baked.i1) {   // 구운 판: 두 번째 장을 복사해서 옷 그림만 덧그림
       const B = SPR._baked, size = B.meta.pages[1], C = DX.CONFIG, sk = (DX.save && DX.save.skin) || {};
       const cv = document.createElement('canvas'); cv.width = cv.height = size; const g = cv.getContext('2d'); g.drawImage(B.i1, 0, 0);
+      const put = (slot, im) => { const f = SPR.frames[slot]; if (!f || !im) return; const x = Math.round(f.u0 * size), y = Math.round(f.v0 * size); g.clearRect(x, y, Math.round(f.u1 * size) - x, Math.round(f.v1 * size) - y); g.drawImage(im, x, y); };
+      put('slot:g', SPR._gImg); if (SPR._tImg) { put('slot:tt', SPR._tImg.top); put('slot:ts', SPR._tImg.side); }
       for (const sv of (C.survivors || [])) {
         const nm = sv.art, skin = sk[nm] && sk[nm] !== 'base' ? sk[nm] : null; let used = false;
         if (skin) for (const an of (C.gunnerAnims || [])) for (let k = 0; k < 4; k++) {
@@ -322,6 +326,42 @@ window.DX = window.DX || {};
     SPR._swap = (await gunnerItems()).concat(SPR._trainSwap || []);
     const p1 = packPage1((SPR._left || []).concat(SPR._swap));
     if (p1) DX.E.setSpriteTexture(p1, 1);
+  };
+  /* ---------- 바닥 그림·열차 꾸미기: 쓰는 것 하나만 받아서 두 번째 장 빈 자리에 끼움 ---------- */
+  function slotFrame(slot, w, h, ins) {
+    const f = SPR.frames[slot], S = SPR._baked.meta.pages[1], x = f.u0 * S, y = f.v0 * S;
+    return { u0: (x + ins) / S, v0: (y + ins) / S, u1: (x + w - ins) / S, v1: (y + h - ins) / S, aspect: w / h, t: 1 };
+  }
+  let p1q = Promise.resolve();
+  const redrawP1 = () => (p1q = p1q.then(() => SPR.refreshGunners()).catch(e => console.warn(e)));
+  // cands = 바닥 이름 후보 (앞에서부터 있는 것)
+  SPR.useGround = function (cands) {
+    SPR._wantG = cands;
+    const B = SPR._baked, G = B && B.meta.grounds; if (!G || !SPR.frames['slot:g']) return Promise.resolve();
+    const name = cands.find(n => n && G[n]); if (!name || SPR._gName === name) return SPR._gP || Promise.resolve();
+    SPR._gName = name;
+    return (SPR._gP = loadImg(ver('assets/baked/g_' + name.replace(':', '_') + '.webp')).then(img => {
+      if (SPR._gName !== name) return;
+      SPR._gImg = img;
+      return redrawP1().then(() => { if (SPR._gName !== name) return; for (const k in G) delete SPR.frames[k]; SPR.frames[name] = slotFrame('slot:g', G[name][0], G[name][1], 1.5); });
+    }).catch(e => { console.warn('ground fail', name, e); SPR._gName = null; }));
+  };
+  SPR.useTrainSkin = function (id) {
+    const B = SPR._baked, T = B && B.meta.tskins && B.meta.tskins[id];
+    if (!T || SPR._tName === id) return SPR._tP || Promise.resolve();
+    SPR._tName = id;
+    return (SPR._tP = Promise.all(['top', 'side'].map(f => T[f] && SPR.frames[f === 'top' ? 'slot:tt' : 'slot:ts'] ? loadImg(ver('assets/baked/t_' + id + '_' + f + '.webp')) : null)).then(([a, b]) => {
+      if (SPR._tName !== id) return;
+      SPR._tImg = { top: a, side: b };
+      return redrawP1().then(() => {
+        if (SPR._tName !== id) return;
+        for (const k in SPR.train) if (k.indexOf('skin_') === 0) delete SPR.train[k];
+        const t = {};
+        if (a) { t.top = 'train:skin_' + id + ':top'; SPR.frames[t.top] = slotFrame('slot:tt', T.top[0], T.top[1], 0); }
+        if (b) { t.side = 'train:skin_' + id + ':side'; SPR.frames[t.side] = slotFrame('slot:ts', T.side[0], T.side[1], 0); }
+        SPR.train['skin_' + id] = t;
+      });
+    }).catch(e => { console.warn('train skin fail', id, e); SPR._tName = null; }));
   };
   function scaled(canvas, s) {
     const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(canvas.width * s)); c.height = Math.max(1, Math.round(canvas.height * s));
@@ -350,18 +390,23 @@ window.DX = window.DX || {};
     // 보스 컷인용 '흰 배경 지운 전신 그림'은 판에서 잘라 씀
     SPR.clean = {};
     for (const k in meta.chars) Object.defineProperty(SPR.clean, k, { get() { const f = SPR.frames[k + ':full']; return f ? frameCanvas(f.t ? i1 : i0, f, meta.pages[f.t || 0]) : null; } });
-    SPR.atlas = i0; SPR.pages = meta.pages; SPR.ready = true;
+    SPR.atlas = i0; SPR.pages = meta.pages;
+    { const sv = DX.save || {}, tsk = !sv.prologueDone ? 'gold' : sv.skin && sv.skin.train;
+      await Promise.all([SPR._wantG ? SPR.useGround(SPR._wantG) : null, tsk && tsk !== 'base' ? SPR.useTrainSkin(tsk) : null]); }
+    SPR.ready = true;
     // 실내 전투 그림은 뒤에서 천천히
-    if (meta.fight) loadImg(ver('assets/baked/fight.webp')).then(img => {
+    // 결투 그림은 판을 시작할 때 받음 (SPR.loadFight). 첫 화면 용량 줄이기
+    SPR.loadFight = () => SPR._fightP || (SPR._fightP = !meta.fight ? Promise.resolve() : loadImg(ver('assets/baked/fight.webp')).then(img => {
       const F = {};
       for (const k in meta.fight) { const v = meta.fight[k]; const arr = v.r.map(r => cropImg(img, r[0], r[1], r[2], r[3])); if (v.bg) F[k] = arr[0]; else { if (v.single) arr.single = true; F[k] = arr; } }
       SPR.fight = F;
-    }).catch(e => console.warn('fight bake fail', e));
-    if (DX.save && DX.save.skin && Object.keys(DX.save.skin).some(k => k !== 'train' && DX.save.skin[k] !== 'base')) setTimeout(() => SPR.refreshGunners(), 500);
+    }).catch(e => { console.warn('fight bake fail', e); SPR._fightP = null; }));
+    if (DX.save && DX.save.skin && Object.keys(DX.save.skin).some(k => k !== 'train' && DX.save.skin[k] !== 'base')) setTimeout(() => redrawP1(), 500);
     return true;
   }
   // 굽기용: 지금 만든 판·정보를 꺼냄 (_dev/bake.js 가 부름)
-  SPR.exportBake = function (q) {
+  SPR.exportBake = function (q, fmt) {
+    const T = fmt || 'image/webp';
     const P = SPR._pageCanvas || [], meta = { v: DX.CONFIG.game.artVersion, pages: P.map(p => p.width), frames: SPR.frames, chars: SPR.chars, train: SPR.train, gun: SPR.gun, fight: {} };
     // 실내 전투 그림을 한 장에 모음
     const list = [];
@@ -370,7 +415,13 @@ window.DX = window.DX || {};
     for (const it of list) { const c = it[2]; if (x + c.width > maxW) { x = 0; y += rowH + 2; rowH = 0; } it.push(x, y); x += c.width + 2; rowH = Math.max(rowH, c.height); W = Math.max(W, x); H = Math.max(H, y + rowH); }
     const fc = document.createElement('canvas'); fc.width = Math.max(1, W); fc.height = Math.max(1, H); const g = fc.getContext('2d');
     for (const it of list) { const [k, i, c, single, bg, px, py] = it.length === 7 ? it : [it[0], it[1], it[2], it[3], false, it[4], it[5]]; g.drawImage(c, px, py); const m = meta.fight[k] = meta.fight[k] || { r: [] }; m.r[i] = [px, py, c.width, c.height]; if (single) m.single = true; if (bg) m.bg = true; }
-    return { meta: JSON.stringify(meta), atlas0: P[0] && P[0].toDataURL('image/webp', q || 0.86), atlas1: P[1] && P[1].toDataURL('image/webp', q || 0.86), fight: list.length ? fc.toDataURL('image/webp', 0.82) : null };
+    const slots = {}; meta.grounds = {}; meta.tskins = {};
+    for (const it of (SPR._slotItems || [])) {
+      const c = it.canvas, wh = [c.width, c.height];
+      if (it.name.indexOf('gimg') === 0) { meta.grounds[it.name] = wh; slots['g_' + it.name.replace(':', '_') + '.webp'] = c.toDataURL(T, q || 0.86); }
+      else { const m = it.name.match(/^train:skin_(.+):(top|side)$/); (meta.tskins[m[1]] = meta.tskins[m[1]] || {})[m[2]] = wh; slots['t_' + m[1] + '_' + m[2] + '.webp'] = c.toDataURL(T, q || 0.86); }
+    }
+    return { slots, meta: JSON.stringify(meta), atlas0: P[0] && P[0].toDataURL(T, q || 0.86), atlas1: P[1] && P[1].toDataURL(T, q || 0.86), fight: list.length ? fc.toDataURL(T, 0.82) : null };
   };
   SPR.load = async function () {
     if (await loadBaked()) return true;
@@ -507,6 +558,20 @@ window.DX = window.DX || {};
       try { const d = await getPixels(CA[id].ground); let cv = crop(d, null, null, { x0: 0, y0: 0, x1: d.width - 1, y1: d.height - 1 }); cv = scaled(cv, Math.min(1, 768 / cv.height)); items.push({ name: 'gimgc:' + id, canvas: cv }); } catch (e) { /* 아직 없음 */ }
     }
     SPR._swap = await gunnerItems();
+    // 굽기: 바닥 그림·열차 꾸미기는 한 번에 하나만 쓰니 판에서 빼서 따로 파일로 (판에는 빈 자리만)
+    if (BAKE_SRC) {
+      const take = re => { const o = []; for (let i = items.length - 1; i >= 0; i--) if (re.test(items[i].name)) o.push(items.splice(i, 1)[0]); return o; };
+      const gs = take(/^gimg/), ts = take(/^train:skin_/);
+      const blank = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, w); c.height = Math.max(1, h); return c; };
+      const mx = (l, f) => Math.max(1, ...l.map(i => i.canvas[f]));
+      const tt = ts.filter(i => /:top$/.test(i.name)), tsd = ts.filter(i => /:side$/.test(i.name));
+      const extra = [];
+      if (gs.length) extra.push({ name: 'slot:g', canvas: blank(mx(gs, 'width'), mx(gs, 'height')) });
+      if (tt.length) extra.push({ name: 'slot:tt', canvas: blank(mx(tt, 'width'), mx(tt, 'height')) });
+      if (tsd.length) extra.push({ name: 'slot:ts', canvas: blank(mx(tsd, 'width'), mx(tsd, 'height')) });
+      SPR._slotItems = gs.concat(ts); SPR._trainSwap = extra; SPR._swap = SPR._swap.concat(extra);
+      for (const k in SPR.train) if (k.indexOf('skin_') === 0) delete SPR.train[k];
+    }
     if (!items.length) return false;
     const pages = pack(items);
     SPR._pageCanvas = pages;

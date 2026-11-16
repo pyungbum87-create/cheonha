@@ -35,6 +35,7 @@ window.DX = window.DX || {};
   }
   // 하늘: 색 그라데이션 + (있으면) 구름 그림. 그림은 스테이지 테마의 skyImg
   UI.setSky = function (top, bot, img) {
+    if (img && DX.SPR && DX.SPR.ver) { img = DX.SPR.ver(img); if (DX.img) img = DX.img(img); }   // 그림 미리 받기(probe)와 같은 주소 → 두 번 안 받음
     const r = document.documentElement.style; r.setProperty('--sky-top', top); r.setProperty('--sky-bot', bot);
     r.setProperty('--sky-img', img ? 'url("' + new URL(img, location.href).href + '")' : 'none');   // 절대 주소로 (css 폴더 기준으로 잘못 찾던 문제)
   };
