@@ -16,15 +16,15 @@ if(API){const dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2}}
 else{c.width=W;c.height=H}
 function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('canvas');cv.width=w;cv.height=h;return cv}
-const BUILD='1116-1930';
+const BUILD='1116-2230';
 // 안전장치: 음수 반지름이면 그리기 전체가 멈추므로 보정
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
  if(oa)P.arc=function(x,y,r,a0,a1,ccw){return oa.call(this,x,y,r>0&&isFinite(r)?r:0,a0,a1,ccw)};
  if(oe)P.ellipse=function(x,y,rx,ry,rot,a0,a1,ccw){return oe.call(this,x,y,rx>0&&isFinite(rx)?rx:0,ry>0&&isFinite(ry)?ry:0,rot,a0,a1,ccw)}})();
 // 그림 자원: G1은 도형만 사용. 그림을 넣을 때 IMG_LIST·MUST에 추가하면 로딩 화면이 자동으로 기다린다
-const imgs={},imgFail={};const IMG_LIST=['hero','inf_walker','inf_runner','icons'],MUST=IMG_LIST.slice();
-const ART={"cell":164,"hero":{"idle":{"row":0,"n":8},"walk":{"row":1,"n":8},"run":{"row":2,"n":8},"attack":{"row":3,"n":4},"gather":{"row":4,"n":4},"craft":{"row":5,"n":4}},"inf_walker":{"walk":{"row":0,"n":8}},"inf_runner":{"walk":{"row":0,"n":8}},"icons":{"cell":112,"cols":6,"idx":{"plank":0,"plastic":1,"cloth":2,"scrap":3,"rope":4,"water":5,"can":6,"fish":7,"med":8,"herbs":9,"rain":10,"fire":11,"still":12,"bed":13,"radio":14,"sail":15,"crate":16,"rack":17}}};// 그림 배치표 (res/*.png 아틀라스)
-function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im};im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(name,tries+1),600+tries*900);else imgFail[name]=1};im.src='res/'+name+'.png?v='+BUILD}
+const imgs={},imgFail={};const IMG_LIST=['hero','inf_walker','inf_runner','icons','world','title'],MUST=IMG_LIST.slice();
+const ART={"cell":164,"hero":{"idle":{"row":0,"n":8},"walk":{"row":1,"n":8},"run":{"row":2,"n":8},"attack":{"row":3,"n":4},"gather":{"row":4,"n":4},"craft":{"row":5,"n":4},"fish":{"row":6,"n":4},"drink":{"row":7,"n":4},"eat":{"row":8,"n":4},"sleep":{"row":9,"n":2},"collapse":{"row":10,"n":4}},"inf_walker":{"walk":{"row":0,"n":8}},"inf_runner":{"walk":{"row":0,"n":8}},"icons":{"cell":112,"cols":6,"idx":{"plank":0,"plastic":1,"cloth":2,"scrap":3,"rope":4,"water":5,"can":6,"fish":7,"cooked":8,"berry":9,"med":10,"flint":11,"rain":12,"fire":13,"still":14,"bed":15,"radio":16,"sail":17,"rod":18,"lash":19,"crate":20,"deck":21}},"world":{"deck0":[0,0,128,128],"deck1":[130,0,128,128],"deck2":[260,0,128,128],"deck3":[390,0,128,128],"deckb0":[520,0,142,142],"debris_plank":[664,0,120,72],"debris_plastic":[786,0,110,70],"debris_cloth":[898,0,110,62],"debris_crate":[0,144,110,74],"debris_scrap":[112,144,110,71],"debris_supply":[224,144,120,119],"tree":[346,144,170,192],"tree_chop":[518,144,170,205],"stump":[690,144,120,93],"bush":[812,144,130,126],"rock":[0,351,140,129],"stream":[142,351,150,150],"hut":[294,351,300,238],"beach":[596,351,160,160],"boat":[758,351,200,110],"asphalt":[0,591,160,160],"building":[162,591,260,259],"car":[424,591,190,104],"plane":[616,591,300,277],"barricade":[0,870,210,93]}};// 그림 배치표 (res/*.png 아틀라스)
+function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im};im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(name,tries+1),600+tries*900);else imgFail[name]=1};im.src='res/'+name+(name==='title'?'.jpg':'.png')+'?v='+BUILD}
 IMG_LIST.forEach(n=>loadImg(n));
 const GLOW_COL={o:[255,150,60],y:[255,220,120],w:[255,250,235],b:[120,190,255]};const glow={};
 (function(){for(const k in GLOW_COL){const cv=mkCanvas(64,64),x=cv.getContext('2d'),[r,gg,b]=GLOW_COL[k],gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,`rgba(${r},${gg},${b},1)`);gr.addColorStop(.3,`rgba(${r},${gg},${b},.6)`);gr.addColorStop(1,`rgba(${r},${gg},${b},0)`);x.fillStyle=gr;x.fillRect(0,0,64,64);glow[k]=cv}})();
@@ -35,7 +35,9 @@ const imgMild={};function mildOf(name){if(imgMild[name]!==undefined)return imgMi
 function sprite(name,anim,t,x,y,h,face,fps,alpha){const im=(save.mild&&name!=='hero')?(mildOf(name)||imgs[name]):imgs[name];const A2=ART[name];if(!im||!A2||!A2[anim])return false;const a=A2[anim],C=ART.cell;const f=Math.floor(t*(fps||10))%a.n;
  const s=h/C;g.save();if(alpha!==undefined)g.globalAlpha=alpha;g.translate(x,y);if(face>0)g.scale(-1,1);g.drawImage(im,f*C,a.row*C,C,C,-C*s/2,-C*s+4*s,C*s,C*s);g.restore();return true}
 function icon(k,x,y,size){const im=imgs.icons,I=ART.icons;if(!im||I.idx[k]===undefined)return false;const i=I.idx[k],C=I.cell;g.drawImage(im,(i%I.cols)*C,Math.floor(i/I.cols)*C,C,C,x-size/2,y-size/2,size,size);return true}
-const ICON_OF={plank:'plank',plastic:'plastic',cloth:'cloth',scrap:'scrap',rope:'rope',water:'water',can:'can',fish:'fish',cooked:'fish',med:'med',berry:'herbs',crate:'crate',supply:'crate',
+function wsp(k,x,y,w,anchor){const im=imgs.world,r=ART.world[k];if(!im||!r)return false;const h=w*r[3]/r[2];g.drawImage(im,r[0],r[1],r[2],r[3],x-w/2,anchor==='bottom'?y-h:y-h/2,w,h);return true}
+function wspPart(k,sx,sy,sw,sh,dx,dy,dw,dh){const im=imgs.world,r=ART.world[k];if(!im||!r)return false;g.drawImage(im,r[0]+sx*r[2],r[1]+sy*r[3],sw*r[2],sh*r[3],dx,dy,dw,dh);return true}
+const ICON_OF={deck:'deck',rod:'rod',lash:'lash',flint:'flint',plank:'plank',plastic:'plastic',cloth:'cloth',scrap:'scrap',rope:'rope',water:'water',can:'can',fish:'fish',cooked:'cooked',med:'med',berry:'berry',crate:'crate',supply:'crate',
  rain:'rain',fire:'fire',still:'still',bed:'bed',radio:'radio',sail:'sail',bag_water:'water',bag_can:'can',bag_med:'med',bag_rope:'rope',bag_tarp:'cloth',bag_radio:'radio'};
 // ================================================================ 소리 (음원이 없으면 합성음으로 대체)
 const Music={el:null,cur:'',on:true,vol:.5,src:null,gain:null,bufs:{},nat:null,hidden:false,
@@ -195,11 +197,14 @@ function act1Tap(x,y){const wx=x,wy=y+camY;
  if(best){A.target=best;A.p.tx=best.x;A.p.ty=best.y+8}else{A.target=null;A.p.tx=wx;A.p.ty=wy}tutStep=1}
 function drawAct1(){const p=A.p;g.fillStyle='#1b1d22';g.fillRect(0,0,W,H);g.save();g.translate(0,-camY);
  // 도로와 건물 (회색 상자)
- g.fillStyle='#2a2d33';g.fillRect(170,0,410,ACT1_H);g.strokeStyle='#4a4d55';g.lineWidth=4;g.setLineDash([30,30]);g.beginPath();g.moveTo(375,300);g.lineTo(375,ACT1_H);g.stroke();g.setLineDash([]);
- for(let i=0;i<21;i++){const y=320+i*150;rr(10,y,140,120,6,'#30333b','#45484f',2);rr(600,y+40,140,120,6,'#30333b','#45484f',2)}
+ if(imgs.world){g.fillStyle='#3e3d3b';g.fillRect(0,0,W,ACT1_H);const y0=Math.max(300,Math.floor(camY/158)*158-158),y1=camY+H+160;g.fillStyle='#2f2f30';g.fillRect(160,0,430,ACT1_H);for(let y=y0;y<y1;y+=158){wspPart('asphalt',0,0,1,1,215,y,160,160);wspPart('asphalt',0,0,1,1,375,y,160,160)}
+  for(let i=0;i<21;i++){const y=320+i*150;if(y<camY-300||y>camY+H+300)continue;wsp('building',i%2?95:80,y+150,170,'bottom');wsp('building',i%2?670:655,y+190,170,'bottom')}
+  for(let i=0;i<9;i++){const y=640+i*330;if(y<camY-200||y>camY+H+200)continue;if(i%3===1)wsp('barricade',i%2?300:450,y,180,'bottom');else wsp('car',i%2?460:290,y,170,'bottom')}}
+ else{g.fillStyle='#2a2d33';g.fillRect(170,0,410,ACT1_H);g.strokeStyle='#4a4d55';g.lineWidth=4;g.setLineDash([30,30]);g.beginPath();g.moveTo(375,300);g.lineTo(375,ACT1_H);g.stroke();g.setLineDash([]);
+ for(let i=0;i<21;i++){const y=320+i*150;rr(10,y,140,120,6,'#30333b','#45484f',2);rr(600,y+40,140,120,6,'#30333b','#45484f',2)}}
  // 활주로와 비행기
- rr(120,40,510,300,10,'#25282e','#5a5e66',3);txt(L('사설 비행장','私人机场'),375,70,22,'#9aa0aa','center',false);
- g.save();g.translate(375,210);g.fillStyle='#d8dde4';g.beginPath();g.ellipse(0,0,30,95,0,0,TAU);g.fill();g.fillRect(-120,-10,240,26);g.fillRect(-50,70,100,16);g.restore();drawGlow(375,210,150,'y',.25+.1*Math.sin(frame*3));
+ rr(120,40,510,300,10,'#2a2c30','#5a5e66',3);txt(L('사설 비행장','私人机场'),375,70,22,'#9aa0aa','center',false);
+ if(!wsp('plane',375,210,300)){g.save();g.translate(375,210);g.fillStyle='#d8dde4';g.beginPath();g.ellipse(0,0,30,95,0,0,TAU);g.fill();g.fillRect(-120,-10,240,26);g.fillRect(-50,70,100,16);g.restore()}drawGlow(375,210,150,'y',.25+.1*Math.sin(frame*3));
  if(A.board>0)txt(L('탑승!','登机！'),375,330,34,'#ffe7a0','center');
  // 물건
  for(const it of A.items)if(!it.got){const B=BAG[it.k];drawGlow(it.x,it.y,40,'y',.35+.15*Math.sin(frame*4+it.x));if(!icon(ICON_OF['bag_'+it.k],it.x,it.y,52))rr(it.x-18,it.y-18,36,36,8,B.col,'#fff',2);txt(LL(B.n),it.x,it.y-34,15,'#fff3c0','center')}
@@ -216,9 +221,9 @@ function drawAct1(){const p=A.p;g.fillStyle='#1b1d22';g.fillRect(0,0,W,H);g.save
  rr(0,1140,W,194,0,'#11141aee');txt(L('가방 ','背包 ')+A.bag.length+'/8',24,1166,20,'#ffe2a0','left',false);txt(L('칸을 탭하면 내려놓기','点格子可以丢下'),726,1166,16,'#8a94a4','right',false);
  for(let i=0;i<8;i++){const bx=24+i*89,k=A.bag[i];rr(bx,1190,82,82,10,k?'#232a36':'#181c24',k?BAG[k].col:'#333a46',2);if(k){if(!icon(ICON_OF['bag_'+k],bx+41,1222,48))rr(bx+23,1203,36,36,6,BAG[k].col);txt(LL(BAG[k].n),bx+41,1256,13,'#e6ecf2','center',false)}}
  if(tutStep===0&&!guideTip){const it=A.items[0];drawFinger(it.x,it.y-camY+20)}}
-let heroBusy=0;
+let heroBusy=0,heroAct=null;function heroDo(a,t){heroAct={a,t:t||1.1}}
 function drawHero(p,force,h){const dx=p.x-(p.lx===undefined?p.x:p.lx),dy=p.y-(p.ly===undefined?p.y:p.ly);const mv=Math.hypot(dx,dy)>.4;if(Math.abs(dx)>.3)p.face=dx>0?1:-1;p.lx=p.x;p.ly=p.y;
- if(mv)p.mt=(p.mt||0)+1/60;const anim=force||(mv?(sc==='act1'?'run':'walk'):'idle');const fps=anim==='run'?14:anim==='walk'?11:anim==='idle'?6:8;
+ if(mv)p.mt=(p.mt||0)+1/60;const anim=force||(mv?(sc==='act1'?'run':'walk'):'idle');const fps=anim==='run'?14:anim==='walk'?11:anim==='idle'?6:anim==='sleep'?1.5:anim==='fish'?3:8;
  g.save();g.globalAlpha=.35;g.fillStyle='#000';g.beginPath();g.ellipse(p.x,p.y+2,h*.22,h*.07,0,0,TAU);g.fill();g.restore();
  if(!sprite('hero',anim,anim==='idle'?frame:(force?frame:p.mt),p.x,p.y+4,h,p.face||-1,fps))drawPlayer(p.x,p.y-16)}
 function drawInfected(z){const dx=z.x-(z.lx===undefined?z.x:z.lx);if(Math.abs(dx)>.2)z.face=dx>0?1:-1;z.lx=z.x;z.wt=(z.wt||0)+1/60*(z.a?1.6:.8);
@@ -330,7 +335,7 @@ function seaTap(x,y){if(sleeping){sleeping=false;message(L('잠에서 깼다','�
 function walkTo(t,fn){const p=tilePos(t.x,t.y);let ox=0;if(t.m)ox=seaP.x<p.x?-T*.32:T*.32;seaP.tx=p.x+ox;seaP.ty=p.y+(t.m?T*.18:0);R.p.gx=t.x;R.p.gy=t.y;act=fn;fishing=null}
 function useTile(t){if(t.hp<3){if(R.res.plank>0){R.res.plank--;t.hp=3;AudioFx.cue('build');fxText(seaP.x,seaP.y-40,L('수리!','修好了！'),'#ffe7a0');return}message(L('고치려면 판자가 필요해요','修补需要木板'),1.2);return}
  if(!t.m)return;const m=t.m,r=R.res,v=R.vit;heroBusy=.8;
- if(m.k==='rain'||m.k==='still'){if((m.w||0)>0){if(v.thirst<92){m.w--;v.thirst=Math.min(100,v.thirst+35);mission('drink');AudioFx.cue('splash');fxText(seaP.x,seaP.y-40,L('꿀꺽! 갈증 +35','咕嘟！口渴 +35'),'#9fd8ff')}else{m.w--;r.water++;fxText(seaP.x,seaP.y-40,L('물을 병에 담았다 +1','装进水瓶 +1'),'#9fd8ff')}}else message(m.k==='rain'?L('아직 비어 있어요. 비가 오면 차요','还是空的，下雨时会蓄满'):L('물이 만들어지는 중이에요','正在制造淡水'),1.4);return}
+ if(m.k==='rain'||m.k==='still'){if((m.w||0)>0){if(v.thirst<92){m.w--;v.thirst=Math.min(100,v.thirst+35);mission('drink');heroDo('drink');AudioFx.cue('splash');fxText(seaP.x,seaP.y-40,L('꿀꺽! 갈증 +35','咕嘟！口渴 +35'),'#9fd8ff')}else{m.w--;r.water++;fxText(seaP.x,seaP.y-40,L('물을 병에 담았다 +1','装进水瓶 +1'),'#9fd8ff')}}else message(m.k==='rain'?L('아직 비어 있어요. 비가 오면 차요','还是空的，下雨时会蓄满'):L('물이 만들어지는 중이에요','正在制造淡水'),1.4);return}
  if(m.k==='fire'){if(r.fish>0&&m.fuel>=6){r.fish--;r.cooked++;m.fuel-=6;mission('cook');AudioFx.cue('fire');fxText(seaP.x,seaP.y-40,L('생선을 구웠다','烤好了鱼'),'#ffc080');return}
   if(r.plank>0){if(!m.fuel&&!R.items.lighter&&!R.flint){if(r.scrap>=2){r.scrap-=2;R.flint=true;message(L('고철로 부싯돌을 만들어 불을 붙였다 (고철 -2)','用废铁做了打火石点火（废铁-2）'),2)}else{message(L('불을 붙일 도구가 없어요. 고철 2개로 부싯돌을 만들 수 있어요','没有点火工具。2个废铁可以做打火石'),2);return}}
    r.plank--;m.fuel=(m.fuel||0)+60;AudioFx.cue('fire');fxText(seaP.x,seaP.y-40,L('불길 +60초','火焰 +60秒'),'#ffb070');return}
@@ -362,15 +367,21 @@ function drawSea(){const night=isNight(),storm=inStorm(),dusk=R.t>DUSK&&!night;
  // 갈매기 (폭풍 전에 사라짐 = 예고 신호)
  if(!(stormDay()&&R.t>40&&R.t<100)&&!night)for(const s of gulls){g.strokeStyle='#dfe6ee';g.lineWidth=2;g.beginPath();g.moveTo(s.x-8,s.y);g.lineTo(s.x,s.y+4);g.lineTo(s.x+8,s.y);g.stroke()}
  // 떠내려오는 물건
- for(const o of debris){const col={plank:'#c79a5b',plastic:'#7fc6e8',cloth:'#c9c2e0',crate:'#a07850',scrap:'#9aa3ad',supply:'#ffd060'}[o.k];g.save();g.translate(o.x,o.y);g.rotate(Math.sin(frame+o.ph)*.2);g.fillStyle='rgba(220,240,240,.18)';g.beginPath();g.ellipse(0,14,30,8,0,0,TAU);g.fill();if(o.k==='supply')drawGlow(0,0,48,'y',.6);
-  if(icon(ICON_OF[o.k],0,0,o.k==='supply'?60:50)){}else if(o.k==='plank')rr(-26,-8,52,16,4,col,'#2a1e14',2);else if(o.k==='plastic')rr(-14,-18,28,36,10,col,'#1e3a48',2);else if(o.k==='cloth')rr(-20,-12,40,24,10,col,'#3a3550',2);else if(o.k==='crate'){rr(-18,-18,36,36,4,col,'#3a2414',3);g.strokeStyle='#3a2414';g.beginPath();g.moveTo(-18,-18);g.lineTo(18,18);g.stroke()}else if(o.k==='scrap')rr(-16,-10,32,20,2,col,'#333',2);else{drawGlow(0,0,40,'y',.6);rr(-20,-20,40,40,6,col,'#5a4010',3)}
+ for(const o of debris){const col={plank:'#c79a5b',plastic:'#7fc6e8',cloth:'#c9c2e0',crate:'#a07850',scrap:'#9aa3ad',supply:'#ffd060'}[o.k];g.save();g.translate(o.x,o.y);g.rotate(Math.sin(frame+o.ph)*.2);if(o.k==='supply')drawGlow(0,0,52,'y',.5);
+  if(wsp('debris_'+o.k,0,0,o.k==='supply'?92:80)){}else if(icon(ICON_OF[o.k],0,0,o.k==='supply'?60:50)){}else if(o.k==='plank')rr(-26,-8,52,16,4,col,'#2a1e14',2);else if(o.k==='plastic')rr(-14,-18,28,36,10,col,'#1e3a48',2);else if(o.k==='cloth')rr(-20,-12,40,24,10,col,'#3a3550',2);else if(o.k==='crate'){rr(-18,-18,36,36,4,col,'#3a2414',3);g.strokeStyle='#3a2414';g.beginPath();g.moveTo(-18,-18);g.lineTo(18,18);g.stroke()}else if(o.k==='scrap')rr(-16,-10,32,20,2,col,'#333',2);else{drawGlow(0,0,40,'y',.6);rr(-20,-20,40,40,6,col,'#5a4010',3)}
   g.restore();if(o.pull){g.strokeStyle='#e8e0c8';g.lineWidth=2;g.beginPath();g.moveTo(seaP.x,seaP.y);g.lineTo(o.x,o.y);g.stroke()}}
  // 배
- for(const d of R.deck){const p=tilePos(d.x,d.y);rr(p.x-T/2+2,p.y-T/2+2,T-4,T-4,8,'#7a5c3e','#3a2a1c',3);g.strokeStyle='rgba(40,28,18,.6)';g.lineWidth=2;for(let i=1;i<4;i++){g.beginPath();g.moveTo(p.x-T/2+6,p.y-T/2+i*T/4);g.lineTo(p.x+T/2-6,p.y-T/2+i*T/4);g.stroke()}
-  if(d.hp<3){g.strokeStyle='#1a0f08';g.lineWidth=3;g.beginPath();g.moveTo(p.x-20,p.y-22);g.lineTo(p.x+4,p.y);g.lineTo(p.x-6,p.y+18);g.stroke();if(d.hp<2)txt('!',p.x+26,p.y-26,22,'#ff9a7a','center')}
-  if(d.m)drawModule(d,p)}
+ const art=!!imgs.world;
+ for(const d of R.deck){const p=tilePos(d.x,d.y);g.fillStyle='rgba(0,20,30,.35)';g.fillRect(p.x-T/2+4,p.y-T/2+10,T,T)}// 물 그림자
+ for(const d of R.deck){const p=tilePos(d.x,d.y);const v=d.hp>=3?((d.x+d.y)&1?'deck1':'deck0'):d.hp===2?'deck2':'deck3';
+  if(!(art&&wspPart(v,0,0,1,1,p.x-T/2-1,p.y-T/2-1,T+2,T+2))){rr(p.x-T/2+2,p.y-T/2+2,T-4,T-4,8,'#7a5c3e','#3a2a1c',3);if(d.hp<3){g.strokeStyle='#1a0f08';g.lineWidth=3;g.beginPath();g.moveTo(p.x-20,p.y-22);g.lineTo(p.x+4,p.y);g.lineTo(p.x-6,p.y+18);g.stroke()}}
+  if(d.hp<2)txt('!',p.x+28,p.y-28,22,'#ff9a7a','center')}
+ if(art)for(const d of R.deck){const p=tilePos(d.x,d.y),x0=p.x-T/2,y0=p.y-T/2,e=.18,ew=16;// 바깥쪽 면에만 통나무·밧줄·부표
+  if(!tileAt(d.x,d.y-1))wspPart('deckb0',0,0,1,e,x0-6,y0-ew+4,T+12,ew+4);if(!tileAt(d.x,d.y+1))wspPart('deckb0',0,1-e,1,e,x0-6,y0+T-4,T+12,ew+4);
+  if(!tileAt(d.x-1,d.y))wspPart('deckb0',0,e,e,1-2*e,x0-ew+4,y0,ew+2,T);if(!tileAt(d.x+1,d.y))wspPart('deckb0',1-e,e,e,1-2*e,x0+T-6,y0,ew+2,T)}
+ for(const d of R.deck)if(d.m)drawModule(d,tilePos(d.x,d.y));
  if(buildPick){for(let gy=-3;gy<=4;gy++)for(let gx=-3;gx<=3;gx++){const p=tilePos(gx,gy),t=tileAt(gx,gy);const ok=buildPick==='deck'?(!t&&adjacentEmpty(gx,gy)):(t&&!t.m);if(ok){g.globalAlpha=.5+.3*Math.sin(frame*6);rr(p.x-T/2+6,p.y-T/2+6,T-12,T-12,10,'rgba(255,220,120,.25)','#ffd070',3);g.globalAlpha=1}}}
- drawHero(seaP,fishing?'idle':heroBusy>0?'craft':null,88);if(fishing){g.strokeStyle='#cfe';g.lineWidth=2;g.beginPath();g.moveTo(seaP.x,seaP.y);g.lineTo(seaP.x+70,seaP.y+90);g.stroke();circ(seaP.x+70,seaP.y+90,5,'#ff6060')}
+ drawHero(seaP,sleeping?'sleep':heroAct&&heroAct.t>0?heroAct.a:fishing?'fish':heroBusy>0?'craft':null,88);if(heroAct)heroAct.t-=1/60;if(fishing){g.strokeStyle='#cfe';g.lineWidth=2;g.beginPath();g.moveTo(seaP.x,seaP.y);g.lineTo(seaP.x+70,seaP.y+90);g.stroke();circ(seaP.x+70,seaP.y+90,5,'#ff6060')}
  drawFx();
  // 밤과 폭풍
  if(night||dusk||storm){const a=night?.6:storm?.4:(R.t-DUSK)/(NIGHT-DUSK)*.45;g.fillStyle=`rgba(2,6,14,${a})`;g.fillRect(0,0,W,H);const ft=fireTile();if(ft&&fireLit()){const p=tilePos(ft.x,ft.y);g.save();g.globalCompositeOperation='lighter';drawGlow(p.x,p.y,230+Math.sin(frame*9)*8,'o',.55);g.restore()}
@@ -394,15 +405,15 @@ function seaHud(){const v=R.vit,r=R.res;rr(0,0,W,150,0,'#0b0f16e8');
  txt('▶ '+nextGoal(),24,172,18,'#ffe7a0','left');
  // 자원 줄
  rr(0,1060,W,274,0,'#0b0f16ee');const show=['plank','plastic','cloth','scrap','rope','water','can','fish','cooked','berry','med'];
- show.forEach((k,i)=>{const x=16+(i%6)*121,y=1076+Math.floor(i/6)*44;rr(x,y,113,38,9,'#161d28');if(!icon(ICON_OF[k],x+17,y+19,32))circ(x+16,y+19,7,RES_C[k]);if(k==='cooked')circ(x+27,y+8,5,'#ff9a40');txt(LL(RES_N[k]),x+28,y+19,13,'#b6c0cc','left',false);txt(''+(r[k]||0),x+106,y+19,16,(r[k]||0)>0?'#fff':'#5a6472','right',false)});
+ show.forEach((k,i)=>{const x=16+(i%6)*121,y=1076+Math.floor(i/6)*44;rr(x,y,113,38,9,'#161d28');if(!icon(ICON_OF[k],x+17,y+19,32))circ(x+16,y+19,7,RES_C[k]);txt(LL(RES_N[k]),x+28,y+19,13,'#b6c0cc','left',false);txt(''+(r[k]||0),x+106,y+19,16,(r[k]||0)>0?'#fff':'#5a6472','right',false)});
  const by=1180;button(16,by,226,84,L('짓기','建造'),'gold',28,()=>{sc='build';AudioFx.cue('ui')},{id:'btn_build'});
  const op=islandOpen();button(254,by,240,84,op?L('섬에 상륙','登岛'):L('섬 없음','附近无岛'),op?'green':'gray',26,()=>{if(islandOpen())startLand();else message(R.day<Z().island?L('아직 섬이 보이지 않아요','还看不到岛'):R.landed>=R.day?L('오늘은 이미 다녀왔어요','今天已经去过了'):L('해가 지기 전엔 돌아올 수 없어요','天黑前回不来'),1.4)},{id:'btn_land'});
  button(506,by,228,84,L('보급·일지','补给·日志'),'blue',24,()=>{sc='reward';guideRet='sea'},{id:'btn_reward'});if(rewardBadge())circ(722,by+8,10,'#ff4a4a');
  txt('v'+BUILD,726,1316,12,'#3a4452','right',false);
  if(tutStep===0&&debris.length&&!guideTip&&!buildPick){const o=debris.find(o2=>o2.y>200&&o2.y<900);if(o)drawFinger(o.x,o.y+20)}}
 function useVital(k){const r=R.res,v=R.vit;
- if(k==='thirst'){if(r.water>0&&v.thirst<95){r.water--;v.thirst=Math.min(100,v.thirst+35);mission('drink');AudioFx.cue('splash');return}message(r.water?L('목마르지 않아요','不渴'):L('마실 물이 없어요. 빗물 통·증류기를 탭하세요','没有水。点雨水桶或蒸馏器'),1.6);return}
- if(k==='hunger'){if(v.hunger>=95){message(L('배부르다','很饱'),1);return}const order=[['cooked',30,0],['can',35,0],['berry',15,0],['fish',12,8]];for(const [key,add,hurt] of order)if(r[key]>0){r[key]--;v.hunger=Math.min(100,v.hunger+add);if(hurt){v.hp-=hurt;message(L('날생선은 배탈이 날 수 있어요. 모닥불에 구워 먹자','生鱼会坏肚子，用篝火烤一下吧'),1.8)}AudioFx.cue('pick');return}
+ if(k==='thirst'){if(r.water>0&&v.thirst<95){r.water--;v.thirst=Math.min(100,v.thirst+35);mission('drink');heroDo('drink');AudioFx.cue('splash');return}message(r.water?L('목마르지 않아요','不渴'):L('마실 물이 없어요. 빗물 통·증류기를 탭하세요','没有水。点雨水桶或蒸馏器'),1.6);return}
+ if(k==='hunger'){if(v.hunger>=95){message(L('배부르다','很饱'),1);return}const order=[['cooked',30,0],['can',35,0],['berry',15,0],['fish',12,8]];for(const [key,add,hurt] of order)if(r[key]>0){r[key]--;v.hunger=Math.min(100,v.hunger+add);heroDo('eat');if(hurt){v.hp-=hurt;message(L('날생선은 배탈이 날 수 있어요. 모닥불에 구워 먹자','生鱼会坏肚子，用篝火烤一下吧'),1.8)}AudioFx.cue('pick');return}
   message(L('먹을 것이 없어요. 낚시를 하거나 섬에 가 보세요','没有吃的，去钓鱼或者登岛'),1.6);return}
  if(k==='hp'){if(r.med>0&&v.hp<90){r.med--;v.hp=Math.min(100,v.hp+40);AudioFx.cue('win');return}message(L('치료약이 없거나 아직 괜찮아요','没有药或者还不需要'),1.4);return}
  if(k==='temp'){message(L('모닥불 가까이 서 있으면 몸이 녹아요','站在篝火旁就能暖和起来'),1.6)}}
@@ -473,11 +484,16 @@ function landTap(x,y){const Ld=Land,wx=x,wy=y+camY;
  for(const z of Ld.zs)if(z.hp>0&&Math.hypot(wx-z.x,wy-z.y)<50){Ld.target={z};Ld.goBoat=false;return}
  let best=null,bd=70;for(const o of Ld.objs)if(!o.gone&&o.k!=='hut'){const d=Math.hypot(wx-o.x,wy-o.y);if(d<bd){bd=d;best=o}}
  Ld.goBoat=false;if(best){Ld.target={o:best};Ld.work=0;Ld.p.tx=best.x;Ld.p.ty=best.y+40}else{Ld.target=null;Ld.p.tx=wx;Ld.p.ty=Math.max(160,wy)}}
+function artLand(o){if(o.k==='tree'){wsp(o.hp<3?'tree_chop':'tree',o.x,o.y+30,150,'bottom');if(o.hp<3)txt(o.hp+'',o.x+44,o.y-80,18,'#fff','center');return true}
+ if(o.k==='bush')return wsp('bush',o.x,o.y+20,100,'bottom');if(o.k==='rock')return wsp('rock',o.x,o.y+24,110,'bottom');
+ if(o.k==='hut'){wsp('hut',o.x,o.y+70,280,'bottom');return true}if(o.k==='crate'){drawGlow(o.x,o.y,34,'y',.35);return icon('crate',o.x,o.y,50)}
+ if(o.k==='stream'){for(let x=0;x<W;x+=148)wspPart('stream',0,0,1,1,x,o.y-74,150,150);txt(L('개울 (물 뜨기)','小溪（打水）'),o.x,o.y,18,'#e8f4ff','center');return true}return false}
 function backToSea(ok){const Ld=Land;if(ok){for(const k in Ld.carry)R.res[k]=(R.res[k]||0)+Ld.carry[k];track('land_back',{n:Ld.n,t:Math.round(R.t)});message(L('배로 돌아왔다. 짐 ','回到船上。带回 ')+Ld.n+L('개를 실었다',' 件物资'),1.8)}Land=null;if(sc==='land'){enterSea()}}
 function drawLand(){const Ld=Land,p=Ld.p,night=isNight();g.fillStyle='#24301f';g.fillRect(0,0,W,H);g.save();g.translate(0,-camY);
- g.fillStyle='#1e3a44';g.fillRect(0,LAND_H-120,W,300);g.fillStyle='#8a7a5a';g.fillRect(0,LAND_H-200,W,90);
- rr(330,1800,90,60,12,'#7a5c3e','#2a1e14',3);txt(L('배','船'),375,1830,18,'#fff','center');if(R.t>DUSK)drawGlow(375,1830,90,'y',.5+.2*Math.sin(frame*5));
- for(const o of Ld.objs)if(!o.gone){if(o.k==='tree'){circ(o.x,o.y+16,22,'#3a2a1a');circ(o.x,o.y-10,34,'#2e4a2a','#1a2a18',3);if(o.hp<3)txt(o.hp+'',o.x,o.y-10,18,'#fff','center')}
+ g.fillStyle='#1e6a78';g.fillRect(0,LAND_H-120,W,300);g.fillStyle='#8a7a5a';g.fillRect(0,LAND_H-200,W,90);
+ if(imgs.world){g.fillStyle='#4f7a2c';g.fillRect(0,0,W,LAND_H-200);for(let x=0;x<W;x+=150)wspPart('beach',0,0,1,1,x,LAND_H-260,152,200)}
+ if(!wsp('boat',375,1846,190))rr(330,1800,90,60,12,'#7a5c3e','#2a1e14',3);txt(L('배','船'),375,1800,18,'#fff','center');if(R.t>DUSK)drawGlow(375,1830,90,'y',.5+.2*Math.sin(frame*5));
+ const objs2=Ld.objs.slice().sort((a,b)=>(a.k==='stream'?-1e4:a.y)-(b.k==='stream'?-1e4:b.y));for(const o of objs2){if(o.gone){if(o.k==='tree')wsp('stump',o.x,o.y+24,96,'bottom');continue}if(imgs.world&&artLand(o))continue;if(o.k==='tree'){circ(o.x,o.y+16,22,'#3a2a1a');circ(o.x,o.y-10,34,'#2e4a2a','#1a2a18',3);if(o.hp<3)txt(o.hp+'',o.x,o.y-10,18,'#fff','center')}
   else if(o.k==='bush'){circ(o.x,o.y,22,'#3a5a30');circ(o.x-6,o.y-4,4,'#e0607a');circ(o.x+7,o.y+3,4,'#e0607a')}
   else if(o.k==='rock')circ(o.x,o.y,26,'#6a6e74','#3a3c40',3);
   else if(o.k==='hut'){rr(o.x-90,o.y-60,180,120,8,'#4a3a2a','#2a2016',3);txt(L('오두막','小屋'),o.x,o.y,18,'#d8c8a8','center')}
@@ -510,10 +526,10 @@ function loadingScreen(){loadT+=1/60;g.fillStyle='#071016';g.fillRect(0,0,W,H);c
  txt('RECLAIM',375,560,84,'#ffcf6a','center');rr(165,700,420,18,9,'#1a1e28','#3a4250',2);rr(167,702,416*(IMG_LIST.length?done/tot:Math.min(1,loadT/.6)),14,7,'#ffb84a');
  txt(L('불러오는 중…','加载中…'),375,760,20,'#c9d2de','center',false);if(loadT>6&&!mustOk)txt(L('인터넷이 느려 시간이 걸리고 있어요','网络较慢，请稍候'),375,800,17,'#ffcf7a','center',false);
  if((mustOk&&loadT>.6)||loadT>25){sc='title';if(MUST.some(n=>imgFail[n]))message(L('일부 그림을 못 불러왔어요. 새로고침해 주세요','部分图片加载失败，请刷新'),4)}}
-function title(){g.fillStyle='#071016';g.fillRect(0,0,W,H);g.strokeStyle='rgba(120,180,200,.08)';g.lineWidth=2;for(let i=0;i<24;i++){const y=600+i*30;g.beginPath();for(let x=0;x<=W;x+=30)g.lineTo(x,y+Math.sin(x*.02+frame+i)*4);g.stroke()}
+function title(){g.fillStyle='#071016';g.fillRect(0,0,W,H);if(imgs.title){g.drawImage(imgs.title,0,0,W,H);const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(4,10,18,.78)');gr.addColorStop(.32,'rgba(4,10,18,.15)');gr.addColorStop(.58,'rgba(4,10,18,.1)');gr.addColorStop(1,'rgba(4,10,18,.88)');g.fillStyle=gr;g.fillRect(0,0,W,H)}else{g.strokeStyle='rgba(120,180,200,.08)';g.lineWidth=2;for(let i=0;i<24;i++){const y=600+i*30;g.beginPath();for(let x=0;x<=W;x+=30)g.lineTo(x,y+Math.sin(x*.02+frame+i)*4);g.stroke()}
  g.fillStyle='#14181c';g.fillRect(0,520,W,40);for(let i=0;i<12;i++)rr(20+i*62,450-((i*37)%60),48,80+((i*37)%60),2,'#101418');// 불 꺼진 해안 도시
- drawGlow(560,700,60,'o',.6+.1*Math.sin(frame*6));rr(530,690,60,26,6,'#5a4030');// 배의 불빛
- txt('RECLAIM',375,220,96,'#ffcf6a','center');txt(L('돌아온 땅','重归之地'),375,300,40,'#fff','center');txt(L('탈출하고, 버티고, 돌아가 되찾아라','逃离，坚持，然后夺回'),375,350,21,'#c9d2de','center',false);
+ drawGlow(560,700,60,'o',.6+.1*Math.sin(frame*6));rr(530,690,60,26,6,'#5a4030')}// 배의 불빛
+ txt('RECLAIM',375,120,92,'#ffcf6a','center');txt(L('돌아온 땅','重归之地'),375,196,38,'#fff','center');txt(L('탈출하고, 버티고, 돌아가 되찾아라','逃离，坚持，然后夺回'),375,242,21,'#e6ecf2','center');
  const cont=!!save.run;button(150,820,450,96,cont?L('이어서 버티기 ('+save.run.day+'일째)','继续（第'+save.run.day+'天）'):L('탈출 시작','开始逃离'),'gold',30,()=>{AudioFx.init();if(save.run){R=save.run;enterSea()}else startAct1()},{id:'btn_start'});
  if(cont)button(150,930,450,70,L('새로 시작 (1막부터)','重新开始（从第一幕）'),'gray',20,()=>{if(resetArm>0){save.run=null;R=null;persist();resetArm=0;startAct1()}else{resetArm=2.5;message(L('한 번 더 누르면 지금 배를 버리고 새로 시작해요','再按一次将放弃当前的船重新开始'),2)}});
  button(150,1020,140,70,L('설정','设置'),'dark',20,()=>{sc='settings';guideRet='title'});button(305,1020,140,70,L('안내서','指南'),'dark',20,()=>{sc='guide';guidePage=0;guideRet='title'});button(460,1020,140,70,L('보상','奖励'),'dark',20,()=>{sc='reward';guideRet='title'});if(rewardBadge())circ(596,1024,10,'#ff4a4a');
