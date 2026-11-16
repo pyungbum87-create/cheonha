@@ -39,7 +39,7 @@
   const whenReady=f=>{ if (document.body) f(); else addEventListener("DOMContentLoaded",f); };
   if (L==="zh"){
     root.classList.add("zhload"); setTimeout(()=>root.classList.remove("zhload"),3000);
-    const s=document.createElement("script"); s.src="i18n_zh.js?v=13";
+    const s=document.createElement("script"); s.src="i18n_zh.js?v=15";
     s.onload=()=>{ DICT=window.ZH||{}; whenReady(start); }; s.onerror=()=>whenReady(start);
     document.head.appendChild(s);
   } else whenReady(start);
