@@ -490,7 +490,7 @@ window.DX = window.DX || {};
       const frame = getComputedStyle(document.documentElement).getPropertyValue('--card-img');
       if (frame && frame.trim()) b.style.backgroundImage = frame;
       b.innerHTML = '<div class="c-ico">' + (c.icon ? iconHtml(c.icon, c.emoji || '🔫') : c.emoji) + '</div>' +
-        '<div><div class="c-name">' + esc(T(c.name)) + '</div><div class="c-lv">' + (c.lv ? (c.evo ? T('★ 진화') : 'Lv ' + c.lv) : '') + '</div><div class="c-desc">' + esc(T(c.desc)) + '</div></div>' +
+        '<div><div class="c-name">' + esc(T(c.name)) + '</div><div class="c-lv">' + (c.lv ? (c.evo ? T('★ 진화') : 'Lv ' + c.lv) : '') + '</div><div class="c-desc">' + esc(T(c.desc)) + '</div>' + (c.tag ? '<div class="c-combo' + (c.tag.hot ? ' hot' : '') + '">' + esc(c.tag.t) + '</div>' : '') + '</div>' +
         (c.evo ? '<span class="c-tag">EVOLUTION</span>' : c.isNew ? '<span class="c-tag">NEW</span>' : '');
       let used = false;
       b.addEventListener('click', () => { if (used) return; used = true; DX.chooseCard(c); });

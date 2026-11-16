@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.21',
+    version: 'v0.22',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -31,6 +31,30 @@ DX.CONFIG = {
 
   /* ------------------------------------------------------------- 광고 (보상형 동영상만 사용, 유료결제 없음)
      실제 광고 연결은 ui.js 의 DX.showAd 함수 한 곳만 바꾸면 됨 (위챗/더우인 예시 주석 있음) */
+  /* ★ 전투 손보기 (v0.22). 주소 뒤 ?old=1 이면 예전 전투 그대로 (비교용)
+     horde = 좀비를 많이·약하게 (쓸어버리는 맛): count 수 배율, hp 체력, dps 공격, xp·gold 한 마리 보상
+     aim   = 끌어서 직접 쏘기: rate 연사 간격 배율(작을수록 빠름), dmg 피해 배율, splash 폭발 반경, splashMul 폭발 피해 비율
+     noMini = 판 중간 미니게임 끄기 (흐름 안 끊기게). 구조 작전 스테이지의 미니게임은 그대로 */
+  core: {
+    on: !/[?&]old=1/.test(typeof location !== 'undefined' ? location.search : ''),
+    horde: { count: 1.8, hp: 0.72, dps: 0.9, xp: 0.5, gold: 0.4 },
+    aim: { rate: 0.55, dmg: 1.6, splash: 2.4, splashMul: 0.5 },
+    noMini: true,
+  },
+  /* 오늘의 변수: 판마다 하나 뽑힘 (after 판째부터) → 매번 조금씩 다른 판.
+     greed 골드, haste 속도(작을수록 빠름), crit 치명타 +, dmg 피해, hp 열차 체력, spawn 좀비 수, xp 경험치 */
+  runMods: {
+    after: 3,
+    list: [
+      { id: 'payday', icon: '💰', name: '월급날', desc: '골드 1.5배', greed: 1.5 },
+      { id: 'rush', icon: '🚇', name: '출근 대란', desc: '좀비 +35%, 경험치 +35%', spawn: 1.35, xp: 1.35 },
+      { id: 'coffee', icon: '☕', name: '커피 수혈', desc: '모든 무기 속도 +20%', haste: 0.83 },
+      { id: 'lucky', icon: '🍀', name: '로또 당첨', desc: '치명타 확률 +20%', crit: 0.2 },
+      { id: 'glass', icon: '🔥', name: '불타는 금요일', desc: '피해 +40%, 열차 체력 -25%', dmg: 1.4, hp: 0.75 },
+      { id: 'tank', icon: '🛡️', name: '철밥통', desc: '열차 체력 +40%', hp: 1.4 },
+    ],
+  },
+
   /* 직급(승진): 판마다 근무 점수가 쌓여 승진 → 길게 모으는 목표. 이겨도 져도 쌓임.
      need = [첫 단계 필요 점수, 단계마다 추가], xp = 점수 계산, gold = 승진 보상 [기본, 단계마다 추가],
      gemsEvery 단계마다 보석 gems, pay = 단계마다 골드 획득 +비율(월급 인상), per = 직급 하나에 호봉 몇 개 */
@@ -526,7 +550,7 @@ DX.CONFIG = {
   // 첫 10판 동안 하나씩 여는 순서 (판 번호). 이미 2장 이상 깬 사람은 전부 열림
   // 기능은 한 번에 하나씩 천천히 (숫자 = 몇 번째 판부터). 2장 이상 깬 사람은 전부 열림
   //  첫 판 뒤 정비소 → 2 출석·미션 → 3 경적, 보급·공유 → 4 조준, 스킬 직접, 미니게임 → 5 침입, 생존자 → 6 조합 → 7 칸 배치 → 8 꾸미기 → 10 자동 버튼
-  unlocks: { meta: 1, reward: 2, horn: 3, extras: 3, aim: 4, skillManual: 4, mini: 4, invasion: 5, hero: 5, combo: 6, place: 7, skin: 8, autoBtn: 10 },
+  unlocks: { meta: 1, reward: 2, horn: 3, extras: 3, aim: 1, skillManual: 4, mini: 4, invasion: 5, hero: 5, combo: 6, place: 7, skin: 8, autoBtn: 10 },
   // 첫 판 프롤로그 (최초 1회): 황금 열차 최강 상태 → 사장님 골프공 → 기관차 하나로 시작
   prologue: { on: true, time: 12, wave: { time: 999, rate: 16, hordes: 0, hordeSize: 0, mix: { office: 0.6, box: 0.2, dancer: 0.2 }, hp: 0.5 } },
   // 액티브 스킬: 화면 아래 버튼 최대 max개. auto = 자동 모드 효율

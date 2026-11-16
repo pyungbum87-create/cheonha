@@ -485,3 +485,7 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .r-career .cr-row .bar { flex: 1; } .r-career .cr-row b { color: var(--gold); }
 .r-career .cr-up { margin-bottom: 6px; padding: 6px; border-radius: 10px; background: linear-gradient(90deg, #ffb13d, #ff7a2a); color: #201000; font-weight: 900; font-size: 15px; animation: crPop .5s ease-out; }
 @keyframes crPop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+
+/* 카드 조합 안내 */
+.card .c-combo { margin-top: 4px; font-size: 12px; font-weight: 900; color: #9fb4d8; }
+.card .c-combo.hot { color: #201000; background: linear-gradient(90deg, #ffd23d, #ff9a3d); padding: 3px 6px; border-radius: 6px; display: inline-block; }

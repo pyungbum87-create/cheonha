@@ -545,11 +545,17 @@ window.DX = window.DX || {};
     if (DX.save.flags && DX.save.flags.secretary && G.stg.id === 'lab') G.bossWeak = true;
     // 새로 열린 기능 안내 (한 번씩)
     const hints = DX.save.unlockHint = DX.save.unlockHint || {};
-    [['aim', '화면을 끌어서 직접 조준! 기관총 피해 +30%, 보스 약점 저격'], ['skillManual', '스킬 버튼을 직접 누르면 100% + 타이밍 보너스!'], ['invasion', '침입 좀비가 나타나요! 빨간 칸을 터치'], ['combo', '두 무기를 함께 가지면 조합 발동!'], ['place', '새 칸을 어디에 붙일지 고를 수 있어요'], ['autoBtn', '이제 AUTO 버튼으로 스킬을 알아서 쓸 수 있어요']].forEach(([k, msg], i) => {
+    [['aim', '화면을 꾹 누르고 끌어서 직접 쏴라! 더 빠르고 세고, 터진다'], ['skillManual', '스킬 버튼을 직접 누르면 100% + 타이밍 보너스!'], ['invasion', '침입 좀비가 나타나요! 빨간 칸을 터치'], ['combo', '두 무기를 함께 가지면 조합 발동!'], ['place', '새 칸을 어디에 붙일지 고를 수 있어요'], ['autoBtn', '이제 AUTO 버튼으로 스킬을 알아서 쓸 수 있어요']].forEach(([k, msg], i) => {
       if (!G.prologue && unlocked(k) && !hints[k] && Object.keys(DX.save.cleared || {}).length < 2) { hints[k] = 1; DX.persist(); later(3 + i * 3, () => DX.UI && DX.UI.banner(DX.L('새 기능!', '新功能！'), DX.T(msg), 'win')); }
     });
     // 처음 3판은 스킬 자동, 4판째부터 직접(10판째에 자동 버튼)
     if (!unlocked('skillManual')) G.autoSkill = true; else if (!unlocked('autoBtn')) G.autoSkill = false;
+    // 오늘의 변수 (직전 것 제외하고 하나)
+    { const RM = C.runMods; if (RM && CO() && !G.endless && (DX.save.runs || 0) >= RM.after) {
+        const l = RM.list.filter(m => m.id !== DX.save.lastMod); G.mod = pick(l); DX.save.lastMod = G.mod.id; recalc();
+        later(1.2, () => DX.UI && G && DX.UI.banner(G.mod.icon + ' ' + DX.T(G.mod.name), DX.L('오늘의 변수: ', '今日变数：') + DX.T(G.mod.desc), 'ult')); } }
+    // 아직 한 번도 직접 안 쏴 본 사람: 끌어서 쏘라고 알려 줌
+    if (CO() && !DX.save.aimed) { const nag = () => { if (!G || DX.save.aimed || G.endT >= 0) return; if (DX.UI) DX.UI.toast(DX.L('👆 화면을 꾹 누르고 끌면 직접 쏜다! (더 세고, 터진다)', '👆 按住屏幕拖动即可亲自射击！（更强，还会爆炸）')); later(9, nag); }; later(4, nag); }
     nextWave();
     if (DX.UI) DX.UI.onRunStart(G);
   };
@@ -561,6 +567,10 @@ window.DX = window.DX || {};
   }
   DX.unlocked = unlocked;
   function combo(id) { if (!G) return false; const c = (C.combos || []).find(k => k.id === id); return !!(c && G.weapons[c.a] && G.weapons[c.b]); }
+  // 전투 손보기 배율 (config core / runMods)
+  const CO = () => (C.core && C.core.on && G && !G.prologue) ? C.core : null;
+  const hordeK = k => { const c = CO(); return c ? c.horde[k] : 1; };
+  const modK = (k, d) => (G && G.mod && G.mod[k] != null) ? G.mod[k] : (d == null ? 1 : d);
   function flashCar(kind, v) { if (G) G.carFlash[kind] = Math.max(G.carFlash[kind] || 0, v || 0.25); }
   // 칸 배치 보너스: 기관차 바로 뒤 칸은 쿨타임 감소
   function ph(kind) { return G && G.cars[0] === kind && G.placed ? C.placement.frontHaste : 1; }
@@ -577,13 +587,14 @@ window.DX = window.DX || {};
     const p = G.passives;
     G.pMul = (1 + (p.power || 0) * C.passives.power.per) * G.dmgMul;
     G.haste = 1 / (1 + (p.haste || 0) * C.passives.haste.per);
-    const nm = G.hpMaxBase * (1 + (p.armor || 0) * C.passives.armor.per);
-    if (G.hpMax) G.hp += Math.max(0, nm - G.hpMax);
+    const nm = G.hpMaxBase * (1 + (p.armor || 0) * C.passives.armor.per) * modK('hp');
+    if (G.hpMax) G.hp = Math.min(nm, G.hp + Math.max(0, nm - G.hpMax));
     G.hpMax = nm;
     G.magnet = C.magnetRange * (1 + (p.magnet || 0) * C.passives.magnet.per + (DX.save.meta.magnet || 0) * C.meta.magnet.per);
     G.rescued = G.citizens ? G.citizens.length : 0;
     G.crit = (p.crit || 0) * C.passives.crit.per + jobCount('crit') * C.jobs.crit.crit;
     G.greed = (1 + (p.greed || 0) * C.passives.greed.per) * (1 + Math.min(G.rescued, C.safeCar.maxPeople) * C.safeCar.goldPer + jobCount('gold') * C.jobs.gold.gold + skinBonus());
+    if (G.mod) { const m = G.mod; G.pMul *= m.dmg || 1; G.haste *= m.haste || 1; G.crit += m.crit || 0; G.greed *= m.greed || 1; }
     G.layout = trainLayout(G.cars);
     // 드론 수
     const dl = G.weapons.drone;
@@ -618,7 +629,7 @@ window.DX = window.DX || {};
     if (G.waveIdx === 0 && DX.save.passed && DX.save.passed.stage !== G.stg.id) later(4, spawnPassedZombie);
     const mg = C.minigame, mlist = mg && mg.on && DX.MINI && !G.endless && (mg.byStage[G.stageIdx] || []);
     const mm = mlist && mlist.find(m => m[0] === G.waveIdx + 1);
-    if (mm && !w.boss && unlocked('mini')) {
+    if (mm && !w.boss && unlocked('mini') && !(CO() && C.core.noMini)) {
       let kind = mm[1];
       if (DX.save.cleared[G.stg.id] && mg.pool && mg.pool[G.stageIdx]) {   // 다시 하기: 후보 중 무작위 (직전 것 제외)
         DX.save.lastMini = DX.save.lastMini || {};
@@ -746,10 +757,10 @@ window.DX = window.DX || {};
   function spawnZombie(type, x, z) {
     if (G.zs.length >= maxZ()) return null;
     const cfg = C.zombies[type], w = G.wave;
-    const hp = cfg.hp * w.hp;
+    const hp = cfg.hp * w.hp * hordeK('hp');
     const s = cfg.scale * rand(0.92, 1.08);
     const zb = { type, cfg, x, z, y: 0, yaw: 0, ph: rand(0, 6), s, hp, maxHp: hp, armor: cfg.armor ? cfg.armor * w.hp : 0,
-      spd: cfg.speed * rand(0.85, 1.15), dps: cfg.dps, mass: cfg.mass || 1, kx: 0, kz: 0, stun: 0, flash: 0, burn: 0, burnT: 0, atk: false, seed: Math.random(),
+      spd: cfg.speed * rand(0.85, 1.15), dps: cfg.dps * hordeK('dps'), mass: cfg.mass || 1, kx: 0, kz: 0, stun: 0, flash: 0, burn: 0, burnT: 0, atk: false, seed: Math.random(),
       onTrain: false, jump: null, r: 0.42 * s, dead: false, lastKind: 'shot', tf: Math.pow(Math.random(), 0.85), side: x < 0 ? -1 : x > 0 ? 1 : (Math.random() < 0.5 ? -1 : 1) };
     const zx = zoneX();
     if (zx && world.theme.deck && (x <= zx[0] + 0.01 || x >= zx[1] - 0.01)) { zb.climb = 1; zb.y = -2.4; }
@@ -800,14 +811,14 @@ window.DX = window.DX || {};
     const w = G.wave; if (!w || G.endT >= 0) return;
     G.waveT += dt;
     const gr = C.growth, ramp = G.prologue ? 1 : Math.min(1, gr.rampMin + (1 - gr.rampMin) * G.t / gr.rampSec);
-    G.spawnAcc += w.rate * dt * (G.boss ? 0.6 : 1) * ramp;
+    G.spawnAcc += w.rate * dt * (G.boss ? 0.6 : 1) * ramp * hordeK('count') * modK('spawn');
     while (G.spawnAcc >= 1) {
       G.spawnAcc -= 1;
       const p = spawnPoint();
       spawnZombie(pickType(w.mix), p[0], p[1]);
     }
     const hordeEvery = w.time / (w.hordes + 0.5);
-    if (G.hordeDone < w.hordes && G.waveT > hordeEvery * (G.hordeDone + 0.8)) { G.hordeDone++; spawnHorde(Math.round(w.hordeSize * (G.prologue ? 1 : Math.min(1, C.growth.rampMin + (1 - C.growth.rampMin) * G.t / C.growth.rampSec)))); }
+    if (G.hordeDone < w.hordes && G.waveT > hordeEvery * (G.hordeDone + 0.8)) { G.hordeDone++; spawnHorde(Math.round(w.hordeSize * hordeK('count') * modK('spawn') * (G.prologue ? 1 : Math.min(1, C.growth.rampMin + (1 - C.growth.rampMin) * G.t / C.growth.rampSec)))); }
     if (w.boss) { if (!G.bossSpawned && G.waveT > 3) spawnBoss(); }
     else if (G.waveT >= w.time) nextWave();
   }
@@ -1148,9 +1159,9 @@ window.DX = window.DX || {};
     G.kills++; G.mKill = (G.mKill || 0) + 1;
     G.combo++; G.comboT = 2.2; if (G.combo > G.maxCombo) G.maxCombo = G.combo;
     if ([100, 250, 500, 1000, 2000, 3000].indexOf(G.combo) >= 0 && DX.UI) DX.UI.comboPop(G.combo);
-    G.gold += z.cfg.gold * G.greed * (1 + Math.min(0.5, G.combo / 400));
-    G.ult = Math.min(1, G.ult + (z.boss ? 1 : (1 + jobCount('ult') * C.jobs.ult.ult) / C.ultimate.killsToCharge));
-    dropOrb(z.x, z.z, z.cfg.xp);
+    G.gold += z.cfg.gold * G.greed * (1 + Math.min(0.5, G.combo / 400)) * (z.boss ? 1 : hordeK('gold'));
+    G.ult = Math.min(1, G.ult + (z.boss ? 1 : (1 + jobCount('ult') * C.jobs.ult.ult) / C.ultimate.killsToCharge / hordeK('count')));
+    dropOrb(z.x, z.z, z.cfg.xp * (z.boss ? 1 : hordeK('xp')) * modK('xp'));
     S.kill();
     if (z.boss) { bossDeath(z); return; }
     if (z.type === 'bomber' && !z.popped) { z.popped = true; bomberBoom(z, false); }
@@ -1282,10 +1293,14 @@ window.DX = window.DX || {};
       if (lv + 1 === 5 && w.evoWith) continue;   // 진화는 중간보스 보물상자에서만
       let desc = w.desc[lv];
       if (w.evoWith && lv + 1 === 4) desc += ' · ' + DX.L('진화 짝: ', '进化搭档：') + DX.T(P[w.evoWith].name);
-      if (isNew) { desc += reactHint(id); const cb = (C.combos || []).find(k => (k.a === id && G.weapons[k.b]) || (k.b === id && G.weapons[k.a])); if (cb) desc += ' · 🔗 ' + DX.L('조합: ', '组合：') + DX.T(cb.name); }
+      if (isNew) { desc += reactHint(id); const cb = (C.combos || []).find(k => (k.a === id && G.weapons[k.b]) || (k.b === id && G.weapons[k.a])); }
       const completes = isNew && (C.combos || []).some(k => (k.a === id && G.weapons[k.b]) || (k.b === id && G.weapons[k.a]));
       if (completes && (DX.save.runs || 0) === C.unlocks.combo && !G.comboForced) { G.comboForced = true; opts.push({ kind: 'weapon', id, lv: 1, name: w.name, desc: desc + ' · 🔗', icon: w.icon, emoji: w.emoji, isNew, evo: false, w: 999 }); continue; }
-      opts.push({ kind: 'weapon', id, lv: lv + 1, name: lv + 1 === 5 ? w.evoName : w.name, desc, icon: lv + 1 === 5 && w.evoIcon ? w.evoIcon : w.icon, emoji: w.emoji, isNew, evo: lv + 1 === 5, w: isNew ? (owned < 3 ? 3.2 : 1.5) : 3 });
+      let tag = null;
+      if (isNew) { const cs = (C.combos || []).filter(k => k.a === id || k.b === id), done = cs.find(k => G.weapons[k.a === id ? k.b : k.a]);
+        if (done) tag = { hot: true, t: '🔗 ' + DX.L('조합 완성! ', '组合达成！') + DX.T(done.name) + ' — ' + DX.T(done.desc) };
+        else if (cs.length && unlocked('combo')) { const k = cs[0], o = W[k.a === id ? k.b : k.a]; if (o) tag = { t: '🔗 ' + DX.L('나중에 [', '之后拿到【') + DX.T(o.name) + DX.L(']도 얻으면 → ', '】→ ') + DX.T(k.name) }; } }
+      opts.push({ kind: 'weapon', tag, id, lv: lv + 1, name: lv + 1 === 5 ? w.evoName : w.name, desc, icon: lv + 1 === 5 && w.evoIcon ? w.evoIcon : w.icon, emoji: w.emoji, isNew, evo: lv + 1 === 5, w: isNew ? (owned < 3 ? 3.2 : 1.5) : 3 });
     }
     for (const id in P) {
       const lv = G.passives[id] || 0; if (lv >= 5) continue;
@@ -1495,10 +1510,10 @@ window.DX = window.DX || {};
         const tx = tg.x - s[0], tz = tg.z - s[2];
         G.aim[i] = Math.atan2(tx, tz);
         if (G.tm.mg[i] <= 0) {
-          G.tm.mg[i] = w.rate[ml - 1] * haste * ph('gun') * rand(0.85, 1.15); flashCar('gun', 0.12);
+          G.tm.mg[i] = w.rate[ml - 1] * haste * ph('gun') * rand(0.85, 1.15) * (man && CO() ? C.core.aim.rate : 1); flashCar('gun', 0.12);
           const d = Math.hypot(tx, tz) || 1, sp = 70;
           const a = G.aim[i] + rand(-0.04, 0.04);
-          G.bullets.push({ x: s[0] + Math.sin(a) * 0.9, y: 2.6, z: s[2] + Math.cos(a) * 0.9, vx: Math.sin(a) * sp, vz: Math.cos(a) * sp, dmg: w.dmg[ml - 1] * pm * (man ? 1.3 : 1), life: man ? 0.75 : 0.6, pierce: w.pierce[ml - 1], gold: ml >= 5, man, hit: [] });
+          G.bullets.push({ x: s[0] + Math.sin(a) * 0.9, y: 2.6, z: s[2] + Math.cos(a) * 0.9, vx: Math.sin(a) * sp, vz: Math.cos(a) * sp, dmg: w.dmg[ml - 1] * pm * (man ? (CO() ? C.core.aim.dmg : 1.3) : 1), spl: man && !!CO(), life: man ? 0.75 : 0.6, pierce: w.pierce[ml - 1], gold: ml >= 5, man, hit: [] });
           G.recoil[i] = 1;
           if (!fxSprite('muzzle', s[0] + Math.sin(a) * 1.1, 2.6, s[2] + Math.cos(a) * 1.1, 1.1, 1.5, 0.07, { rot: Math.atan2(-Math.cos(a), Math.sin(a)), vr: 0 }))
             part({ mesh: 'ico', x: s[0] + Math.sin(a) * 1.0, y: 2.6, z: s[2] + Math.cos(a) * 1.0, s: 0.45, s1: 0.1, max: 0.06, col: '#ffe9a0', emi: 2, pass: 2, alpha: 1, drift: 0 });
@@ -1703,6 +1718,7 @@ window.DX = window.DX || {};
     if (!on) { if (G.manual) G.manual.on = false; return; }
     if (!unlocked('aim')) return;
     const p = E.unproject ? E.unproject(sx, sy) : null; if (!p) return;
+    if (!G.manual || !G.manual.on) { if (!DX.save.aimed) { DX.save.aimed = true; DX.persist(); FX.text(p[0], 4, p[1], '집중 사격!', '#ffd23d', 22, 0.9); } G.aimUsed = true; }
     G.manual = { on: true, x: p[0], z: p[1] };
   };
   DX.castSkill = function (id) {
@@ -1829,6 +1845,12 @@ window.DX = window.DX || {};
             if (weak && Math.random() < 0.12) FX.text(zb.x, 6, zb.z, '약점!', '#ff4040', 22, 0.6);
             b.hit.push(zb);
             FX.spark(b.x, 1.4 * zb.s, b.z, 2, b.ghost ? '#9ff6ff' : '#fff2b0');
+            if (b.spl) {   // 직접 쏜 총알: 맞은 자리에서 작은 폭발 (주변까지)
+              b.spl = false; const A = C.core.aim, ex = b.x, ez = b.z, ed = b.dmg * A.splashMul, first = zb;
+              later(0, () => { if (!G) return; SRC = 'mg'; near(ex, ez, A.splash, o => { if (o !== first && !o.dead && !(o.jump && o.jump.t < 1)) hit(o, ed, 'shot', o.x - ex, o.z - ez, 3, false); }); });
+              FX.spark(ex, 1.2, ez, 7, '#ffb347');
+              part({ mesh: 'ico', x: ex, y: 1.2, z: ez, s: 0.6, s1: A.splash * 1.1, max: 0.16, col: '#ffc46b', emi: 2, pass: 2, alpha: 0.7, drift: 0 });
+            }
             if (b.pierce-- <= 0) b.life = 0;
           }
         });
