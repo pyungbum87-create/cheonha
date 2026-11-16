@@ -41,7 +41,7 @@ node play.js <저장폴더>      # iPhone 13 실제 터치로 20단계 완주
 - 앱을 내리면 시간이 멈추고 돌아오면 `继续` 창. 30분마다 휴식 안내.
 
 ### 통계 이벤트 (위챗·더우인 관리자 화면에 같은 이름으로 등록)
-`stage_start`(stage) · `stage_photo`(stage, done, total, reason) · `stage_gold`(stage) · `ad_open`(type) · `ad_reward`(type) · `share`(stage) · `guide_done` · `app_hide` · `rest_tip` · `img_fail`(n) · `draw_error`(m)
+`stage_start`(stage) · `stage_photo`(stage, done, total, reason) · `stage_gold`(stage) · `ad_open`(type) · `ad_reward`(type) · `share`(stage) · `guide_done` · `tut_done` · `signin`(day) · `app_hide` · `rest_tip` · `img_fail`(n) · `draw_error`(m)
 
 ### 아직 남은 출시 작업
 위챗·더우인용 포장(`wx`/`tt` 폴더, 주 패키지 4MB 이하, 음악 서브패키지), 실제 광고 단위 ID, 임시 음악 교체(라이선스 확인), 软著·隐私保护指引 등록.
