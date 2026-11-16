@@ -53,6 +53,12 @@
 - 손님 중복 제거, 로비 아래 '게임 처음부터 다시 하기'
 - ⚠️ 중국 본토는 storage.googleapis.com(모델)·cdn.jsdelivr.net이 막힐 수 있음 → 출시 전 모델·wasm 파일을 자체 서버(또는 중국 CDN)로 옮겨야 함
 
+## v1.4 용량 최적화
+- AI: 엔진·모델을 나눠 받음. 거울은 얼굴+머리 모델만(약 5MB+엔진), 진단만 옷 영역 모델(16MB) 추가
+- 주소 순서: `./mp/`(자체 호스팅) → jsDelivr·구글 → npmmirror(중국 미러, 엔진만). `stylestudio/mp/`에 아래 파일을 넣으면 중국에서도 동작:
+  vision_bundle.mjs, wasm/(vision_wasm_internal.js·.wasm, nosimd 2개), selfie_multiclass_256x256.tflite, hair_segmenter.tflite, face_landmarker.task
+- 그림 1.7MB→1.0MB(배경 600×750, 손님 256, 심사위원 224, 아이템 160), 배경음악 48kbps 모노(총 약 3MB, 화면별 필요할 때만)
+
 ## 출시 전 체크리스트 (v1.2 점검 결과)
 완료: 공유 미리보기(og.jpg·설명), 아이콘·홈 화면 추가(manifest), 개인정보 처리방침(privacy.html), '내 데이터 모두 지우기',
 도전장 링크 입력 검증(XSS 차단), confirm/prompt → 자체 대화상자(카톡·인스타 앱 안 브라우저 대응)

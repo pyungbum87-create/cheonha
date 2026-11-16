@@ -604,11 +604,22 @@ const work = document.createElement("canvas"), wctx = work.getContext("2d",{will
 let seg=null, hairSeg=null, faceLm=null, toCPU=null, mkVideo=null, faceV=null, hairV=null;
 // AI 모델(약 20MB)은 진단·거울 화면에 들어갈 때만 받는다 → 게임만 하는 사람은 받지 않음
 let _models=null;
-const loadModels = ()=> _models || (_models = (async()=>{
-  if (MOCK) return;
-  $("modelStatus").textContent = "AI 모델 준비 중… (처음 한 번만, 약 20MB)";
-  const vis = await import(MP + "/vision_bundle.mjs");
-  const fs = await vis.FilesetResolver.forVisionTasks(MP + "/wasm");
+// 엔진(wasm)과 모델은 나눠서 받는다: 거울은 얼굴+머리(약 5MB)만, 진단은 옷 영역 모델(16MB)까지.
+// 주소는 앞에서부터 시도: 우리 서버(mp/ 폴더에 파일을 넣으면 중국에서도 동작) → 공식 CDN → 중국 미러
+const MP_BASES = ["./mp", MP, "https://registry.npmmirror.com/@mediapipe/tasks-vision/0.10.14/files"];
+const MODEL_SRC = {seg:["mp/selfie_multiclass_256x256.tflite", SEG_URL], hair:["mp/hair_segmenter.tflite", HAIR_URL], face:["mp/face_landmarker.task", FACE_URL]};
+const bufs = {};
+async function modelBuf(k){
+  if (bufs[k]) return bufs[k];
+  for (const u of MODEL_SRC[k]){ try{ const r=await fetch(u); if (r.ok){ const b=new Uint8Array(await r.arrayBuffer()); if (b.length>10000) return (bufs[k]=b); } }catch(e){} }
+  throw new Error("모델 다운로드 실패: "+k);
+}
+let _core=null;
+const loadCore = ()=> _core || (_core = (async()=>{
+  let vis=null, base=null;
+  for (const b of MP_BASES){ try{ vis = await import(b + "/vision_bundle.mjs"); base=b; break; }catch(e){} }
+  if (!vis) throw new Error("엔진 다운로드 실패");
+  const fs = await vis.FilesetResolver.forVisionTasks(base + "/wasm");
   const make = async (Cls, opts, only)=>{
     for (const delegate of (only?[only]:["GPU","CPU"])){
       try { return await Cls.createFromOptions(fs, {...opts, baseOptions:{...opts.baseOptions, delegate}}); }
@@ -616,23 +627,31 @@ const loadModels = ()=> _models || (_models = (async()=>{
     }
     throw new Error("모델 생성 실패");
   };
-  const o1 = {baseOptions:{modelAssetPath:SEG_URL}, runningMode:"IMAGE", outputCategoryMask:false, outputConfidenceMasks:true};
-  const o2 = {baseOptions:{modelAssetPath:HAIR_URL}, runningMode:"IMAGE", outputCategoryMask:false, outputConfidenceMasks:true};
-  const o3 = {baseOptions:{modelAssetPath:FACE_URL}, runningMode:"IMAGE", numFaces:1};
+  return {vis, make};
+})().catch(e=>{ _core=null; throw e; }));
+const OPT = async k => k==="seg" ? {baseOptions:{modelAssetBuffer:await modelBuf("seg")}, runningMode:"IMAGE", outputCategoryMask:false, outputConfidenceMasks:true}
+  : k==="hair" ? {baseOptions:{modelAssetBuffer:await modelBuf("hair")}, runningMode:"IMAGE", outputCategoryMask:false, outputConfidenceMasks:true}
+  : {baseOptions:{modelAssetBuffer:await modelBuf("face")}, runningMode:"IMAGE", numFaces:1};
+mkVideo = async()=>{
+  const {vis, make} = await loadCore();
+  if (!faceV) faceV = await make(vis.FaceLandmarker, {...await OPT("face"), runningMode:"VIDEO"});
+  if (!hairV) { try{ hairV = await make(vis.ImageSegmenter, {...await OPT("hair"), runningMode:"VIDEO"}); }catch(e){ hairV=null; } }
+};
+const loadModels = ()=> _models || (_models = (async()=>{
+  if (MOCK) return;
+  $("modelStatus").textContent = "AI 모델 준비 중… (처음 한 번만, 약 20MB)";
+  const {vis, make} = await loadCore();
+  const [o1,o2,o3] = await Promise.all([OPT("seg"), OPT("hair").catch(()=>null), OPT("face")]);
   seg = await make(vis.ImageSegmenter, o1);
   faceLm = await make(vis.FaceLandmarker, o3);
-  try { hairSeg = await make(vis.ImageSegmenter, o2); } catch(e){ hairSeg=null; }
-  mkVideo = async()=>{
-    if (!faceV) faceV = await make(vis.FaceLandmarker, {...o3, runningMode:"VIDEO"});
-    if (!hairV) { try{ hairV = await make(vis.ImageSegmenter, {...o2, runningMode:"VIDEO"}); }catch(e){ hairV=null; } }
-  };
+  try { hairSeg = o2 ? await make(vis.ImageSegmenter, o2) : null; } catch(e){ hairSeg=null; }
   toCPU = async()=>{ seg = await make(vis.ImageSegmenter,o1,"CPU"); faceLm = await make(vis.FaceLandmarker,o3,"CPU");
-                     try{ hairSeg = await make(vis.ImageSegmenter,o2,"CPU"); }catch(e){ hairSeg=null; } };
+                     try{ hairSeg = o2 ? await make(vis.ImageSegmenter,o2,"CPU") : null; }catch(e){ hairSeg=null; } };
   $("modelStatus").textContent = "✅ AI 준비 완료";
 })().catch(e=>{ console.error(e); _models=null; $("modelStatus").textContent = "⚠️ AI 모델을 불러오지 못했어요. 인터넷 연결 후 다시 시도해 주세요."; }));
 
 /* ---------- 화면 전환 ---------- */
-function show(id){ if (id==="sDiag"||id==="sMirror") loadModels(); window.SND&&SND.bgm(id==="sGame"?"salon":["sDiag","sWc","sResult","sMirror","sLook","sAvatar"].includes(id)?"diag":"salon"); for (const s of ["sStart","sDiag","sWc","sResult","sLook","sAvatar","sMirror","sGame"]) $(s).classList.toggle("hidden", s!==id); if (id==="sStart" && typeof renderHome==="function") renderHome(); scrollTo(0,0); }
+function show(id){ if (id==="sDiag") loadModels(); else if (id==="sMirror"&&!MOCK) loadCore().catch(()=>{}); window.SND&&SND.bgm(id==="sGame"?"salon":["sDiag","sWc","sResult","sMirror","sLook","sAvatar"].includes(id)?"diag":"salon"); for (const s of ["sStart","sDiag","sWc","sResult","sLook","sAvatar","sMirror","sGame"]) $(s).classList.toggle("hidden", s!==id); if (id==="sStart" && typeof renderHome==="function") renderHome(); scrollTo(0,0); }
 function busy(t){ $("busy").classList.remove("hidden"); $("busyText").innerHTML=t; $("busy").querySelector(".spin").classList.remove("hidden"); }
 function busyErr(t){ busy(t); $("busy").querySelector(".spin").classList.add("hidden");
   $("busyText").innerHTML += `<br><br><button class="btn primary" style="width:auto;padding:12px 22px;display:inline-flex" onclick="location.reload()">처음으로</button>`; }
@@ -1188,8 +1207,7 @@ async function openMirror(){
   show("sMirror");
   busy("카메라와 AI 준비 중…");
   try{
-    await loadModels();
-    if (!MOCK){ if (!mkVideo) throw new Error("모델 없음"); await mkVideo(); }
+    if (!MOCK) await mkVideo();   // 거울은 얼굴·머리 모델만 (옷 영역 모델 16MB는 안 받음)
     const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:{ideal:720}, height:{ideal:960}}, audio:false});
     const v=$("mirVideo"); v.srcObject=stream; await v.play();
     const flat=mirFlat();
