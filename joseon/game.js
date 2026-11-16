@@ -15,7 +15,7 @@ let dpr=1,view={s:1,ox:0,oy:0};
 if(API){dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((info.windowWidth||375)*dpr));c.height=Math.max(1,Math.round((info.windowHeight||667)*dpr));
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2};}
 else{c.width=W;c.height=H;}
-const BUILD='1116-2235';
+const BUILD='1116-2310';
 const FONT='"PingFang SC","Apple SD Gothic Neo","Noto Sans KR","Noto Sans SC","Microsoft YaHei",sans-serif';
 // 안전장치: 반지름이 음수면 그리기 전체가 멈추므로 0으로 보정
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
@@ -27,6 +27,8 @@ const imgs={},imgFail={};
 const IMG_LIST=['tower_archer_1','tower_archer_2','tower_archer_3','tower_militia_1','tower_militia_2','tower_militia_3','tower_rocket_1','tower_rocket_2','tower_rocket_3',
  'tower_cannon_1','tower_cannon_2','tower_cannon_3','unit_militia','hero_kimsimin','enemy_s','enemy_g','enemy_h','enemy_a','enemy_b','gate','tile_grass','tile_road','enemy_s_walk','enemy_g_walk','enemy_a_walk','enemy_b_walk','enemy_h_walk','unit_militia_walk','hero_kimsimin_idle','hero_kimsimin_walk','hero_kimsimin_atk','icon_coin','icon_heart','icon_star','icon_hero','icon_shield','icon_drum','ui_hanji','icon_drum_zh','tower_archer_1_fire','tower_archer_2_fire','tower_archer_3_fire','tower_cannon_1_fire','tower_cannon_2_fire','tower_cannon_3_fire','tower_rocket_1_fire','tower_rocket_2_fire','tower_rocket_3_fire'];
 IMG_LIST.push('atk_s','atk_g','atk_a','atk_b','atk_h','atk_m','walk_d','atk_d','walk_c','atk_c','dead_m','dead_s','dead_g','dead_a','dead_h','dead_b','icon_hist','icon_guide','icon_gear','icon_pause','icon_fast','icon_zoom','btn_frame','slot_base','walk_k','atk_k','hero_kwak_idle','hero_kwak_walk','hero_kwak_atk','icon_kwak','tower_archer_4a','tower_archer_4b','tower_militia_4a','tower_militia_4b','tower_rocket_4a','tower_rocket_4b','tower_cannon_4a','tower_cannon_4b');
+// 첫 화면에 필요 없는 그림은 res2/ 묶음으로 뒤에서 받음 (첫 다운로드 줄이기)
+const RES2=['tower_archer_4a','tower_archer_4b','tower_militia_4a','tower_militia_4b','tower_rocket_4a','tower_rocket_4b','tower_cannon_4a','tower_cannon_4b','hero_kwak_idle','hero_kwak_walk','hero_kwak_atk','icon_kwak','walk_k','atk_k','enemy_b','enemy_b_walk','atk_b','dead_b','walk_d','atk_d'];for(const n of RES2){const i=IMG_LIST.indexOf(n);if(i>=0)IMG_LIST.splice(i,1)}
 // 배경(art/)·이야기 컷(story/)은 위챗·더우인에서 분包으로 받음 (주 패키지 4MB 제한)
 const ART_LIST=['bg_1','bg_2','bg_3','bg_4','bg_sangju','bg_imjin','bg_title','bg_map'],STORY_LIST=['s13','s14','s15','s16','s17','s18','s19','s20','s21','s22','s23','s24','win','lose'].map(n=>'story_'+n);
 // 동작 그림 메타: [칸폭, 칸높이, 발 x, 발 y] — 기준 자세 높이 180px
@@ -35,9 +37,9 @@ function animB(n,fi,x,by,h,flip){const im=imgs[n],m=ANIM[n];if(!im||!m)return fa
  if(flip){g.save();g.translate(x,0);g.scale(-1,1);g.drawImage(im,fi*cw,0,cw,ch,dx,dy,w,hh);g.restore()}else g.drawImage(im,fi*cw,0,cw,ch,x+dx,dy,w,hh);return true}
 const MUST=['tower_archer_1','enemy_s','tile_grass','tile_road'];
 function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im};im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(name,tries+1),600+tries*900);else imgFail[name]=1};
- im.src=(name.startsWith('bg_')?'art/'+name+'.jpg':name.startsWith('story_')?'story/'+name.slice(6)+'.jpg':'res/'+name+'.png')+(API?'':'?v='+BUILD+(tries?'r'+tries:''))}
+ im.src=(name.startsWith('bg_')?'art/'+name+'.jpg':name.startsWith('story_')?'story/'+name.slice(6)+'.jpg':(RES2.includes(name)?'res2/':'res/')+name+'.png')+(API?'':'?v='+BUILD+(tries?'r'+tries:''))}
 IMG_LIST.forEach(n=>loadImg(n));
-const SUBS={art:()=>ART_LIST.forEach(n=>loadImg(n)),story:()=>STORY_LIST.forEach(n=>loadImg(n)),audio:()=>{Music.subOk=true}};
+const SUBS={res2:()=>RES2.forEach(n=>loadImg(n)),art:()=>ART_LIST.forEach(n=>loadImg(n)),story:()=>STORY_LIST.forEach(n=>loadImg(n)),audio:()=>{Music.subOk=true}};
 function loadSubs(){for(const k of Object.keys(SUBS)){if(typeof SUBS[k]!=='function')continue;if(API&&API.loadSubpackage){try{API.loadSubpackage({name:k,success:()=>SUBS[k](),fail:()=>{if(k!=='audio')SUBS[k]()}})}catch(e){SUBS[k]()}}else SUBS[k]()}}
 function sprite(n,x,y,s){const im=imgs[n];if(!im)return false;g.drawImage(im,x-s/2,y-s/2,s,s);return true}
 // 바닥 기준으로 그리기 (flip=true면 좌우 반전, 그림은 왼쪽을 보고 있음)
