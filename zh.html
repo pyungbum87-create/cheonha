@@ -2147,7 +2147,7 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
     else if(G.paused&&!anyOpen())showOnly('pause');},700);
   // 게임 중에 약관을 열면 판이 날아가지 않도록 새 창으로
   const lb=document.getElementById('optLegal');if(lb)lb.onclick=()=>{const u=V30ZH?'legal-zh.html':'legal.html';if(G&&!G.over){if(!window.open(u,'_blank'))flash(u);}else location.href=u;};
-  window.__verTxt='v31.2 · 1116';
+  window.__verTxt='v32 · 1117';
 })();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
@@ -2176,5 +2176,6 @@ window.__dmg=(e,v)=>dmgEnemy(e,v,false);window.__sg={get G(){return G;},newGame,
 </script>
 
 <script src="v31.js"></script>
+<script src="v32.js"></script>
 <script>if('serviceWorker' in navigator&&location.protocol.startsWith('http')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body></html>

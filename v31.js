@@ -20,7 +20,7 @@ const BAL={
   // 광고 추가 공적: 이번 판 공적의 30% (광고 없이도 약 1.3배 시간이면 같은 지점)
   adMerit:.3,
   // 시나리오 일반 난이도 마지막 라운드 적 체력 배율 (v30: 5, 7.5, 12, 7.5, 15, 5 → 자동 플레이로 첫 도전 약 70~80%)
-  scnHp:{hwanggeon:5,bandongtak:2.7,gwando:5.5,jeokbyeok:3.2,ireung:3.7,ojangwon:1.45},
+  scnHp:{hwanggeon:5,bandongtak:3.35,gwando:5.5,jeokbyeok:3.2,ireung:4.3,ojangwon:2.0},
   // 세력 보정 (시나리오에서 그 세력 장수 공격력·책략 배율). 자동 플레이로 맞춘 값
   fac:[1.1,.88,1.5,1.18],
   // 명성은 이 라운드부터
@@ -144,7 +144,7 @@ function advice(why){const g=G,n=g.slots.filter(Boolean).length,leg=g.slots.filt
   if(g.scn&&(SAVE.mu.atk|0)<10)return T('군영의 정예 훈련을 올리면 모든 장수가 강해져요.','提升军营的精锐训练，所有武将都会变强。');
   return T('인연(같이 두면 강해지는 조합)을 맞추고 세력 강화를 한 세력에 모아 보세요.','凑齐缘分组合，并把势力强化集中在一个势力。');}
 window.defeat=(o=>function(why){if(G&&!G.over){G.v31why=why;}const r=o.apply(this,arguments);try{const el=document.getElementById('rSub');
-  let a=document.getElementById('rAdvice');if(!a){a=document.createElement('p');a.id='rAdvice';a.style.cssText='margin:4px 0 0;color:#ffe08a;font-size:15px';el.after(a);}a.textContent='💡 '+advice(why||'');a.hidden=false;}catch(e){}return r;})(defeat);
+  let a=document.getElementById('rAdvice');if(!a){a=document.createElement('p');a.id='rAdvice';a.style.cssText='margin:4px 0 0;color:#ffe08a;font-size:15px;text-align:center;width:100%';el.after(a);}a.textContent='💡 '+advice(why||'');a.hidden=false;}catch(e){}return r;})(defeat);
 window.victory=(o=>function(){const a=document.getElementById('rAdvice');if(a)a.hidden=true;return o.apply(this,arguments);})(victory);
 
 /* ---------------- 2. 작은 글자 키우기 (폰에서 약 12px 이상) ---------------- */
