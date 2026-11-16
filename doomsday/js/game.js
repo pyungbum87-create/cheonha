@@ -2333,13 +2333,14 @@ window.DX = window.DX || {};
   DX.finishRun = function (double) {
     if (!G || !G.outcome) return;
     const o = G.outcome;
-    DX.save.gold += Math.round(o.gold * (o.win ? 1 : C.econ.failRate) * (double ? 2 : 1));
+    DX.save.gold += Math.round(o.gold * (o.win ? 1 : C.econ.failRate) * (double ? 2 : 1) * DX.careerPay());
+    if (!G.prologue && !o.quit) DX.careerRun(o, true);
     DX.persist();
     G = null;
     DX.state = 'lobby';
     applyTheme(DX.save.stage || 0);
   };
-  DX.quitRun = function () { if (!G) return; if (!G.prologue && G.endT < 0) DX.runLog('Q', G); G.outcome = G.outcome || { win: false, stageIdx: G.stageIdx, wave: G.waveIdx + 1, kills: G.kills, gold: Math.floor(G.gold * 0.5) }; DX.finishRun(false); };
+  DX.quitRun = function () { if (!G) return; if (!G.prologue && G.endT < 0) DX.runLog('Q', G); G.outcome = G.outcome || { win: false, stageIdx: G.stageIdx, wave: G.waveIdx + 1, kills: G.kills, gold: Math.floor(G.gold * 0.5), quit: true }; DX.finishRun(false); };
 
   /* ================= 렌더 ================= */
   const lobby = { t: 0, cars: ['gun', 'flame', 'tesla'], layout: null };

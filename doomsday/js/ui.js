@@ -188,6 +188,11 @@ window.DX = window.DX || {};
       show($('btnSupply'), DX.unlocked('extras')); show($('btnShare'), DX.unlocked('extras'));
       if ((tab === 'hero' && !DX.unlocked('hero')) || (tab === 'skin' && !DX.unlocked('skin'))) setTab('stage'); }
     $('logoSub').textContent = T(C.game.subtitle);
+    { const cr = DX.save.career || { lv: 0, xp: 0 }, need = DX.careerNeed(cr.lv), el = $('career'), a = DX.adCount(), B = C.adBonus || [], nb = B[a.got];
+      show(el, (DX.save.runs || 0) >= 1);
+      el.innerHTML = '<span>💼 ' + esc(DX.careerName(cr.lv)) + '</span><div class="bar thin"><i style="width:' + Math.min(100, cr.xp / need * 100) + '%"></i></div><b>' + (cr.lv ? L('월급 +', '工资 +') + Math.round(cr.lv * C.career.pay * 100) + '%' : cr.xp + '/' + need) + '</b>' +
+        (DX.unlocked('extras') && nb ? '<em>🌙 ' + L('야근 수당 ', '加班补贴 ') + a.n + '/' + nb.n + '</em>' : '');
+      if (DX.save.promo) { const p = DX.save.promo; DX.save.promo = null; DX.persist(); setTimeout(() => { DX.S.level && DX.S.level(); toast('🎉 ' + L('승진! ', '升职！') + DX.careerName(p.lv) + (p.gold ? ' 🪙+' + p.gold : '') + (p.gems ? ' 💎+' + p.gems : '')); }, 700); } }
     $('lobGold').textContent = DX.save.gold.toLocaleString();
     const sl = supplyLeft();
     $('supplyN').textContent = sl + '/' + C.ads.supplyPerDay;
@@ -526,6 +531,10 @@ window.DX = window.DX || {};
     $('rSub').textContent = T(o.win ? C.texts.victorySub : C.texts.defeatSub);
     $('rStats').innerHTML = (o.stars ? '<div style="grid-column:1/-1"><b class="stars">' + starHtml(o.stars) + '</b><span>' + T('클리어 · 구조 성공 · 체력 50%') + (o.citizens ? ' · 🙋 ' + o.citizens : '') + '</span></div>' : '') + [['도달 웨이브', o.wave + (o.newBest ? ' ★' : '')], ['처치', o.kills.toLocaleString()], ['최대 콤보', o.maxCombo || 0], ['레벨', o.level]].map(s => '<div><b>' + s[1] + '</b><span>' + T(s[0]) + '</span></div>').join('');
     $('rGold').textContent = o.gold.toLocaleString();
+    { const c = DX.careerRun(o, false), up = c.lv > c.from, el = $('rCareer');
+      el.innerHTML = (up ? '<div class="cr-up">🎉 ' + L('승진! ', '升职！') + esc(DX.careerName(c.lv)) + (c.gold ? ' · 🪙+' + c.gold : '') + (c.gems ? ' 💎+' + c.gems : '') + '</div>' : '') +
+        '<div class="cr-row"><span>' + esc(DX.careerName(c.lv)) + '</span><div class="bar thin"><i style="width:' + Math.min(100, c.xp / c.need * 100) + '%"></i></div><b>+' + c.gain + '</b></div>';
+      el.classList.toggle('up', up); }
     show($('btnRevive'), o.canRevive);
     show($('btnDouble'), C.ads.doubleGold);
   };
@@ -649,7 +658,7 @@ window.DX = window.DX || {};
       adObj.onClose(res => {
         const cb = adCb, fb = adFail; adCb = null; adFail = null; resumeAfterAd();
         if (res && res.isEnded === false) { toast(L('끝까지 봐야 보상을 받아요', '看完广告才能获得奖励')); if (fb) fb(); return; }
-        DX.track('ad_reward', { kind: adKind }); if (cb) cb();
+        DX.track('ad_reward', { kind: adKind }); if (cb) cb(); adBonusToast();
       });
       if (adObj.onError) adObj.onError(() => {});
     }
@@ -675,9 +684,10 @@ window.DX = window.DX || {};
     let n = C.ads.testDuration; $('adCd').textContent = n;
     const iv = setInterval(() => {
       n--; $('adCd').textContent = Math.max(0, n);
-      if (n <= 0) { clearInterval(iv); show(scr, false); resumeAfterAd(); DX.track('ad_reward', { kind }); cb(); }
+      if (n <= 0) { clearInterval(iv); show(scr, false); resumeAfterAd(); DX.track('ad_reward', { kind }); cb(); adBonusToast(); }
     }, 1000);
   };
+  function adBonusToast() { const m = DX.adWatched(); if (m) setTimeout(() => toast(m), 900); if (!$('lobby').classList.contains('hidden')) refreshLobby(); }
   function supplyLeft() { const s = DX.save.supply || (DX.save.supply = { day: '', n: 0 }); if (s.day !== DX.today()) { s.day = DX.today(); s.n = 0; } return Math.max(0, C.ads.supplyPerDay - s.n); }
 
   /* ---------------- 공유 ---------------- */

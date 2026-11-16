@@ -10,7 +10,7 @@ window.DX = window.DX || {};
   const API = DX.API, PF = DX.PLATFORM;
 
   // ★ 빌드 번호 (월일-시분). 화면 아래에 표시 → 휴대폰에서 최신판인지 확인용
-  DX.BUILD = '1117-0132';
+  DX.BUILD = '1117-0139';
 
   /* ---------------- 저장소 (위챗·더우인은 플랫폼 저장소, 웹은 localStorage) ---------------- */
   DX.store = {
@@ -22,6 +22,30 @@ window.DX = window.DX || {};
   /* ---------------- 통계 ----------------
      위챗 reportEvent / 더우인 reportAnalytics. ★ 관리자 화면에 같은 이벤트 이름을 등록해야 집계됨 (README 참고) */
   const LOG = [];
+  /* ---------------- 직급(승진) ---------------- */
+  const CR = () => DX.CONFIG.career;
+  DX.careerNeed = lv => CR().need[0] + CR().need[1] * lv;
+  DX.careerMax = () => CR().titles.length * CR().per - 1;
+  DX.careerName = lv => { const c = CR(), t = c.titles[Math.min(c.titles.length - 1, Math.floor(lv / c.per))]; return DX.L(t[0] + ' ' + (lv % c.per + 1) + '호봉', t[1] + ' ' + (lv % c.per + 1) + '级'); };
+  DX.careerPay = () => 1 + ((DX.save.career || {}).lv || 0) * CR().pay;
+  // 이번 판 점수와 그 결과(미리 보기). apply=true 면 실제로 반영하고 보상 지급
+  DX.careerRun = function (o, apply) {
+    const c = CR(), s = DX.save, cur = s.career || { lv: 0, xp: 0 };
+    const gain = Math.round((o.wave || 0) * c.xp.wave + (o.kills || 0) * c.xp.kill + (o.win ? c.xp.win : 0) + (o.stars || 0) * c.xp.star);
+    let lv = cur.lv, xp = cur.xp + gain, gold = 0, gems = 0; const from = lv;
+    while (lv < DX.careerMax() && xp >= DX.careerNeed(lv)) { xp -= DX.careerNeed(lv); lv++; gold += c.gold[0] + c.gold[1] * lv; if (lv % c.gemsEvery === 0) gems += c.gems; }
+    if (lv >= DX.careerMax()) xp = Math.min(xp, DX.careerNeed(lv));
+    if (apply) { s.career = { lv, xp }; s.gold += gold; if (gems) s.gems = (s.gems || 0) + gems; if (lv > from) { s.promo = { lv, gold, gems }; DX.track('promote', { lv }); } }
+    return { gain, from, lv, xp, need: DX.careerNeed(lv), gold, gems };
+  };
+  /* ---------------- 야근 수당 (하루 광고 수 덤) ---------------- */
+  DX.adCount = function () { const s = DX.save, a = s.adDay && s.adDay.d === DX.today() ? s.adDay : (s.adDay = { d: DX.today(), n: 0, got: 0 }); return a; };
+  DX.adWatched = function () {
+    const a = DX.adCount(), B = DX.CONFIG.adBonus || []; a.n++;
+    let msg = '';
+    while (a.got < B.length && a.n >= B[a.got].n) { const b = B[a.got++]; if (b.gold) DX.save.gold += b.gold; if (b.gems) DX.save.gems = (DX.save.gems || 0) + b.gems; msg = DX.L('🌙 야근 수당!', '🌙 加班补贴！') + (b.gold ? ' 🪙+' + b.gold : '') + (b.gems ? ' 💎+' + b.gems : ''); }
+    DX.persist(); return msg;
+  };
   // 판 기록 (이 기기, 최근 40판): 어디서 끝났는지 → 설정의 [테스트 기록]에서 보고 복사
   DX.runLog = function (how, G) {
     try { const s = DX.save; if (!s || !G) return; s.rlog = s.rlog || [];

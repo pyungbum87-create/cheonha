@@ -14,7 +14,7 @@
 @font-face { font-family: 'Black Han Sans'; src: url(assets/font/dx_ko.woff) format('woff'); font-display: swap; unicode-range: U+1100-11FF, U+3130-318F, U+AC00-D7A3; }
 @font-face { font-family: 'Black Han Sans'; src: url(assets/font/dx_zh.woff) format('woff'); font-display: swap; unicode-range: U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF; }
 </style>
-<link rel="stylesheet" href="css/style.min.css?v=1117-0132">
+<link rel="stylesheet" href="css/style.min.css?v=1117-0139">
 </head>
 <body>
 <div id="app">
@@ -75,6 +75,7 @@
       <div class="tab-body hidden" id="tab-reward"><div class="list" id="rewardList"></div></div>
       <div class="tab-body hidden" id="tab-hero"><div class="list" id="heroList"></div></div>
       <div class="tab-body hidden" id="tab-skin"><div class="list" id="skinList"></div></div>
+      <div class="career hidden" id="career"></div>
       <div class="next-goal" id="nextGoal"></div>
       <button class="btn-start" id="btnStart" data-slot="startButton"><span>출발</span></button>
       <div class="lob-foot"><div class="health" id="healthTxt"></div><div class="ver" id="verTxt"></div></div>
@@ -185,6 +186,7 @@
       <div class="r-sub" id="rSub"></div>
       <div class="r-stats" id="rStats"></div>
       <div class="r-dmg" id="rDmg"></div>
+      <div class="r-career" id="rCareer"></div>
       <div class="r-reward"><span class="cur-ico coin" data-slot="coin"></span><b id="rGold">0</b></div>
       <button class="btn gold ad hidden" id="btnRevive">광고 보고 부활</button>
       <button class="btn ad" id="btnDouble">광고 보고 골드 2배</button>
@@ -265,7 +267,7 @@
 </div>
 
 <!-- build:js 배포판 = js/all.min.js 한 파일 (node _dev/build.js). 주소 뒤 ?src=1 이면 원본 파일들 -->
-<script>(function(){var v='1117-0132',L=/[?&]src=1/.test(location.search)?["js/config.js","assets/webp.js","js/i18n.js","js/platform.js","js/engine.js","js/models.js","js/sprites.js","js/fight.js","js/mini.js","js/game.js","js/ui.js"]:['js/all.min.js'];for(var i=0;i<L.length;i++)document.write('<script src="'+L[i]+'?v='+v+'"><\/script>');})();</script>
+<script>(function(){var v='1117-0139',L=/[?&]src=1/.test(location.search)?["js/config.js","assets/webp.js","js/i18n.js","js/platform.js","js/engine.js","js/models.js","js/sprites.js","js/fight.js","js/mini.js","js/game.js","js/ui.js"]:['js/all.min.js'];for(var i=0;i<L.length;i++)document.write('<script src="'+L[i]+'?v='+v+'"><\/script>');})();</script>
 <!-- /build:js -->
 </body>
 </html>

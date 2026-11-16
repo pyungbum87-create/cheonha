@@ -477,3 +477,11 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .act-ch small { display: block; font-size: 10px; color: #cfd6e2; }
 .act-ch.now { border-color: #ffd23d; animation: skPulse .6s infinite alternate; }
 .act-ch.got { opacity: .6; }
+
+/* 직급(승진) */
+.career { margin-top: 8px; padding: 6px 10px; border-radius: 10px; background: rgba(0,0,0,.4); display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; color: #fff; flex-wrap: wrap; }
+.career .bar { flex: 1; min-width: 60px; } .career b { color: var(--gold); } .career em { flex-basis: 100%; font-style: normal; font-size: 11px; color: #9fd0ff; text-align: center; }
+.r-career { margin-bottom: 10px; } .r-career .cr-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; }
+.r-career .cr-row .bar { flex: 1; } .r-career .cr-row b { color: var(--gold); }
+.r-career .cr-up { margin-bottom: 6px; padding: 6px; border-radius: 10px; background: linear-gradient(90deg, #ffb13d, #ff7a2a); color: #201000; font-weight: 900; font-size: 15px; animation: crPop .5s ease-out; }
+@keyframes crPop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
