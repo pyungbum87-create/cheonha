@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>DEAD ROUTE</title>
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=1.2.3">
-<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png?v=1.2.3">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.2.3">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=1.2.3">
-<link rel="manifest" href="manifest.webmanifest?v=1.2.3">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=1.2.4">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png?v=1.2.4">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.2.4">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=1.2.4">
+<link rel="manifest" href="manifest.webmanifest?v=1.2.4">
 <meta name="theme-color" content="#05070c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="DEAD ROUTE">
@@ -153,7 +153,7 @@ input[type=range]{accent-color:#ffd166}
   <div id="loadWrap" style="width:220px;margin-top:22px"><div style="height:6px;border-radius:3px;background:#1d2633;overflow:hidden"><div id="loadBar" style="height:100%;width:0;background:linear-gradient(90deg,#3ef2d0,#5dff9a);transition:width .2s"></div></div><div id="loadTip" style="margin-top:8px;font-size:12px;color:#8b97a8">놈들은 소리를 쫓는다.</div></div>
   <button class="cta" id="titleBtn" disabled style="display:none">시작</button>
   <div style="display:flex;gap:8px;justify-content:center"><button class="ghostBtn setBtn" style="min-width:0;padding:0 18px">설정</button><button class="ghostBtn" id="resetBtn" style="min-width:0;padding:0 18px;display:none">진행 초기화</button></div>
-  <div id="verTxt" style="margin-top:18px;font-size:11px;color:#5a6676">v1.2.3</div>
+  <div id="verTxt" style="margin-top:18px;font-size:11px;color:#5a6676">v1.2.4</div>
 </div>
 <div class="screen" id="introScr" style="padding:0;background:#000">
   <img id="introImg" data-src="img/zone1.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.4) saturate(.8)">
@@ -272,7 +272,15 @@ const errBox=$('err');
 addEventListener('error',e=>{errBox.style.display='block';errBox.textContent+='ERR '+e.message+' @'+(e.lineno||'')+'\n';});
 const Q=location.search, AUTO=/autotest/.test(Q);
 // ---- asset versioning (beats phone caches) + image loading with retries ----
-const VER='1.2.3', AURL=u=>u+'?v='+VER, IMGS=[];
+const VER='1.2.4', IMGS=[];
+// WebP when the device can decode it (maps ~35% smaller), JPEG otherwise
+let WEBP=false, WEBP_DONE=false; const WEBP_Q=[];
+function webpReady(cb){ if(WEBP_DONE) cb(); else WEBP_Q.push(cb); }
+{ const t=new Image(), fin=ok=>{ if(WEBP_DONE) return; WEBP=ok; WEBP_DONE=true; WEBP_Q.splice(0).forEach(f=>f()); };
+  if(/nowebp/.test(Q)) fin(false);
+  t.onload=()=>fin(t.width===1); t.onerror=()=>fin(false); setTimeout(()=>fin(false),400);
+  t.src='data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA'; }
+const AURL=u=>(WEBP&&/\.jpg$/.test(u)?u.slice(0,-4)+'.webp':u)+'?v='+VER;
 function IMG(url,onload){ const im=new Image(); let n=0; im.onerror=()=>{ if(++n<=8) setTimeout(()=>{ im.src=AURL(url)+'&r='+n+'_'+Date.now(); },Math.min(4000,500*n)); else im.failed=true; }; if(onload) im.onload=onload; im.src=AURL(url); IMGS.push(im); return im; }
 if(!AUTO&&location.protocol.startsWith('http')) fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{ if(j&&j.v&&j.v!==VER){ const k='dr_rl_'+j.v; try{ if(!sessionStorage.getItem(k)){ sessionStorage.setItem(k,'1'); location.replace(location.pathname+'?v='+j.v); } }catch(e){} } }).catch(()=>{});
 
@@ -478,8 +486,8 @@ function moveCircle(o,dx,dy,r,bodies){
 
 // ================= paint the level once =================
 let MAPIMG=new Image(); const MAPS={}; let painted=-1;
-MAPS[DAY0]=IMG(ZONES[DAY0].img); MAPS[0]=IMG(ZONES[0].img); IMG('img/shelter.jpg');
-function ensureZone(i,cb){ loadZone(i); let im=MAPS[i]; if(!im){im=IMG(ZONES[i].img); MAPS[i]=im;}
+webpReady(()=>{ if(!MAPS[DAY0]) MAPS[DAY0]=IMG(ZONES[DAY0].img); if(!MAPS[0]) MAPS[0]=IMG(ZONES[0].img); IMG('img/shelter.jpg'); });
+function ensureZone(i,cb){ if(!WEBP_DONE) return webpReady(()=>ensureZone(i,cb)); loadZone(i); let im=MAPS[i]; if(!im){im=IMG(ZONES[i].img); MAPS[i]=im;}
   const go=()=>{ MAPIMG=im; if(painted!==i){paintLevel(); painted=i;} cb&&cb(); };
   if(im.complete&&im.naturalWidth) go(); else { im.onload=go; } }
 const lvl=document.createElement('canvas'); const L=lvl.getContext('2d');
@@ -612,7 +620,7 @@ const SAMPLE={
   radio:()=>play('radio',.45),
   door:()=>play('door',.9),
   siren:()=>play('siren',.9),
-  alarm:v=>{ const t=AU.c.currentTime; if(AU.alarmUntil>t) return true; const s=play('caralarm',.8*v); if(s) AU.alarmUntil=t+6.8; return !!s; },
+  alarm:v=>{ const t=AU.c.currentTime; if(AU.alarmUntil>t) return true; const s=play('caralarm',.8*v); if(s) AU.alarmUntil=t+5.9; return !!s; },
 };
 ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,auInit,{capture:true,passive:true}));
 function env(g,t,a,peak,dur){ g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(Math.max(peak,.0002),t+a); g.gain.exponentialRampToValueAtTime(.0001,t+Math.max(dur,a+.01)); }
@@ -1426,7 +1434,7 @@ function loop(now){
 }
 layout();
 { const mz=Q.match(/[?&]z=(\d)/); if(AUTO&&mz) SEL=+mz[1]-1; }
-document.querySelectorAll('img[data-src]').forEach(e=>e.src=AURL(e.dataset.src));
+webpReady(()=>document.querySelectorAll('img[data-src]').forEach(e=>e.src=AURL(e.dataset.src)));
 const TIPS=['놈들은 소리를 쫓는다.','멈추면 뒤에서 떼가 따라잡는다.','병을 던지면 깨지는 소리로 놈들을 끌어낸다.','주황 원이 보이면 회피!','구한 생존자는 동료가 되어 함께 달린다.'];
 { const t0=Date.now(); let ti=0;
   const tick=setInterval(()=>{ const L=IMGS.slice(), ok=L.filter(i=>i.complete&&i.naturalWidth).length; $('loadBar').style.width=Math.round(100*ok/Math.max(1,L.length))+'%';
