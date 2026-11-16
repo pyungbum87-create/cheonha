@@ -16,7 +16,7 @@ if(API){dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((info.w
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2};}
 else{c.width=W;c.height=H;}
 function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('canvas');cv.width=w;cv.height=h;return cv}
-const BUILD='1115-2030';
+const BUILD='1116-2259';
 // 안전장치: 반지름 음수·NaN이면 그리기 전체가 멈추는 문제 방지
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
  if(oa)P.arc=function(x,y,r,a0,a1,ccw){return oa.call(this,x,y,r>0&&isFinite(r)?r:0,a0,a1,ccw)};
@@ -44,6 +44,7 @@ const darkCv=mkCanvas(W,1112),dg=darkCv.getContext('2d');
 
 // ================================================================ 음악·효과음 (DEAD RUSH Music/AudioFx 이식)
 const SFX=['beam','hit','ting','place','merge','card','bell','boom','hurt','ui','warn','win','wave'];
+const SFX_EXT={bell:'mp3',boom:'mp3',warn:'mp3',win:'mp3',wave:'mp3'},sfxFile=k=>'res/sfx_'+k+'.'+(SFX_EXT[k]||'wav');
 const Music={el:null,cur:'',on:true,vol:.5,src:null,gain:null,bufs:{},nat:null,
  play(key){if(this.cur===key)return;this.cur=key;if(!this.on||this.hidden)return;this._start(key)},
  _start(key){const loop=key!=='win'&&key!=='lose';
@@ -59,10 +60,10 @@ const Music={el:null,cur:'',on:true,vol:.5,src:null,gain:null,bufs:{},nat:null,
  kick(){if(this.on&&this.cur&&!this.src&&!(this.el&&!this.el.paused)&&!this.nat){const k=this.cur;this.cur='';this.play(k)}}};
 const AudioFx={ctx:null,enabled:true,buf:{},last:{},native:{},
  init(){if(!this.enabled||this.ctx||API)return;try{const A=typeof AudioContext!=='undefined'?AudioContext:typeof webkitAudioContext!=='undefined'?webkitAudioContext:null;if(A){this.ctx=new A();this.master=this.ctx.createGain();this.master.gain.value=.8;this.master.connect(this.ctx.destination);this.load()}}catch(e){}},
- load(){if(typeof fetch!=='function'||typeof location==='undefined'||location.protocol==='file:')return;for(const k of SFX){fetch('res/sfx_'+k+'.wav?v='+BUILD).then(r=>r.arrayBuffer()).then(b=>this.ctx.decodeAudioData(b,d=>{this.buf[k]=d},()=>{})).catch(()=>{})}},
+ load(){if(typeof fetch!=='function'||typeof location==='undefined'||location.protocol==='file:')return;for(const k of SFX){fetch(sfxFile(k)+'?v='+BUILD).then(r=>r.arrayBuffer()).then(b=>this.ctx.decodeAudioData(b,d=>{this.buf[k]=d},()=>{})).catch(()=>{})}},
  beep(freq=440,duration=.07,kind='square',vol=.025,fall=0){if(!this.ctx)return;try{const t=this.ctx.currentTime,o=this.ctx.createOscillator(),v=this.ctx.createGain();o.type=kind;o.frequency.setValueAtTime(freq,t);if(fall)o.frequency.exponentialRampToValueAtTime(Math.max(40,freq*fall),t+duration);v.gain.setValueAtTime(vol,t);v.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(v);v.connect(this.master);o.start(t);o.stop(t+duration+.01)}catch(e){}},
  cue(key,vol=1,gap=.05,rate=1){if(!this.enabled)return;const now=Date.now()/1000;if(this.last[key]&&now-this.last[key]<gap)return;this.last[key]=now;
-  if(API&&typeof API.createInnerAudioContext==='function'){try{let pool=this.native[key];if(!pool){pool={i:0,a:[0,1].map(()=>{const a=API.createInnerAudioContext();a.autoplay=false;a.src='res/sfx_'+key+'.wav';return a})};this.native[key]=pool}const a=pool.a[pool.i++%2];a.volume=Math.min(1,vol);a.stop();a.play()}catch(e){}return}
+  if(API&&typeof API.createInnerAudioContext==='function'){try{let pool=this.native[key];if(!pool){pool={i:0,a:[0,1].map(()=>{const a=API.createInnerAudioContext();a.autoplay=false;a.src=sfxFile(key);return a})};this.native[key]=pool}const a=pool.a[pool.i++%2];a.volume=Math.min(1,vol);a.stop();a.play()}catch(e){}return}
   if(!this.ctx)return;const b=this.buf[key];
   if(b){try{const s=this.ctx.createBufferSource(),v=this.ctx.createGain();s.buffer=b;s.playbackRate.value=rate*(.95+Math.random()*.1);v.gain.value=vol;s.connect(v);v.connect(this.master);s.start()}catch(e){}return}
   switch(key){case 'hit':this.beep(900,.05,'triangle',.015,.5);break;case 'ting':this.beep(1568*rate,.15,'sine',.02,1);break;case 'boom':this.beep(90,.3,'sawtooth',.05,.3);break;case 'bell':this.beep(392,.6,'sine',.04,1);break;case 'hurt':this.beep(140,.17,'square',.03,.4);break;case 'warn':this.beep(660,.3,'triangle',.03,1);break;case 'win':this.beep(620,.3,'triangle',.035,1.4);break;default:this.beep(520,.06,'sine',.02,1.1)}}};
@@ -454,7 +455,7 @@ function drawBattle(){const sh=shakeT>0?shakeT*12:0;if(shakeT>0)shakeT-=1/60;g.s
  if(!img('bg_sky',0,0,W,1112)){g.fillStyle='#1C2B45';g.fillRect(0,0,W,1112)}
  // 시간대 색감
  const ph=run.phase;g.fillStyle=['rgba(120,60,40,.10)','rgba(8,12,30,.18)','rgba(30,10,50,.22)','rgba(40,10,40,.25)'][ph];g.fillRect(0,0,W,1112);
- img('bg_pier',0,-230,W,1334);g.fillStyle='#0E1424';g.fillRect(0,1104,W,230);
+ img('bg_pier',0,428,W,676);g.fillStyle='#0E1424';g.fillRect(0,1104,W,230);
  // 위험 표식
  if(run.tentacle){const s=SLOTS[run.tentacle.slot],k=run.tentacle.t/2.6;g.save();g.globalAlpha=.35+.35*Math.sin(frame*16);g.fillStyle='#e4572e';g.beginPath();g.ellipse(s.x,s.y-40,70,90,0,0,TAU);g.fill();g.restore();g.strokeStyle='#FFE8C2';g.lineWidth=6;g.beginPath();g.arc(s.x,s.y-60,50,-PI/2,-PI/2+TAU*Math.min(1,run.tentacle.c/1.5));g.stroke()}
  // 자리·수호자
