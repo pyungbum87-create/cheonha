@@ -2,14 +2,12 @@
 const APP={hidden:false,t:0,toast:null,errs:0,lastErr:'',playSec:0,loadT:0,bot:false,resetArm:0};
 let scr='load',RES=null;
 const SN=[['모래사장','沙滩'],['갯바위','礁石滩'],['산호초','珊瑚礁'],['해적섬','海盗岛'],['용궁 입구','龙宫门口']];
-const HROLE={tt:['만두 폭발 · 가까운 적 담당','包子爆破 · 负责近处'],didi:['물방울 연사 · 적 사이를 튐','水珠连射 · 在敌人间弹跳'],peng:['불꽃 광역 · 소라게에 강함','烟花范围 · 克制寄居蟹'],
-  shan:['빛줄기 관통 · 한 줄을 모두 맞힘','光束穿透 · 一整列都命中'],dun:['강타 · 정예와 보스 사냥','重击 · 专打精英和 BOSS'],zhuo:['편지로 느리게 · 동전 보너스','信件减速 · 金币加成']};
 function toast(s){APP.toast={s,t:2.2};}
 function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 
 /* ---------- 매일 보상 ---------- */
-const MIS={run:[2,60,['출전 2번','出战 2 次']],kill:[150,80,['괴물 150마리 돌려보내기','赶走 150 只海怪']],ult:[6,60,['필살기 6번 쓰기','释放必杀 6 次']],card:[12,60,['카드 12장 고르기','选择 12 张卡牌']],
-  shell:[8,60,['조개 8개 줍기','捡 8 个贝壳']],win:[1,100,['한 판 클리어','通关 1 次']],up:[1,60,['영웅 1번 키우기','升级伙伴 1 次']]};
+const MIS={run:[2,60,['출전 2번','出战 2 次']],kill:[120,80,['괴물 120마리 돌려보내기','赶走 120 只海怪']],skill:[5,60,['큰 파도·야자 폭탄 5번 쓰기','使用大浪或椰子炸弹 5 次']],build:[12,60,['타워 12개 짓기','建造 12 座塔']],
+  win:[1,100,['한 판 클리어','通关 1 次']],up:[1,60,['타워 숙련 1번 올리기','提升 1 次塔熟练度']]};
 const CHEST=[[3,150],[6,250],[9,400],[12,600],[15,1000]],LOGIN=[50,80,120,160,200,260,500],BOX_MAX=3;
 function dailyInit(){const t=today();if(S.day===t&&S.mis.length===3)return;S.day=t;let seed=0;for(const ch of t)seed=(seed*31+ch.charCodeAt(0))>>>0;
   const r=makeRng(seed),ids=Object.keys(MIS),pick=[];while(pick.length<3)pick.push({id:ids.splice(Math.floor(r()*ids.length),1)[0],p:0,got:0});S.mis=pick;S.box={day:t,n:0};persist();}
@@ -21,13 +19,13 @@ const loginReady=()=>S.login.last!==today();
 const chestReady=()=>S.chest<CHEST.length&&starSum()>=CHEST[S.chest][0];
 function rewardBadge(){return loginReady()||chestReady()||idleAmt()>=idleRate()||S.mis.some(m=>!m.got&&m.p>=MIS[m.id][0]);}
 function gain(n,why){S.coins+=n;sfx('reward');toast('+'+n+L(' 동전',' 金币'));track('reward',{why,n});persist();}
-const avgLv=()=>{let s=0;for(const id of S.team)s+=S.lv[id]||1;return Math.round(s/S.team.length);};
+const avgLv=()=>{const ids=TOWER_IDS.filter(id=>S.lv[id]);let s=0;for(const id of ids)s+=S.lv[id];return Math.round(s/ids.length);};
 
 function goHome(){scr='home';run=null;B=null;paused=false;wantMusic('bgm-menu');dailyInit();S.sel=Math.max(0,Math.min(S.sel,S.cleared,STAGES.length-1));persist();}
 function endBattle(){
   const won=run.won,si=run.si,unlock=[];let first=0;
   if(won){S.stat.wins++;mission('win',1);if(S.stars[si]===0)first=REWARD.first[si];S.stars[si]=Math.max(S.stars[si],run.stars);if(S.cleared<si+1)S.cleared=si+1;
-    for(const id in UNLOCK)if(S.cleared>=UNLOCK[id]&&!S.lv[id]){S.lv[id]=1;unlock.push(id);if(S.team.length<5)S.team.push(id);}}
+    for(const id in UNLOCK)if(S.cleared>=UNLOCK[id]&&!S.lv[id]){S.lv[id]=1;unlock.push(id);}}
   mission('kill',run.kills);S.stat.kills+=run.kills;S.coins+=run.reward+first;
   RES={won,si,stars:run.stars,reward:run.reward,first,unlock,doubled:false,t:0,wave:run.wave,waves:run.S.waves};
   track(won?'stage_clear':'stage_fail',{stage:si+1,wave:run.wave,stars:run.stars,sec:Math.round(run.t/60)});scr='result';wantMusic('bgm-menu');persist();
@@ -49,48 +47,44 @@ function drawLoad(){
 }
 
 function drawHome(){
-  backdrop(.3);const t=APP.t,si=S.sel,st=STAGES[si];
+  backdrop(.42);const t=APP.t,si=S.sel,st=STAGES[si],own=TOWER_IDS.filter(id=>S.lv[id]);
   panel(20,30,210,70,CREAM,22);icoCoin(54,65,19);txtFit(S.coins,132,66,30,130,INK);
   btn(646,26,84,78,'',()=>{sfx('btn');scr='settings';},{col:CREAM,dk:'#d9c8a8',icon:(x,y)=>{g.fillStyle=INK;for(let i=-1;i<2;i++){rr(x-20,y+i*15-4,40,8,4);g.fill();}}});
   txt(L('퇀퇀 해변 수비대','团团守海滩'),375,196,LANG==='zh'?92:74,'#fff','center',INK,20);
-  txt(L('장난꾸러기 바다 괴물로부터 해변 마을을 지켜요','赶走捣蛋的小海怪，守护海滩小镇'),375,268,25,INK,'center','#fff',6);
-  S.team.forEach((id,i)=>{const n=S.team.length,x=375+(i-(n-1)/2)*128,b=Math.sin(t*3+i)*.03;drawImg(id==='tt'?'tt_cheer':HERO_IMG[id],x,520,id==='tt'?190:160,{sx:1+b,sy:1-b});});
-  // 장 고르기
+  txt(L('타워를 세워 바다 괴물로부터 해변 마을을 지켜요','建造防御塔，赶走小海怪，守护海滩小镇'),375,268,25,INK,'center','#fff',6);
+  own.forEach((id,i)=>{const n=own.length,x=375+(i-(n-1)/2)*(n>4?112:128),b=Math.sin(t*3+i)*.03;drawImg(id==='tt'?'tt_cheer':HERO_IMG[id],x,520,id==='tt'?180:150,{sx:1+b,sy:1-b});});
   panel(60,560,630,330,CREAM,36);
   txt(L('제 ','第 ')+(si+1)+L(' 장 · ',' 关 · ')+LL(SN[si]),375,612,40,INK);
   for(let i=0;i<3;i++)icoStar(315+i*60,672,24,i<S.stars[si]);
-  const ks=['crab'].concat(Object.keys(st.mix)).concat([st.boss]);ks.forEach((k,i)=>{const x=375+(i-(ks.length-1)/2)*92,boss=i===ks.length-1;drawSpr(k,x,762,boss?112:80);});
-  const low=avgLv()<st.rec;txt(L('권장 영웅 Lv.','推荐伙伴 Lv.')+st.rec+L('  ·  내 평균 Lv.','  ·  我的平均 Lv.')+avgLv(),375,826,24,low?RED:'#3a9478');
-  txt(L('추천: ','推荐：')+st.tip.map(id=>LL(HN[id])).join(' · ')+L('  |  파도 ','  |  共 ')+st.waves+L('번',' 波'),375,860,21,'#a07a55');
+  const ks=st.kinds.concat([st.boss]);ks.forEach((k,i)=>{const x=375+(i-(ks.length-1)/2)*Math.min(92,560/ks.length),boss=i===ks.length-1;drawSpr(k,x,762,boss?108:Math.min(78,480/ks.length));});
+  const low=avgLv()<st.rec;txt(L('권장 타워 숙련 Lv.','推荐熟练度 Lv.')+st.rec+L('  ·  내 평균 Lv.','  ·  我的平均 Lv.')+avgLv(),375,826,24,low?RED:'#3a9478');
+  txt(L('파도 ','共 ')+st.waves+L('번  ·  길 ',' 波  ·  路线 ')+st.paths.length+L('갈래  ·  타워 자리 ',' 条  ·  塔位 ')+st.spots,375,860,21,'#a07a55');
   if(si>0)btn(20,690,70,90,'‹',()=>{sfx('btn');S.sel--;},{col:CREAM,dk:'#d9c8a8',tc:INK,sz:56});
   if(si<Math.min(S.cleared,STAGES.length-1))btn(660,690,70,90,'›',()=>{sfx('btn');S.sel++;},{col:CREAM,dk:'#d9c8a8',tc:INK,sz:56});
   const pu=1+Math.sin(t*4)*.015;g.save();g.translate(375,975);g.scale(pu,pu);g.translate(-375,-975);btn(165,918,420,116,L('출전!','出发！'),()=>{sfx('btn');startBattle(S.sel);},{sz:56});g.restore();
-  btn(50,1082,310,104,L('영웅','伙伴'),()=>{sfx('btn');scr='heroes';tipOnce('heroes',L('동전으로 영웅을 키우면 더 어려운 장도 깰 수 있어요','用金币升级伙伴，就能挑战更难的关卡'));},{col:MINT,dk:MINT_D,sz:40,dot:HERO_IDS.some(id=>S.lv[id]&&S.lv[id]<MAX_LV&&S.coins>=lvCost(S.lv[id]))});
+  btn(50,1082,310,104,L('타워','防御塔'),()=>{sfx('btn');scr='heroes';tipOnce('heroes',L('동전으로 타워 숙련을 올리면 모든 판에서 더 강해져요','用金币提升熟练度，每一关都会更强'));},{col:MINT,dk:MINT_D,sz:40,dot:TOWER_IDS.some(id=>S.lv[id]&&S.lv[id]<MAX_LV&&S.coins>=lvCost(S.lv[id]))});
   btn(390,1082,310,104,L('보상','奖励'),()=>{sfx('btn');scr='reward';},{col:YEL,dk:YEL_D,tc:INK,sz:40,dot:rewardBadge()});
   if(APP.playSec>1800){panel(150,300,450,74,'#fffdf3',30);txt(L('오래 했어요. 잠깐 쉬어 가요!','玩了很久啦，休息一下吧！'),375,338,26,INK);}
   if(LANG==='zh'){txt('抵制不良游戏，拒绝盗版游戏。注意自我保护，谨防受骗上当。',375,1232,17,'#7a5a3c');txt('适度游戏益脑，沉迷游戏伤身。合理安排时间，享受健康生活。',375,1258,17,'#7a5a3c');}
-  txt('v'+BUILD+(IMG_FAIL&&Object.keys(IMG_FAIL).length?L(' · 그림 일부 실패: 새로고침',' · 部分图片失败：请刷新'):''),375,1306,17,'#a07a55');
+  txt('v'+BUILD+(Object.keys(IMG_FAIL).length?L(' · 그림 일부 실패: 새로고침',' · 部分图片失败：请刷新'):''),375,1306,17,'#a07a55');
 }
 function tipOnce(key,s){if(!S.tips[key]){S.tips[key]=1;toast(s);APP.toast.t=4;persist();}}
 
 function drawHeroScr(){
-  backdrop(.6);topBar(L('영웅','伙伴'),1);
-  HERO_IDS.forEach((id,i)=>{const y=128+i*172,own=!!S.lv[id],lv=S.lv[id]||0,inTeam=S.team.includes(id);
+  backdrop(.62);topBar(L('타워','防御塔'),1);
+  TOWER_IDS.forEach((id,i)=>{const y=128+i*172,own=!!S.lv[id],lv=S.lv[id]||0,b=TOWERS[id];
     panel(24,y,702,156,own?CREAM:'#e9e2d6',28);g.fillStyle=own?HCOL[id]:'#d6cec0';rr(36,y+12,132,132,22);g.fill();drawImg(HERO_IMG[id],102,y+140,118,{a:own?1:.45});
-    txt(LL(HN[id]),186,y+40,34,own?INK:'#8f8475','left');
-    if(own){font(34);txt('Lv.'+lv,200+g.measureText(LL(HN[id])).width,y+42,26,RED_D,'left');}
-    txtFit(LL(HROLE[id]),186,y+80,21,own?326:500,'#8a6a4a','left');
+    txt(LL(HN[id]),186,y+38,34,own?INK:'#8f8475','left');
+    if(own){font(34);txt('Lv.'+lv,200+g.measureText(LL(HN[id])).width,y+40,26,RED_D,'left');}
+    txtFit(LL(TROLE[id]),186,y+80,21,own?326:500,'#8a6a4a','left');
     if(!own){txt(L('제 ','通关第 ')+UNLOCK[id]+L(' 장을 깨면 합류',' 关后加入'),186,y+122,22,'#8f8475','left');return;}
-    txt(L('위력 ','威力 ')+Math.round(heroMul(lv)*100)+'%',186,y+122,21,'#3a9478','left');
-    btn(404,y+98,104,46,inTeam?L('출전 중','出战中'):L('쉬는 중','休息'),()=>{sfx('btn');if(inTeam){if(S.team.length>1)S.team=S.team.filter(q=>q!==id);else toast(L('한 명은 꼭 있어야 해요','至少要有一位伙伴'));}else if(S.team.length<5)S.team.push(id);else toast(L('5명까지 데려갈 수 있어요','最多带 5 位伙伴'));persist();},{col:inTeam?MINT:GREY,dk:inTeam?MINT_D:GREY_D,sz:20,r:18});
+    txt(L('위력 ','威力 ')+Math.round(heroMul(lv)*100)+'%  ·  '+L('짓는 값 ','造价 ')+b.cost,186,y+122,21,'#3a9478','left');
     if(lv>=MAX_LV)txt('MAX',620,y+78,30,'#d99a1e');
-    else{const c=lvCost(lv);btn(524,y+34,186,96,'',()=>{if(S.coins<c){sfx('nope');toast(L('동전이 모자라요','金币不够'));return;}S.coins-=c;S.lv[id]=lv+1;mission('up',1);sfx('pick');track('hero_up',{id,lv:lv+1});persist();},{col:S.coins>=c?RED:GREY,dk:S.coins>=c?RED_D:GREY_D,icon:(x,yy)=>{txt(L('키우기','升级'),x,yy-18,26,'#fff','center',INK);icoCoin(x-36,yy+20,13);txt(c,x+12,yy+21,24,'#fff','center',INK,5);}});}
+    else{const c=lvCost(lv);btn(524,y+30,186,96,'',()=>{if(S.coins<c){sfx('nope');toast(L('동전이 모자라요','金币不够'));return;}S.coins-=c;S.lv[id]=lv+1;mission('up',1);sfx('pick');track('hero_up',{id,lv:lv+1});persist();},{col:S.coins>=c?RED:GREY,dk:S.coins>=c?RED_D:GREY_D,icon:(x,yy)=>{txt(L('숙련 올리기','提升熟练'),x,yy-18,24,'#fff','center',INK);icoCoin(x-36,yy+20,13);txt(c,x+12,yy+21,24,'#fff','center',INK,5);}});}
   });
-  txt(L('인연 보너스: 함께 데려가면 붙어요','羁绊加成：一起出战就生效'),375,1180,24,INK);
-  txt(L('퇀퇀+둥둥 방파제 +20','团团+墩墩 沙堡 +20')+'   ·   '+L('방울이+반짝 필살기 +15%','滴滴+闪闪 必杀 +15%'),375,1218,21,'#7a5a3c');
-  txt(L('펑펑+쫑쫑 동전 +20%','砰砰+啄啄 金币 +20%')+'   ·   '+L('출전 ','出战 ')+S.team.length+' / 5',375,1250,21,'#7a5a3c');
+  txt(L('숙련은 모든 판에서 그 타워의 위력을 올려요 (단계마다 +7%)','熟练度会提升该塔在每一关的威力（每级 +7%）'),375,1190,22,INK);
+  txt(L('판 안의 강화(1~3단계·진화)는 그 판의 골드로 해요','关卡内的升级与进阶使用当局金币'),375,1226,21,'#7a5a3c');
 }
-
 function drawReward(){
   backdrop(.6);topBar(L('보상','奖励'),1);const A={col:YEL,dk:YEL_D,tc:INK,sz:24};
   // 찜통 수익
@@ -144,8 +138,8 @@ function drawResult(){
   txt(r.won?L('해변을 지켰어요!','守住海滩啦！'):L('아쉬워요!','差一点点！'),375,470,56,r.won?RED:INK);
   txt(L('제 ','第 ')+(r.si+1)+L(' 장 · ',' 关 · ')+LL(SN[r.si])+(r.won?'':'  ·  '+L('파도 ','到第 ')+r.wave+' / '+r.waves+L('',' 波')),375,528,26,'#8a6a4a');
   for(let i=0;i<3;i++){const on=i<r.stars,pop=on?Math.min(1,Math.max(0,(r.t-.3-i*.25)*5)):1;icoStar(275+i*100,608,(i===1?46:40)*(on?(.6+.4*pop):1),on&&pop>0);}
-  if(r.won&&r.stars<3)txt(L('방파제를 한 번도 안 맞으면 별 3개','沙堡一次都不被碰到就是 3 星'),375,672,21,'#a07a55');
-  if(!r.won)txt(L('영웅을 키우거나 추천 영웅을 데려가 봐요','试试升级伙伴，或带上推荐伙伴'),375,672,23,'#a07a55');
+  if(r.won&&r.stars<3)txt(L('목숨 18 이상으로 막으면 별 3개','剩余生命 18 以上就是 3 星'),375,672,21,'#a07a55');
+  if(!r.won)txt(L('타워 숙련을 올리거나, 길이 꺾이는 곳에 지어 봐요','试试提升熟练度，或把塔建在拐弯处'),375,672,23,'#a07a55');
   icoCoin(270,740,30);txt('+'+(r.reward*(r.doubled?2:1)+r.first),400,742,54,INK);
   if(r.first)txt(L('첫 클리어 보너스 +','首次通关奖励 +')+r.first,375,796,22,'#3a9478');
   let y=822;
@@ -154,7 +148,7 @@ function drawResult(){
   if(r.won){btn(100,1012,270,76,L('한 번 더','再来一次'),()=>{sfx('btn');startBattle(r.si);},{col:MINT,dk:MINT_D,sz:28});
     btn(390,1012,260,76,r.si<STAGES.length-1?L('다음 장으로','下一关'):L('홈으로','回主页'),()=>{sfx('btn');if(r.si<STAGES.length-1)S.sel=r.si+1;goHome();},{sz:28});
     if(API||(typeof navigator!=='undefined'&&navigator.share))btn(610,226,64,60,'',()=>shareGame(),{col:CREAM,dk:'#d9c8a8',icon:(x,yy)=>{g.strokeStyle=INK;g.lineWidth=5;g.lineCap='round';g.beginPath();g.moveTo(x,yy+12);g.lineTo(x,yy-12);g.moveTo(x-10,yy-3);g.lineTo(x,yy-13);g.lineTo(x+10,yy-3);g.stroke();}});}
-  else{btn(100,1012,270,76,L('영웅 키우기','升级伙伴'),()=>{sfx('btn');goHome();scr='heroes';},{col:MINT,dk:MINT_D,sz:28});btn(390,1012,260,76,L('다시 도전','再挑战'),()=>{sfx('btn');startBattle(r.si);},{sz:28});}
+  else{btn(100,1012,270,76,L('타워 숙련 올리기','提升熟练度'),()=>{sfx('btn');goHome();scr='heroes';},{col:MINT,dk:MINT_D,sz:28});btn(390,1012,260,76,L('다시 도전','再挑战'),()=>{sfx('btn');startBattle(r.si);},{sz:28});}
 }
 
 /* ---------- 한 프레임 ---------- */
@@ -172,9 +166,12 @@ function onUp(x,y){
   if(!PTR.moved){const s={x:PTR.sx,y:PTR.sy};for(let i=BT.length-1;i>=0;i--){const b=BT[i];if(hitR(PTR,b.x,b.y,b.w,b.h)&&hitR(s,b.x,b.y,b.w,b.h)){if(B)B.drag=null;b.fn();return;}}}
   if(scr==='battle'&&B)battleUp(x,y);
 }
-function botStep(){if(!run||scr!=='battle'||paused)return;
-  if(run.phase==='card'){if(B.cardT>.4)pickCard(run,Math.floor(Math.random()*run.offer.length));}else if(run.phase==='revive')revive(run);
-  else if(run.phase==='run'&&Math.random()<.1){for(const l of run.loot.slice())tapField(run,l.x,l.y);for(const h of run.heroes)if(h)tapHero(run,h.slot);}}
+function botStep(){if(!run||scr!=='battle'||paused||run.phase==='revive'&&!revive(run))return;if(run.phase!=='run'||Math.random()>.2)return;
+  const empty=run.spots.map((sp,i)=>i).filter(i=>!run.spots[i].tw),ids=run.owned;
+  if(empty.length&&run.spots.length-empty.length<3+run.wave)build(run,empty[Math.floor(Math.random()*empty.length)],ids[Math.floor(Math.random()*ids.length)]);
+  else{const up=run.spots.map((sp,i)=>i).filter(i=>run.spots[i].tw&&run.spots[i].tw.lv<4);if(up.length){const i=up[Math.floor(Math.random()*up.length)];upgrade(run,i,BRANCH[run.spots[i].tw.id][Math.floor(Math.random()*2)]);}}
+  run.spots.forEach((sp,i)=>{if(sp.tw&&sp.tw.ink>0)cleanInk(run,i);});if(run.ws==='prep'&&run.spots.some(sp=>sp.tw))callWave(run);
+  if(run.en.length>6){castTide(run);const e=run.en[0];castBomb(run,e.x,e.y);}}
 let lastTs=0;
 function frame(ts){
   const dt=Math.min(.1,Math.max(0,(ts-lastTs)/1000||0));lastTs=ts;APP.t+=dt;if(scr==='load')APP.loadT+=dt;if(APP.toast&&(APP.toast.t-=dt)<=0)APP.toast=null;if(APP.resetArm>0)APP.resetArm-=dt;
@@ -190,6 +187,6 @@ else document.addEventListener('visibilitychange',()=>document.hidden?onAppHide(
 
 mkSprites();mkBg();MUST.forEach(n=>loadImg(n));LATER.forEach(n=>loadImg(n));dailyInit();track('app_open',{lang:LANG});
 if(DEBUG)window.__bepaDebug={get S(){return S;},get run(){return run;},get B(){return B;},APP,TRK,go:s=>{if(s==='home')goHome();else scr=s;},start:i=>startBattle(i||0),bot:b=>{APP.bot=!!b;},speed:n=>{speed=n;},
-  give:n=>{S.coins+=n;},unlockAll:()=>{HERO_IDS.forEach(id=>{if(!S.lv[id])S.lv[id]=1;});S.cleared=5;S.team=HERO_IDS.slice(0,5);},win:()=>{if(run)finish(run,true);},lose:()=>{if(run){run.wall=0;finish(run,false);}},
-  scr:()=>scr,ad:()=>adOv,lang:l=>{LANG=l;},draw,core:{step,tapHero,pickCard,spawn,beginSurge,inkHero,fireUlt,revive}};
+  give:n=>{S.coins+=n;},unlockAll:()=>{TOWER_IDS.forEach(id=>{if(!S.lv[id])S.lv[id]=1;});S.cleared=5;},win:()=>{if(run)finish(run,true);},lose:()=>{if(run){run.lives=0;finish(run,false);}},
+  scr:()=>scr,ad:()=>adOv,lang:l=>{LANG=l;},draw,core:{step,build,upgrade,sell,callWave,castTide,castBomb,cleanInk,inkTower,spawn,revive}};
 requestAnimationFrame(frame);

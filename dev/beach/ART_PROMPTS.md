@@ -21,6 +21,7 @@ Cute chubby 2.5D game character art for a mobile game, soft rounded shapes like 
 | en_fish | Subject: a small blue flying fish leaping forward toward the viewer, wide wing-like fins spread, sparkling water drops, cheeky smile, cute not scary |
 | en_hermit | Subject: a hermit crab peeking out of a big spiral sand-colored seashell, small coral-red body and tiny claws, shy stubborn face, seen from the front, cute not scary |
 | en_octo | Subject: a small lavender octopus, round head, short curly legs, puckered mouth ready to squirt ink, a tiny ink drop on its lips, cute not scary |
+| en_gull | Subject: a chubby white seagull flying toward the viewer with wings spread wide, orange beak, cheeky determined eyebrows, seen from the front slightly from above, cute not scary |
 | en_elite | Subject: a sturdy crab sea-monster wearing a silver bucket as a helmet, darker red shell, bigger claws, determined eyebrows, seen from the front, cute not scary |
 
 ## 보스 (크게 쓰므로 더 꼼꼼하게)
@@ -30,15 +31,14 @@ Cute chubby 2.5D game character art for a mobile game, soft rounded shapes like 
 | boss_octo | Subject: a giant purple octopus boss, big round head with a tiny gold crown, eight thick curly tentacles spread wide, mischievous grin, seen from the front, cute not scary |
 | boss_whale | Subject: a big round whale shark boss, blue back with white spots, white belly, tiny eyes far apart, wide gentle grumpy mouth, a small water spout on top, seen from the front, cute not scary |
 
-## 전투 배경 (세로 9:16, 캐릭터 없이)
-```
-Cute 2.5D mobile game background, vertical 9:16, top-down three-quarter view of a beach, soft painterly shading, warm pastel palette, rounded friendly shapes, simple and uncluttered so characters stand out, no characters, no text, no watermark.
-Layout from top to bottom: the upper 55% is shallow turquoise sea with gentle wave lines; then a strip of wet sand with white foam; then warm dry sand; the lowest 20% is a wooden boardwalk of a small seaside town. Keep the middle of the image empty.
-```
-| 파일 | 덧붙일 말 |
+## 지도 조각 (타워 디펜스는 길을 코드로 그리므로, 통짜 배경 대신 조각을 받는다)
+모두 위에서 비스듬히 내려다본 모습, 한 장에 하나, 순백색 배경, 그림자 없음.
+| 파일 | 대상 설명 (공통 문구의 character 를 game prop 으로 바꿔 앞에 붙임) |
 |---|---|
-| bg_beach | Scene: sunny sandy beach, a few starfish and seashells near the edges, a striped parasol in one lower corner |
-| bg_rocks | Scene: tidal rock shore, dark rounded rocks and tide pools along the left and right edges, small crabs' holes in the sand |
+| base_1 ~ base_4 | Subject: a round sandcastle turret platform seen from a three-quarter top view, empty flat top for a character to stand on. Make four versions that grow: (1) a low simple sand mound ring, (2) taller with small crenellations, (3) two tiers with a small red flag, (4) grand with golden trim, shells and two flags |
+| gate | Subject: a cute sandcastle town gate seen from the front, two round towers with red flags, wooden arched door in the middle, seashell decorations |
+| deco_palm, deco_parasol, deco_rock, deco_coral, deco_barrel, deco_lantern | Subject: a single beach decoration seen from a three-quarter top view: (1) a small palm tree, (2) a red-and-white striped beach parasol with a towel, (3) a smooth grey rock with a little moss, (4) a pink coral cluster, (5) a wooden barrel, (6) a red paper lantern on a short post. Make one image per item |
+| tex_sand, tex_sea | Subject: a seamless tileable texture, flat top view, no objects: (1) warm fine beach sand with tiny shells, (2) shallow turquoise sea water with soft light ripples |
 
 ## 영웅 포즈 (각 영웅의 기본 그림을 참고 이미지로 올리고)
 | 파일 | 대상 설명 |
@@ -50,4 +50,4 @@ Layout from top to bottom: the upper 55% is shallow turquoise sea with gentle wa
 | dun_atk | Subject: the same baby panda as the reference, swinging the ping-pong paddle in a strong smash, headband flying |
 | zhuo_atk | Subject: the same sparrow mail carrier as the reference, tossing an envelope forward from the red mail bag, wings spread |
 
-우선순위: 적 8종 → 보스 3종 → 배경 2장 → 영웅 포즈. 적 한두 장만 먼저 보내 주면 그림체부터 같이 확인한다.
+우선순위: 적 9종 → 보스 3종 → 타워 받침 4단계와 대문 → 꾸밈 조각 → 영웅 포즈. 적 한두 장만 먼저 보내 주면 그림체부터 같이 확인한다.

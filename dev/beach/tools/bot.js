@@ -1,52 +1,55 @@
 #!/usr/bin/env node
 /* 자동 플레이 봇: 화면 없이 한 판을 끝까지 돌려 밸런스를 잰다.  node tools/bot.js [판수]
-   lazy   = 필살기도 안 쓰고 카드도 아무거나 (아주 어린 아이)
-   casual = 필살기는 조금 늦게, 카드는 아무거나, 상자는 가끔 줍고 자리는 안 바꿈 (보통 사람)
-   good   = 한 영웅에 카드를 몰고, 필살기를 적이 많을 때 쓰고, 먹물을 바로 닦음 */
+   none   = 아무것도 안 지음 (반드시 져야 함)
+   casual = 4초에 한 번 생각하고 가끔 딴짓, 스킬은 거의 안 씀, 파도를 미리 부르지 않음
+   good   = 1초에 한 번 생각, 좋은 자리부터 짓고 올리고, 스킬과 먹물 닦기를 제때 씀 */
 const fs=require('fs'),path=require('path'),vm=require('vm');
 const src=['data.js','core.js'].map(f=>fs.readFileSync(path.join(__dirname,'../src',f),'utf8')).join('\n');
 const m={exports:{}};vm.runInNewContext(src,{module:m,Math,console,Set,Map,Array,Object});
 const C=m.exports;
-const TEAMS=[['tt','didi','peng'],['tt','didi','peng','shan'],['tt','didi','peng','shan','dun'],['tt','didi','peng','shan','dun'],['tt','zhuo','peng','shan','dun']];
+const WEIGHT={didi:2,tt:2,peng:2,shan:1.5,dun:1,zhuo:1};
+function owned(si){return C.TOWER_IDS.filter(id=>!C.UNLOCK[id]||C.UNLOCK[id]<=si);}
 
 function bot(seed,style,si,lvl){
-  const lv={};TEAMS[si].forEach(id=>lv[id]=lvl);
-  const s=C.newRun(seed,TEAMS[si],{stage:si,lv});const R=(n)=>((seed*2654435761+n*97)>>>0)/4294967296;let n=0,deadAt=null;
-  for(let tick=0;tick<60*60*20;tick++){
-    C.step(s);s.fx.length=0;if(s.ended)break;
-    if(s.phase==='card'){
-      let i=0;if(style==='good'){let best=-1;s.offer.forEach((c,k)=>{const h=c.hero&&s.heroes.find(x=>x&&x.id===c.hero);const v=(h?2+h.pips*2:1.5)+(c.id==='all_wall'&&s.wall<60?9:0);if(v>best){best=v;i=k;}});}
-      else i=Math.floor(R(++n)*s.offer.length);
-      C.pickCard(s,i);continue;
+  const ids=owned(si),lv={};ids.forEach(id=>lv[id]=lvl);
+  const s=C.newGame(si,{seed,lv,owned:ids});let a=(seed*7919+17)>>>0;const R=()=>{a=a+0x6D2B79F5|0;let q=Math.imul(a^a>>>15,1|a);q=q+Math.imul(q^q>>>7,61|q)^q;return((q^q>>>14)>>>0)/4294967296;};
+  const order=s.spots.map((sp,i)=>i).sort((a,b)=>C.stageGeo(si).spots[b].cov-C.stageGeo(si).spots[a].cov);
+  const every=style==='good'?60:240;let minLives=20;
+  for(let tick=0;tick<60*60*25&&!s.ended;tick++){
+    C.step(s);s.fx.length=0;if(s.lives<minLives)minLives=s.lives;
+    if(s.phase==='revive'){if(style==='good'||style==='casual')C.revive(s);else C.giveUp(s);continue;}
+    if(style==='none'){if(s.ws==='prep')C.callWave(s);continue;}
+    if(tick%every)continue;if(style==='casual'&&R()<.3)continue;
+    // 짓기·올리기
+    for(let guard=0;guard<4;guard++){
+      const tws=s.spots.filter(sp=>sp.tw),empty=order.filter(i=>!s.spots[i].tw),want=Math.min(s.spots.length,3+Math.floor(s.wave*.8));
+      if(empty.length&&tws.length<want){const cnt={};ids.forEach(id=>cnt[id]=0);tws.forEach(sp=>cnt[sp.tw.id]++);let id=ids[0],bv=1e9;for(const q of ids){const v=(cnt[q]+.5)/WEIGHT[q];if(v<bv){bv=v;id=q;}}
+        if(style==='casual'&&R()<.35)id=ids[Math.floor(R()*ids.length)];
+        if(!C.build(s,empty[style==='casual'&&R()<.3?Math.floor(R()*empty.length):0],id))break;}
+      else{let best=-1,bc=1e9;order.forEach(i=>{const tw=s.spots[i].tw;if(tw&&tw.lv<4){const c=C.upCost(tw)*(1+tw.lv*.15);if(c<bc){bc=c;best=i;}}});
+        if(best<0)break;const tw=s.spots[best].tw;if(!C.upgrade(s,best,C.BRANCH[tw.id][Math.floor(R()*2)]))break;}
     }
-    if(s.phase==='revive'){if(deadAt===null)deadAt=s.t/60;if(style==='lazy')C.giveUp(s);else C.revive(s);continue;}
-    if(tick%30)continue; // 사람처럼 0.5초에 한 번만 판단
-    if(style==='lazy')continue;
-    for(const l of s.loot.slice())if(style==='good'||R(++n)<(l.k==='box'?.5:.2))C.tapField(s,l.x,l.y);
-    for(const h of s.heroes){if(!h)continue;
-      if(h.ink>0){if(style==='good'||R(++n)<.3)C.tapHero(s,h.slot);continue;}
-      if(h.ult<1)continue;
-      if(style==='good'){const near=s.en.filter(e=>e.y>200).length;if(near>=6||s.boss||s.wall<60)C.tryUlt(s,h.slot);}
-      else if(R(++n)<.12)C.tryUlt(s,h.slot);}
+    if(s.ws==='prep'&&(style==='good'||tick>600))C.callWave(s);
+    if(style==='good'){
+      s.spots.forEach((sp,i)=>{if(sp.tw&&sp.tw.ink>0)C.cleanInk(s,i);});
+      const danger=s.en.filter(e=>e.d/e.len>.7);if(danger.length>=3||danger.some(e=>e.k==='boss'||e.k==='elite')){C.castTide(s);const e=danger[0];if(e)C.castBomb(s,e.x,e.y);}
+      else if(s.en.length>=10){const e=s.en[Math.floor(s.en.length/2)];C.castBomb(s,e.x,e.y);}
+      if(s.ws==='gap'&&s.gapT>180&&s.lives>=18)C.callWave(s);
+    }else{if(R()<.1)C.castTide(s);if(R()<.12&&s.en.length){const e=s.en[0];C.castBomb(s,e.x,e.y);}if(R()<.5)s.spots.forEach((sp,i)=>{if(sp.tw&&sp.tw.ink>0)C.cleanInk(s,i);});}
   }
-  return {won:!!s.won,wave:s.wave,sec:s.t/60,stars:s.stars,lv:s.lv,reward:s.reward,deadAt,revived:s.revived,ended:s.ended,dealt:s.heroes.filter(Boolean).map(h=>h.id+Math.round(h.dealt/1000)+'k').join(' ')};
+  if(!s.ended&&process.env.DBG)console.log('STALL',style,s.ws,s.wave,'en',s.en.length,'q',s.queue.length,'gapT',s.gapT,'phase',s.phase,s.en.slice(0,3).map(e=>e.k+' d'+Math.round(e.d)+'/'+Math.round(e.len)+' hp'+Math.round(e.hp)+' st'+e.stun+' sl'+e.slow+' air'+e.air).join(';'));
+  return {won:s.won,wave:s.wave,sec:s.t/60,stars:s.stars,lives:s.lives,minLives,ended:s.ended,gold:s.gold,tw:s.spots.filter(sp=>sp.tw).map(sp=>sp.tw.id[0]+sp.tw.lv).join('')};
 }
-
-const N=+process.argv[2]||100;
-const avg=(a,f)=>a.reduce((x,y)=>x+f(y),0)/a.length;
-let bad=0;
-for(let si=0;si<C.STAGES.length;si++){
-  const rec=C.STAGES[si].rec;
-  for(const [style,lvl] of [['lazy',rec],['casual',rec],['good',rec],['casual',Math.max(1,rec-2)],['good',Math.max(1,rec-2)]]){
-    if(si===0&&lvl!==rec)continue;if(lvl===rec-2&&style==='lazy')continue;
-    const r=[];for(let i=0;i<N;i++){try{r.push(bot(1000+i*7+si*131,style,si,lvl));}catch(e){bad++;console.log('오류',style,i,e.stack);break;}}
-    if(!r.length)continue;
-    const wins=r.filter(x=>x.won),st=[0,1,2,3].map(k=>r.filter(x=>x.stars===k).length);
-    const early=r.filter(x=>x.deadAt!==null&&x.deadAt<30).length,unfinished=r.filter(x=>!x.ended).length;if(unfinished)bad++;
-    console.log(`${si+1}장 Lv${String(lvl).padEnd(2)} ${style.padEnd(7)} 클리어 ${(wins.length/r.length*100).toFixed(0).padStart(3)}%  ${avg(r,x=>x.sec).toFixed(0)}초  웨이브 ${avg(r,x=>x.wave).toFixed(1)}  카드 ${(avg(r,x=>x.lv)-1).toFixed(1)}  별0/1/2/3 ${st.join('/')}  부활 ${r.filter(x=>x.revived).length}  초반사망 ${early}  보상 ${avg(r,x=>x.reward).toFixed(0)}  ${r[0].dealt}`);
+const N=+process.argv[2]||40,avg=(a,f)=>a.reduce((x,y)=>x+f(y),0)/a.length;let bad=0;
+for(let si=0;si<C.STAGES.length;si++){const rec=C.STAGES[si].rec;
+  for(const [style,lvl] of [['none',rec],['casual',rec],['good',rec],['casual',Math.max(1,rec-2)],['good',Math.max(1,rec-2)]]){
+    if(lvl!==rec&&si===0)continue;const r=[];const runs=style==='none'?2:N;
+    for(let i=0;i<runs;i++){try{r.push(bot(500+i*13+si*71,style,si,lvl));}catch(e){bad++;console.log('오류',e.stack);break;}}if(!r.length)continue;
+    const wins=r.filter(x=>x.won),st=[0,1,2,3].map(k=>r.filter(x=>x.stars===k).length);if(r.some(x=>!x.ended))bad++;if(style==='none'&&wins.length)bad++;
+    console.log(`${si+1}장 Lv${String(lvl).padEnd(2)} ${style.padEnd(6)} 클리어 ${(wins.length/r.length*100).toFixed(0).padStart(3)}%  ${avg(r,x=>x.sec).toFixed(0)}초  파도 ${avg(r,x=>x.wave).toFixed(1)}/${C.STAGES[si].waves}  남은목숨 ${avg(r,x=>x.lives).toFixed(1)}  별0/1/2/3 ${st.join('/')}  ${r[0].tw}`);
   }
 }
-// 60Hz·120Hz: 같은 시드를 다른 프레임 간격으로 돌려 결과가 같은지
-function hz(fps){const s=C.newRun(77,TEAMS[2],{stage:2});let g=0;while(!s.ended&&g++<fps*60*20){C.advance(s,1/fps);s.fx.length=0;if(s.phase==='card')C.pickCard(s,0);if(s.phase==='revive')C.giveUp(s);}return s.t+'|'+s.wave+'|'+s.wall+'|'+s.kills;}
+function hz(fps){const ids=owned(2),s=C.newGame(2,{seed:5,owned:ids});C.build(s,0,'tt');C.build(s,1,'didi');C.callWave(s);let g=0;while(!s.ended&&g++<fps*60*25){C.advance(s,1/fps);s.fx.length=0;if(s.phase==='revive')C.giveUp(s);}return s.t+'|'+s.wave+'|'+s.kills+'|'+s.gold;}
 const a=hz(60),b=hz(120),c=hz(90);console.log('주사율 60/90/120Hz',a,b,c,a===b&&b===c?'같음':'다름!');if(a!==b||b!==c)bad++;
+for(let si=0;si<C.STAGES.length;si++)console.log((si+1)+'장 타워 자리',C.stageGeo(si).spots.map(p=>p.x+','+p.y).join(' '));
 if(bad){console.log('실패',bad);process.exit(1);}
