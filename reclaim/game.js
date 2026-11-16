@@ -16,15 +16,15 @@ if(API){const dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2}}
 else{c.width=W;c.height=H}
 function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('canvas');cv.width=w;cv.height=h;return cv}
-const BUILD='1116-2230';
+const BUILD='1116-2330';
 // 안전장치: 음수 반지름이면 그리기 전체가 멈추므로 보정
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
  if(oa)P.arc=function(x,y,r,a0,a1,ccw){return oa.call(this,x,y,r>0&&isFinite(r)?r:0,a0,a1,ccw)};
  if(oe)P.ellipse=function(x,y,rx,ry,rot,a0,a1,ccw){return oe.call(this,x,y,rx>0&&isFinite(rx)?rx:0,ry>0&&isFinite(ry)?ry:0,rot,a0,a1,ccw)}})();
 // 그림 자원: G1은 도형만 사용. 그림을 넣을 때 IMG_LIST·MUST에 추가하면 로딩 화면이 자동으로 기다린다
-const imgs={},imgFail={};const IMG_LIST=['hero','inf_walker','inf_runner','icons','world','title'],MUST=IMG_LIST.slice();
-const ART={"cell":164,"hero":{"idle":{"row":0,"n":8},"walk":{"row":1,"n":8},"run":{"row":2,"n":8},"attack":{"row":3,"n":4},"gather":{"row":4,"n":4},"craft":{"row":5,"n":4},"fish":{"row":6,"n":4},"drink":{"row":7,"n":4},"eat":{"row":8,"n":4},"sleep":{"row":9,"n":2},"collapse":{"row":10,"n":4}},"inf_walker":{"walk":{"row":0,"n":8}},"inf_runner":{"walk":{"row":0,"n":8}},"icons":{"cell":112,"cols":6,"idx":{"plank":0,"plastic":1,"cloth":2,"scrap":3,"rope":4,"water":5,"can":6,"fish":7,"cooked":8,"berry":9,"med":10,"flint":11,"rain":12,"fire":13,"still":14,"bed":15,"radio":16,"sail":17,"rod":18,"lash":19,"crate":20,"deck":21}},"world":{"deck0":[0,0,128,128],"deck1":[130,0,128,128],"deck2":[260,0,128,128],"deck3":[390,0,128,128],"deckb0":[520,0,142,142],"debris_plank":[664,0,120,72],"debris_plastic":[786,0,110,70],"debris_cloth":[898,0,110,62],"debris_crate":[0,144,110,74],"debris_scrap":[112,144,110,71],"debris_supply":[224,144,120,119],"tree":[346,144,170,192],"tree_chop":[518,144,170,205],"stump":[690,144,120,93],"bush":[812,144,130,126],"rock":[0,351,140,129],"stream":[142,351,150,150],"hut":[294,351,300,238],"beach":[596,351,160,160],"boat":[758,351,200,110],"asphalt":[0,591,160,160],"building":[162,591,260,259],"car":[424,591,190,104],"plane":[616,591,300,277],"barricade":[0,870,210,93]}};// 그림 배치표 (res/*.png 아틀라스)
-function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im};im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(name,tries+1),600+tries*900);else imgFail[name]=1};im.src='res/'+name+(name==='title'?'.jpg':'.png')+'?v='+BUILD}
+const imgs={},imgFail={};const IMG_LIST=['hero','inf_walker','inf_runner','icons','world','title','tile_ocean','tile_grass'],MUST=IMG_LIST.slice();
+const ART={"cell":164,"hero":{"idle":{"row":0,"n":8},"walk":{"row":1,"n":8},"run":{"row":2,"n":8},"attack":{"row":3,"n":4},"gather":{"row":4,"n":4},"craft":{"row":5,"n":4},"fish":{"row":6,"n":4},"drink":{"row":7,"n":4},"eat":{"row":8,"n":4},"sleep":{"row":9,"n":2},"collapse":{"row":10,"n":4}},"inf_walker":{"walk":{"row":0,"n":8},"attack":{"row":1,"n":4},"down":{"row":2,"n":4}},"inf_runner":{"walk":{"row":0,"n":8},"attack":{"row":1,"n":4},"down":{"row":2,"n":4}},"icons":{"cell":112,"cols":6,"idx":{"plank":0,"plastic":1,"cloth":2,"scrap":3,"rope":4,"water":5,"can":6,"fish":7,"cooked":8,"berry":9,"med":10,"flint":11,"rain":12,"fire":13,"still":14,"bed":15,"radio":16,"sail":17,"rod":18,"lash":19,"crate":20,"deck":21}},"world":{"deck0":[0,0,128,128],"deck1":[130,0,128,128],"deck2":[260,0,128,128],"deck3":[390,0,128,128],"deckb0":[520,0,142,142],"debris_plank":[664,0,120,72],"debris_plastic":[786,0,110,70],"debris_cloth":[898,0,110,62],"debris_crate":[0,144,110,74],"debris_scrap":[112,144,110,71],"debris_supply":[224,144,120,119],"tree":[346,144,170,192],"tree_chop":[518,144,170,205],"stump":[690,144,120,93],"bush":[812,144,130,126],"rock":[0,351,140,129],"stream":[142,351,150,150],"hut":[294,351,300,238],"beach":[596,351,160,160],"boat":[758,351,200,110],"asphalt":[0,591,160,160],"building":[162,591,260,259],"car":[424,591,190,104],"plane":[616,591,300,277],"barricade":[0,870,210,93],"building2":[0,965,260,244],"car2":[262,965,190,129],"shadow":[454,965,360,168]}};// 그림 배치표 (res/*.png 아틀라스)
+function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();im.onload=()=>{imgs[name]=im};im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(name,tries+1),600+tries*900);else imgFail[name]=1};im.src='res/'+name+(name==='title'||name.indexOf('tile_')===0?'.jpg':'.png')+'?v='+BUILD}
 IMG_LIST.forEach(n=>loadImg(n));
 const GLOW_COL={o:[255,150,60],y:[255,220,120],w:[255,250,235],b:[120,190,255]};const glow={};
 (function(){for(const k in GLOW_COL){const cv=mkCanvas(64,64),x=cv.getContext('2d'),[r,gg,b]=GLOW_COL[k],gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,`rgba(${r},${gg},${b},1)`);gr.addColorStop(.3,`rgba(${r},${gg},${b},.6)`);gr.addColorStop(1,`rgba(${r},${gg},${b},0)`);x.fillStyle=gr;x.fillRect(0,0,64,64);glow[k]=cv}})();
@@ -32,7 +32,7 @@ const GLOW_COL={o:[255,150,60],y:[255,220,120],w:[255,250,235],b:[120,190,255]};
 // 순화 모드용 어두운 감염체: 불러온 뒤 한 번 만들어 둔다
 const imgMild={};function mildOf(name){if(imgMild[name]!==undefined)return imgMild[name];const im=imgs[name];if(!im)return null;try{const cv=mkCanvas(im.width,im.height),x=cv.getContext('2d');x.drawImage(im,0,0);x.globalCompositeOperation='source-atop';x.fillStyle='rgba(16,18,26,.72)';x.fillRect(0,0,im.width,im.height);imgMild[name]=cv}catch(e){imgMild[name]=null}return imgMild[name]}
 // 스프라이트: 아틀라스 칸은 왼쪽을 보는 그림. face>0이면 좌우 뒤집기. y는 발 위치
-function sprite(name,anim,t,x,y,h,face,fps,alpha){const im=(save.mild&&name!=='hero')?(mildOf(name)||imgs[name]):imgs[name];const A2=ART[name];if(!im||!A2||!A2[anim])return false;const a=A2[anim],C=ART.cell;const f=Math.floor(t*(fps||10))%a.n;
+function sprite(name,anim,t,x,y,h,face,fps,alpha){const im=(save.mild&&name!=='hero')?(mildOf(name)||imgs[name]):imgs[name];const A2=ART[name];if(!im||!A2||!A2[anim])return false;const a=A2[anim],C=ART.cell;const f=fps<0?Math.min(a.n-1,Math.floor(t*-fps)):Math.floor(t*(fps||10))%a.n;
  const s=h/C;g.save();if(alpha!==undefined)g.globalAlpha=alpha;g.translate(x,y);if(face>0)g.scale(-1,1);g.drawImage(im,f*C,a.row*C,C,C,-C*s/2,-C*s+4*s,C*s,C*s);g.restore();return true}
 function icon(k,x,y,size){const im=imgs.icons,I=ART.icons;if(!im||I.idx[k]===undefined)return false;const i=I.idx[k],C=I.cell;g.drawImage(im,(i%I.cols)*C,Math.floor(i/I.cols)*C,C,C,x-size/2,y-size/2,size,size);return true}
 function wsp(k,x,y,w,anchor){const im=imgs.world,r=ART.world[k];if(!im||!r)return false;const h=w*r[3]/r[2];g.drawImage(im,r[0],r[1],r[2],r[3],x-w/2,anchor==='bottom'?y-h:y-h/2,w,h);return true}
@@ -185,7 +185,7 @@ function act1Tick(dt){const p=A.p;A.t+=dt;
  if(A.target){const it=A.target;if(!it.got&&Math.hypot(p.x-it.x,p.y-it.y)<46){A.pick+=dt;if(A.pick>.35){A.pick=0;A.target=null;if(A.bag.length>=8){message(L('가방이 가득 찼어요. 아래 가방 칸을 탭하면 버릴 수 있어요','背包满了，点下方的背包格可以丢弃'),2.2)}else{it.got=true;A.bag.push(it.k);AudioFx.cue('pick');vib('light');fxText(it.x,it.y-30,LL(BAG[it.k].n),'#fff3c0')}}}}
  for(const z of A.zs){const d=Math.hypot(p.x-z.x,p.y-z.y),sp=z.run?150:105;if(d<240&&p.y<A.front){z.a=1}else if(d>420)z.a=0;
   if(z.a){const k=sp*dt/Math.max(1,d);z.x+=(p.x-z.x)*k;z.y+=(p.y-z.y)*k}else{z.w+=dt;z.x=z.hx+Math.sin(z.w*.8)*40;z.y=z.hy+Math.cos(z.w*.6)*20}
-  z.hit-=dt;if(d<38&&z.hit<=0){z.hit=1;p.hp-=16;AudioFx.cue('hurt');vib('medium');shake(10,.25);const k=50/Math.max(1,d);p.x+=(p.x-z.x)*k;p.y+=(p.y-z.y)*k;p.tx=p.x;p.ty=p.y}}
+  z.hit-=dt;z.atkT=Math.max(0,(z.atkT||0)-dt);if(d<38&&z.hit<=0){z.hit=1;z.atkT=.5;p.hp-=16;AudioFx.cue('hurt');vib('medium');shake(10,.25);const k=50/Math.max(1,d);p.x+=(p.x-z.x)*k;p.y+=(p.y-z.y)*k;p.tx=p.x;p.ty=p.y}}
  p.x=Math.max(30,Math.min(W-30,p.x));p.y=Math.max(120,Math.min(ACT1_H-40,p.y));
  if(p.y<300&&Math.hypot(p.x-375,p.y-210)<130){A.board=.01;AudioFx.cue('win');vib('long')}
  if(p.hp<=0){p.hp=0;fail('act1')}
@@ -198,8 +198,8 @@ function act1Tap(x,y){const wx=x,wy=y+camY;
 function drawAct1(){const p=A.p;g.fillStyle='#1b1d22';g.fillRect(0,0,W,H);g.save();g.translate(0,-camY);
  // 도로와 건물 (회색 상자)
  if(imgs.world){g.fillStyle='#3e3d3b';g.fillRect(0,0,W,ACT1_H);const y0=Math.max(300,Math.floor(camY/158)*158-158),y1=camY+H+160;g.fillStyle='#2f2f30';g.fillRect(160,0,430,ACT1_H);for(let y=y0;y<y1;y+=158){wspPart('asphalt',0,0,1,1,215,y,160,160);wspPart('asphalt',0,0,1,1,375,y,160,160)}
-  for(let i=0;i<21;i++){const y=320+i*150;if(y<camY-300||y>camY+H+300)continue;wsp('building',i%2?95:80,y+150,170,'bottom');wsp('building',i%2?670:655,y+190,170,'bottom')}
-  for(let i=0;i<9;i++){const y=640+i*330;if(y<camY-200||y>camY+H+200)continue;if(i%3===1)wsp('barricade',i%2?300:450,y,180,'bottom');else wsp('car',i%2?460:290,y,170,'bottom')}}
+  for(let i=0;i<21;i++){const y=320+i*150;if(y<camY-300||y>camY+H+300)continue;wsp(i%3===1?'building2':'building',i%2?95:80,y+150,170,'bottom');wsp(i%3===2?'building2':'building',i%2?670:655,y+190,170,'bottom')}
+  for(let i=0;i<9;i++){const y=640+i*330;if(y<camY-200||y>camY+H+200)continue;if(i%3===1)wsp('barricade',i%2?300:450,y,180,'bottom');else wsp(i%4===0?'car2':'car',i%2?460:290,y,170,'bottom')}}
  else{g.fillStyle='#2a2d33';g.fillRect(170,0,410,ACT1_H);g.strokeStyle='#4a4d55';g.lineWidth=4;g.setLineDash([30,30]);g.beginPath();g.moveTo(375,300);g.lineTo(375,ACT1_H);g.stroke();g.setLineDash([]);
  for(let i=0;i<21;i++){const y=320+i*150;rr(10,y,140,120,6,'#30333b','#45484f',2);rr(600,y+40,140,120,6,'#30333b','#45484f',2)}}
  // 활주로와 비행기
@@ -228,8 +228,9 @@ function drawHero(p,force,h){const dx=p.x-(p.lx===undefined?p.x:p.lx),dy=p.y-(p.
  if(!sprite('hero',anim,anim==='idle'?frame:(force?frame:p.mt),p.x,p.y+4,h,p.face||-1,fps))drawPlayer(p.x,p.y-16)}
 function drawInfected(z){const dx=z.x-(z.lx===undefined?z.x:z.lx);if(Math.abs(dx)>.2)z.face=dx>0?1:-1;z.lx=z.x;z.wt=(z.wt||0)+1/60*(z.a?1.6:.8);
  g.save();g.globalAlpha=.3;g.fillStyle='#000';g.beginPath();g.ellipse(z.x,z.y+20,22,7,0,0,TAU);g.fill();g.restore();
- if(!sprite(z.run?'inf_runner':'inf_walker','walk',z.wt,z.x,z.y+22,z.run?92:100,z.face||-1,9)){circ(z.x,z.y,z.run?17:20,'#0b0c0f',z.a?'#7a5a5a':'#3a3c42',3);circ(z.x-6,z.y-5,2.5,'#c8b070');circ(z.x+6,z.y-5,2.5,'#c8b070')}
- if(z.a){txt('!',z.x,z.y-80,22,'#ffb08a','center')}}
+ const nm=z.run?'inf_runner':'inf_walker',hh=z.run?92:100;let ok2;if(z.hp<=0)ok2=sprite(nm,'down',z.dead||0,z.x,z.y+22,hh,z.face||-1,-6,Math.max(0,Math.min(1,(1.6-(z.dead||0))/.5)));else if(z.atkT>0)ok2=sprite(nm,'attack',.5-z.atkT,z.x,z.y+22,hh,z.face||-1,-8);else ok2=sprite(nm,'walk',z.wt,z.x,z.y+22,hh,z.face||-1,9);if(z.hp<=0&&!ok2)return;
+ if(!ok2){circ(z.x,z.y,z.run?17:20,'#0b0c0f',z.a?'#7a5a5a':'#3a3c42',3);circ(z.x-6,z.y-5,2.5,'#c8b070');circ(z.x+6,z.y-5,2.5,'#c8b070')}
+ if(z.a&&z.hp>0){txt('!',z.x,z.y-80,22,'#ffb08a','center')}}
 function drawPlayer(x,y,face){g.save();circ(x,y+18,16,'rgba(0,0,0,.35)');circ(x,y,17,'#e9e2d2','#1a1a1a',3);circ(x,y-4,6,'#3a3a3a');drawGlow(x,y-8,22,'y',.35);g.restore()}
 function hudBar(a,b){rr(0,0,W,104,0,'#0d1016e6');txt(a,24,40,26,'#ffe2a0','left',false);txt(b,24,78,19,'#c9d2de','left',false);button(646,22,82,60,'II','dark',26,()=>{paused=true})}
 function fxText(x,y,s,col){const n=fx.filter(f=>f.t<.6&&Math.abs(f.x-x)<120&&Math.abs(f.y-y)<80).length;fx.push({x,y:y-n*28,s,col,t:0})}
@@ -361,13 +362,14 @@ function chooseBuild(k){if(!canPay(k)){message(MODS[k].need==='radio'&&!R.radioP
 function drawSea(){const night=isNight(),storm=inStorm(),dusk=R.t>DUSK&&!night;
  const top=storm?'#1a2a30':night?'#06101a':dusk?'#2a4450':'#1f6a74',bot=storm?'#0e1a1e':night?'#030a12':'#124a56';
  const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,top);gr.addColorStop(1,bot);g.fillStyle=gr;g.fillRect(0,0,W,H);
- g.strokeStyle='rgba(180,220,230,.07)';g.lineWidth=2;for(let i=0;i<26;i++){const y=(i*57+frame*18)%H;g.beginPath();for(let x=0;x<=W;x+=30)g.lineTo(x,y+Math.sin(x*.02+frame+i)*5);g.stroke()}
+ if(imgs.tile_ocean){const o=(frame*16)%256;for(let y=-256+o;y<H;y+=256)for(let x=-((frame*5)%256);x<W;x+=256)g.drawImage(imgs.tile_ocean,x,y,257,257);g.fillStyle=storm?'rgba(20,30,36,.55)':'rgba(6,34,46,.32)';g.fillRect(0,0,W,H)}
+ else{g.strokeStyle='rgba(180,220,230,.07)';g.lineWidth=2;for(let i=0;i<26;i++){const y=(i*57+frame*18)%H;g.beginPath();for(let x=0;x<=W;x+=30)g.lineTo(x,y+Math.sin(x*.02+frame+i)*5);g.stroke()}}
  // 섬 (상륙 가능할 때)
  if(R.day>=Z().island&&R.t<125){const op=islandOpen();g.save();g.globalAlpha=op?1:.4;g.fillStyle='#3e4a36';g.beginPath();g.ellipse(620,170,120,50,0,0,TAU);g.fill();g.fillStyle='#2f3a2a';for(let i=0;i<5;i++)circ(560+i*28,150-Math.sin(i)*10,16,'#2c3826');g.restore()}
  // 갈매기 (폭풍 전에 사라짐 = 예고 신호)
  if(!(stormDay()&&R.t>40&&R.t<100)&&!night)for(const s of gulls){g.strokeStyle='#dfe6ee';g.lineWidth=2;g.beginPath();g.moveTo(s.x-8,s.y);g.lineTo(s.x,s.y+4);g.lineTo(s.x+8,s.y);g.stroke()}
  // 떠내려오는 물건
- for(const o of debris){const col={plank:'#c79a5b',plastic:'#7fc6e8',cloth:'#c9c2e0',crate:'#a07850',scrap:'#9aa3ad',supply:'#ffd060'}[o.k];g.save();g.translate(o.x,o.y);g.rotate(Math.sin(frame+o.ph)*.2);if(o.k==='supply')drawGlow(0,0,52,'y',.5);
+ for(const o of debris){const col={plank:'#c79a5b',plastic:'#7fc6e8',cloth:'#c9c2e0',crate:'#a07850',scrap:'#9aa3ad',supply:'#ffd060'}[o.k];g.save();g.translate(o.x,o.y);g.rotate(Math.sin(frame+o.ph)*.2);if(o.k==='supply')drawGlow(0,0,52,'y',.5);else drawGlow(0,4,46,'w',.28+.08*Math.sin(frame*3+o.ph));
   if(wsp('debris_'+o.k,0,0,o.k==='supply'?92:80)){}else if(icon(ICON_OF[o.k],0,0,o.k==='supply'?60:50)){}else if(o.k==='plank')rr(-26,-8,52,16,4,col,'#2a1e14',2);else if(o.k==='plastic')rr(-14,-18,28,36,10,col,'#1e3a48',2);else if(o.k==='cloth')rr(-20,-12,40,24,10,col,'#3a3550',2);else if(o.k==='crate'){rr(-18,-18,36,36,4,col,'#3a2414',3);g.strokeStyle='#3a2414';g.beginPath();g.moveTo(-18,-18);g.lineTo(18,18);g.stroke()}else if(o.k==='scrap')rr(-16,-10,32,20,2,col,'#333',2);else{drawGlow(0,0,40,'y',.6);rr(-20,-20,40,40,6,col,'#5a4010',3)}
   g.restore();if(o.pull){g.strokeStyle='#e8e0c8';g.lineWidth=2;g.beginPath();g.moveTo(seaP.x,seaP.y);g.lineTo(o.x,o.y);g.stroke()}}
  // 배
@@ -385,7 +387,7 @@ function drawSea(){const night=isNight(),storm=inStorm(),dusk=R.t>DUSK&&!night;
  drawFx();
  // 밤과 폭풍
  if(night||dusk||storm){const a=night?.6:storm?.4:(R.t-DUSK)/(NIGHT-DUSK)*.45;g.fillStyle=`rgba(2,6,14,${a})`;g.fillRect(0,0,W,H);const ft=fireTile();if(ft&&fireLit()){const p=tilePos(ft.x,ft.y);g.save();g.globalCompositeOperation='lighter';drawGlow(p.x,p.y,230+Math.sin(frame*9)*8,'o',.55);g.restore()}
-  if(night&&!fireLit()){const ang=frame*.6;const sx=RAFT_X+Math.cos(ang)*260,sy=RAFT_Y+Math.sin(ang)*200;g.fillStyle='rgba(0,0,0,.6)';g.beginPath();g.ellipse(sx,sy,60,22,ang+1.57,0,TAU);g.fill()}}
+  if(night&&!fireLit()){const ang=frame*.6;const sx=RAFT_X+Math.cos(ang)*260,sy=RAFT_Y+Math.sin(ang)*200;g.save();g.translate(sx,sy);g.rotate(ang+1.57);if(!wsp('shadow',0,0,300)){g.fillStyle='rgba(0,0,0,.6)';g.beginPath();g.ellipse(0,0,60,22,0,0,TAU);g.fill()}g.restore()}}
  if(storm||(R.rainAt>0&&R.t>=R.rainAt&&R.t<R.rainAt+25)){g.strokeStyle='rgba(200,220,240,.35)';g.lineWidth=2;for(let i=0;i<(storm?90:40);i++){const x=(i*97+frame*400)%W,y=(i*131+frame*900)%H;g.beginPath();g.moveTo(x,y);g.lineTo(x-8,y+22);g.stroke()}if(storm&&Math.random()<.004){g.fillStyle='rgba(255,255,255,.5)';g.fillRect(0,0,W,H)}}
  if(sleeping){g.fillStyle='rgba(0,0,0,.4)';g.fillRect(0,0,W,H);txt('Z z z',375,500,48,'#c8c0ff','center')}
  seaHud()}
@@ -467,8 +469,8 @@ function landTick(dt){const Ld=Land,p=Ld.p,v=R.vit;R.t+=dt;const night=isNight()
   else{const o=T2.o;if(Math.hypot(p.x-o.x,p.y-o.y)<62){Ld.work+=dt;if(Ld.work>=(o.k==='tree'?(R.items.knife?.35:.6):.5)){Ld.work=0;landAct(o)}}}}
  for(const z of Ld.zs){if(z.hp<=0)continue;const d=Math.hypot(p.x-z.x,p.y-z.y),sp=night?150:100;if(Ld.noise>55||d<190||night)z.a=1;else if(d>500)z.a=0;
   if(z.a){const k=sp*dt/Math.max(1,d);z.x+=(p.x-z.x)*k;z.y+=(p.y-z.y)*k}else{z.w+=dt;z.x=z.hx+Math.sin(z.w*.7)*50;z.y=z.hy+Math.cos(z.w*.5)*30}
-  z.hit-=dt;if(d<38&&z.hit<=0){z.hit=1;v.hp-=12;AudioFx.cue('hurt');vib('medium');shake(10,.25)}}
- Ld.zs=Ld.zs.filter(z=>z.hp>0||Math.random()>.01);
+  z.hit-=dt;z.atkT=Math.max(0,(z.atkT||0)-dt);if(d<38&&z.hit<=0){z.hit=1;z.atkT=.5;v.hp-=12;AudioFx.cue('hurt');vib('medium');shake(10,.25)}}
+ for(const z of Ld.zs)if(z.hp<=0)z.dead=(z.dead||0)+dt;Ld.zs=Ld.zs.filter(z=>z.hp>0||z.dead<1.6);
  if(v.hp<=0){fail('land');return}
  if(Math.hypot(p.x-375,p.y-1830)<70&&Ld.goBoat)backToSea(true);
  camY+=((p.y-H*.58)-camY)*Math.min(1,dt*5);camY=Math.max(0,Math.min(LAND_H-H+200,camY))}
@@ -491,7 +493,7 @@ function artLand(o){if(o.k==='tree'){wsp(o.hp<3?'tree_chop':'tree',o.x,o.y+30,15
 function backToSea(ok){const Ld=Land;if(ok){for(const k in Ld.carry)R.res[k]=(R.res[k]||0)+Ld.carry[k];track('land_back',{n:Ld.n,t:Math.round(R.t)});message(L('배로 돌아왔다. 짐 ','回到船上。带回 ')+Ld.n+L('개를 실었다',' 件物资'),1.8)}Land=null;if(sc==='land'){enterSea()}}
 function drawLand(){const Ld=Land,p=Ld.p,night=isNight();g.fillStyle='#24301f';g.fillRect(0,0,W,H);g.save();g.translate(0,-camY);
  g.fillStyle='#1e6a78';g.fillRect(0,LAND_H-120,W,300);g.fillStyle='#8a7a5a';g.fillRect(0,LAND_H-200,W,90);
- if(imgs.world){g.fillStyle='#4f7a2c';g.fillRect(0,0,W,LAND_H-200);for(let x=0;x<W;x+=150)wspPart('beach',0,0,1,1,x,LAND_H-260,152,200)}
+ if(imgs.world){g.fillStyle='#4f7a2c';g.fillRect(0,0,W,LAND_H-200);if(imgs.tile_grass){const y0=Math.max(0,Math.floor(camY/256)*256),y1=Math.min(LAND_H-200,camY+H);for(let y=y0;y<y1;y+=256)for(let x=0;x<W;x+=256)g.drawImage(imgs.tile_grass,x,y,257,Math.min(257,LAND_H-200-y))}for(let x=0;x<W;x+=150)wspPart('beach',0,0,1,1,x,LAND_H-260,152,200)}
  if(!wsp('boat',375,1846,190))rr(330,1800,90,60,12,'#7a5c3e','#2a1e14',3);txt(L('배','船'),375,1800,18,'#fff','center');if(R.t>DUSK)drawGlow(375,1830,90,'y',.5+.2*Math.sin(frame*5));
  const objs2=Ld.objs.slice().sort((a,b)=>(a.k==='stream'?-1e4:a.y)-(b.k==='stream'?-1e4:b.y));for(const o of objs2){if(o.gone){if(o.k==='tree')wsp('stump',o.x,o.y+24,96,'bottom');continue}if(imgs.world&&artLand(o))continue;if(o.k==='tree'){circ(o.x,o.y+16,22,'#3a2a1a');circ(o.x,o.y-10,34,'#2e4a2a','#1a2a18',3);if(o.hp<3)txt(o.hp+'',o.x,o.y-10,18,'#fff','center')}
   else if(o.k==='bush'){circ(o.x,o.y,22,'#3a5a30');circ(o.x-6,o.y-4,4,'#e0607a');circ(o.x+7,o.y+3,4,'#e0607a')}
@@ -499,7 +501,7 @@ function drawLand(){const Ld=Land,p=Ld.p,night=isNight();g.fillStyle='#24301f';g
   else if(o.k==='hut'){rr(o.x-90,o.y-60,180,120,8,'#4a3a2a','#2a2016',3);txt(L('오두막','小屋'),o.x,o.y,18,'#d8c8a8','center')}
   else if(o.k==='crate'){rr(o.x-18,o.y-18,36,36,4,'#a07850','#3a2414',3);drawGlow(o.x,o.y,30,'y',.3)}
   else if(o.k==='stream'){g.fillStyle='#3a7aa0';g.fillRect(0,o.y-30,W,60);txt(L('개울 (물 뜨기)','小溪（打水）'),o.x,o.y,18,'#e8f4ff','center')}}
- for(const z of Ld.zs)if(z.hp>0)drawInfected(z)
+ for(const z of Ld.zs)drawInfected(z)
  drawHero(p,Ld.target&&Ld.work>0?(Ld.target.o&&Ld.target.o.k==='tree'||Ld.target.o&&Ld.target.o.k==='rock'?'attack':'gather'):Ld.target&&Ld.target.z&&Ld.atk>.3?'attack':null,96);drawFx(0);g.restore();
  if(night||R.t>DUSK){g.fillStyle=`rgba(2,6,14,${night?.6:(R.t-DUSK)/(NIGHT-DUSK)*.45})`;g.fillRect(0,0,W,H)}
  // HUD
