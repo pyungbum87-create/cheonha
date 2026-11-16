@@ -2079,7 +2079,7 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
   RECIPES.push({out:'m_jangbi',in:['jangbi','gwanpyeong','madae']},{out:'m_samaui',in:['samaui','join','jangryo']},{out:'m_juyu',in:['juyu','yukson','hwanggae']},{out:'m_wonso',in:['wonso','anryang','munchu']});
   RECIPES.slice(-4).forEach(R=>R.in.forEach(id=>KEEP.add(id)));})();
 /* v30h→v30.3: 시나리오·끝없는 전장 음원 (보스가 나오면 보스 BGM). 끊김 수정: 잠금 해제가 재생 중인 곡을 멈추던 문제, 끊긴 곡 자동 재시도, 화면 나갔다 오면 이어 재생, 보스 뒤 전투곡 이어 듣기 */
-(function(){if(!window.Audio)return;const A={};const VOL={bgm_battle:.38,bgm_boss:.5,bgm_menu:.5};['bgm_battle','bgm_boss','bgm_menu'].forEach(k=>{try{const a=new Audio('audio/'+k+'.mp3');a.loop=true;a.preload=k==='bgm_menu'?'auto':'metadata';a.volume=VOL[k];A[k]=a;}catch(e){}});let cur=null,unl=false,bossT=0,tries=0;
+(function(){if(!window.Audio)return;const A={};const VOL={bgm_battle:.38,bgm_boss:.5,bgm_menu:.5};['bgm_battle','bgm_boss','bgm_menu'].forEach(k=>{try{const a=new Audio('audio/'+k+'.mp3');a.loop=true;a.preload='metadata';a.volume=VOL[k];A[k]=a;}catch(e){}});let cur=null,unl=false,bossT=0,tries=0;
   const play=a=>{try{const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}};
   const set=w=>{if(cur===w){const a=cur&&A[cur];if(a&&a.paused&&tries<40){tries++;play(a);}return;}tries=0;if(cur&&A[cur])try{A[cur].pause();}catch(e){}cur=w;if(w&&A[w]){if(w==='bgm_boss')try{A[w].currentTime=0;}catch(e){}play(A[w]);}};
   const want=()=>{const ok=!!(SAVE.opt.bgm&&unl&&!document.hidden);if(!ok)return null;if(!(G&&!G.over))return 'bgm_menu';const boss=G.enemies.some(e=>e.boss);if(boss)bossT=Date.now();return (boss||Date.now()-bossT<2500)&&A.bgm_boss?'bgm_boss':'bgm_battle';};
