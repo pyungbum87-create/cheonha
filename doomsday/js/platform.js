@@ -10,7 +10,7 @@ window.DX = window.DX || {};
   const API = DX.API, PF = DX.PLATFORM;
 
   // ★ 빌드 번호 (월일-시분). 화면 아래에 표시 → 휴대폰에서 최신판인지 확인용
-  DX.BUILD = '1116-2313';
+  DX.BUILD = '1117-0132';
 
   /* ---------------- 저장소 (위챗·더우인은 플랫폼 저장소, 웹은 localStorage) ---------------- */
   DX.store = {
@@ -22,6 +22,21 @@ window.DX = window.DX || {};
   /* ---------------- 통계 ----------------
      위챗 reportEvent / 더우인 reportAnalytics. ★ 관리자 화면에 같은 이벤트 이름을 등록해야 집계됨 (README 참고) */
   const LOG = [];
+  // 판 기록 (이 기기, 최근 40판): 어디서 끝났는지 → 설정의 [테스트 기록]에서 보고 복사
+  DX.runLog = function (how, G) {
+    try { const s = DX.save; if (!s || !G) return; s.rlog = s.rlog || [];
+      s.rlog.push([s.runs || 0, G.stageIdx + 1, (G.sub || 0) + 1, G.waveIdx + 1, how, Math.round(G.t), G.level || 0, G.kills || 0]);
+      if (s.rlog.length > 40) s.rlog.shift(); } catch (e) {}
+  };
+  DX.reportText = function () {
+    const s = DX.save || {}, c = s.statc || {}, r = s.rlog || [], n = k => c[k] || 0;
+    const sec = r.reduce((a, x) => a + x[5], 0), quit = r.filter(x => x[4] === 'Q').length;
+    const L1 = ['[DX ' + ((DX.CONFIG.game || {}).version || '') + ' ' + (DX.BUILD || '') + ']',
+      'load ' + (s.loadMs || '?') + 'ms | runs ' + (s.runs || 0) + ' | clear ' + n('run_clear') + ' fail ' + n('run_fail') + ' quit ' + quit,
+      'play ' + Math.round(sec / 60) + 'min | chapters ' + Object.keys(s.cleared || {}).length + ' | mini ' + n('minigame') + ' | ad ' + n('ad_show') + ' | share ' + n('share'),
+      'run: #판 장-스테이지 w웨이브 결과 초 Lv 처치'];
+    return L1.concat(r.slice(-20).map(x => '#' + x[0] + ' ' + x[1] + '-' + x[2] + ' w' + x[3] + ' ' + x[4] + ' ' + x[5] + 's Lv' + x[6] + ' k' + x[7])).join('\n');
+  };
   DX.track = function (ev, data) {
     data = data || {};
     try {

@@ -59,6 +59,7 @@ window.DX = window.DX || {};
       if (done) return; done = true; clearTimeout(slow); clearTimeout(safety);
       set(1);
       const ms = Math.round(performance.now() - t0);
+      if (DX.save && !DX.save.loadMs) DX.save.loadMs = ms;
       DX.track('load_done', { ms, why, fail: (DX.SPR && DX.SPR.failed) || 0, retry: (DX.SPR && DX.SPR.retries) || 0 });
       scr.classList.add('fade'); setTimeout(() => show(scr, false), 380);
       next();
@@ -94,7 +95,7 @@ window.DX = window.DX || {};
     show($('lobby'), true); show($('hud'), false);
     DX.dailyInit();
     refreshLobby();
-    setTimeout(() => tip('lobby'), 350);
+    if (!DX.save.fastStart) setTimeout(() => tip('lobby'), 350);
   }
   UI.showLobby = showLobby;
   function starHtml(a) { return (a || [false, false, false]).map(v => v ? '★' : '<i class="off">★</i>').join(''); }
@@ -182,7 +183,10 @@ window.DX = window.DX || {};
   function refreshLobby() {
     // 첫 10판 개방: 정비소(2판째), 보상(9판째)
     { const m = document.querySelector('[data-tab=meta]'), r = document.querySelector('[data-tab=reward]');
-      if (m) show(m, DX.unlocked('meta')); if (r) show(r, DX.unlocked('reward')); }
+      if (m) show(m, DX.unlocked('meta')); if (r) show(r, DX.unlocked('reward'));
+      const q = k => document.querySelector('[data-tab=' + k + ']'); show(q('hero'), DX.unlocked('hero') && DX.chapterCount() >= C.heroes.unlockStage); show(q('skin'), DX.unlocked('skin'));
+      show($('btnSupply'), DX.unlocked('extras')); show($('btnShare'), DX.unlocked('extras'));
+      if ((tab === 'hero' && !DX.unlocked('hero')) || (tab === 'skin' && !DX.unlocked('skin'))) setTab('stage'); }
     $('logoSub').textContent = T(C.game.subtitle);
     $('lobGold').textContent = DX.save.gold.toLocaleString();
     const sl = supplyLeft();
@@ -220,7 +224,11 @@ window.DX = window.DX || {};
   }
   // 지도 아래 '다음 목표' 한 줄
   function nextGoal() {
-    if (DX.rewardDot()) return L('🎁 받을 보상이 있어요! [보상] 탭을 확인하세요', '🎁 有奖励可领取！请查看【奖励】');
+    if (DX.unlocked('reward') && DX.rewardDot()) return L('🎁 받을 보상이 있어요! [보상] 탭을 확인하세요', '🎁 有奖励可领取！请查看【奖励】');
+    // 오늘 출석을 받았으면 내일 받을 것을 미리 보여 줌 (다시 켤 이유)
+    if (DX.unlocked('reward') && !DX.attCan() && DX.save.att) { const d = DX.save.att.streak, left = 7 - (d % 7 || 7);
+      if (d > 0 && d < 7) return L('📅 내일 또 오면 골드 ' + DX.ATT[d % 7] + '! ' + (7 - d) + '일 뒤엔 [배달원] 꾸미기', '📅 明天再来领 ' + DX.ATT[d % 7] + ' 金币！再签到' + (7 - d) + '天送【外卖员】皮肤');
+      if (d >= 7) return L('📅 내일 또 오면 골드 ' + DX.ATT[d % 7] + '! (연속 ' + d + '일째)', '📅 明天再来领 ' + DX.ATT[d % 7] + ' 金币！（已连续' + d + '天）'); }
     const idx = C.stages.findIndex(s => !DX.save.cleared[s.id]);
     if (idx < 0) return L('🏆 모든 스테이지 클리어! 최고 기록에 도전하세요', '🏆 已通关全部关卡！挑战最高纪录吧');
     const st = C.stages[idx], best = DX.save.best[st.id] || 0;
@@ -676,7 +684,7 @@ window.DX = window.DX || {};
   function share(where) {
     const o = lastResult, st = o ? C.stages[o.stageIdx] : null;
     const text = o && o.win ? L(T(st.name) + ' 클리어! 좀비 ' + o.kills + '마리 처치. 너도 탈 수 있어?', '通关「' + T(st.name) + '」！击杀' + o.kills + '只僵尸，你也来试试？')
-      : o ? L('WAVE ' + o.wave + '까지 버텼다... 정시 퇴근 열차에 탑승하라!', '坚持到了 WAVE ' + o.wave + '……快登上准点下班列车！')
+      : o ? L(T(st.name) + ' WAVE ' + o.wave + '에서 좀비 ' + o.kills + '마리 잡고 탈선... 너는 더 갈 수 있어?', '在「' + T(st.name) + '」WAVE ' + o.wave + ' 击杀' + o.kills + '只僵尸后翻车……你能走得更远吗？')
       : L('좀비 사이로 정시 퇴근 열차가 달린다! 둠스데이 익스프레스', '僵尸堆里冲出准点下班列车！末日快车');
     const r = DX.share(text, where);
     if (r === 'copied') toast(L('공유 문구를 복사했어요', '分享文案已复制'));
@@ -710,13 +718,14 @@ window.DX = window.DX || {};
     // 첫 판: 프롤로그(최강 열차 맛보기) 먼저
     if (i === 0 && C.prologue && C.prologue.on && !DX.save.prologueDone && !Object.keys(DX.save.cleared || {}).length) {
       show($('lobby'), false); show($('hud'), true);
-      DX.startPrologue(() => { show($('hud'), false); startStage(0); });
+      DX.startPrologue(() => { DX.track('tutorial', { step: 'prologue_done' }); if (DX.save.fastStart) { show($('hud'), true); DX.startRun(0); } else { show($('hud'), false); startStage(0); } });
       return;
     }
     const st = C.stages[i];
     DX.save.seenStory = DX.save.seenStory || {};
     const cmc = C.comics && C.comics[st.id];
-    if (cmc && !DX.save.seenStory[st.id]) {
+    if (i === 0 && DX.save.fastStart && !DX.save.seenStory[st.id] && (DX.save.runs || 0) < 3) { DX.save.seenStory[st.id] = true; DX.persist(); DX.startRun(i); }
+    else if (cmc && !DX.save.seenStory[st.id]) {
       DX.save.seenStory[st.id] = true; DX.persist();
       show($('lobby'), false);
       UI.comic(cmc, 'CHAPTER ' + (i + 1) + ' · ' + T(st.name), () => DX.startRun(i), st.id);
@@ -727,6 +736,8 @@ window.DX = window.DX || {};
     } else DX.startRun(i);
   }
   function backToLobby() {
+    // 바로 시작한 사람: 첫 판이 끝난 뒤에 '어쩌다 이렇게 됐나' 스토리 한 번
+    if (DX.save.fastStart && !DX.save.seenIntro) { show($('hud'), false); showIntro(); return; }
     show($('hud'), false); showLobby();
     // 장 클리어 컷: 구한 시민이 안전 칸에 + 다음 장 예고
     const cc = DX._clearCut; DX._clearCut = null;
@@ -856,6 +867,10 @@ window.DX = window.DX || {};
     $('btnPrivacy').addEventListener('click', () => { $('privacyBody').textContent = L(DX.PRIVACY[0], DX.PRIVACY[1]); show($('privacy'), true); });
     $('privacyClose').addEventListener('click', () => show($('privacy'), false));
     $('tipClose').addEventListener('click', () => show($('tip'), false));
+    $('btnReport').addEventListener('click', () => {
+      const t = DX.reportText(); $('reportTxt').textContent = t; show($('reportTxt'), true);
+      try { navigator.clipboard.writeText(t).then(() => toast(L('기록을 복사했어요. 붙여넣어 보내 주세요', '记录已复制，请粘贴发送'))).catch(() => {}); } catch (e) {}
+    });
     $('btnQuit').addEventListener('click', () => { show($('pause'), false); DX.quitRun(); backToLobby(); });
     $('btnIntro').addEventListener('click', () => { show($('pause'), false); DX.save.seenStory = {}; DX.persist(); showIntro(); });
     $('btnReset').addEventListener('click', () => {
@@ -900,7 +915,9 @@ window.DX = window.DX || {};
       // 아직 없을 수도 있는 그림 자리 미리 확인 (보스 컷인·꾸미기 얼굴)
       C.survivors.forEach(sv => portraitOf(sv));
       if (location.hash === '#autostart') { DX.save.seenIntro = true; DX.save.firstRunDone = true; DX.startRun(DX.save.stage || 0); return; }
-      if (!DX.save.seenIntro) showIntro(); else showLobby();
+      // 처음 켜면 설명·스토리 없이 바로 전투(최강 열차 맛보기). 스토리는 첫 판이 끝난 뒤에
+      if (!DX.save.firstRunDone && !Object.keys(DX.save.cleared || {}).length && !DX.save.runs) { DX.save.firstRunDone = true; DX.save.fastStart = true; DX.persist(); DX.track('tutorial', { step: 'first_run' }); startStage(0); }
+      else if (!DX.save.seenIntro && !DX.save.fastStart) showIntro(); else showLobby();
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

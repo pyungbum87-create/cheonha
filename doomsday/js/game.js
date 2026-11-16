@@ -618,7 +618,7 @@ window.DX = window.DX || {};
     if (G.waveIdx === 0 && DX.save.passed && DX.save.passed.stage !== G.stg.id) later(4, spawnPassedZombie);
     const mg = C.minigame, mlist = mg && mg.on && DX.MINI && !G.endless && (mg.byStage[G.stageIdx] || []);
     const mm = mlist && mlist.find(m => m[0] === G.waveIdx + 1);
-    if (mm && !w.boss) {
+    if (mm && !w.boss && unlocked('mini')) {
       let kind = mm[1];
       if (DX.save.cleared[G.stg.id] && mg.pool && mg.pool[G.stageIdx]) {   // 다시 하기: 후보 중 무작위 (직전 것 제외)
         DX.save.lastMini = DX.save.lastMini || {};
@@ -2278,6 +2278,7 @@ window.DX = window.DX || {};
     DX.mission('kill', G.mKill || 0); G.mKill = 0; DX.mission('combo', G.maxCombo, true);
     if (win) DX.mission('clear');
     DX.track(win ? 'run_clear' : 'run_fail', { stage: G.stageIdx + 1, wave: G.waveIdx + 1, sec: Math.round(G.t), kills: G.kills });
+    if (!G.prologue) DX.runLog(win ? 'W' : 'L', G);
     G.endT = 0;
     const stg = G.stg;
     const out = { win, stageIdx: G.stageIdx, wave: Math.min(G.waveIdx + 1, stg.waves.length), kills: G.kills, maxCombo: G.maxCombo, gold: Math.round(G.gold), level: G.level, canRevive: !win && !G.revived && C.ads.revive, stats: G.stats, t: G.t, final: win && G.stageIdx === C.stages.length - 1 };
@@ -2338,7 +2339,7 @@ window.DX = window.DX || {};
     DX.state = 'lobby';
     applyTheme(DX.save.stage || 0);
   };
-  DX.quitRun = function () { if (!G) return; G.outcome = G.outcome || { win: false, stageIdx: G.stageIdx, wave: G.waveIdx + 1, kills: G.kills, gold: Math.floor(G.gold * 0.5) }; DX.finishRun(false); };
+  DX.quitRun = function () { if (!G) return; if (!G.prologue && G.endT < 0) DX.runLog('Q', G); G.outcome = G.outcome || { win: false, stageIdx: G.stageIdx, wave: G.waveIdx + 1, kills: G.kills, gold: Math.floor(G.gold * 0.5) }; DX.finishRun(false); };
 
   /* ================= 렌더 ================= */
   const lobby = { t: 0, cars: ['gun', 'flame', 'tesla'], layout: null };

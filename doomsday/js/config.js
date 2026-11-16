@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.19',
+    version: 'v0.20',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -361,7 +361,7 @@ DX.CONFIG = {
   // 칸 도감: 처음엔 기관총·화염만, 장을 깨면 새 무기 칸이 열림 (장 번호)
   weaponUnlock: { mg: 0, flame: 0, tesla: 1, drone: 2, barrel: 2, cannon: 3, water: 3, freeze: 5, fan: 6 },
   // 방치 보상 (3장 클리어 후): 자리 비운 동안 골드. 최대 maxHours시간분, 광고 보면 2배
-  idle: { unlockStage: 3, perHourBase: 40, perStage: 25, maxHours: 8 },
+  idle: { unlockStage: 1, perHourBase: 40, perStage: 25, maxHours: 8 },
   // 경제: 실패하면 번 골드의 failRate만, 광고 2배는 하루 adDoubleDay번
   econ: { failRate: 0.4, adDoubleDay: 3 },
   // 꾸미기 수집 보너스: 외형 every개마다 골드 +per (최대 max)
@@ -514,9 +514,11 @@ DX.CONFIG = {
   // 칸 배치 보너스 (7판째부터 자리 고르기): 기관차 바로 뒤 = 쿨타임 감소, 맨 뒤 = 침입 막기
   placement: { frontHaste: 0.85, rearGuard: 0.5 },
   // 첫 10판 동안 하나씩 여는 순서 (판 번호). 이미 2장 이상 깬 사람은 전부 열림
-  unlocks: { meta: 2, horn: 3, aim: 4, skillManual: 4, invasion: 5, combo: 6, place: 7, reward: 9, autoBtn: 10 },
+  // 기능은 한 번에 하나씩 천천히 (숫자 = 몇 번째 판부터). 2장 이상 깬 사람은 전부 열림
+  //  첫 판 뒤 정비소 → 2 출석·미션 → 3 경적, 보급·공유 → 4 조준, 스킬 직접, 미니게임 → 5 침입, 생존자 → 6 조합 → 7 칸 배치 → 8 꾸미기 → 10 자동 버튼
+  unlocks: { meta: 1, reward: 2, horn: 3, extras: 3, aim: 4, skillManual: 4, mini: 4, invasion: 5, hero: 5, combo: 6, place: 7, skin: 8, autoBtn: 10 },
   // 첫 판 프롤로그 (최초 1회): 황금 열차 최강 상태 → 사장님 골프공 → 기관차 하나로 시작
-  prologue: { on: true, time: 18, wave: { time: 999, rate: 16, hordes: 0, hordeSize: 0, mix: { office: 0.6, box: 0.2, dancer: 0.2 }, hp: 0.5 } },
+  prologue: { on: true, time: 12, wave: { time: 999, rate: 16, hordes: 0, hordeSize: 0, mix: { office: 0.6, box: 0.2, dancer: 0.2 }, hp: 0.5 } },
   // 액티브 스킬: 화면 아래 버튼 최대 max개. auto = 자동 모드 효율
   skills: { max: 3, auto: 0.8 },
   // 원소 반응 (젖음·얼음·불·바람이 만나면)

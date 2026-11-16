@@ -14,7 +14,7 @@
 @font-face { font-family: 'Black Han Sans'; src: url(assets/font/dx_ko.woff) format('woff'); font-display: swap; unicode-range: U+1100-11FF, U+3130-318F, U+AC00-D7A3; }
 @font-face { font-family: 'Black Han Sans'; src: url(assets/font/dx_zh.woff) format('woff'); font-display: swap; unicode-range: U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF; }
 </style>
-<link rel="stylesheet" href="css/style.min.css?v=1116-2313">
+<link rel="stylesheet" href="css/style.min.css?v=1117-0132">
 </head>
 <body>
 <div id="app">
@@ -165,6 +165,8 @@
       <div class="opt"><span>언어 / 语言</span><button class="lang-btn" id="btnLang">한국어 ⇄ 中文</button></div>
       </div>
       <div class="fps" id="fpsTxt"></div>
+      <button class="lang-btn" id="btnReport" style="margin:4px auto;display:block">📊 테스트 기록 복사 / 复制测试记录</button>
+      <pre id="reportTxt" class="hidden" style="font-size:10px;line-height:1.35;text-align:left;max-height:120px;overflow:auto;background:rgba(0,0,0,.45);padding:6px;border-radius:6px;user-select:text;-webkit-user-select:text;white-space:pre-wrap"></pre>
       <button class="btn" id="btnResume">계속하기</button>
       <button class="btn dark" id="btnQuit">로비로 나가기</button>
       <div class="btn-row">
@@ -263,7 +265,7 @@
 </div>
 
 <!-- build:js 배포판 = js/all.min.js 한 파일 (node _dev/build.js). 주소 뒤 ?src=1 이면 원본 파일들 -->
-<script>(function(){var v='1116-2313',L=/[?&]src=1/.test(location.search)?["js/config.js","assets/webp.js","js/i18n.js","js/platform.js","js/engine.js","js/models.js","js/sprites.js","js/fight.js","js/mini.js","js/game.js","js/ui.js"]:['js/all.min.js'];for(var i=0;i<L.length;i++)document.write('<script src="'+L[i]+'?v='+v+'"><\/script>');})();</script>
+<script>(function(){var v='1117-0132',L=/[?&]src=1/.test(location.search)?["js/config.js","assets/webp.js","js/i18n.js","js/platform.js","js/engine.js","js/models.js","js/sprites.js","js/fight.js","js/mini.js","js/game.js","js/ui.js"]:['js/all.min.js'];for(var i=0;i<L.length;i++)document.write('<script src="'+L[i]+'?v='+v+'"><\/script>');})();</script>
 <!-- /build:js -->
 </body>
 </html>
