@@ -9,7 +9,7 @@ await pg.goto('http://localhost:'+port+'/?all=1&lang=zh');await pg.waitForTimeou
 const tap=async id=>{const p=await pg.evaluate(i=>__t.btn(i),id);if(!p)return false;await pg.mouse.click(p.x,p.y);await pg.waitForTimeout(120);return true;};
 await pg.waitForTimeout(2500);if(!await pg.evaluate(()=>__t.S&&__t.L.id===1))console.log('FIRST LAUNCH did not open stage 1');await pg.evaluate(()=>__t.goHome());await pg.waitForTimeout(200);
 const only=process.argv[3]?process.argv[3].split(',').map(Number):null;let fails=0;
-for(let si=0;si<20;si++){if(only&&!only.includes(si+1))continue;
+for(let si=0;si<25;si++){if(only&&!only.includes(si+1))continue;
  let opened=false;for(let n=0;n<14&&!opened;n++){opened=await tap('lv'+si);if(!opened){await pg.mouse.move(195,520);await pg.mouse.down();await pg.mouse.move(195,400,{steps:5});await pg.mouse.up();await pg.waitForTimeout(80);}}
  if(!opened){console.log('could not reach card',si+1);fails++;await pg.evaluate(i=>__t.start(i),si);}
  for(let i=0;i<80;i++){if(await pg.evaluate(i=>__t.S&&__t.L&&__t.L.id===i+1&&__t.S.cardT<=0,si))break;await pg.waitForTimeout(100);}

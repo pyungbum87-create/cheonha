@@ -9,8 +9,8 @@ data=subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify(r
 BUILD=re.search(r"const BUILD='([^']+)'",open(S+'/photo.html',encoding='utf-8').read()).group(1)
 js=open(R+'/src/game.js',encoding='utf-8').read().replace('/*@@STAGES@@*/[]',data).replace("'DEVBUILD'","'"+BUILD+"'")
 def pics(dst):
-    os.makedirs(dst+'/art');os.makedirs(dst+'/story');os.makedirs(dst+'/audio')
-    for f in os.listdir(S+'/art'):shutil.copy(S+'/art/'+f,dst+('/story/' if f.startswith('end_') else '/art/')+f)
+    os.makedirs(dst+'/art');os.makedirs(dst+'/story');os.makedirs(dst+'/audio');os.makedirs(dst+'/season2')
+    for f in os.listdir(S+'/art'):shutil.copy(S+'/art/'+f,dst+('/story/' if f.startswith('end_') else '/season2/' if f.startswith(('s2_','cici_')) else '/art/')+f)
     shutil.copytree(S+'/thumb',dst+'/thumb');shutil.copytree(R+'/sfx',dst+'/sfx')
     for f in os.listdir(S+'/music'):shutil.copy(S+'/music/'+f,dst+'/audio/'+f)
 # ---- web
@@ -41,8 +41,8 @@ open(W+'/index.html','w',encoding='utf-8').write(f'''<!doctype html>
 # ---- WeChat / Douyin: main package = code + pictures for play; story pictures and music are separate packs loaded when needed
 for name in ('wx','tt'):
     D=O+'/'+name;pics(D);open(D+'/game.js','w',encoding='utf-8').write(js)
-    for sp in ('story','audio'):open(D+'/'+sp+'/game.js','w').write('// pack: '+sp+'\n')
-    json.dump({'deviceOrientation':'portrait','showStatusBar':False,'networkTimeout':{'request':10000,'downloadFile':10000},'subpackages':[{'name':'story','root':'story/'},{'name':'audio','root':'audio/'}]},open(D+'/game.json','w'),indent=1)
+    for sp in ('story','audio','season2'):open(D+'/'+sp+'/game.js','w').write('// pack: '+sp+'\n')
+    json.dump({'deviceOrientation':'portrait','showStatusBar':False,'networkTimeout':{'request':10000,'downloadFile':10000},'subpackages':[{'name':'story','root':'story/'},{'name':'audio','root':'audio/'},{'name':'season2','root':'season2/'}]},open(D+'/game.json','w'),indent=1)
     json.dump({'description':'团团小镇闹哄哄','appid':'<填写你的AppID>','projectname':'tuantuan-town','compileType':'game','setting':{'es6':True,'minified':True,'urlCheck':True}},open(D+'/project.config.json','w',encoding='utf-8'),ensure_ascii=False,indent=1)
 def size(p,skip=()):
     t=0
@@ -50,4 +50,4 @@ def size(p,skip=()):
         if any(d.startswith(p+'/'+s) for s in skip):continue
         t+=sum(os.path.getsize(d+'/'+f) for f in fs)
     return t
-print('build',BUILD,'| web %.2fMB | wx main %.2fMB, story %.2fMB, audio %.2fMB'%(size(W)/1e6,size(O+'/wx',('story','audio'))/1e6,size(O+'/wx/story')/1e6,size(O+'/wx/audio')/1e6))
+print('build',BUILD,'| web %.2fMB | wx main %.2fMB, story %.2fMB, audio %.2fMB'%(size(W)/1e6,size(O+'/wx',('story','audio','season2'))/1e6,size(O+'/wx/story')/1e6,size(O+'/wx/audio')/1e6))

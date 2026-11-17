@@ -28,8 +28,9 @@ const CORE=['logo_zh','logo_ko','lili_basic','lili_shock','lili_joy','lili_worry
 function stageKeys(st){const k=new Set([st.bg,'lili_basic','lili_shock','lili_joy','lili_worry','tt_cheer']);if(st.hid)k.add(st.hid);for(const o of st.objs){if(o.img)k.add(o.img);for(const a of o.alt||[])if(a.img)k.add(a.img);}for(const t of st.tools)k.add(t.img);for(const r of st.rules)for(const d of r.do)if(d[0]==='tmp'&&d[2].img)k.add(d[2].img);else if(d[0]==='fly')k.add(d[1]);return [...k];}
 const SUB={};function sub(n){if(!PF||!PF.loadSubpackage)return Promise.resolve();return SUB[n]||(SUB[n]=new Promise(res=>{try{PF.loadSubpackage({name:n,success:()=>res(),fail:()=>{SUB[n]=null;res();}});}catch(e){res();}}));}
 const ART={},PEND={};
-const pathOf=n=>(n.startsWith('th_')?'thumb/'+n.slice(3):n.startsWith('end_')?'story/'+n:'art/'+n)+'.webp';
-function loadImg(n,tries){tries=tries||0;if(ART[n])return Promise.resolve(true);if(PEND[n]&&!tries)return PEND[n];const p=(n.startsWith('end_')?sub('story'):Promise.resolve()).then(()=>new Promise(res=>{const im=PF?PF.createImage():new Image();im.onload=()=>{ART[n]=im;if(S)refreshPV();res(true);};im.onerror=()=>{if(tries<7)setTimeout(()=>loadImg(n,tries+1).then(res),500*(tries+1));else{track('img_fail',{n});res(false);}};im.src=pathOf(n)+(PF?'':'?v='+BUILD+(tries?'&r='+tries:''));}));if(!tries)PEND[n]=p;return p;}
+const S2=n=>/^(s2_|cici_)/.test(n);
+const pathOf=n=>(n.startsWith('th_')?'thumb/'+n.slice(3):n.startsWith('end_')?'story/'+n:S2(n)?'season2/'+n:'art/'+n)+'.webp';
+function loadImg(n,tries){tries=tries||0;if(ART[n])return Promise.resolve(true);if(PEND[n]&&!tries)return PEND[n];const p=(n.startsWith('end_')?sub('story'):S2(n)?sub('season2'):Promise.resolve()).then(()=>new Promise(res=>{const im=PF?PF.createImage():new Image();im.onload=()=>{ART[n]=im;if(S)refreshPV();res(true);};im.onerror=()=>{if(tries<7)setTimeout(()=>loadImg(n,tries+1).then(res),500*(tries+1));else{track('img_fail',{n});res(false);}};im.src=pathOf(n)+(PF?'':'?v='+BUILD+(tries?'&r='+tries:''));}));if(!tries)PEND[n]=p;return p;}
 let LOADING=null;
 function ensure(list,done){list=[...new Set(list)].filter(n=>n&&!ART[n]);if(!list.length){done();return;}const Ld=LOADING={ok:0,n:list.length,t0:now(),done:false};const fin=()=>{if(Ld.done)return;Ld.done=true;if(LOADING===Ld)LOADING=null;done();};Ld.fin=fin;list.forEach(n=>loadImg(n).then(()=>{Ld.ok++;if(Ld.ok>=Ld.n)fin();}));}
 /* ---------- rules ---------- */
@@ -78,8 +79,8 @@ function particles(kind,where){const p=at(where);const n={drops:16,spark:20,conf
 function slots(){const n=L.tools.length+1;const a=L.tools.map((t,i)=>({id:t.id,tool:t,x:VW*(i+.5)/n,y:SS+TRAY/2+4,r:36}));a.push({id:'preview',x:VW*(n-.5)/n,y:SS+TRAY/2+4,r:36});return a;}
 /* ---------- drawing helpers ---------- */
 const fnt=(sz,f)=>(f?'':'600 ')+sz+'px '+(f||FZ);
-const GOALKO=['설날 가족사진','개업 기념사진','거실 단체사진','다락방 단체사진','장터 단체사진','바닷가 단체사진','우체국 단체사진','꽃가게 단체사진','언덕 단체사진','생일 단체사진','병문안 단체사진','딤섬 단체사진','도서관 단체사진','야시장 단체사진','빗속 단체사진','친구들 단체사진','야시장 불빛','음악회 단체사진','장터 큰 단체사진','온 동네 단체사진'];
-const SPK={'团团':'탄탄','栗栗':'리리','滴滴':'방울이','墩墩':'둥둥','闪闪':'반짝','啄啄':'쫑쫑','小猫':'고양이','砰砰':'펑펑'};
+const GOALKO=['설날 가족사진','개업 기념사진','거실 단체사진','다락방 단체사진','장터 단체사진','바닷가 단체사진','우체국 단체사진','꽃가게 단체사진','언덕 단체사진','생일 단체사진','병문안 단체사진','딤섬 단체사진','도서관 단체사진','야시장 단체사진','빗속 단체사진','친구들 단체사진','야시장 불빛','음악회 단체사진','장터 큰 단체사진','온 동네 단체사진','수박 파티 단체사진','반딧불이 단체사진','빨래 날 단체사진','빙수 가게 단체사진','연못 단체사진'];
+const SPK={'刺刺':'콕콕이','团团':'탄탄','栗栗':'리리','滴滴':'방울이','墩墩':'둥둥','闪闪':'반짝','啄啄':'쫑쫑','小猫':'고양이','砰砰':'펑펑'};
 const C={paper:'#fbefdc',ink:'#5b3520',soft:'#8a6448',red:'#d8473a',redd:'#a8332a',gold:'#f2b52c',goldd:'#bd8a1a',cream:'#fff8ec',line:'#e7cfa9',tray:'#f3dcb8'};
 const FZ='"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Apple SD Gothic Neo","Malgun Gothic",sans-serif',FB='"PingFang SC","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
 function rr(c,x,y,w,h,r){r=Math.max(0,Math.min(r,w/2,h/2));c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
@@ -278,6 +279,7 @@ function drawHome(){const x0=16,lg=LANG==='ko'?'logo_ko':'logo_zh',lim=ART[lg],l
   g.fillStyle=best===5?C.goldd:C.line;rr(g,x,y+3,cw,chh,13);g.fill();if(best===5){g.fillStyle=C.gold;rr(g,x-2,y-2+dn,cw+4,chh+4,14);g.fill();}g.fillStyle=C.cream;rr(g,x,y+dn,cw,chh,13);g.fill();
   const th='th_'+st.bg,ih=cw*.58;loadImg(th);g.save();rr(g,x+5,y+5+dn,cw-10,ih,9);g.clip();if(ART[th]){const im=ART[th];g.drawImage(im,0,im.height*.2,im.width,im.height*.6,x+5,y+5+dn,cw-10,ih);}else{g.fillStyle='#ead7b6';g.fillRect(x+5,y+5+dn,cw-10,ih);}if(!open){g.fillStyle='rgba(236,226,208,.72)';g.fillRect(x+5,y+5+dn,cw-10,ih);}g.restore();
   g.fillStyle=open?C.redd:'#a8977c';g.beginPath();g.arc(x+15,y+17+dn,14,0,7);g.fill();g.fillStyle=open?C.red:'#bfae93';g.beginPath();g.arc(x+15,y+15+dn,14,0,7);g.fill();tx(String(st.id),x+15,y+16+dn,15,'#fff');
+  if(i===20){g.fillStyle='#4f9a5b';rr(g,x+cw-70,y+ih-18+dn,62,20,8);g.fill();tx(T('第二季','시즌2'),x+cw-39,y+ih-7+dn,12,'#fff');}
   if(!open){g.fillStyle='rgba(91,53,32,.75)';rr(g,x+cw-58,y+10+dn,50,20,8);g.fill();tx(T('未解锁','잠김'),x+cw-33,y+21+dn,12,'#fff');}
   tx(T(st.title,st.ko),x+8,y+ih+19+dn,15,open?C.ink:'#a8977c','left',cw-16);const yy=y+ih+38+dn;tx('★★★',x+8,yy,12,C.line,'left');if(sc)tx('★★★'.slice(0,sc),x+8,yy,12,C.gold,'left');tx(n+'/32'+(SAVE.found[st.id]?T(' · 贴纸',' · 스티커'):''),x+50,yy,11,C.soft,'left',cw-58,FB);
   g.fillStyle=C.line;rr(g,x+8,y+chh-12+dn,cw-16,5,3);g.fill();if(n){g.fillStyle=C.gold;rr(g,x+8,y+chh-12+dn,Math.max(5,(cw-16)*n/32),5,3);g.fill();}
