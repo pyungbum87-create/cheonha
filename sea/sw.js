@@ -1,5 +1,5 @@
 // 오프라인: 인터넷이 되면 새 파일, 안 되면 저장해 둔 파일. 이 게임 전용 캐시(deepsea-)만 만진다.
-const CACHE='deepsea-1117-1433',PRE=["./", "index.html", "game.js", "manifest.webmanifest", "icon-192.png"];
+const CACHE='deepsea-1117-1512',PRE=["./", "index.html", "game.js", "manifest.webmanifest", "icon-192.png", "art/en_angler.webp", "art/en_boss.webp", "art/en_crab.webp", "art/en_eel.webp", "art/en_elite.webp", "art/en_horseshoe.webp", "art/en_minnow.webp", "art/en_ray.webp", "art/en_squid.webp", "art/en_turtle.webp", "art/hero_guard.webp", "art/tw_bubble_1.webp", "art/tw_conch_1.webp", "art/tw_coral_1.webp", "art/tw_jelly_1.webp", "art/tw_rune_1.webp"];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>Promise.all(PRE.map(u=>c.add(new Request(u,{cache:'reload'})).catch(()=>{})))));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('deepsea-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET'||!r.url.startsWith(self.registration.scope))return;

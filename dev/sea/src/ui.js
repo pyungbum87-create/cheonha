@@ -70,6 +70,7 @@ function drain(){
 }
 /* ---------- 전투 갱신 ---------- */
 function updateBattle(dt){
+  if(ui.artVer!==artVer){ui.artVer=artVer;bgC=renderBg(G.M);}
   if(ui.tip){ui.tip.t-=dt;if(ui.tip.t<=0)ui.tip=null;}
   if(ui.shake>0)ui.shake-=dt;if(ui.pathT>0)ui.pathT-=dt;if(ui.hurtT>0)ui.hurtT-=dt;
   if(!ui.overlay&&G.state==='run'){acc+=dt*ui.speed;let n=0;while(acc>=DT&&n<8){G.tick();acc-=DT;n++;if(G.state!=='run')break;}if(n>=8)acc=0;}

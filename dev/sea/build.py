@@ -5,9 +5,16 @@ from PIL import Image, ImageDraw, ImageFilter
 ROOT = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.join(ROOT, 'src'); OUT = os.path.join(ROOT, 'site')
 BUILD = time.strftime('%m%d-%H%M', time.gmtime(time.time() + 9 * 3600))
 js = '\n'.join(open(os.path.join(SRC, f), encoding='utf-8').read() for f in ('data.js', 'core.js', 'plat.js', 'art.js', 'ui.js'))
-js = '(()=>{"use strict";\n' + js.replace('@@BUILD@@', BUILD) + '\n})();\n'
+ARTDIR = os.path.join(ROOT, 'art'); arts = sorted(os.path.splitext(a)[0] for a in os.listdir(ARTDIR) if a.lower().endswith(('.png', '.webp'))) if os.path.isdir(ARTDIR) else []
+js = '(()=>{"use strict";\n' + js.replace('@@BUILD@@', BUILD).replace('@@ART@@', json.dumps(arts)) + '\n})();\n'
 if os.path.exists(OUT): shutil.rmtree(OUT)
-os.makedirs(OUT)
+os.makedirs(os.path.join(OUT, 'art'))
+for a in sorted(os.listdir(ARTDIR)) if os.path.isdir(ARTDIR) else []:
+    if not a.lower().endswith(('.png', '.webp')): continue
+    im = Image.open(os.path.join(ARTDIR, a)).convert('RGBA'); n = os.path.splitext(a)[0]
+    lim = 1080 if n.startswith('bg_') else 360
+    if max(im.size) > lim: im.thumbnail((lim, lim), Image.LANCZOS)
+    im.save(os.path.join(OUT, 'art', n + '.webp'), 'WEBP', quality=88, method=6)
 open(os.path.join(OUT, 'game.js'), 'w', encoding='utf-8').write(js)
 TITLE = '深海神殿守卫'; BG = '#0d3a48'
 html = f'''<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta http-equiv="Cache-Control" content="no-cache"/>
@@ -38,7 +45,7 @@ icon(180).save(os.path.join(OUT, 'apple-touch-icon.png')); icon(192).save(os.pat
 json.dump({"name": TITLE, "short_name": TITLE, "lang": "zh-CN", "start_url": "./", "scope": "./", "display": "standalone", "orientation": "portrait", "background_color": BG, "theme_color": BG,
            "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]},
           open(os.path.join(OUT, 'manifest.webmanifest'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-files = ['./', 'index.html', 'game.js', 'manifest.webmanifest', 'icon-192.png']
+files = ['./', 'index.html', 'game.js', 'manifest.webmanifest', 'icon-192.png'] + ['art/' + a + '.webp' for a in arts]
 sw = f'''// 오프라인: 인터넷이 되면 새 파일, 안 되면 저장해 둔 파일. 이 게임 전용 캐시(deepsea-)만 만진다.
 const CACHE='deepsea-{BUILD}',PRE={json.dumps(files)};
 self.addEventListener('install',e=>{{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>Promise.all(PRE.map(u=>c.add(new Request(u,{{cache:'reload'}})).catch(()=>{{}})))));}});
