@@ -51,60 +51,92 @@ function loadImg(n,tries){tries=tries||0;const im=API?API.createImage():new Imag
   im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(n,tries+1),500+tries*400);else IMG_FAIL[n]=1;};
   im.src='art/'+n+'.webp?v='+BUILD+(tries?'&r='+tries:'');}
 
-/* ---------- 소리: 효과음은 합성, 음악은 퇀퇀 브랜드 원곡 ---------- */
-const AU={c:null,m:null,sfxG:null,bgmG:null,nb:null,last:{}};
+/* ---------- 소리: 효과음도 음악도 전부 코드로 합성한다 (음원 파일 없음 = 용량 0, 저작권 걱정 없음) ---------- */
+const AU={c:null,m:null,sfxG:null,bgmG:null,nb:null,last:{},combo:0,comboT:0};
 function auInit(){try{if(AU.c){if(AU.c.state!=='running'&&AU.c.resume)AU.c.resume();return;}
   const AC=API?null:(window.AudioContext||window.webkitAudioContext);AU.c=AC?new AC():(API&&API.createWebAudioContext?API.createWebAudioContext():null);if(!AU.c)return;
-  AU.m=AU.c.createGain();AU.m.gain.value=.9;AU.m.connect(AU.c.destination);
-  AU.sfxG=AU.c.createGain();AU.sfxG.connect(AU.m);AU.bgmG=AU.c.createGain();AU.bgmG.gain.value=.6;AU.bgmG.connect(AU.m);
-  const len=Math.floor(AU.c.sampleRate*.5),b=AU.c.createBuffer(1,len,AU.c.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;AU.nb=b;
+  let out=AU.c.destination;if(AU.c.createDynamicsCompressor){const cp=AU.c.createDynamicsCompressor();cp.threshold.value=-16;cp.ratio.value=5;cp.attack.value=.004;cp.release.value=.18;cp.connect(out);out=cp;}
+  AU.m=AU.c.createGain();AU.m.gain.value=.95;AU.m.connect(out);
+  AU.sfxG=AU.c.createGain();AU.sfxG.connect(AU.m);AU.bgmG=AU.c.createGain();AU.bgmG.gain.value=.0001;AU.bgmG.connect(AU.m);
+  const len=Math.floor(AU.c.sampleRate),b=AU.c.createBuffer(1,len,AU.c.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;AU.nb=b;
   musicSync();}catch(e){AU.c=null;}}
 const mtof=m=>440*Math.pow(2,(m-69)/12);
-function env(gn,t,a,peak,dec){gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(peak,t+a);gn.gain.exponentialRampToValueAtTime(.0001,t+a+dec);}
-function osc(type,f,t,dur,peak,glide){const c=AU.c,o=c.createOscillator(),gn=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(glide)o.frequency.exponentialRampToValueAtTime(glide,t+dur*.7);env(gn,t,.004,peak,dur);o.connect(gn);gn.connect(AU.sfxG);o.start(t);o.stop(t+dur+.05);}
-function nz(t,dur,peak,f,type,q){const c=AU.c,s=c.createBufferSource(),fl=c.createBiquadFilter(),gn=c.createGain();s.buffer=AU.nb;fl.type=type||'highpass';fl.frequency.value=f||6000;if(q)fl.Q.value=q;env(gn,t,.003,peak,dur);s.connect(fl);fl.connect(gn);gn.connect(AU.sfxG);s.start(t);s.stop(t+dur+.05);}
-function bell(m,t,v,dur){const f=mtof(m);osc('sine',f,t,dur||.6,v);osc('sine',f*2,t,(dur||.6)*.5,v*.3);}
-const SFX_GAP={shoot:.07,hit:.05,pop:.05,boom:.09,coin:.05,splash:.08,beam:.12,wall:.15};
-function sfx(n,arg){if(!AU.c||!S.opt.sfx)return;try{const now=AU.c.currentTime;if(now-(AU.last[n]||-9)<(SFX_GAP[n]||.02))return;AU.last[n]=now;const t=now+.004;switch(n){
-  case 'btn':osc('sine',660,t,.06,.12,880);break;
-  case 'shoot':osc('sine',420+(arg||0)*60,t,.05,.035,640+(arg||0)*60);break;
-  case 'hit':nz(t,.04,.03,3000,'bandpass',1.2);break;
-  case 'pop':osc('sine',520,t,.09,.07,900);break;
-  case 'boom':osc('sine',120,t,.22,.14,60);nz(t,.2,.06,2200,'lowpass');break;
-  case 'splash':nz(t,.12,.04,1800,'bandpass',.8);break;
-  case 'beam':osc('triangle',880,t,.16,.05,1320);break;
-  case 'coin':bell(88,t,.06,.25);break;
-  case 'wall':osc('triangle',220,t,.14,.12,150);break;
-  case 'card':[76,79,84].forEach((m,i)=>bell(m,t+i*.06,.1,.5));break;
-  case 'pick':[79,84,88].forEach((m,i)=>bell(m,t+i*.05,.11,.5));break;
-  case 'awake':[72,76,79,84,88,91].forEach((m,i)=>bell(m,t+i*.06,.12,.8));break;
-  case 'ult':osc('sine',220,t,.35,.14,880);nz(t,.35,.07,1500,'bandpass',.7);break;
-  case 'ready':bell(84,t,.09,.4);bell(91,t+.08,.09,.4);break;
-  case 'wave':nz(t,.5,.07,900,'bandpass',.6);break;
-  case 'surge':nz(t,1.2,.13,700,'lowpass');osc('sine',90,t,.9,.1,140);break;
-  case 'ink':osc('sine',300,t,.2,.1,120);break;
-  case 'clear':osc('sine',500,t,.1,.09,1000);break;
-  case 'boss':[55,58,55,58].forEach((m,i)=>osc('triangle',mtof(m),t+i*.16,.2,.13));break;
-  case 'win':[72,76,79,84,88,91,96].forEach((m,i)=>bell(m,t+i*.08,.14,1));break;
-  case 'over':[67,64,62,55].forEach((m,i)=>osc('triangle',mtof(m),t+i*.15,.28,.12,mtof(m)*.97));break;
-  case 'reward':[84,88,91,96].forEach((m,i)=>bell(m,t+i*.09,.13,.7));break;
-  case 'nope':osc('triangle',280,t,.1,.09,200);break;
-}}catch(e){}}
-// 음악: 한 번 받아서 끊김 없이 반복. 못 받으면 잠시 뒤 다시 시도(간격을 늘려 가며)
-const MUSIC={buf:{},loading:{},err:{},src:null,gn:null,cur:null,want:'bgm-menu'};
-function loadTrack(n){if(API||MUSIC.buf[n]||MUSIC.loading[n]||!AU.c)return;MUSIC.loading[n]=1;
-  fetch('music/'+n+'.mp4?v='+BUILD).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();})
-   .then(ab=>new Promise((res,rej)=>{const p=AU.c.decodeAudioData(ab,res,rej);if(p&&p.catch)p.catch(rej);}))
-   .then(b=>{MUSIC.buf[n]=b;MUSIC.loading[n]=0;if(MUSIC.want===n)musicSync();})
-   .catch(()=>{const k=MUSIC.err[n]=(MUSIC.err[n]||0)+1;MUSIC.loading[n]=0;if(k<6)setTimeout(()=>loadTrack(n),Math.min(30,Math.pow(2,k))*1000);});}
-function musicStop(){if(MUSIC.src){const s=MUSIC.src,gn=MUSIC.gn;try{gn.gain.setTargetAtTime(.0001,AU.c.currentTime,.15);s.stop(AU.c.currentTime+.8);}catch(e){}MUSIC.src=null;MUSIC.gn=null;}MUSIC.cur=null;}
-function musicSync(){if(!AU.c)return;const want=MUSIC.want;
-  if(!S.opt.bgm||APP.hidden){musicStop();return;}
-  if(MUSIC.cur===want&&MUSIC.src)return;
-  const b=MUSIC.buf[want];if(!b){loadTrack(want);return;}
-  musicStop();const s=AU.c.createBufferSource(),gn=AU.c.createGain();s.buffer=b;s.loop=true;gn.gain.setValueAtTime(.0001,AU.c.currentTime);gn.gain.setTargetAtTime(.8,AU.c.currentTime,.3);
-  s.connect(gn);gn.connect(AU.bgmG);s.start();MUSIC.src=s;MUSIC.gn=gn;MUSIC.cur=want;}
-function wantMusic(n){if(MUSIC.want!==n){MUSIC.want=n;musicSync();}}
+function env(gn,t,a,peak,dec){gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(Math.max(.0002,peak),t+a);gn.gain.exponentialRampToValueAtTime(.0001,t+a+dec);}
+/* 음 하나: 종류·높이·길이·크기, glide 는 끝 높이, dest 는 효과음/음악 줄 */
+function tone(type,f,t,dur,peak,glide,dest,att){const c=AU.c,o=c.createOscillator(),gn=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(glide)o.frequency.exponentialRampToValueAtTime(glide,t+dur*.85);env(gn,t,att||.004,peak,dur);o.connect(gn);gn.connect(dest||AU.sfxG);o.start(t);o.stop(t+dur+(att||0)+.06);}
+function nz(t,dur,peak,f,type,q,dest,f2){const c=AU.c,s=c.createBufferSource(),fl=c.createBiquadFilter(),gn=c.createGain();s.buffer=AU.nb;s.loop=true;fl.type=type||'highpass';fl.frequency.setValueAtTime(f||6000,t);if(f2)fl.frequency.exponentialRampToValueAtTime(f2,t+dur);if(q)fl.Q.value=q;env(gn,t,.003,peak,dur);s.connect(fl);fl.connect(gn);gn.connect(dest||AU.sfxG);s.start(t,Math.random()*.5);s.stop(t+dur+.06);}
+function bell(m,t,v,dur,dest){const f=mtof(m);tone('sine',f,t,dur||.5,v,0,dest);tone('sine',f*2,t,(dur||.5)*.45,v*.32,0,dest);tone('sine',f*3.01,t,(dur||.5)*.2,v*.12,0,dest);}
+function crackle(t,n,span,v){for(let i=0;i<n;i++)nz(t+Math.random()*span,.03,v*(.5+Math.random()*.5),5000+Math.random()*3000,'highpass');}
+function horn(t,m,dur,v,dest){const c=AU.c,fl=c.createBiquadFilter(),gn=c.createGain();fl.type='lowpass';fl.frequency.setValueAtTime(500,t);fl.frequency.linearRampToValueAtTime(1300,t+dur*.4);gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.07);gn.gain.setValueAtTime(v,t+dur*.7);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  for(const dt of [0,.07,7.02]){const o=c.createOscillator();o.type='sawtooth';o.frequency.value=mtof(m+dt);o.connect(fl);o.start(t);o.stop(t+dur+.05);}fl.connect(gn);gn.connect(dest||AU.sfxG);}
+const SFX_GAP={s_tt:.06,s_didi:.05,s_peng:.08,s_shan:.14,s_dun:.06,s_zhuo:.08,hit:.045,kill:.04,ex_bun:.07,ex_fw:.08,splash:.07,gold:.06,leak:.12};
+const COMBO=[0,2,4,7,9,12,14,16,19,21,24];
+function sfx(n,arg){if(!AU.c||!S.opt.sfx||APP.hidden)return;try{const now=AU.c.currentTime;if(now-(AU.last[n]||-9)<(SFX_GAP[n]||.02))return;AU.last[n]=now;const t=now+.004,r=.94+Math.random()*.12;switch(n){
+  case 'btn':tone('sine',560,t,.05,.11,760);nz(t,.02,.03,3000,'bandpass',1);break;
+  case 'nope':tone('triangle',250,t,.1,.09,180);break;
+  case 's_tt':tone('sine',190*r,t,.13,.17,85);nz(t,.07,.07,900,'lowpass');break;
+  case 's_didi':tone('sine',950*r,t,.05,.045,1600*r);break;
+  case 's_peng':tone('sine',650*r,t,.26,.04,1900*r);nz(t,.2,.02,4000,'bandpass',2,null,7000);break;
+  case 's_shan':tone('triangle',1320*r,t,.14,.022);tone('sine',1980*r,t,.1,.014);break;
+  case 's_dun':tone('sine',1150*r,t,.035,.13,720);nz(t,.025,.06,2600,'bandpass',1.5);break;
+  case 's_zhuo':nz(t,.1,.05,2200,'bandpass',.8,null,5200);break;
+  case 'hit':nz(t,.035,.035,1700*r,'bandpass',1.2);tone('sine',230*r,t,.04,.05,150);break;
+  case 'kill':{if(now-AU.comboT>.7)AU.combo=0;AU.comboT=now;const k=Math.min(COMBO.length-1,AU.combo++);tone('sine',430,t,.07,.09,900);bell(79+COMBO[k],t+.02,.055,.28);break;}   // 연달아 잡으면 음이 한 계단씩 올라간다
+  case 'gold':bell(91,t,.045,.22);break;
+  case 'ex_bun':tone('sine',155*r,t,.22,.2,52);nz(t,.18,.1,1300,'lowpass');nz(t,.25,.03,2500,'bandpass',.6);break;
+  case 'ex_fw':tone('sine',115*r,t,.2,.15,48);nz(t,.24,.09,3200,'bandpass',.7);crackle(t+.05,5,.3,.05);break;
+  case 'ex_bomb':tone('sine',92,t,.55,.34,34);tone('triangle',60,t,.4,.18,30);nz(t,.5,.22,1000,'lowpass',0,null,200);crackle(t+.08,8,.45,.06);break;
+  case 'splash':nz(t,.08,.04,1500*r,'bandpass',.9);tone('sine',620*r,t,.06,.03,300);break;
+  case 'leak':tone('triangle',210,t,.26,.17,105);nz(t,.2,.09,420,'lowpass');tone('sine',392,t+.05,.2,.06,262);break;
+  case 'build':tone('sine',320,t,.1,.16,140);nz(t,.08,.06,700,'lowpass');bell(79,t+.07,.08,.3);break;
+  case 'up':[72,76,79].forEach((m,i)=>bell(m,t+i*.055,.1,.4));nz(t,.2,.02,6000,'highpass');break;
+  case 'evolve':[72,76,79,84,88,91].forEach((m,i)=>bell(m,t+i*.06,.12,.8));nz(t,.6,.035,7000,'highpass');tone('sine',130,t,.3,.14,65);break;
+  case 'sell':bell(88,t,.07,.2);bell(84,t+.07,.07,.25);break;
+  case 'tide':nz(t,1,.2,300,'lowpass',0,null,2200);nz(t+.1,.9,.07,3000,'bandpass',.5);tone('sine',72,t,.9,.14,48);break;
+  case 'horn':horn(t,57,.6,.055);break;
+  case 'boss':[0,.26,.52].forEach(d=>{tone('sine',105,t+d,.3,.32,40);nz(t+d,.12,.08,500,'lowpass');});horn(t+.1,45,.9,.07);break;
+  case 'ink':tone('sine',310,t,.2,.1,115);nz(t,.15,.05,600,'lowpass');break;
+  case 'clear':tone('sine',520,t,.1,.08,1150);nz(t,.06,.03,6000,'highpass');break;
+  case 'bonus':bell(84,t,.07,.25);bell(91,t+.06,.07,.3);break;
+  case 'wclear':[76,79,84].forEach((m,i)=>bell(m,t+i*.07,.1,.5));break;
+  case 'reward':[84,88,91,96].forEach((m,i)=>bell(m,t+i*.09,.12,.7));break;
+  case 'win':[72,76,79,84].forEach((m,i)=>{bell(m,t+i*.11,.14,.9);});[84,88,91].forEach(m=>bell(m,t+.5,.11,1.4));horn(t+.5,60,1,.04);break;
+  case 'over':[67,64,62,55].forEach((m,i)=>tone('triangle',mtof(m),t+i*.16,.3,.12,mtof(m)*.96));break;
+}}catch(e){AU.err=(AU.err||0)+1;AU.lastErr=n+' '+e;}}
+
+/* 음악: 5음계 가락을 16칸짜리 악보로 적어 두고 그때그때 연주한다. 메뉴(느긋) · 전투(경쾌) · 보스(긴박) */
+const P5=[0,2,4,7,9],M5=[0,3,5,7,10],_=-1;
+const SONGS={
+  menu:{bpm:88,root:60,sc:P5,ch:[[0,4,7],[9,12,16],[5,9,12],[7,11,14]],arp:[0,2,4,6,8,10,12,14],bass:[0,8],kick:[0],rim:[],shk:[4,12],lead:.085,
+    mel:[[4,_,_,3,_,_,2,_,3,_,_,_,_,_,_,_],[2,_,_,3,_,_,4,_,5,_,_,_,4,_,_,_],[5,_,_,4,_,_,3,_,2,_,_,_,3,_,_,_],[1,_,2,_,3,_,_,_,2,_,_,_,_,_,_,_],
+         [4,_,_,5,_,_,7,_,6,_,_,_,5,_,_,_],[5,_,_,4,_,_,5,_,7,_,_,_,_,_,6,_],[5,_,4,_,3,_,_,_,4,_,3,_,2,_,_,_],[3,_,_,2,_,_,1,_,0,_,_,_,_,_,_,_]]},
+  play:{bpm:122,root:62,sc:P5,ch:[[2,6,9],[11,14,18],[7,11,14],[9,13,16]],arp:[2,6,10,14],bass:[0,3,6,8,11,14],kick:[0,8,11],rim:[4,12],shk:[0,2,4,6,8,10,12,14],lead:.1,
+    mel:[[0,_,1,2,_,2,_,4,_,4,3,_,2,_,_,_],[2,_,3,4,_,4,_,5,_,5,4,_,3,_,_,_],[4,_,5,4,_,3,_,2,_,2,3,_,4,_,_,_],[3,_,2,1,_,2,_,3,_,_,2,_,1,_,_,_],
+         [5,_,_,5,_,4,_,5,_,7,_,_,5,_,_,_],[4,_,_,4,_,3,_,4,_,5,_,_,4,_,_,_],[3,_,4,5,_,4,_,3,_,2,_,3,4,_,_,_],[2,_,1,2,_,_,0,_,_,_,_,_,_,_,_,_],
+         [0,_,1,2,_,2,_,4,_,4,3,_,2,_,_,_],[2,_,3,4,_,4,_,5,_,5,7,_,5,_,_,_],[7,_,_,5,_,4,_,5,_,4,_,3,2,_,_,_],[3,_,2,1,_,_,0,_,_,_,_,_,_,_,_,_],
+         [_,_,_,_,5,_,5,_,_,_,7,_,5,_,_,_],[_,_,_,_,4,_,4,_,_,_,5,_,4,_,_,_],[3,_,_,3,_,4,_,5,_,_,7,_,8,_,_,_],[7,_,5,_,4,_,2,_,0,_,_,_,_,_,_,_]]},
+  boss:{bpm:140,root:62,sc:M5,ch:[[2,5,9],[10,14,17],[0,4,7],[9,12,16]],arp:[],bass:[0,2,4,6,8,10,12,14],kick:[0,4,8,12],rim:[4,12],shk:[2,6,10,14],lead:.1,pad:1,
+    mel:[[0,_,0,_,2,_,0,_,3,_,2,_,0,_,_,_],[4,_,4,_,3,_,2,_,3,_,_,_,2,_,_,_],[2,_,2,_,3,_,4,_,5,_,4,_,3,_,_,_],[4,_,3,_,2,_,_,0,_,_,_,_,_,_,_,_],
+         [5,_,5,_,4,_,5,_,7,_,5,_,4,_,_,_],[4,_,4,_,3,_,4,_,5,_,_,_,4,_,_,_],[2,_,3,_,4,_,5,_,7,_,8,_,7,_,_,_],[5,_,4,_,2,_,_,0,_,_,_,_,_,_,_,_]]},
+};
+const MUS={want:'menu',cur:null,timer:null,step:0,nextT:0};
+function musStep(sg,step,t,spb){
+  const D=AU.bgmG,bar=Math.floor(step/16),s=step%16,ch=sg.ch[bar%4],deg=sg.mel[bar%sg.mel.length][s];
+  if(deg>=0){const m=sg.root+sg.sc[deg%5]+12*Math.floor(deg/5),f=mtof(m);tone('sine',f,t,.42,sg.lead,0,D,.006);tone('sine',f*2,t,.2,sg.lead*.38,0,D,.004);tone('sine',f*3.01,t,.1,sg.lead*.13,0,D);}   // 스틸팬 느낌의 가락
+  if(sg.arp.indexOf(s)>=0){const f=mtof(60+ch[(s>>1)%3]);tone('sine',f,t,.2,.05,0,D);tone('sine',f*4,t,.05,.014,0,D);}                                                              // 마림바 화음
+  if(sg.bass.indexOf(s)>=0){const f=mtof(36+ch[0]%12+(s===6||s===14?12:0));tone('triangle',f,t,.2,.17,0,D,.006);tone('sine',f,t,.24,.1,0,D);}
+  if(sg.pad&&s===0)for(const k of ch){const c=AU.c,o=c.createOscillator(),fl=c.createBiquadFilter(),gn=c.createGain();o.type='sawtooth';o.frequency.value=mtof(48+k);fl.type='lowpass';fl.frequency.value=700;gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(.022,t+.1);gn.gain.linearRampToValueAtTime(.0001,t+spb*16);o.connect(fl);fl.connect(gn);gn.connect(D);o.start(t);o.stop(t+spb*16+.05);}
+  if(sg.kick.indexOf(s)>=0)tone('sine',125,t,.15,.3,44,D);
+  if(sg.rim.indexOf(s)>=0)nz(t,.05,.07,1900,'bandpass',1.2,D);
+  if(sg.shk.indexOf(s)>=0)nz(t,.035,s%4===2?.05:.028,6500,'highpass',0,D);
+}
+function musTick(){if(!AU.c||!MUS.cur)return;const sg=SONGS[MUS.cur],spb=60/sg.bpm/4,now=AU.c.currentTime;if(MUS.nextT<now-.3)MUS.nextT=now+.05;
+  try{while(MUS.nextT<now+.28){musStep(sg,MUS.step,MUS.nextT,spb);MUS.step++;MUS.nextT+=spb;}}catch(e){MUS.err=(MUS.err||0)+1;MUS.last=String(e);}}
+function musicStop(){if(MUS.timer){clearInterval(MUS.timer);MUS.timer=null;}MUS.cur=null;if(AU.c)try{AU.bgmG.gain.cancelScheduledValues(AU.c.currentTime);AU.bgmG.gain.setTargetAtTime(.0001,AU.c.currentTime,.12);}catch(e){}}
+function musicSync(){if(!AU.c)return;if(!S.opt.bgm||APP.hidden){musicStop();return;}if(MUS.cur===MUS.want&&MUS.timer)return;
+  MUS.cur=MUS.want;MUS.step=0;MUS.nextT=AU.c.currentTime+.12;try{AU.bgmG.gain.cancelScheduledValues(AU.c.currentTime);AU.bgmG.gain.setTargetAtTime(.55,AU.c.currentTime,.25);}catch(e){}
+  if(!MUS.timer)MUS.timer=setInterval(musTick,50);musTick();}
+function wantMusic(n){n=SONGS[n]?n:'menu';if(MUS.want!==n){MUS.want=n;musicSync();}}
 let vibAt=0;
 function vib(ms){if(!S.opt.vib)return;const n=Date.now();if(n-vibAt<80)return;vibAt=n;try{if(API){if(ms>30&&API.vibrateLong)API.vibrateLong({});else if(API.vibrateShort)API.vibrateShort({type:'light'});}else if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}}
 

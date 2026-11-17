@@ -21,14 +21,14 @@ function rewardBadge(){return loginReady()||chestReady()||idleAmt()>=idleRate()|
 function gain(n,why){S.coins+=n;sfx('reward');toast('+'+n+L(' 동전',' 金币'));track('reward',{why,n});persist();}
 const avgLv=()=>{const ids=TOWER_IDS.filter(id=>S.lv[id]);let s=0;for(const id of ids)s+=S.lv[id];return Math.round(s/ids.length);};
 
-function goHome(){scr='home';run=null;B=null;paused=false;wantMusic('bgm-menu');dailyInit();S.sel=Math.max(0,Math.min(S.sel,S.cleared,STAGES.length-1));persist();}
+function goHome(){scr='home';run=null;B=null;paused=false;wantMusic('menu');dailyInit();S.sel=Math.max(0,Math.min(S.sel,S.cleared,STAGES.length-1));persist();}
 function endBattle(){
   const won=run.won,si=run.si,unlock=[];let first=0;
   if(won){S.stat.wins++;mission('win',1);if(S.stars[si]===0)first=REWARD.first[si];S.stars[si]=Math.max(S.stars[si],run.stars);if(S.cleared<si+1)S.cleared=si+1;
     for(const id in UNLOCK)if(S.cleared>=UNLOCK[id]&&!S.lv[id]){S.lv[id]=1;unlock.push(id);}}
   mission('kill',run.kills);S.stat.kills+=run.kills;S.coins+=run.reward+first;
   RES={won,si,stars:run.stars,reward:run.reward,first,unlock,doubled:false,t:0,wave:run.wave,waves:run.S.waves};
-  track(won?'stage_clear':'stage_fail',{stage:si+1,wave:run.wave,stars:run.stars,sec:Math.round(run.t/60)});scr='result';wantMusic('bgm-menu');persist();
+  track(won?'stage_clear':'stage_fail',{stage:si+1,wave:run.wave,stars:run.stars,sec:Math.round(run.t/60)});scr='result';wantMusic('menu');persist();
 }
 
 /* ---------- 공통 조각 ---------- */
@@ -80,7 +80,7 @@ function drawHeroScr(){
     if(!own){txt(L('제 ','通关第 ')+UNLOCK[id]+L(' 장을 깨면 합류',' 关后加入'),186,y+122,22,'#8f8475','left');return;}
     txt(L('위력 ','威力 ')+Math.round(heroMul(lv)*100)+'%  ·  '+L('짓는 값 ','造价 ')+b.cost,186,y+122,21,'#3a9478','left');
     if(lv>=MAX_LV)txt('MAX',620,y+78,30,'#d99a1e');
-    else{const c=lvCost(lv);btn(524,y+30,186,96,'',()=>{if(S.coins<c){sfx('nope');toast(L('동전이 모자라요','金币不够'));return;}S.coins-=c;S.lv[id]=lv+1;mission('up',1);sfx('pick');track('hero_up',{id,lv:lv+1});persist();},{col:S.coins>=c?RED:GREY,dk:S.coins>=c?RED_D:GREY_D,icon:(x,yy)=>{txt(L('숙련 올리기','提升熟练'),x,yy-18,24,'#fff','center',INK);icoCoin(x-36,yy+20,13);txt(c,x+12,yy+21,24,'#fff','center',INK,5);}});}
+    else{const c=lvCost(lv);btn(524,y+30,186,96,'',()=>{if(S.coins<c){sfx('nope');toast(L('동전이 모자라요','金币不够'));return;}S.coins-=c;S.lv[id]=lv+1;mission('up',1);sfx('up');track('hero_up',{id,lv:lv+1});persist();},{col:S.coins>=c?RED:GREY,dk:S.coins>=c?RED_D:GREY_D,icon:(x,yy)=>{txt(L('숙련 올리기','提升熟练'),x,yy-18,24,'#fff','center',INK);icoCoin(x-36,yy+20,13);txt(c,x+12,yy+21,24,'#fff','center',INK,5);}});}
   });
   txt(L('숙련은 모든 판에서 그 타워의 위력을 올려요 (단계마다 +7%)','熟练度会提升该塔在每一关的威力（每级 +7%）'),375,1190,22,INK);
   txt(L('판 안의 강화(1~3단계·진화)는 그 판의 골드로 해요','关卡内的升级与进阶使用当局金币'),375,1226,21,'#7a5a3c');
@@ -188,5 +188,6 @@ else document.addEventListener('visibilitychange',()=>document.hidden?onAppHide(
 mkSprites();mkBg();MUST.forEach(n=>loadImg(n));LATER.forEach(n=>loadImg(n));dailyInit();track('app_open',{lang:LANG});
 if(DEBUG)window.__bepaDebug={get S(){return S;},get run(){return run;},get B(){return B;},APP,TRK,go:s=>{if(s==='home')goHome();else scr=s;},start:i=>startBattle(i||0),bot:b=>{APP.bot=!!b;},speed:n=>{speed=n;},
   give:n=>{S.coins+=n;},unlockAll:()=>{TOWER_IDS.forEach(id=>{if(!S.lv[id])S.lv[id]=1;});S.cleared=5;},win:()=>{if(run)finish(run,true);},lose:()=>{if(run){run.lives=0;finish(run,false);}},
+  au:()=>({state:AU.c&&AU.c.state,cur:MUS.cur,step:MUS.step,merr:MUS.err||0,mlast:MUS.last||'',serr:AU.err||0,slast:AU.lastErr||''}),sfx,wantMusic,
   scr:()=>scr,ad:()=>adOv,lang:l=>{LANG=l;},draw,core:{step,build,upgrade,sell,callWave,castTide,castBomb,cleanInk,inkTower,spawn,revive}};
 requestAnimationFrame(frame);

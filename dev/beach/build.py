@@ -7,11 +7,10 @@ BUILD = time.strftime('%m%d-%H%M', time.gmtime(time.time() + 9 * 3600))
 js = '\n'.join(open(os.path.join(SRC, f), encoding='utf-8').read() for f in ('data.js', 'core.js', 'plat.js', 'art.js', 'battle.js', 'ui.js'))
 js = '(()=>{"use strict";\n' + js.replace('@@BUILD@@', BUILD) + '\n})();\n'
 if os.path.exists(OUT): shutil.rmtree(OUT)
-os.makedirs(os.path.join(OUT, 'art')); os.makedirs(os.path.join(OUT, 'music'))
+os.makedirs(os.path.join(OUT, 'art'))
 open(os.path.join(OUT, 'game.js'), 'w', encoding='utf-8').write(js)
 arts = sorted(os.listdir(os.path.join(ROOT, 'art')))
 for a in arts: shutil.copy(os.path.join(ROOT, 'art', a), os.path.join(OUT, 'art', a))
-for m in ('bgm-menu.mp4', 'bgm-play.mp4'): shutil.copy(os.path.join(ROOT, 'music', m), os.path.join(OUT, 'music', m))
 TITLE = '团团守海滩'
 html = f'''<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta http-equiv="Cache-Control" content="no-cache"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/><title>{TITLE}</title>
@@ -32,7 +31,7 @@ for size in (180, 192, 512):
 json.dump({"name": TITLE, "short_name": TITLE, "lang": "zh-CN", "start_url": "./", "scope": "./", "display": "standalone", "orientation": "portrait", "background_color": "#bfe9f5", "theme_color": "#bfe9f5",
            "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]},
           open(os.path.join(OUT, 'manifest.webmanifest'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-files = ['./', 'index.html', 'game.js', 'manifest.webmanifest', 'icon-192.png'] + ['art/' + a for a in arts] + ['music/bgm-menu.mp4', 'music/bgm-play.mp4']
+files = ['./', 'index.html', 'game.js', 'manifest.webmanifest', 'icon-192.png'] + ['art/' + a for a in arts]
 sw = f'''// 오프라인: 인터넷이 되면 새 파일, 안 되면 저장해 둔 파일. 이 게임 전용 캐시(ttbeach-)만 만지므로 같은 사이트의 다른 게임과 섞이지 않는다.
 const CACHE='ttbeach-{BUILD}',PRE={json.dumps(files)};
 self.addEventListener('install',e=>{{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>Promise.all(PRE.map(u=>c.add(new Request(u,{{cache:'reload'}})).catch(()=>{{}})))));}});
