@@ -1,5 +1,27 @@
-/* ============================== 플랫폼 층: 화면·터치·저장·언어·소리 (위챗·더우인 이식 때 이 파일만 손본다) ============================== */
 const BUILD='@@BUILD@@';
+/* ---------- 플랫폼: 웹 · 위챗(wx) · 더우인(tt) 자동 감지 ---------- */
+const API=typeof wx!=='undefined'?wx:typeof tt!=='undefined'?tt:null,PLAT=typeof wx!=='undefined'?'wx':typeof tt!=='undefined'?'tt':'web';
+/* 통계: 관리자 화면에 같은 이름으로 등록(README 목록) */
+const TRACKS=[];
+function track(name,data){const d=Object.assign({},data||{});TRACKS.push([name,d]);if(TRACKS.length>200)TRACKS.shift();
+  try{if(PLAT==='wx'&&API.reportEvent)API.reportEvent(name,d);else if(PLAT==='tt'&&API.reportAnalytics)API.reportAnalytics(name,d);}catch(e){}}
+/* 보상형 광고: 단위 ID가 없으면 2초 테스트 광고. 끝까지 봐야 보상. 강제 광고 없음 */
+const AD_UNIT={wx:'',tt:''};
+let AD=null;   // {reason,t,cb,state:'play'|'fail'}
+let rvAd=null;
+function showAd(reason,cb){if(AD)return;track('ad_open',{reason});const unit=AD_UNIT[PLAT];
+  if(API&&unit&&API.createRewardedVideoAd){try{if(!rvAd)rvAd=API.createRewardedVideoAd({adUnitId:unit});rvAd.offClose&&rvAd.offClose();
+      rvAd.onClose(r=>{const ok=!r||r.isEnded;if(ok){track('ad_reward',{reason});cb();}else{AD={reason,t:0,cb:null,state:'fail'};}});
+      rvAd.show().catch(()=>rvAd.load().then(()=>rvAd.show()).catch(()=>{AD={reason,t:0,cb:null,state:'fail'};}));return;}catch(e){}}
+  AD={reason,t:0,cb,state:'play',test:true};}
+function shareGame(){track('share',{});const title=L('심연에 물든 바다를 함께 정화해요!','一起净化被深渊污染的大海！');
+  try{if(API&&API.shareAppMessage){API.shareAppMessage({title});return true;}if(navigator.share){navigator.share({title:LL(['심해 신전 수비대','深海神殿守卫']),text:title,url:location.href}).catch(()=>{});return true;}
+    if(navigator.clipboard){navigator.clipboard.writeText(location.href);return 'copy';}}catch(e){}return false;}
+try{if(API&&API.showShareMenu)API.showShareMenu({withShareTicket:true});if(API&&API.onShareAppMessage)API.onShareAppMessage(()=>({title:L('심연에 물든 바다를 함께 정화해요!','一起净化被深渊污染的大海！')}));
+  if(API&&API.getUpdateManager){const um=API.getUpdateManager();um.onUpdateReady&&um.onUpdateReady(()=>{um.applyUpdate&&um.applyUpdate();});}}catch(e){}
+
+/* ============================== 플랫폼 층: 화면·터치·저장·언어·소리 (위챗·더우인 이식 때 이 파일만 손본다) ============================== */
+
 const VW=750,VH=1334,K=VW/W;
 const cv=document.getElementById('game');const g=cv.getContext('2d');cv.width=VW;cv.height=VH;
 function mkCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
@@ -8,10 +30,10 @@ safeCtx(g);
 const QS=new URLSearchParams(location.search),DEBUG=QS.get('debug')==='1';
 /* ---------- 저장 ---------- */
 const SAVE_KEY='deepsea_v2';   // 대원·정화 구조로 바뀌며 저장을 새로 시작(2026-11-17)
-const DEF={stars:Array(STAGE_N).fill(0),coins:0,lv:{coral:1,bubble:1,jelly:1,conch:1,rune:1,hero:1,cora:1,bogle:1,lumi:1,sora:1,arin:1},opt:{bgm:1,sfx:1,fast:0},lang:'',seen:{},sel:0,day:'',mis:[],login:{n:0,last:''}};
+const DEF={stars:Array(STAGE_N).fill(0),coins:0,lv:{coral:1,bubble:1,jelly:1,conch:1,rune:1,hero:1,cora:1,bogle:1,lumi:1,sora:1,arin:1},opt:{bgm:1,sfx:1,fast:0,shake:1,vib:1},lang:'',seen:{},sel:0,day:'',mis:[],login:{n:0,last:''}};
 function loadSave(){let o=null;try{o=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}const s=JSON.parse(JSON.stringify(DEF));
   if(o&&typeof o==='object'){if(Array.isArray(o.stars))o.stars.forEach((v,i)=>{if(i<s.stars.length)s.stars[i]=Math.max(0,Math.min(3,+v||0));});if(o.opt)Object.assign(s.opt,o.opt);if(o.seen&&typeof o.seen==='object')s.seen=o.seen;if(typeof o.lang==='string')s.lang=o.lang;s.sel=+o.sel||0;
-    s.coins=Math.max(0,+o.coins||0);if(o.lv)for(const k in s.lv)s.lv[k]=Math.max(1,Math.min(MAX_LV,+o.lv[k]||1));if(typeof o.day==='string')s.day=o.day;if(Array.isArray(o.mis))s.mis=o.mis.filter(m=>m&&MIS[m.id]);if(o.login){s.login.n=+o.login.n||0;s.login.last=''+(o.login.last||'');}}
+    s.coins=Math.max(0,+o.coins||0);if(o.lv)for(const k in s.lv)s.lv[k]=Math.max(1,Math.min(MAX_LV,+o.lv[k]||1));if(typeof o.day==='string')s.day=o.day;if(Array.isArray(o.mis))s.mis=o.mis.filter(m=>m&&MIS[m.id]);if(o.login){s.login.n=+o.login.n||0;s.login.last=''+(o.login.last||'');}if(o.box&&typeof o.box==='object')s.box={day:''+o.box.day,n:+o.box.n||0};}
   return s;}
 let SV=loadSave();
 function resetSave(){try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem('deepsea_v1');}catch(e){}SV=loadSave();}
@@ -83,6 +105,6 @@ function startMusic(){setInterval(()=>{if(!AC||!BG)return;BG.gain.value=SV.opt.b
     mNext+=stepT;mStep++;}},100);}
 function pluck(f,t0,v){const o=AC.createOscillator(),gn=AC.createGain();o.type='triangle';o.frequency.value=f;gn.gain.setValueAtTime(0,t0);gn.gain.linearRampToValueAtTime(v,t0+.01);gn.gain.exponentialRampToValueAtTime(.001,t0+.9);o.connect(gn);gn.connect(BG);o.start(t0);o.stop(t0+1);}
 function pad(f,dur){const t0=mNext;[1,1.5,2.01].forEach(m=>{const o=AC.createOscillator(),gn=AC.createGain();o.type='sine';o.frequency.value=f*m;gn.gain.setValueAtTime(0,t0);gn.gain.linearRampToValueAtTime(.05,t0+dur*.4);gn.gain.linearRampToValueAtTime(0,t0+dur);o.connect(gn);gn.connect(BG);o.start(t0);o.stop(t0+dur+.05);});}
-function vib(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}}
+let vibT=0;function vib(ms){if(!SV.opt.vib)return;const n=performance.now();if(n-vibT<60)return;vibT=n;try{if(API){(ms>=60&&API.vibrateLong?API.vibrateLong:API.vibrateShort).call(API,{type:ms>=40?'heavy':'light'});}else if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}}
 
 try{if(document.fonts){document.fonts.load('900 16px DS');document.fonts.load('700 16px DS');}}catch(e){}

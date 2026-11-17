@@ -1,7 +1,13 @@
 /* ============================== 그림: 전부 코드로 그린 심해 발광 그림체 (그림 파일이 오면 바꿔 끼운다) ============================== */
 /* 받은 그림(art/): 이름만 맞으면 코드 그림 대신 쓴다. 목록은 빌드가 채움 */
 const ART=@@ART@@,IMG={};let artVer=0;
-for(const n of ART){const im=new Image();im.onload=()=>{IMG[n]=im;artVer++;};im.src='art/'+n+'.webp?v='+BUILD;}
+/* 핵심 그림: 다 받을 때까지 로딩 화면. 실패하면 8번까지 다시 받는다 */
+const MUST=['bg_area1','islet','temple_gate','abyss_rift','hero_guard','tw_coral_1','tw_bubble_1','tw_jelly_1','en_minnow','en_crab'].filter(n=>ART.includes(n));
+const LOAD={fail:{},tries:{}};
+function loadImg(n){const im=new Image();im.onload=()=>{IMG[n]=im;artVer++;delete LOAD.fail[n];};
+  im.onerror=()=>{const k=(LOAD.tries[n]||0)+1;LOAD.tries[n]=k;if(k<=8)setTimeout(()=>loadImg(n),400*k);else LOAD.fail[n]=1;};
+  im.src='art/'+n+'.webp?v='+BUILD+(LOAD.tries[n]?'&r='+LOAD.tries[n]:'');}
+for(const n of ART)loadImg(n);
 /* 그림 속 생물이 보는 방향(1=오른쪽)과 화면 폭(논리 px) */
 const EFACE={};   // 받은 그림은 모두 오른쪽을 봄(왼쪽을 보는 그림이면 -1)
 const EW={minnow:27,crab:46,eel:62,ray:60,angler:54,squid:56,horseshoe:54,turtle:66,elite:44,boss:120};

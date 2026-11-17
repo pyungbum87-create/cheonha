@@ -262,6 +262,8 @@ class Game{
     else if(a==='cloak'){e.cloakT=P[2];this.ev.push({t:'roar',x:e.x,y:e.y,m:'cloak'});}
     else if(a==='heal'){for(const o of this.enemies)if(!o.dead)o.hp=Math.min(o.mhp,o.hp+o.mhp*P[2]);this.ev.push({t:'roar',x:e.x,y:e.y,m:'heal'});}
   }
+  /* 광고 부활: 생명 10으로 되살리고 신전 가까운 적을 밀어낸다(한 판 1번) */
+  revive(){if(this.state!=='lose'||this.revived)return false;this.revived=true;this.lives=10;this.state='run';for(const e of this.enemies){if(!isBoss(e.k))e.stun=Math.max(e.stun,1.5);e.kb=Math.max(e.kb||0,120);}this.ev.push({t:'revive'});return true;}
   leak(e){e.dead=true;this.lives-=e.leak;this.lost+=e.leak;this.ev.push({t:'leak',x:e.x,y:e.y,n:e.leak});}
   stars(){return this.state!=='win'?0:this.lives>=STAR_LIVES[0]?3:this.lives>=STAR_LIVES[1]?2:1;}
   skillCdOf(t){const T=this.tier(),f=TSKILL[t.k](T);return f.cd||5;}
