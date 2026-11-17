@@ -11,6 +11,7 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 let run=null,B=null,paused=false,speed=1;
 
 function startBattle(si,bonusGold){
+  needImg('bg_'+(STAGES[si].theme+1));if(STAGES[si].boss)needImg('boss_'+STAGES[si].boss);
   S.sel=si;const owned=TOWER_IDS.filter(id=>S.lv[id]);
   run=newGame(si,{seed:(Date.now()%100000)|0,lv:S.lv,owned,gold:bonusGold||0});
   B={tv:{},parts:[],nums:[],rings:[],fly:[],flashes:[],decals:[],coins:[],pillars:[],pop:{},stop:0,wet:0,goldBump:0,lifeBump:0,shake:0,banner:null,sel:-1,pick:'',aim:'',endT:-1,tip:null,time:0,tide:0,leakFlash:0,adGold:!!bonusGold,map:mkMap(si),hint:0};

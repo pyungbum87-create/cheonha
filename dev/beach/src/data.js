@@ -15,7 +15,7 @@ const BRANCH={tt:['king','twin'],didi:['ice','jet'],peng:['dragon','star'],shan:
 const UNLOCK={shan:2,dun:5,zhuo:9};                // 몇 장을 깨면 합류하는가
 const MAX_LV=40;
 const heroMul=lv=>1+.07*(lv-1);                    // 판 밖에서 동전으로 올리는 타워 숙련
-const lvCost=lv=>Math.round(50*Math.pow(lv,1.25)/5)*5;
+const lvCost=lv=>30*lv;                           // 6종을 권장 숙련까지 올리는 값 ≈ 첫 클리어 수입의 1.0배(10판)~1.6배(50판). 모자란 만큼은 방치 수익·미션·광고 2배·다시 깨기로 채운다
 
 /* 손님마다 그 생물다운 특기가 하나씩 있다. from = 몇 번째 장(0부터)부터 특기를 쓰는가 (첫 장은 특기 없이 배운다) */
 const ENEMIES={
@@ -73,4 +73,4 @@ function waveDef(si,w){
   return {w,groups,hp:S.hp*(1+.13*(w-1)),bonus:18+3*w};
 }
 const firstBonus=i=>100+i*25+(i%PER_AREA===PER_AREA-1?300:0);
-const REWARD={base:90,stage:.2,star:[0,.7,.85,1],lose:.25};
+const REWARD={base:120,stage:.25,star:[0,.7,.85,1],lose:.25};

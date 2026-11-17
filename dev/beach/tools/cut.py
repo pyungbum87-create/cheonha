@@ -40,4 +40,4 @@ out=os.path.join(os.path.dirname(__file__),'..','art')
 for name,(y0,x0,y1,x1,li) in zip(names,boxes):
     y0=max(0,y0-2);x0=max(0,x0-2);m=(l3[y0:y1,x0:x1]==li)
     rgba=np.dstack([im[y0:y1,x0:x1],np.where(m,alpha[y0:y1,x0:x1],0)]).astype(np.uint8); p=Image.fromarray(rgba,'RGBA'); p=p.crop(p.getbbox())
-    p=p.resize((max(1,round(p.width*H/p.height)),H),Image.LANCZOS); p.save(os.path.join(out,name+'.webp'),quality=88,method=6); print(name,p.size)
+    p=p.resize((max(1,round(p.width*H/p.height)),H),Image.LANCZOS); p.save(os.path.join(out,name+'.webp'),quality=int(os.environ.get('Q','80')),method=6); print(name,p.size)

@@ -16,7 +16,7 @@ const BRANCH={tt:['king','twin'],didi:['ice','jet'],peng:['dragon','star'],shan:
 const UNLOCK={shan:2,dun:5,zhuo:9};                // 몇 장을 깨면 합류하는가
 const MAX_LV=40;
 const heroMul=lv=>1+.07*(lv-1);                    // 판 밖에서 동전으로 올리는 타워 숙련
-const lvCost=lv=>Math.round(50*Math.pow(lv,1.25)/5)*5;
+const lvCost=lv=>30*lv;                           // 6종을 권장 숙련까지 올리는 값 ≈ 첫 클리어 수입의 1.0배(10판)~1.6배(50판). 모자란 만큼은 방치 수익·미션·광고 2배·다시 깨기로 채운다
 
 /* 손님마다 그 생물다운 특기가 하나씩 있다. from = 몇 번째 장(0부터)부터 특기를 쓰는가 (첫 장은 특기 없이 배운다) */
 const ENEMIES={
@@ -74,7 +74,7 @@ function waveDef(si,w){
   return {w,groups,hp:S.hp*(1+.13*(w-1)),bonus:18+3*w};
 }
 const firstBonus=i=>100+i*25+(i%PER_AREA===PER_AREA-1?300:0);
-const REWARD={base:90,stage:.2,star:[0,.7,.85,1],lose:.25};
+const REWARD={base:120,stage:.25,star:[0,.7,.85,1],lose:.25};
 
 /* ============================== 게임 규칙: 화면·소리·저장을 전혀 모른다 ==============================
    고정 틱(1/60초)이라 60Hz·120Hz 폰에서 속도가 같고, 봇이 Node에서 사람 없이 돌릴 수 있다.
@@ -274,7 +274,7 @@ if(typeof module!=='undefined')module.exports={newGame,step,advance,build,upgrad
 
 /* ============================== 플랫폼 층: 화면·터치·저장·소리·광고·통계는 여기에만 둔다 ==============================
    위챗(wx)·더우인(tt)으로 옮길 때 이 파일만 손보면 된다. */
-const BUILD='1117-1453';
+const BUILD='1117-1506';
 const PLAT=typeof wx!=='undefined'?'wx':typeof tt!=='undefined'?'tt':'web';
 const API=PLAT==='wx'?wx:PLAT==='tt'?tt:null;
 const VW=750,VH=1334,K=VW/W;
@@ -318,12 +318,18 @@ function track(ev,d){try{if(PLAT==='wx'&&API.reportEvent)API.reportEvent(ev,d||{
 
 /* ---------- 그림 ---------- */
 const IMG={},IMG_FAIL={};
-const MUST=['tuantuan','tt_cheer','didi','pengpeng','shell','gift'],LATER=['shanshan','dundun','zhuozhuo','didi_sick'];
-const ART=["bg_1", "bg_2", "bg_3", "bg_4", "bg_5", "boss_dragon", "boss_kingcrab", "boss_octoboss", "boss_pirate", "boss_whale", "didi", "didi_sick", "dundun", "en_crab", "en_crab_full", "en_elite", "en_elite_full", "en_fish", "en_fish_full", "en_gull", "en_gull_full", "en_hermit", "en_hermit_full", "en_jelly", "en_jelly_full", "en_octo", "en_octo_full", "en_puffer", "en_puffer_full", "en_shrimp", "en_shrimp_full", "en_turtle", "en_turtle_full", "gift", "ic_bun", "ic_coin", "ic_gate", "ic_melon", "ic_spot", "ic_star", "ic_wave", "pengpeng", "shanshan", "shell", "tt_cheer", "tuantuan", "tw_didi_1", "tw_didi_2", "tw_didi_3", "tw_didi_ice", "tw_didi_jet", "tw_dun_1", "tw_dun_2", "tw_dun_3", "tw_dun_double", "tw_dun_smash", "tw_peng_1", "tw_peng_2", "tw_peng_3", "tw_peng_dragon", "tw_peng_star", "tw_shan_1", "tw_shan_2", "tw_shan_3", "tw_shan_moon", "tw_shan_rainbow", "tw_tt_1", "tw_tt_2", "tw_tt_3", "tw_tt_king", "tw_tt_twin", "tw_zhuo_1", "tw_zhuo_2", "tw_zhuo_3", "tw_zhuo_express", "tw_zhuo_parcel", "zhuozhuo"],OPT=ART.filter(n=>/^(tw|en|boss|bg|ic|st)_/.test(n));   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
+const MUST=['tuantuan','tt_cheer','didi','pengpeng','gift','bg_1','ic_spot','ic_gate','ic_bun','ic_coin','ic_star','tw_tt_1','tw_didi_1','tw_peng_1','en_crab','en_jelly','en_elite'],LATER=['shanshan','dundun','zhuozhuo','didi_sick'];
+const ART=["bg_1", "bg_2", "bg_3", "bg_4", "bg_5", "boss_dragon", "boss_kingcrab", "boss_octoboss", "boss_pirate", "boss_whale", "didi", "didi_sick", "dundun", "en_crab", "en_crab_full", "en_elite", "en_elite_full", "en_fish", "en_fish_full", "en_gull", "en_gull_full", "en_hermit", "en_hermit_full", "en_jelly", "en_jelly_full", "en_octo", "en_octo_full", "en_puffer", "en_puffer_full", "en_shrimp", "en_shrimp_full", "en_turtle", "en_turtle_full", "gift", "ic_bun", "ic_coin", "ic_gate", "ic_melon", "ic_spot", "ic_star", "ic_wave", "pengpeng", "shanshan", "tt_cheer", "tuantuan", "tw_didi_1", "tw_didi_2", "tw_didi_3", "tw_didi_ice", "tw_didi_jet", "tw_dun_1", "tw_dun_2", "tw_dun_3", "tw_dun_double", "tw_dun_smash", "tw_peng_1", "tw_peng_2", "tw_peng_3", "tw_peng_dragon", "tw_peng_star", "tw_shan_1", "tw_shan_2", "tw_shan_3", "tw_shan_moon", "tw_shan_rainbow", "tw_tt_1", "tw_tt_2", "tw_tt_3", "tw_tt_king", "tw_tt_twin", "tw_zhuo_1", "tw_zhuo_2", "tw_zhuo_3", "tw_zhuo_express", "tw_zhuo_parcel", "zhuozhuo"];   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
+/* 나머지 그림은 급한 순서로 4장씩 줄 세워 받는다: 아이콘 → 1단계 가게 → 손님 → 키운 가게 → 보스·배부른 모습 → 다른 구역 배경 */
+const artRank=n=>/^ic_/.test(n)?0:/^tw_.*_1$/.test(n)?1:/^en_(?!.*_full)/.test(n)?2:/^tw_.*_[23]$/.test(n)?3:/^tw_/.test(n)?4:/^boss_/.test(n)?5:/^en_/.test(n)?6:7;
+const OPT=ART.filter(n=>/^(tw|en|boss|bg|ic|st)_/.test(n)&&MUST.indexOf(n)<0).sort((a,b)=>artRank(a)-artRank(b));
+const REQ={};let optQ=[],optBusy=0;
+function optPump(){while(optBusy<4&&optQ.length){const n=optQ.shift();if(REQ[n])continue;optBusy++;loadImg(n,0,()=>{optBusy--;optPump();});}}
+function needImg(n){if(!REQ[n]&&ART.indexOf(n)>=0)loadImg(n);}   // 지금 당장 필요한 그림(들어가는 구역의 배경 등)은 줄을 건너뛴다
 const HERO_IMG={tt:'tuantuan',didi:'didi',peng:'pengpeng',shan:'shanshan',dun:'dundun',zhuo:'zhuozhuo'};
-function loadImg(n,tries){tries=tries||0;const im=API?API.createImage():new Image();
-  im.onload=()=>{IMG[n]=im;delete IMG_FAIL[n];onImg(n);};
-  im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(n,tries+1),500+tries*400);else IMG_FAIL[n]=1;};
+function loadImg(n,tries,done){tries=tries||0;REQ[n]=1;const im=API?API.createImage():new Image();
+  im.onload=()=>{IMG[n]=im;delete IMG_FAIL[n];onImg(n);done&&done();};
+  im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(n,tries+1,done),500+tries*400);else{IMG_FAIL[n]=1;done&&done();}};
   im.src='art/'+n+'.webp'+(API?'':'?v='+BUILD+(tries?'&r='+tries:''));}
 
 /* ---------- 소리: 효과음도 음악도 전부 코드로 합성한다 (음원 파일 없음 = 용량 0, 저작권 걱정 없음) ---------- */
@@ -654,6 +660,7 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 let run=null,B=null,paused=false,speed=1;
 
 function startBattle(si,bonusGold){
+  needImg('bg_'+(STAGES[si].theme+1));if(STAGES[si].boss)needImg('boss_'+STAGES[si].boss);
   S.sel=si;const owned=TOWER_IDS.filter(id=>S.lv[id]);
   run=newGame(si,{seed:(Date.now()%100000)|0,lv:S.lv,owned,gold:bonusGold||0});
   B={tv:{},parts:[],nums:[],rings:[],fly:[],flashes:[],decals:[],coins:[],pillars:[],pop:{},stop:0,wet:0,goldBump:0,lifeBump:0,shake:0,banner:null,sel:-1,pick:'',aim:'',endT:-1,tip:null,time:0,tide:0,leakFlash:0,adGold:!!bonusGold,map:mkMap(si),hint:0};
@@ -1047,7 +1054,7 @@ function drawLoad(){
   g.fillStyle='#bfe9f5';g.fillRect(0,0,VW,VH);const n=MUST.filter(k=>IMG[k]).length,p=n/MUST.length;
   txt(L('퇀퇀 해변 야시장','团团海滩夜市'),375,520,64,'#fff','center',INK,16);bar(175,640,400,40,p,MINT);
   txt(APP.loadT>6?L('인터넷이 느려 시간이 걸리고 있어요','网络较慢，请稍等一下'):L('해변으로 가는 중…','正在前往海滩…'),375,720,26,INK);
-  if(p>=1||APP.loadT>25){if(p<1)toast(L('그림을 다 받지 못했어요. 새로고침해 주세요','部分图片未加载，请刷新重试'));track('load_done',{sec:Math.round(APP.loadT),ok:p>=1?1:0});goHome();}
+  if(p>=1||APP.loadT>25){if(p<1)toast(L('그림을 다 받지 못했어요. 새로고침해 주세요','部分图片未加载，请刷新重试'));track('load_done',{sec:Math.round(APP.loadT),ok:p>=1?1:0});optPump();goHome();}
 }
 
 function drawHome(){
@@ -1224,7 +1231,7 @@ if(API){API.onHide&&API.onHide(onAppHide);API.onShow&&API.onShow(onAppShow);
   try{const um=API.getUpdateManager&&API.getUpdateManager();if(um)um.onUpdateReady(()=>um.applyUpdate());}catch(e){}}
 else document.addEventListener('visibilitychange',()=>document.hidden?onAppHide():onAppShow());
 
-mkSprites();mkBg();MUST.forEach(n=>loadImg(n));LATER.forEach(n=>loadImg(n));OPT.forEach(n=>loadImg(n));dailyInit();track('app_open',{lang:LANG});
+mkSprites();mkBg();MUST.forEach(n=>loadImg(n));LATER.forEach(n=>loadImg(n));optQ=OPT.slice();dailyInit();track('app_open',{lang:LANG});
 if(DEBUG)window.__bepaDebug={get S(){return S;},get run(){return run;},get B(){return B;},APP,TRK,go:s=>{if(s==='home')goHome();else scr=s;},start:i=>startBattle(i||0),bot:b=>{APP.bot=!!b;},speed:n=>{speed=n;},
   give:n=>{S.coins+=n;},unlockAll:()=>{TOWER_IDS.forEach(id=>{if(!S.lv[id])S.lv[id]=1;});S.cleared=STAGES.length;},win:()=>{if(run)finish(run,true);},lose:()=>{if(run){run.lives=0;finish(run,false);}},
   au:()=>({state:AU.c&&AU.c.state,cur:MUS.cur,step:MUS.step,merr:MUS.err||0,mlast:MUS.last||'',serr:AU.err||0,slast:AU.lastErr||''}),sfx,wantMusic,

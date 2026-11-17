@@ -44,12 +44,18 @@ function track(ev,d){try{if(PLAT==='wx'&&API.reportEvent)API.reportEvent(ev,d||{
 
 /* ---------- 그림 ---------- */
 const IMG={},IMG_FAIL={};
-const MUST=['tuantuan','tt_cheer','didi','pengpeng','shell','gift'],LATER=['shanshan','dundun','zhuozhuo','didi_sick'];
-const ART=@@ART@@,OPT=ART.filter(n=>/^(tw|en|boss|bg|ic|st)_/.test(n));   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
+const MUST=['tuantuan','tt_cheer','didi','pengpeng','gift','bg_1','ic_spot','ic_gate','ic_bun','ic_coin','ic_star','tw_tt_1','tw_didi_1','tw_peng_1','en_crab','en_jelly','en_elite'],LATER=['shanshan','dundun','zhuozhuo','didi_sick'];
+const ART=@@ART@@;   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
+/* 나머지 그림은 급한 순서로 4장씩 줄 세워 받는다: 아이콘 → 1단계 가게 → 손님 → 키운 가게 → 보스·배부른 모습 → 다른 구역 배경 */
+const artRank=n=>/^ic_/.test(n)?0:/^tw_.*_1$/.test(n)?1:/^en_(?!.*_full)/.test(n)?2:/^tw_.*_[23]$/.test(n)?3:/^tw_/.test(n)?4:/^boss_/.test(n)?5:/^en_/.test(n)?6:7;
+const OPT=ART.filter(n=>/^(tw|en|boss|bg|ic|st)_/.test(n)&&MUST.indexOf(n)<0).sort((a,b)=>artRank(a)-artRank(b));
+const REQ={};let optQ=[],optBusy=0;
+function optPump(){while(optBusy<4&&optQ.length){const n=optQ.shift();if(REQ[n])continue;optBusy++;loadImg(n,0,()=>{optBusy--;optPump();});}}
+function needImg(n){if(!REQ[n]&&ART.indexOf(n)>=0)loadImg(n);}   // 지금 당장 필요한 그림(들어가는 구역의 배경 등)은 줄을 건너뛴다
 const HERO_IMG={tt:'tuantuan',didi:'didi',peng:'pengpeng',shan:'shanshan',dun:'dundun',zhuo:'zhuozhuo'};
-function loadImg(n,tries){tries=tries||0;const im=API?API.createImage():new Image();
-  im.onload=()=>{IMG[n]=im;delete IMG_FAIL[n];onImg(n);};
-  im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(n,tries+1),500+tries*400);else IMG_FAIL[n]=1;};
+function loadImg(n,tries,done){tries=tries||0;REQ[n]=1;const im=API?API.createImage():new Image();
+  im.onload=()=>{IMG[n]=im;delete IMG_FAIL[n];onImg(n);done&&done();};
+  im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(n,tries+1,done),500+tries*400);else{IMG_FAIL[n]=1;done&&done();}};
   im.src='art/'+n+'.webp'+(API?'':'?v='+BUILD+(tries?'&r='+tries:''));}
 
 /* ---------- 소리: 효과음도 음악도 전부 코드로 합성한다 (음원 파일 없음 = 용량 0, 저작권 걱정 없음) ---------- */
