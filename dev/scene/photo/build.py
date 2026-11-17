@@ -7,7 +7,7 @@ import datetime
 BUILD=(datetime.datetime.utcnow()+datetime.timedelta(hours=8)).strftime('%m%d-%H%M')
 html=open(R+'/src/engine.html',encoding='utf-8').read().replace('/*@@STAGES@@*/[]',data).replace("'DEVBUILD'","'"+BUILD+"'")
 open(O+'/photo.html','w',encoding='utf-8').write(html)
-keys={'lili_basic','lili_shock','lili_joy','lili_worry','paw','tt_cheer','flashlight','clock','fu','hanky','dundun','zhuozhuo','tuantuan','cat_dry','cam_clear'}
+keys={'logo_zh','logo_ko','lili_basic','lili_shock','lili_joy','lili_worry','paw','tt_cheer','flashlight','clock','fu','hanky','dundun','zhuozhuo','tuantuan','cat_dry','cam_clear'}
 for st in json.loads(data):
     keys.add(st['bg'])
     if st.get('hid'):keys.add(st['hid'])
@@ -26,7 +26,7 @@ from PIL import Image
 os.makedirs(O+'/thumb');miss=[];bgs={st['bg'] for st in json.loads(data)}
 def opt(src,dst,k):
     im=Image.open(src);big=k in bgs;story=k.startswith('end_')
-    cap,q=(900,76) if big else (640,74) if story else (300,82)
+    cap,q=(900,76) if big else (640,74) if story else (800,86) if k.startswith('logo') else (300,82)
     if max(im.size)>cap:im.thumbnail((cap,cap),Image.LANCZOS)
     im.save(dst,'WEBP',quality=q,method=6)
     if os.path.getsize(dst)>os.path.getsize(src):shutil.copy(src,dst)
@@ -35,7 +35,7 @@ for k in sorted(keys):
     for base in (R+'/art/',R+'/../art/'):
         if os.path.exists(base+k+'.webp'):opt(base+k+'.webp',O+'/art/'+k+'.webp',k);break
     else:miss.append(k)
-shutil.copytree(R+'/music',O+'/music')
+shutil.copytree(R+'/music',O+'/music');shutil.copytree(R+'/sfx',O+'/sfx')
 # public page: same game plus home-screen and offline support, like the other games on this site
 import hashlib
 from PIL import Image
@@ -66,10 +66,9 @@ tail='''
 </html>
 '''
 open(O+'/index.html','w',encoding='utf-8').write(head+body+tail)
-lili=Image.open(R+'/art/lili_joy.webp').convert('RGBA')
+ico=Image.open(R+'/art_src/app_icon.png').convert('RGB')
 for size in (180,192,512):
-    bg=Image.new('RGBA',(size,size),(255,227,194,255));im=lili.copy();im.thumbnail((int(size*.84),int(size*.84)),Image.LANCZOS);bg.alpha_composite(im,((size-im.width)//2,(size-im.height)//2))
-    bg.convert('RGB').quantize(128).save(O+'/'+('apple-touch-icon.png' if size==180 else f'icon-{size}.png'),optimize=True)
+    ico.resize((size,size),Image.LANCZOS).quantize(128).save(O+'/'+('apple-touch-icon.png' if size==180 else f'icon-{size}.png'),optimize=True)
 json.dump({'name':'동네소동','short_name':'동네소동','lang':'zh-CN','start_url':'./','scope':'./','display':'standalone','orientation':'portrait','background_color':'#fbefdc','theme_color':'#fbefdc','icons':[{'src':'icon-192.png','sizes':'192x192','type':'image/png'},{'src':'icon-512.png','sizes':'512x512','type':'image/png','purpose':'any maskable'}]},open(O+'/manifest.webmanifest','w',encoding='utf-8'),ensure_ascii=False,indent=1)
 CORE=['lili_basic','lili_shock','lili_joy','lili_worry','paw','tt_cheer','flashlight','clock','fu']
 files=['./','manifest.webmanifest','icon-192.png']+['art/%s.webp?v=%s'%(k,BUILD) for k in CORE]+['thumb/'+t+'?v='+BUILD for t in sorted(os.listdir(O+'/thumb'))]

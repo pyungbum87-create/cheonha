@@ -11,7 +11,7 @@ js=open(R+'/src/game.js',encoding='utf-8').read().replace('/*@@STAGES@@*/[]',dat
 def pics(dst):
     os.makedirs(dst+'/art');os.makedirs(dst+'/story');os.makedirs(dst+'/audio')
     for f in os.listdir(S+'/art'):shutil.copy(S+'/art/'+f,dst+('/story/' if f.startswith('end_') else '/art/')+f)
-    shutil.copytree(S+'/thumb',dst+'/thumb')
+    shutil.copytree(S+'/thumb',dst+'/thumb');shutil.copytree(R+'/sfx',dst+'/sfx')
     for f in os.listdir(S+'/music'):shutil.copy(S+'/music/'+f,dst+'/audio/'+f)
 # ---- web
 W=O+'/web';pics(W);open(W+'/game.js','w',encoding='utf-8').write(js)
