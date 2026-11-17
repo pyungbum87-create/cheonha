@@ -31,7 +31,7 @@ function newGame(si,opt){
   opt=opt||{};const S=STAGES[si],G=stageGeo(si);
   return {si,S,paths:G.paths,spots:G.spots.map(p=>({x:p.x,y:p.y,tw:null})),rand:makeRng(opt.seed||si*977+13),lv:opt.lv||{},owned:opt.owned||TOWER_IDS.slice(0,3),
     t:0,acc:0,phase:'run',gold:S.gold+(opt.gold||0),lives:START_LIVES,wave:0,ws:'prep',gapT:0,queue:[],en:[],pr:[],zones:[],fx:[],uid:1,
-    cd:{tide:0,bomb:0},revives:1,revived:false,kills:0,built:0,ups:0,casts:0,leaked:0,boss:null,bossT:0,surge:0,ended:false,won:false,stars:0,reward:0,next:waveDef(si,1)};
+    sauce:0,sp:0,sn:0,buf:{},picks:null,rerolled:false,revives:1,revived:false,kills:0,built:0,ups:0,casts:0,leaked:0,boss:null,bossT:0,surge:0,ended:false,won:false,stars:0,reward:0,next:waveDef(si,1)};
 }
 
 /* ---------- 타워 ---------- */
@@ -43,11 +43,16 @@ function towerStat(s,tw){const b=TOWERS[tw.id],L=tw.lv-1,m=heroMul(s.lv[tw.id]||
   else if(br==='rainbow')o.chain=2;else if(br==='moon'){o.shred=.35;o.dmg*=1.2;}
   else if(br==='smash')o.big=3;else if(br==='double')o.shots=2;
   else if(br==='express')o.gold=3;else if(br==='parcel'){o.dmg*=5;o.aoe*=1.25;}
+  const n=k=>s.buf&&s.buf[k]||0,id=tw.id;                                            // 오늘의 특선 카드
+  if(id==='tt')o.shots+=n('bun2');else if(id==='didi'){if(n('frost')){o.slow=Math.min(.85,o.slow+.15*n('frost'));o.slowT+=n('frost');}}
+  else if(id==='peng')o.aoe*=1+.3*n('pop');else if(id==='shan'){o.range*=1+.15*n('tea');o.dmg*=1+.25*n('tea');}
+  else if(id==='dun')o.cd*=Math.pow(.75,n('skew'));else if(id==='zhuo'){o.aoe*=1+.25*n('sticky');o.slowT+=n('sticky');}
+  o.dmg*=1+.15*n('taste');o.range*=1+.08*n('reach');if(tw.od>0)o.cd*=SAUCE.odCd;         // 양념을 뿌린 가게는 잠깐 손이 빨라진다
   return o;}
 function towerCost(id){return TOWERS[id].cost;}
-function upCost(tw){return tw.lv>=4?0:Math.round(TOWERS[tw.id].cost*UP_COST[tw.lv-1]/5)*5;}
+function upCost(tw,s){return tw.lv>=4?0:Math.round(TOWERS[tw.id].cost*UP_COST[tw.lv-1]*(s&&s.buf.sale?Math.pow(.85,s.buf.sale):1)/5)*5;}
 function build(s,i,id){const sp=s.spots[i],c=towerCost(id);if(!sp||sp.tw||s.phase!=='run'||s.gold<c||!s.owned.includes(id))return false;s.gold-=c;sp.tw={id,lv:1,br:'',spent:c,cd:.3,ink:0,tgt:0,ramp:0,anim:0};s.built++;s.fx.push({e:'build',i,id});return true;}
-function upgrade(s,i,br){const sp=s.spots[i],tw=sp&&sp.tw;if(!tw||tw.lv>=4||s.phase!=='run')return false;const c=upCost(tw);if(s.gold<c)return false;
+function upgrade(s,i,br){const sp=s.spots[i],tw=sp&&sp.tw;if(!tw||tw.lv>=4||s.phase!=='run')return false;const c=upCost(tw,s);if(s.gold<c)return false;
   if(tw.lv===3){if(BRANCH[tw.id].indexOf(br)<0)return false;tw.br=br;}s.gold-=c;tw.spent+=c;tw.lv++;s.ups++;s.fx.push({e:'up',i,id:tw.id,lv:tw.lv,br:tw.br});return true;}
 function sell(s,i){const sp=s.spots[i];if(!sp||!sp.tw||s.phase!=='run')return false;const g=Math.round(sp.tw.spent*SELL);s.gold+=g;sp.tw=null;s.fx.push({e:'sell',i,g});return true;}
 function cleanInk(s,i){const tw=s.spots[i]&&s.spots[i].tw;if(!tw||tw.ink<=0)return false;tw.ink=0;s.fx.push({e:'inkClear',i});return true;}
@@ -82,7 +87,7 @@ function hurt(s,e,d,cls){
   if(e.k==='shrimp'&&!e.darted&&e.hp>0){e.darted=true;e.dartT=12;s.fx.push({e:'trait',t:'dart',x:e.x,y:e.y});}
   if(e.hp<=0){e.dead=true;s.kills++;let g=e.gold;
     for(const sp of s.spots){const tw=sp.tw;if(tw&&tw.id==='zhuo'&&tw.ink<=0){const st=towerStat(s,tw);if((sp.x-e.x)**2+(sp.y-e.y)**2<st.range*st.range){g+=st.gold;break;}}}
-    s.gold+=g;s.fx.push({e:'die',x:e.x,y:e.y,k:e.k,bk:e.bk,g,air:e.air,pi:e.pi,d:e.d,ox:e.ox,oy:e.oy});}
+    g+=2*(s.buf.tip||0);gainSauce(s,e.k==='boss'?0:ENEMIES[e.k].cost);s.gold+=g;s.fx.push({e:'die',x:e.x,y:e.y,k:e.k,bk:e.bk,g,air:e.air,pi:e.pi,d:e.d,ox:e.ox,oy:e.oy});}
 }
 function blast(s,x,y,r,d,cls,kind,eff,air){
   for(const e of s.en){if(e.dead||((e.air||e.leapT>0)&&!air))continue;const q=r+e.r;if((e.x-x)**2+(e.y-y)**2<q*q){hurt(s,e,d,cls);if(eff&&!e.dead){if(eff.slow&&e.k!=='boss'){e.slow=Math.max(e.slow,eff.slow);e.slowT=Math.max(e.slowT,eff.slowT*TICK);}if(eff.stun&&e.k!=='boss')e.stun=Math.max(e.stun,eff.stun*TICK);}}}
@@ -96,7 +101,7 @@ function pickTarget(s,sp,st,b,skip,strong){
 }
 function stepTowers(s){
   for(let i=0;i<s.spots.length;i++){const sp=s.spots[i],tw=sp.tw;if(!tw)continue;if(tw.anim>0)tw.anim--;
-    if(tw.ink>0){tw.ink--;tw.tgt=0;continue;}
+    if(tw.od>0)tw.od--;if(tw.ink>0){tw.ink--;tw.tgt=0;continue;}
     tw.cd-=1/TICK;if(tw.cd>0)continue;const b=TOWERS[tw.id],st=towerStat(s,tw);
     if(b.beam){ // 등롱 빛줄기: 한 적을 계속 비출수록 세진다
       let t=null;if(tw.tgt)for(const e of s.en)if(e.id===tw.tgt&&!e.dead&&!(e.fadeT>0)&&(e.x-sp.x)**2+(e.y-sp.y)**2<=st.range*st.range){t=e;break;}
@@ -168,6 +173,7 @@ function stepWave(s){
   if(s.queue.length||s.en.length)return;
   if(s.wave>=s.S.waves){finish(s,true);return;}
   s.gold+=s.cur.bonus;s.fx.push({e:'waveClear',g:s.cur.bonus,w:s.wave});s.ws='gap';s.gapT=WAVE_GAP*TICK;
+  if(CARD_AT(s.wave)&&s.wave<s.S.waves){s.picks=drawCards(s);s.rerolled=false;s.phase='pick';s.fx.push({e:'pick'});}
 }
 function finish(s,won){
   if(s.ended)return;s.ended=true;s.won=won;s.phase=won?'win':'lose';
@@ -177,19 +183,32 @@ function finish(s,won){
 }
 function step(s){
   if(s.ended||s.phase!=='run')return;s.t++;
-  if(s.cd.tide>0)s.cd.tide--;if(s.cd.bomb>0)s.cd.bomb--;
   stepWave(s);if(s.phase!=='run')return;stepTowers(s);stepProjectiles(s);stepEnemies(s);
 }
 /* 프레임 시간을 틱으로 바꾼다 */
 function advance(s,dt){s.acc+=Math.min(dt,.25);let n=0;while(s.acc>=1/TICK-1e-9&&n<16){s.acc-=1/TICK;step(s);n++;}return n;}
 
-/* ---------- 직접 쓰는 스킬 ---------- */
-const skillMul=s=>1+.5*s.si;
-function castTide(s){if(s.phase!=='run'||s.cd.tide>0||s.ws==='prep')return false;s.cd.tide=SKILL.tide.cd*TICK;s.casts++;
-  for(const e of s.en){if(e.dead||e.air)continue;hurt(s,e,SKILL.tide.dmg*skillMul(s),'mag');if(!e.dead){e.kb=e.k==='boss'?SKILL.tide.push*.3:SKILL.tide.push;e.stun=Math.max(e.stun,.5*TICK);}}
-  s.fx.push({e:'tide'});return true;}
-function castBomb(s,x,y){if(s.phase!=='run'||s.cd.bomb>0||s.ws==='prep')return false;s.cd.bomb=SKILL.bomb.cd*TICK;s.casts++;blast(s,x,y,SKILL.bomb.r,SKILL.bomb.dmg*skillMul(s),'exp','bomb',{stun:.8},true);return true;}
+/* ---------- 비법 양념: 가게마다 다른 특식 ---------- */
+function sauceNeed(s){return s.sn===0?SAUCE.first:Math.min(SAUCE.cap,SAUCE.need+SAUCE.grow*(s.sn-1));}
+function gainSauce(s,v){if(s.sauce>=SAUCE.max||v<=0)return;s.sp+=v*(1+.25*(s.buf.sauce||0));const n=sauceNeed(s);if(s.sp>=n){s.sp-=n;s.sn++;s.sauce++;if(s.sauce>=SAUCE.max)s.sp=0;s.fx.push({e:'sauceUp'});}}
+function castSauce(s,i){
+  const sp=s.spots[i],tw=sp&&sp.tw;if(!tw||s.phase!=='run'||s.sauce<1||s.ws==='prep')return false;
+  s.sauce--;s.casts++;tw.ink=0;tw.od=SAUCE.od*TICK;tw.cd=0;const st=towerStat(s,tw),R=st.range*1.6,id=tw.id,inR=e=>!e.dead&&(e.x-sp.x)**2+(e.y-sp.y)**2<R*R,front=(a,b)=>progress(b)-progress(a);
+  s.fx.push({e:'sauce',i,id,r:R});
+  if(id==='tt'){for(const e of s.en.filter(e=>inR(e)&&!e.air).sort(front).slice(0,6))blast(s,e.x,e.y,st.aoe,st.dmg*2.5,'exp','bun',{stun:1},false);}            // 만두 비: 앞선 손님 6명 머리 위로
+  else if(id==='didi'){for(const e of s.en.slice())if(inR(e)){hurt(s,e,st.dmg*8,'mag');if(!e.dead){e.stun=Math.max(e.stun,(e.k==='boss'?1:2.5)*TICK);e.slow=Math.max(e.slow,.5);e.slowT=Math.max(e.slowT,5*TICK);}}s.fx.push({e:'freeze',x:sp.x,y:sp.y,r:R});}   // 눈보라: 둘레를 꽁꽁
+  else if(id==='peng'){for(const e of s.en.filter(inR).sort(front).slice(0,6))blast(s,e.x,e.y,st.aoe,st.dmg*2,'exp','fw',null,true);}                       // 팝콘 불꽃놀이: 하늘 손님까지
+  else if(id==='shan'){for(const e of s.en.slice()){if(e.dead)continue;e.shred=Math.max(e.shred,6*TICK);e.fadeT=0;if(inR(e))hurt(s,e,st.dmg*12,'mag');}s.fx.push({e:'aroma'});}   // 차 향기: 모든 손님이 6초 동안 뭐든 잘 먹고, 숨은 손님도 드러남
+  else if(id==='dun'){for(const e of s.en.filter(e=>!e.dead).sort((a,b)=>b.hp-a.hp).slice(0,3)){s.fx.push({e:'skewer',i,x:e.x,y:e.y});hurt(s,e,st.dmg*5*(st.big&&(e.k==='boss'||e.k==='elite')?st.big:1),'mag');}}   // 왕꼬치: 어디에 있든 가장 배고픈 3명
+  else if(id==='zhuo'){let n=0;for(const e of s.en.slice())if(inR(e)&&!e.air){hurt(s,e,st.dmg*8,'mag');n++;if(!e.dead&&e.k!=='boss'){e.slow=Math.max(e.slow,.8);e.slowT=Math.max(e.slowT,4*TICK);}}if(n){s.gold+=n*3;s.fx.push({e:'bonus',g:n*3});}s.fx.push({e:'goo',x:sp.x,y:sp.y,r:R});}   // 찹쌀떡 잔치: 끈적끈적 + 팁
+  return true;}
+/* ---------- 오늘의 특선 ---------- */
+function drawCards(s){const pool=Object.keys(CARDS).filter(k=>(!CARDS[k].only||s.owned.includes(CARDS[k].only))&&!(k==='sale'&&(s.buf.sale||0)>=3)),out=[];while(out.length<3&&pool.length)out.push(pool.splice(Math.floor(s.rand()*pool.length),1)[0]);return out;}
+function pickCard(s,k){if(s.phase!=='pick'||!s.picks||!s.picks[k])return false;const c=s.picks[k];s.buf[c]=(s.buf[c]||0)+1;let g=0;
+  if(c==='coin'){g=120+25*s.wave;s.gold+=g;}else if(c==='life')s.lives+=3;else if(c==='sauce'&&s.sauce<SAUCE.max)s.sauce++;
+  s.picks=null;s.phase='run';s.fx.push({e:'card',c,g});return true;}
+function rerollCards(s){if(s.phase!=='pick'||s.rerolled)return false;s.rerolled=true;s.picks=drawCards(s);return true;}
 function revive(s){if(s.phase!=='revive'||s.revives<=0)return false;s.revives--;s.revived=true;s.lives=REVIVE_LIVES;s.phase='run';for(const e of s.en)if(!e.air&&e.k!=='boss')e.kb=200;s.fx.push({e:'revive'});return true;}
 function giveUp(s){if(!s.ended)finish(s,false);}
 
-if(typeof module!=='undefined')module.exports={newGame,step,advance,build,upgrade,sell,callWave,castTide,castBomb,cleanInk,revive,giveUp,towerStat,upCost,towerCost,stageGeo,waveDef,STAGES,TOWERS,TOWER_IDS,BRANCH,UNLOCK};
+if(typeof module!=='undefined')module.exports={newGame,step,advance,build,upgrade,sell,callWave,castSauce,pickCard,rerollCards,SAUCE,CARDS,cleanInk,revive,giveUp,towerStat,upCost,towerCost,stageGeo,waveDef,STAGES,TOWERS,TOWER_IDS,BRANCH,UNLOCK};

@@ -32,7 +32,11 @@ const ENEMIES={
   boss:  {hp:2400,sp:13,r:30,gold:120,cost:0, armor:.2,leak:20},
 };
 const START_LIVES=20,WAVE_GAP=6,BONUS_PER_SEC=3,REVIVE_LIVES=10;
-const SKILL={tide:{cd:38,push:95,dmg:28},bomb:{cd:24,r:62,dmg:110}};
+/* 비법 양념: 손님을 배불릴수록(손님 값만큼) 차고, 가게에 뿌리면 그 가게의 특식이 터진다. 최대 2통. need = 통마다 필요한 양 */
+const SAUCE={max:2,first:8,need:16,grow:5,cap:46,od:5,odCd:.4};
+/* 오늘의 특선: 파도 2·5·8·11 을 넘기면 카드 3장 중 하나. only = 그 가게를 가지고 있을 때만 나온다. 같은 카드는 겹쳐서 세진다 */
+const CARDS={bun2:{only:'tt'},frost:{only:'didi'},pop:{only:'peng'},tea:{only:'shan'},skew:{only:'dun'},sticky:{only:'zhuo'},taste:{},reach:{},tip:{},coin:{},life:{},sauce:{},sale:{}};
+const CARD_AT=w=>w%3===2;
 
 /* ---------- 스테이지: 5개 구역 × 10판 = 50판을 규칙으로 만든다. 판을 더 늘리려면 AREAS 에 구역을 더하거나 PER_AREA 를 올리면 된다 ----------
    길 모양 10종(LAYOUTS)을 좌우로 뒤집어 20종으로 쓰고, 손님은 판이 갈수록 한 종씩 늘어난다. 5번째 판은 양동이 꽃게 떼, 10번째 판은 구역 보스 */
@@ -56,7 +60,7 @@ function genStage(i){
   const paths=L.map(p=>p.map(q=>[mir?W-q[0]:q[0],q[1]]));
   const U=Object.keys(KIND_AT).filter(k=>KIND_AT[k]<=i),pick=U.slice(-6).sort((x,y)=>(x==='gull'?9:ENEMIES[x].cost)-(y==='gull'?9:ENEMIES[y].cost)),fresh=pick.find(k=>KIND_AT[k]===i&&i>0);
   if(fresh){pick.splice(pick.indexOf(fresh),1);pick.splice(2,0,fresh);}   // 새 손님은 2번째 파도부터 얼굴을 비춘다
-  const hp=1.2*heroMul(rec)*(paths.length>1?.86:1)*(1+n*.012);
+  const hp=1.2*heroMul(rec)*(paths.length>1?.86:1)*(1+n*.012)*(1+a*.09);
   return {i,area:a,n,theme:a%5,paths,kinds:pick,waves:8+Math.min(5,Math.floor(n/2)+Math.min(2,a)),hp,budget:10+Math.min(8,i*.42),gold:230+Math.min(340,i*12),spots:8+Math.min(4,Math.floor(n/3)+Math.min(2,a)),
     rec,boss:n===PER_AREA-1?AREAS[a].boss:'',bossHp:Math.round(3000*hp*(1+a*.35)),mid:n===4};
 }
@@ -70,7 +74,7 @@ function waveDef(si,w){
   if(w%4===0&&!last&&S.i>=3)groups.push({k:'elite',n:1+Math.floor(w/8),gap:3,delay:2,path:w%S.paths.length});
   if(last&&S.boss)groups.push({k:'boss',n:1,gap:1,delay:4,path:0});
   if(last&&!S.boss)groups.push({k:'elite',n:S.mid?3:1,gap:2.5,delay:3,path:0});
-  return {w,groups,hp:S.hp*(1+.13*(w-1)),bonus:18+3*w};
+  return {w,groups,hp:S.hp*(1+.15*(w-1)),bonus:18+3*w};
 }
 const firstBonus=i=>100+i*25+(i%PER_AREA===PER_AREA-1?300:0);
 const REWARD={base:120,stage:.25,star:[0,.7,.85,1],lose:.25};
