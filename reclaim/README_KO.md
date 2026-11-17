@@ -1,6 +1,6 @@
 # RECLAIM: 돌아온 땅 — G1 도형 프로토타입 (A트랙 미니게임판)
 
-빌드 1116-2330 · 웹 테스트판 (토스 앱인토스·위챗·더우인 공통 game.js)
+빌드 1117-1400 · 웹 테스트판 (토스 앱인토스·위챗·더우인 공통 game.js)
 
 ## 들어 있는 것
 - 1막 탈출: 탭해서 이동, 가방 8칸 고르기, 아래에서 올라오는 불길, 감염체 피하기, 비행기 탑승
@@ -15,13 +15,23 @@
 game.js의 `AD_UNIT` (wx / tt / toss). 토스는 G3에서 앱인토스 SDK 광고를 `globalThis.__tossAd(place, onReward, onFail)`로 연결.
 
 ## 통계 이벤트 (관리자 화면에 같은 이름으로 등록)
-act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, g1_feedback, ad_open, ad_reward, share, guide_open, app_hide, draw_error
+act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, g1_feedback, quest, rescue, bottle, ch1_clear, ad_open, ad_reward, share, guide_open, app_hide, draw_error
 
 ## 테스트 결과 (이번 빌드)
 - 한국어·중국어 전 화면 캡처, 중국어 화면 한글 누수 0건
 - 그리기 포함 자동 플레이(해역 3종 × 4일) 그리기 오류 0건
 - 위챗 흉내 환경: 오류 0건, 오디오 서브패키지·일시정지 동작
 - 시간대/언어별 첫 언어: 중국 → 중국어, 한국 → 한국어
+
+## 1117-1400 변경 (1장 「등대의 불」 완성)
+- 챕터 목표 12개: 화면 위 "목표 n/12"가 순서대로 안내, 달성하면 보상 + 이야기 한 줄
+- 무전 이야기: 무전기를 만들면 매일 아침 등대지기 '마루'의 무전이 옴(6편)
+- 병 속 쪽지: 바다에 떠내려오는 병을 건지면 다른 표류자의 쪽지(5종)
+- 동료 2명: 도하(어부, 구명보트에서 구조) — 자동 낚시·굽기 / 유나(정비공, 섬 오두막에서 구조) — 물건 건지기·불 지키기·갑판 수리. 하루 음식 1개씩 먹고, 굶으면 다음 날 쉼
+- 항구 원정: 목표 12에서 [항구 원정] → 등대 발전기 3번 돌리기 → 배로 귀환 → 1장 엔딩 화면
+- 감염체 그림 교체: 걷는 자 새 걷기 8프레임, 달리는 자(후드) 달리기·공격·쓰러짐, 무너진 지붕
+- 섬·항구에서 앱이 꺼져도 들고 있던 짐과 등대 점등이 다음 접속 때 반영됨
+- 새 통계 이벤트: quest, rescue, bottle, ch1_clear
 
 ## 1116-2330 변경
 - 아트 v05 추가분 적용: 바다·풀밭 반복 타일(테두리 점선 제거 후 이음새 다시 맞춤), 건물 지붕 변형·파란 폐차, 밤바다 그림자
