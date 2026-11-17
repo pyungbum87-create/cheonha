@@ -46,8 +46,8 @@ function buildMap(si){
 /* ---------- 한 판 ---------- */
 class Game{
   constructor(si,meta){
-    this.lv={};for(const k of [...TOWER_IDS,'hero'])this.lv[k]=meta&&meta.lv&&meta.lv[k]||(meta&&meta.lv?1:recLv(si));
-    this.cmdCd={slam:0};this.crewCd={};this.allies=[];this.ampT=0;this.purified=0;this.hasteT=0;this.hasteMul=0;this.cmdUsed=0;this.awakened=0;this.cardsPicked=0;
+    this.lv={};for(const k of [...TOWER_IDS,'hero',...CREW_IDS])this.lv[k]=meta&&meta.lv&&meta.lv[k]||(meta&&meta.lv?1:recLv(si));
+    this.cmdCd={slam:0};this.crewCd={};this.merged={};this.allies=[];this.ampT=0;this.purified=0;this.hasteT=0;this.hasteMul=0;this.cmdUsed=0;this.awakened=0;this.cardsPicked=0;
     const S=this.S=stageInfo(si);this.si=si;this.M=buildMap(si);
     for(const g in this.M.gates)this.M.gates[g].st=0;for(const v of this.M.vents)v.cd=0;
     this.t=0;this.gold=S.gold;this.lives=START_LIVES;this.lost=0;this.wave=0;this.nextT=0;this.spawning=false;this.spawnQ=[];
@@ -63,13 +63,21 @@ class Game{
   /* ---- 계산 ---- */
   tier(){return this.S.sTier+this.B.tier;}
   tw(k){return masteryMul(this.lv[k]||1);}
+  /* 합체: 대원 c 를 수호탑 t 에 태운다(다른 탑에 있으면 옮김, 그 탑에 다른 대원이 있으면 내림) */
+  joined(c){return crewJoined(c,this.si);}
+  trF(t){return t.crew?(this.reso(t)?RESO_TRAIT:1):0;}
+  tr(t,key){return t.crew?(CREW[t.crew].tr[key]||0)*this.trF(t):0;}
+  merge(c,t){if(!this.joined(c)||!t||t.crew===c)return false;const old=this.towers.find(o=>o.crew===c);if(old)old.crew=null;if(t.crew)delete this.merged[t.crew];t.crew=c;this.merged[c]=t.id;
+    this.ev.push({t:'merge',x:t.x,y:t.y,c,reso:this.reso(t)});return true;}
+  unmerge(t){if(!t||!t.crew)return false;delete this.merged[t.crew];t.crew=null;this.ev.push({t:'unmerge',x:t.x,y:t.y});return true;}
+  crewTower(c){return this.towers.find(t=>t.crew===c)||null;}
   cost(k){return Math.round(TOWERS[k].cost*(1-this.B.disc));}
   upCost(t){return t.lv>=MAX_TLV?0:Math.round(TOWERS[t.k].cost*UP_COST[t.lv-1]*(1-this.B.disc));}
   sellVal(t){return Math.round(t.spent*SELL);}
   unlocked(k){return UNLOCK[k]<=this.si;}
-  range(t){return TOWERS[t.k].range*LV_RANGE[t.lv-1]*(t.ink>0?.6:1);}
-  dmg(t){return TOWERS[t.k].dmg*LV_DMG[t.lv-1]*this.tw(t.k)*(t.br==='giant'?1.25:t.br==='purge'?1.8:1)*(1+this.B.dmg)*(1+t.aura)*(this.ampT>0?1+CREW.rune.amp:1);}
-  rate(t){return TOWERS[t.k].cd/(1+t.haste+(t.k==='coral'?this.B.coral:0)+(t.br==='storm'?.5:0))*(t.ink>0?1.5:1);}
+  range(t){return TOWERS[t.k].range*LV_RANGE[t.lv-1]*(1+this.tr(t,'range'))*(t.ink>0?.6:1);}
+  dmg(t){return TOWERS[t.k].dmg*LV_DMG[t.lv-1]*this.tw(t.k)*(t.crew?crewMul(this.lv[t.crew]||1)*(this.reso(t)?RESO_DMG:1):1)*(t.br==='giant'?1.25:t.br==='purge'?1.8:1)*(1+this.B.dmg)*(1+t.aura)*(this.ampT>0?1+CREW.rune.amp:1);}
+  rate(t){return TOWERS[t.k].cd/(1+t.haste+this.tr(t,'haste')+(t.k==='coral'?this.B.coral:0)+(t.br==='storm'?.5:0))*(t.ink>0?1.5:1);}
   heroDmg(){return HERO.dmg*this.tw('hero')*(1+.22*(this.hero.lv-1))*(1+this.B.hero);}
   visible(e){return !e.inv||e.rev;}
   /* ---- 조작 ---- */
@@ -78,7 +86,7 @@ class Game{
     t.sc=this.skillCdOf(t)*.5;this.gold-=c;this.towers.push(t);this.ev.push({t:'build',x:s.x,y:s.y,k});return true;}
   upgrade(t,b){const c=this.upCost(t);if(!c||this.gold<c)return false;if(t.lv===MAX_TLV-1){if(b!==0&&b!==1)return false;t.br=BRANCH[t.k][b].id;this.awakened++;}
     this.gold-=c;t.spent+=c;t.lv++;this.ev.push({t:t.lv===MAX_TLV?'awaken':'up',x:t.x,y:t.y,k:t.k});return true;}
-  sell(t){this.gold+=this.sellVal(t);this.towers=this.towers.filter(x=>x!==t);this.ev.push({t:'sell',x:t.x,y:t.y});}
+  sell(t){if(t.crew)delete this.merged[t.crew];this.gold+=this.sellVal(t);this.towers=this.towers.filter(x=>x!==t);this.ev.push({t:'sell',x:t.x,y:t.y});}
   clean(t){if(t.ink>0){t.ink=0;this.ev.push({t:'clean',x:t.x,y:t.y});return true;}return false;}
   flipGate(g){const G=this.M.gates[g];if(!G||this.keys<=0)return false;this.keys--;G.st^=1;G.flash=1;this.ev.push({t:'gate',x:G.x,y:G.y});return true;}
   moveHero(x,y){const h=this.hero;h.tx=Math.max(20,Math.min(W-20,x));h.ty=Math.max(70,Math.min(700,y));}
@@ -88,15 +96,25 @@ class Game{
     else if(k==='torpedo'){for(const e of this.enemies)if(!e.dead&&dist(e.x,e.y,x,y)<C.r+e.r)this.hurt(e,C.dmg*m*(dist(e.x,e.y,x,y)<C.r*.5?1:.7),'exp');this.ev.push({t:'torp',x,y,r:C.r});}
     else{for(const e of this.enemies){if(e.dead)continue;this.hurt(e,C.dmg*m,'mag');if(e.dead||isBoss(e.k))continue;e.kb=C.push*(e.k==='elite'?.5:1);e.slow=Math.max(e.slow,C.slow);e.slowT=Math.max(e.slowT,C.slowT);}this.ev.push({t:'tide'});}
     this.cmdCd[k]=C.cd*this.B.heroCd;this.cmdUsed++;return true;}
-  crewPw(k){let p=0;for(const t of this.towers)if(t.k===k)p+=LV_DMG[t.lv-1];return p;}
-  crewReady(k){return CREW[k]&&CREW[k].sk&&this.state==='run'&&!(this.crewCd[k]>0)&&this.towers.some(t=>t.k===k);}
-  crewSkill(k){if(!this.crewReady(k))return false;const C=CREW[k],pw=Math.min(6,this.crewPw(k)),m=this.tw(k)*(1+this.B.dmg);
-    if(k==='coral'){for(const t of this.towers)if(t.k==='coral'){t.haste=Math.max(t.haste,1);t.hasteT=C.dur;}}
-    else if(k==='bubble'){for(const e of this.enemies){if(e.dead)continue;this.hurt(e,C.dmg*pw*m,'mag');if(!e.dead&&!isBoss(e.k)){e.slow=Math.max(e.slow,C.slow);e.slowT=Math.max(e.slowT,C.dur);}}}
-    else if(k==='jelly'){for(const e of this.enemies){if(e.dead||e.spawnT>.45)continue;this.hurt(e,C.dmg*pw*m,'mag');if(!e.dead)e.stun=Math.max(e.stun,isBoss(e.k)?.2:C.stun);}}
-    else if(k==='conch'){const tg=this.enemies.filter(e=>!e.dead).sort((a,b)=>b.prog-a.prog)[0];if(!tg)return false;for(const t of this.towers)if(t.k==='conch')this.projs.push({kind:'shell',x:t.x,y:t.y-16,tx:tg.x,ty:tg.y,tid:tg.id,sp:420,dmg:this.dmg(t)*1.6,cls:'exp',from:'conch',lv:t.lv,a:0,br:t.br});}
-    else if(k==='rune'){this.ampT=C.dur;}
-    this.crewCd[k]=C.cd;this.cmdUsed++;this.ev.push({t:'crew',k});return true;}
+  reso(t){return !!(t.crew&&CREW[t.crew].tw===t.k);}
+  crewReady(c){return CREW[c]&&CREW[c].sk&&this.state==='run'&&!(this.crewCd[c]>0)&&!!this.crewTower(c);}
+  crewSkill(c){if(!this.crewReady(c))return false;const C=CREW[c],T=this.crewTower(c),rs=this.reso(T),same=this.towers.filter(t=>t.k===C.tw).length;
+    const pw=Math.min(7,LV_DMG[T.lv-1]*(rs?1.6:1)+.5*same),m=crewMul(this.lv[c]||1)*(1+this.B.dmg)*(1+this.B.hero);
+    if(c==='hero'){for(const e of this.enemies)if(!e.dead&&e.prog>=SAFE*.5&&dist(e.x,e.y,T.x,T.y)<C.r+e.r){this.hurt(e,C.dmg*pw*m,'exp');if(!e.dead)e.stun=Math.max(e.stun,isBoss(e.k)?.3:C.stun);}this.ev.push({t:'slam',x:T.x,y:T.y,r:C.r});}
+    else if(c==='cora'){for(const t of this.towers)if(t===T||t.k==='coral'){t.haste=Math.max(t.haste,1);t.hasteT=C.dur;}}
+    else if(c==='bogle'){for(const e of this.enemies){if(e.dead)continue;this.hurt(e,C.dmg*pw*m,'mag');if(!e.dead&&!isBoss(e.k)){e.slow=Math.max(e.slow,C.slow);e.slowT=Math.max(e.slowT,C.dur);}}}
+    else if(c==='lumi'){for(const e of this.enemies){if(e.dead||e.prog<SAFE*.5)continue;this.hurt(e,C.dmg*pw*m,'mag');if(!e.dead)e.stun=Math.max(e.stun,isBoss(e.k)?.2:C.stun);}}
+    else if(c==='sora'){const tg=this.enemies.filter(e=>!e.dead).sort((a,b)=>b.prog-a.prog)[0];if(!tg)return false;for(const t of this.towers)if(t===T||t.k==='conch')this.projs.push({kind:'shell',x:t.x,y:t.y-16,tx:tg.x,ty:tg.y,tid:tg.id,sp:420,dmg:Math.max(this.dmg(t),TOWERS.conch.dmg*LV_DMG[t.lv-1])*1.6,cls:'exp',from:'conch',lv:t.lv,a:0,br:t.br});}
+    else if(c==='arin'){this.ampT=C.dur*(rs?1.4:1);}
+    this.crewCd[c]=C.cd*this.B.heroCd;this.cmdUsed++;this.ev.push({t:'crew',k:c,x:T.x,y:T.y});return true;}
+  /* 대원 특성이 실린 공격의 추가 효과 */
+  onHit(src,tg,d){if(!src||!src.crew||!tg)return;const f=src.trF;
+    if(src.stun&&!tg.dead&&this.rnd()<src.stun)tg.stun=Math.max(tg.stun,isBoss(tg.k)?.15:.5);
+    if(src.slow&&!tg.dead&&!isBoss(tg.k)){tg.slow=Math.max(tg.slow,src.slow);tg.slowT=Math.max(tg.slowT,1.2);}
+    if(src.chain&&this.rnd()<src.chain){let nx=null,nd=72;for(const e of this.enemies)if(!e.dead&&e!==tg&&this.visible(e)&&e.prog>=SAFE){const dd=dist(e.x,e.y,tg.x,tg.y);if(dd<nd){nd=dd;nx=e;}}
+      if(nx){this.hurt(nx,d*.6,'mag');this.ev.push({t:'zap',pts:[[tg.x,tg.y],[nx.x,nx.y]],small:1});}}
+    if(src.splash){const R=26;for(const e of this.enemies)if(!e.dead&&e!==tg&&dist(e.x,e.y,tg.x,tg.y)<R+e.r)this.hurt(e,d*src.splash,'exp');this.ev.push({t:'boom',x:tg.x,y:tg.y,r:R,small:1});}}
+  crewSrc(t){return t.crew?{crew:t.crew,stun:this.tr(t,'stun'),slow:this.tr(t,'slow'),chain:this.tr(t,'chain'),splash:this.tr(t,'splash')}:null;}
   /* 정화된 생물이 잠깐 우리 편이 된다 */
   purify(e){const P=PURE[e.k];this.purified++;if(!P||(this.allies.length>40&&P.act!=='gift'))return;
     const a={id:this.uid++,k:e.k,act:P.act,x:e.x,y:e.y,a:e.a,seg:e.seg,d:e.d,prog:e.prog,r:e.r,t:P.t||1.1,T:P.t||1.1,hit:new Set(),pure:1};
@@ -213,11 +231,13 @@ class Game{
       if(e.dead)continue;const P=segPos(S,e.d);e.x=P.x;e.y=P.y;e.a=P.a;
     }
     /* 드러내기: 해파리·룬·영웅 근처의 투명한 적은 보인다 */
-    for(const e of this.enemies){if(!e.inv){e.rev=false;continue;}e.rev=dist(e.x,e.y,this.hero.x,this.hero.y)<HERO.range;
-      if(!e.rev)for(const t of this.towers)if(TOWERS[t.k].reveal&&dist(t.x,t.y,e.x,e.y)<this.range(t)){e.rev=true;break;}}
+    for(const e of this.enemies){if(!e.inv){e.rev=false;continue;}e.rev=false;
+      if(!e.rev)for(const t of this.towers)if((TOWERS[t.k].reveal||t.crew==='hero')&&dist(t.x,t.y,e.x,e.y)<this.range(t)){e.rev=true;break;}}
     /* 수호탑 */
     for(const t of this.towers){t.aura=0;}
     for(const r of this.towers)if(r.k==='rune'){const a=TOWERS.rune.aura+.05*(r.lv-1)+B.aura+(r.br==='amp'?.2:0),rr=this.range(r);for(const t of this.towers)if(t!==r&&dist(t.x,t.y,r.x,r.y)<rr)t.aura=Math.max(t.aura,a);}
+    for(const r of this.towers)if(r.crew==='hero'){const a=this.tr(r,'lead');for(const t of this.towers)if(dist(t.x,t.y,r.x,r.y)<100)t.aura=Math.max(t.aura,a);}
+    for(const r of this.towers)if(r.crew==='arin'){const a=this.tr(r,'aura');for(const t of this.towers)if(t!==r&&dist(t.x,t.y,r.x,r.y)<100)t.aura=Math.max(t.aura,t.aura+a*.5,a);}
     for(const t of this.towers)this.towerTick(t,dt);
     /* 투사체 */
     for(const p of this.projs){const tg=p.tid?this.enemies.find(e=>e.id===p.tid&&!e.dead):null;if(tg){p.tx=tg.x;p.ty=tg.y;}
@@ -263,32 +283,32 @@ class Game{
       else if(t.k==='rune'){if(tg){for(const o of this.towers)if(dist(o.x,o.y,t.x,t.y)<r+8){o.haste=SK.haste;o.hasteT=SK.dur;}t.sc=SK.cd;this.ev.push({t:'reso',x:t.x,y:t.y,r});}}
     }
     if(!tg||t.cd>0)return;
-    t.cd=this.rate(t);t.kick=1;const dm=this.dmg(t);
+    t.cd=this.rate(t);t.kick=1;const crit=t.crew&&this.rnd()<this.tr(t,'crit'),dm=this.dmg(t)*(crit?2:1),src=this.crewSrc(t);if(crit)this.ev.push({t:'crit',x:tg.x,y:tg.y});
     if(t.k==='jelly'){const pts=[[t.x,t.y-14]],hit=new Set();let cur=tg,dd=dm,n=T.chain+this.B.chain+(t.br==='tempest'?3:0);
-      while(cur&&n>0){hit.add(cur.id);pts.push([cur.x,cur.y]);this.hurt(cur,dd,'mag');if(t.br==='paralyze'&&!cur.dead&&!isBoss(cur.k)&&this.rnd()<.25)cur.stun=Math.max(cur.stun,.5);dd*=T.fall;n--;
+      while(cur&&n>0){hit.add(cur.id);pts.push([cur.x,cur.y]);this.hurt(cur,dd,'mag');if(hit.size===1)this.onHit(src,cur,dd);if(t.br==='paralyze'&&!cur.dead&&!isBoss(cur.k)&&this.rnd()<.25)cur.stun=Math.max(cur.stun,.5);dd*=T.fall;n--;
         let nx=null,nd=72;for(const e of this.enemies)if(!e.dead&&!hit.has(e.id)&&this.visible(e)&&e.prog>=SAFE){const d=dist(e.x,e.y,cur.x,cur.y);if(d<nd){nd=d;nx=e;}}cur=nx;}
       this.ev.push({t:'zap',pts});return;}
-    if(t.k==='rune'){if(t.br==='purge'){tg.shield=Math.max(0,tg.shield-dm*2);tg.purgeT=2;}this.hurt(tg,dm,'mag');t.beam=.12;t.beamX=tg.x;t.beamY=tg.y;return;}
+    if(t.k==='rune'){if(t.br==='purge'){tg.shield=Math.max(0,tg.shield-dm*2);tg.purgeT=2;}this.hurt(tg,dm,'mag');this.onHit(src,tg,dm);t.beam=.12;t.beamX=tg.x;t.beamY=tg.y;return;}
     if(t.k==='coral'){t.shots++;if(t.shots%SK.every===0){const a=t.ang,x2=t.x+Math.cos(a)*SK.len,y2=t.y+Math.sin(a)*SK.len;
       for(const e of this.enemies){if(e.dead)continue;const px=e.x-t.x,py=e.y-t.y,u=Math.max(0,Math.min(SK.len,px*Math.cos(a)+py*Math.sin(a))),qx=t.x+Math.cos(a)*u,qy=t.y+Math.sin(a)*u;
-        if(dist(e.x,e.y,qx,qy)<e.r+8)this.hurt(e,dm*SK.mul,'phy');}
+        if(dist(e.x,e.y,qx,qy)<e.r+8){this.hurt(e,dm*SK.mul,'phy');this.onHit(src,e,dm);}}
       this.ev.push({t:'pierce',x:t.x,y:t.y,x2,y2});return;}}
     if(t.br==='triple'){const c=this.enemies.filter(e=>!e.dead&&this.visible(e)&&dist(e.x,e.y,t.x,t.y)<r+e.r).sort((p,q)=>q.prog-p.prog);
-      for(let i=0;i<3;i++){const g2=c[Math.min(i,c.length-1)]||tg;this.projs.push({kind:T.proj,x:t.x,y:t.y-16,tx:g2.x+(i-1)*8,ty:g2.y,tid:c.length>i?g2.id:0,sp:T.speed*(1-i*.08),dmg:dm*.55,cls:T.cls,from:t.k,lv:t.lv,a:t.ang,whirl:i===0&&t.whirl,br:t.br});}}
-    else this.projs.push({kind:T.proj,x:t.x,y:t.y-16,tx:tg.x,ty:tg.y,tid:tg.id,sp:T.speed,dmg:dm,cls:T.cls,from:t.k,lv:t.lv,a:t.ang,whirl:t.k==='conch'&&t.whirl,br:t.br});
+      for(let i=0;i<3;i++){const g2=c[Math.min(i,c.length-1)]||tg;this.projs.push({kind:T.proj,x:t.x,y:t.y-16,tx:g2.x+(i-1)*8,ty:g2.y,tid:c.length>i?g2.id:0,sp:T.speed*(1-i*.08),dmg:dm*.55,src,cls:T.cls,from:t.k,lv:t.lv,a:t.ang,whirl:i===0&&t.whirl,br:t.br});}}
+    else this.projs.push({kind:T.proj,x:t.x,y:t.y-16,tx:tg.x,ty:tg.y,tid:tg.id,sp:T.speed,dmg:dm,src,cls:T.cls,from:t.k,lv:t.lv,a:t.ang,whirl:t.k==='conch'&&t.whirl,br:t.br});
     if(t.k==='conch')t.whirl=false;
   }
   impact(p,tg){
     if(p.kind==='shell'){const R=TOWERS.conch.aoe*(1+this.B.conchR)*(p.br==='giant'?1.5:1);for(const e of this.enemies)if(!e.dead&&dist(e.x,e.y,p.tx,p.ty)<R+e.r)this.hurt(e,dist(e.x,e.y,p.tx,p.ty)<R*.5?p.dmg:p.dmg*.7,'exp');
-      this.ev.push({t:'boom',x:p.tx,y:p.ty,r:R});
+      if(tg&&p.src)this.onHit(p.src,tg,p.dmg);this.ev.push({t:'boom',x:p.tx,y:p.ty,r:R});
       if(p.whirl){const SK=TSKILL.conch(this.tier());this.zones.push({x:p.tx,y:p.ty,r:SK.r,t:SK.dur,T:SK.dur,dps:SK.dps*LV_DMG[p.lv-1]*this.tw('conch')*(1+this.B.dmg),slow:SK.slow});this.ev.push({t:'whirl',x:p.tx,y:p.ty});}
       return;}
     if(!tg)return;
-    if(p.kind==='bub'){this.hurt(tg,p.dmg,'mag');if(!tg.dead&&!isBoss(tg.k)){tg.slow=Math.max(tg.slow,TOWERS.bubble.slow+this.B.bubSlow+(p.br==='frost'?.2:0));tg.slowT=TOWERS.bubble.slowT;}
+    if(p.kind==='bub'){this.hurt(tg,p.dmg,'mag');this.onHit(p.src,tg,p.dmg);if(!tg.dead&&!isBoss(tg.k)){tg.slow=Math.max(tg.slow,TOWERS.bubble.slow+this.B.bubSlow+(p.br==='frost'?.2:0));tg.slowT=TOWERS.bubble.slowT;}
       if(p.br==='blast'){for(const e of this.enemies)if(!e.dead&&e!==tg&&dist(e.x,e.y,tg.x,tg.y)<36+e.r){this.hurt(e,p.dmg*1.5,'mag');if(!e.dead&&!isBoss(e.k)){e.slow=Math.max(e.slow,.25);e.slowT=Math.max(e.slowT,1);}}this.ev.push({t:'boom',x:tg.x,y:tg.y,r:36});}this.ev.push({t:'pop',x:tg.x,y:tg.y});return;}
-    this.hurt(tg,p.dmg,p.cls);if(p.br==='venom'&&!tg.dead){tg.poiT=3;tg.poiD=p.dmg*.45;if(!tg.shred){tg.shred=1;tg.armor=Math.max(0,tg.armor-.15);}}this.ev.push({t:'hit',x:tg.x,y:tg.y,k:p.kind});
+    this.hurt(tg,p.dmg,p.cls);this.onHit(p.src,tg,p.dmg);if(p.br==='venom'&&!tg.dead){tg.poiT=3;tg.poiD=p.dmg*.45;if(!tg.shred){tg.shred=1;tg.armor=Math.max(0,tg.armor-.15);}}this.ev.push({t:'hit',x:tg.x,y:tg.y,k:p.kind});
   }
-  heroTick(dt){
+  heroTick(dt){return;
     const h=this.hero;h.ox=h.x;h.oy=h.y;if(h.atk>0)h.atk-=dt*4;h.moving=false;
     if(h.tx!==null){const dx=h.tx-h.x,dy=h.ty-h.y,d=Math.hypot(dx,dy),st=HERO.sp*dt;if(d<=st){h.x=h.tx;h.y=h.ty;h.tx=null;}else{h.x+=dx/d*st;h.y+=dy/d*st;h.face=dx>=0?1:-1;h.moving=true;}}
     h.cd-=dt;if(h.cd>0)return;

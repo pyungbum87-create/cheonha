@@ -11,7 +11,7 @@ const EN_TXT={
   minnow:[['그림자 치어','暗影小鱼'],['떼 지어 가속: 4마리 넘게 뭉치면 +25% 빨라져요. 범위 공격으로 흩으세요','成群加速：聚集4只以上移速+25%，用范围攻击打散']],
   crab:[['철갑게','铁甲蟹'],['껍질 닫기: 체력이 절반이 되면 3초간 갑옷 +30%. 마력(해파리·룬·거품)이 잘 들어요','闭壳：生命过半后3秒护甲+30%。魔力（水母/符文/泡泡）有效']],
   eel:[['전기뱀장어','电鳗'],['돌진: 반쯤 다치면 번쩍 돌진해요. 거품으로 늦추세요','冲刺：受伤过半会猛冲，用泡泡减速']],
-  ray:[['그림자가오리','暗影鳐鱼'],['그림자 숨기: 주기적으로 투명. 해파리 등대·룬 등불·가드 근처에서만 보여요','隐身：周期性隐形，只在水母灯塔/符文灯/卫士附近现形']],
+  ray:[['그림자가오리','暗影鳐鱼'],['그림자 숨기: 주기적으로 투명. 해파리 등대·룬 등불·가드가 탄 탑 근처에서만 보여요','隐身：周期性隐形，只在水母灯塔/符文灯/卫士附近现形']],
   angler:[['등불아귀','灯笼鮟鱇'],['등불 치유: 주변 동료를 치료해요. 먼저 노리세요','灯光治疗：治疗周围同伴，优先击破']],
   squid:[['먹물오징어','墨汁乌贼'],['먹물: 수호탑을 가려 사거리·속도를 낮춰요. 탑을 눌러 닦으세요','喷墨：遮蔽守护塔降低射程和攻速，点击该塔擦掉']],
   horseshoe:[['투구게','鲎'],['분열: 쓰러지면 치어 3마리. 소라 대포로 한꺼번에','分裂：倒下生出3条小鱼，用海螺炮一网打尽']],
@@ -37,7 +37,7 @@ function enterBattle(si){
   G=new Game(si,{lv:SV.lv});bgC=renderBg(G.M);FX.length=0;acc=0;
   ui={combo:0,comboT:0,goldB:0,freeze:0,endT:0,clearW:0,sel:null,opt:null,overlay:'intro',speed:SV.opt.fast?2:1,shake:0,hurtT:0,tip:null,resultShown:false,newMech:[]};
   for(const m of['gate','cur','vent'])if((m==='gate'&&G.hasGate)||(m==='cur'&&G.hasCur)||(m==='vent'&&G.hasVent))if(!SV.seen[m])ui.newMech.push(m);
-  ui.tut=si===0&&!SV.seen.tut?{i:0,t:0}:null;ui.tutSpot=0;ui.heroMoved=false;
+  ui.tut=si===0&&!SV.seen.tut?{i:0,t:0}:null;ui.tutSpot=0;
   
   {const S=G.S;if(si===0||si>0&&!S.fresh&&!S.boss&&!ui.newMech.length&&!ui.newCmd&&!TOWER_IDS.some(k=>UNLOCK[k]===si))ui.overlay=null;}
   SV.sel=si;persist();scr='battle';musicMode='battle';
@@ -78,6 +78,17 @@ function icon(x,n,X,Y,s,col){x.save();x.translate(X,Y);x.scale(s,s);x.strokeStyl
 function coinChip(x,X,Y){pill(x,X-46,Y-14,92,28);x.fillStyle='#ffc53d';x.beginPath();x.arc(X-32,Y,10,0,7);x.fill();x.strokeStyle=NAVY;x.lineWidth=2;x.stroke();x.fillStyle='#fff3b0';x.beginPath();x.arc(X-32,Y,5.5,0,7);x.fill();txt(x,''+SV.coins,X+8,Y+1,14,'#fff','center',NAVY,900);}
 function chip(x,X,Y,ic,col){x.fillStyle=col;x.beginPath();x.arc(X,Y,10,0,7);x.fill();x.strokeStyle='rgba(255,255,255,.35)';x.lineWidth=1.5;x.stroke();txt(x,ic,X,Y+1,11,'#fff');}
 function backBtn(x){roundBtn(x,30,36,17,PAL.B);icon(x,'back',29,36,1);}
+/* 대원 얼굴: 그림(art/crew_<id>)이 오면 그걸, 없으면 색 원 + 이름 첫 글자 */
+function crewFace(x,c,X,Y,r,dim){x.save();x.globalAlpha*=dim?.4:1;const C=CREW[c];
+  x.beginPath();x.arc(X,Y,r,0,7);x.closePath();const gr=x.createLinearGradient(0,Y-r,0,Y+r);gr.addColorStop(0,C.col);gr.addColorStop(1,shade(C.col,.45));x.fillStyle=gr;x.fill();
+  const im=IMG['crew_'+c];x.save();x.beginPath();x.arc(X,Y,r-1,0,7);x.clip();
+  if(c==='hero')drawHero(x,{x:X,y:Y+r*.45,face:1,lv:1,atk:0,moving:false,icon:1},0,false);
+  else if(im){const s=r*2.2/Math.max(im.width,im.height);x.drawImage(im,X-im.width*s/2,Y-im.height*s/2+r*.1,im.width*s,im.height*s);}
+  else{txt(x,LL(C.n).slice(0,1),X,Y+r*.06,r*1.05,'#fff','center',NAVY,900);}
+  x.restore();x.strokeStyle=NAVY;x.lineWidth=Math.max(2,r*.12);x.beginPath();x.arc(X,Y,r,0,7);x.stroke();x.restore();}
+function shade(c,f){const n=parseInt(c.slice(1),16);return `rgb(${Math.round((n>>16)*f)},${Math.round(((n>>8)&255)*f)},${Math.round((n&255)*f)})`;}
+function drawCrewBadge(x,t){if(!t.crew)return;const rs=G.reso(t),bx=t.x+15,by=t.y-36+Math.sin(time*2+t.id)*1.5;if(rs)glow(x,bx,by,18,'rgba(255,210,63,.55)',.6+.3*Math.sin(time*4));crewFace(x,t.crew,bx,by,10);
+  if(rs){x.strokeStyle='#ffd23f';x.lineWidth=2;x.beginPath();x.arc(bx,by,12,0,7);x.stroke();}}
 function showTip(s,dur){ui.tip={s,t:dur||4};}
 /* ---------- 이벤트 → 효과·소리 ---------- */
 function drain(){
@@ -92,18 +103,23 @@ function drain(){
     case'torp':fx({k:'ring',x:e.x,y:e.y,r0:6,r:e.r,col:'rgba(255,190,120,.95)',w:7,life:.45});burst(e.x,e.y,'#ffcf8a',30,160,3.5,.6);ui.shake=.4;sfx('boom');sfx('slam');vib(40);break;
     case'tide':fx({k:'flash',col:'rgba(120,220,255,.3)',life:.5});for(let i=0;i<5;i++)fx({k:'line',x:0,y:640-i*110,x2:W,y2:600-i*110,col:'rgba(180,240,255,.8)',w:8,life:.5+i*.08});ui.shake=.3;sfx('wave');sfx('vent');break;
     case'clamp':fx({k:'ring',x:e.x,y:e.y,r0:20,r:10,col:'rgba(200,210,230,.9)',life:.3});break;
-    case'crew':{const C=CREW[e.k],c=TCOL[e.k];fx({k:'banner',s:`${LL(C.n)} · ${LL(C.sk)}!`,y:250,col:c,size:20,life:1.2});fx({k:'flash',col:hexA(c,.28),life:.4});sfx('card');vib(30);
-      if(e.k==='coral')for(const t of G.towers)if(t.k==='coral')fx({k:'ring',x:t.x,y:t.y,r0:6,r:40,col:hexA(c,.9),w:4,life:.5});
-      if(e.k==='bubble')for(let i=0;i<50;i++)fx({k:'bub',x:Math.random()*W,y:80+Math.random()*640,v:40+Math.random()*60,s:2+Math.random()*4,ph:Math.random()*6,life:1+Math.random()});
-      if(e.k==='jelly'){for(const o of G.enemies){fx({k:'zap',pts:[[o.x+(Math.random()-.5)*30,o.y-120],[o.x,o.y]],life:.25});fx({k:'disc',x:o.x,y:o.y,r:16,col:'#fff6b0',life:.2});}ui.shake=.3;sfx('storm');}
-      if(e.k==='rune')for(const t of G.towers)fx({k:'ring',x:t.x,y:t.y,r0:6,r:34,col:hexA(c,.9),w:3,life:.6});}break;
+    case'crew':{const C=CREW[e.k],c=C.col,tw=C.tw;fx({k:'banner',s:`${LL(C.n)} · ${LL(C.sk)}!`,y:250,col:c,size:20,life:1.2});fx({k:'flash',col:hexA(c,.28),life:.4});sfx('card');vib(30);
+      if(e.x)fx({k:'ring',x:e.x,y:e.y,r0:8,r:60,col:hexA(c,.95),w:5,life:.5});
+      if(tw==='coral')for(const t of G.towers)if(t.k==='coral'||t.crew===e.k)fx({k:'ring',x:t.x,y:t.y,r0:6,r:40,col:hexA(c,.9),w:4,life:.5});
+      if(tw==='bubble')for(let i=0;i<50;i++)fx({k:'bub',x:Math.random()*W,y:80+Math.random()*640,v:40+Math.random()*60,s:2+Math.random()*4,ph:Math.random()*6,life:1+Math.random()});
+      if(tw==='jelly'){for(const o of G.enemies){fx({k:'zap',pts:[[o.x+(Math.random()-.5)*30,o.y-120],[o.x,o.y]],life:.25});fx({k:'disc',x:o.x,y:o.y,r:16,col:'#fff6b0',life:.2});}ui.shake=.3;sfx('storm');}
+      if(tw==='rune')for(const t of G.towers)fx({k:'ring',x:t.x,y:t.y,r0:6,r:34,col:hexA(c,.9),w:3,life:.6});}break;
+    case'merge':{const C=CREW[e.c];fx({k:'ring',x:e.x,y:e.y,r0:30,r:6,col:hexA(e.reso?'#ffd23f':C.col,.95),w:4,life:.35});burst(e.x,e.y-20,e.reso?'#ffe27a':C.col,e.reso?22:12,90,2.6,.5);
+      fx({k:'num',s:e.reso?L(`${LL(C.n)} 공명!`,`${LL(C.n)} 共鸣！`):L(`${LL(C.n)} 합체`,`${LL(C.n)} 合体`),x:e.x,y:e.y-44,dx:0,col:e.reso?'#ffd23f':'#fff',size:e.reso?15:12,life:1.1});sfx(e.reso?'up':'build');}break;
+    case'unmerge':fx({k:'ring',x:e.x,y:e.y,r0:6,r:24,col:'rgba(255,255,255,.7)',life:.3});sfx('sell');break;
+    case'crit':fx({k:'num',s:L('크리!','暴击！'),x:e.x,y:e.y-26,dx:0,col:'#ff9a5c',size:11,life:.6});break;
     case'pure':{fx({k:'ring',x:e.x,y:e.y,r0:6,r:30,col:'rgba(150,255,240,.95)',w:3,life:.4});burst(e.x,e.y,'#bffff4',8,70,2.2,.5);
       if(e.act!=='gift')fx({k:'num',s:{block:L('길막이!','拦路！'),shock:L('감전!','电击！'),sweep:L('역류 돌진!','逆流冲刺！')}[e.act],x:e.x,y:e.y-22,dx:0,col:'#9ffff0',size:12,life:.9});}break;
     case'up':burst(e.x,e.y-12,'#ffe27a',18,80,2.5,.6);fx({k:'ring',x:e.x,y:e.y,r0:8,r:40,col:'rgba(255,226,122,.8)',life:.5});sfx('up');break;
     case'sell':burst(e.x,e.y,'#7ff',10,50,2,.4);sfx('sell');break;
     case'clean':burst(e.x,e.y-14,'#bdf',10,50,2,.4);sfx('clean');break;
     case'gate':fx({k:'ring',x:e.x,y:e.y,r0:6,r:36,col:'rgba(255,215,106,.9)',life:.5});sfx('gate');break;
-    case'slam':G.hero.vS=1;fx({k:'ring',x:e.x,y:e.y,r0:10,r:e.r,col:'rgba(140,240,255,.9)',w:6,life:.45});burst(e.x,e.y,'#bff',24,140,3,.5);ui.shake=.35;sfx('slam');vib(40);break;
+    case'slam':fx({k:'ring',x:e.x,y:e.y,r0:10,r:e.r,col:'rgba(140,240,255,.9)',w:6,life:.45});burst(e.x,e.y,'#bff',24,140,3,.5);ui.shake=.35;sfx('slam');vib(40);break;
     case'wave':sfx('wave');ui.pathT=2.5;fx({k:'banner',s:L(`웨이브 ${e.w} / ${G.S.waves}`,`第 ${e.w} / ${G.S.waves} 波`),s2:e.boss?L('⚠ 보스 등장!','⚠ 首领来袭！'):e.w===G.S.waves?L('마지막 웨이브','最后一波'):'',y:170,col:e.boss?'#ff8ad8':'#7ff',life:1.7});if(e.boss){ui.shake=.4;fx({k:'flash',col:'rgba(160,40,200,.3)',life:.5});}
       if(e.cur)fx({k:'txt',s:L('🌊 해류가 바뀌었어요','🌊 洋流改变了'),x:W/2,y:178,col:'#9ef',size:12,life:1.6});musicMode=e.boss?'boss':'battle';break;
     case'cards':sfx('mut');break;
@@ -114,7 +130,7 @@ function drain(){
     case'reso':fx({k:'ring',x:e.x,y:e.y,r0:10,r:e.r,col:'rgba(210,150,255,.7)',w:3,life:.6});break;
     case'zap':fx({k:'zap',pts:e.pts,life:.2});for(const q of e.pts.slice(1))fx({k:'disc',x:q[0],y:q[1],r:10,col:'#fff6b0',life:.14});sfx('zap');break;
     case'pierce':fx({k:'line',x:e.x,y:e.y-18,x2:e.x2,y2:e.y2,col:'rgba(255,200,150,.95)',w:5,life:.25});sfx('spine');break;
-    case'boom':fx({k:'ring',x:e.x,y:e.y,r0:4,r:e.r,col:'rgba(255,210,170,.85)',w:4,life:.35});burst(e.x,e.y,'#ffd2aa',18,130,3,.45);fx({k:'disc',x:e.x,y:e.y,r:e.r,col:'#fff2dc',life:.22});ui.shake=Math.max(ui.shake,.14);sfx('boom');break;
+    case'boom':if(e.small){fx({k:'ring',x:e.x,y:e.y,r0:3,r:e.r,col:'rgba(255,210,170,.8)',w:2.5,life:.25});break;}fx({k:'ring',x:e.x,y:e.y,r0:4,r:e.r,col:'rgba(255,210,170,.85)',w:4,life:.35});burst(e.x,e.y,'#ffd2aa',18,130,3,.45);fx({k:'disc',x:e.x,y:e.y,r:e.r,col:'#fff2dc',life:.22});ui.shake=Math.max(ui.shake,.14);sfx('boom');break;
     case'whirl':break;
     case'pop':burst(e.x,e.y,'#bff',6,60,2,.3);fx({k:'ring',x:e.x,y:e.y,r0:3,r:14,col:'rgba(190,250,255,.9)',w:2,life:.2});sfx('bub');break;
     case'hit':{const c=e.k==='spine'?'#ffb27a':e.k==='bolt'?'#aef6ff':'#fff';burst(e.x,e.y,c,3,70,1.8,.22);fx({k:'disc',x:e.x,y:e.y,r:9,col:c,life:.12});sfx('hit');}break;
@@ -124,7 +140,7 @@ function drain(){
     case'dash':burst(e.x,e.y,'#fff27a',8,60,2,.3);break;
     case'hlv':fx({k:'txt',s:'LEVEL UP!',x:e.x,y:e.y-34,col:'#ffd76a',size:12,life:1});sfx('up');break;
     case'roar':ui.shake=.6;sfx('roar');fx({k:'flash',col:'rgba(160,40,200,.25)',life:.4});
-      if(e.m)showTip({shield:L('보스가 보호막을 둘렀어요! 정화 룬이 잘 들어요','首领生成了护盾！净化符文很有效'),haste:L('모든 적이 빨라졌어요! 거품과 해일로 늦추세요','全体敌人加速了！用泡泡和海啸减速'),cloak:L('보스가 모습을 감췄어요! 해파리 등대·룬 등불·가드 근처에서만 보여요','首领隐身了！只在水母灯塔/符文灯/卫士附近现形'),heal:L('심연이 모든 적을 치유했어요!','深渊治愈了全体敌人！')}[e.m],3.5);break;
+      if(e.m)showTip({shield:L('보스가 보호막을 둘렀어요! 정화 룬이 잘 들어요','首领生成了护盾！净化符文很有效'),haste:L('모든 적이 빨라졌어요! 거품과 해일로 늦추세요','全体敌人加速了！用泡泡和海啸减速'),cloak:L('보스가 모습을 감췄어요! 해파리 등대·룬 등불·가드가 탄 탑 근처에서만 보여요','首领隐身了！只在水母灯塔/符文灯/卫士附近现形'),heal:L('심연이 모든 적을 치유했어요!','深渊治愈了全体敌人！')}[e.m],3.5);break;
     case'dark':ui.shake=.4;sfx('roar');fx({k:'flash',col:'rgba(0,0,0,.5)',life:.8});showTip(L('보스가 빛을 꺼뜨렸어요! 수호탑을 눌러 먹물을 닦으세요','首领熄灭了光芒！点击守护塔擦掉墨汁'),3);break;
     case'win':sfx('win');break;case'lose':sfx('lose');break;
   }}
@@ -136,8 +152,7 @@ function updateBattle(dt){
   if(ui.tip){ui.tip.t-=dt;if(ui.tip.t<=0)ui.tip=null;}
   if(ui.shake>0)ui.shake-=dt;if(ui.pathT>0)ui.pathT-=dt;if(ui.hurtT>0)ui.hurtT-=dt;
   if(ui.goldB>0)ui.goldB-=dt*4;if(ui.comboT>0){ui.comboT-=dt;if(ui.comboT<=0)ui.combo=0;}
-  if(!ui.overlay&&G.state==='prep'){acc+=dt;while(acc>=DT){G.heroTick(DT);acc-=DT;}AL=1;}
-  if(G.state==='run'&&!ui.overlay&&!tutOn())for(const k of crewKeys())if(!SV.seen['cs_'+k]&&G.crewReady(k)&&G.enemies.length>=3){SV.seen['cs_'+k]=1;persist();showTip(L(`${LL(CREW[k].n)}의 스킬 '${LL(CREW[k].sk)}' 준비 완료! 아래 ${LL(CREW[k].n)} 버튼을 누르세요`,`${LL(CREW[k].n)}的技能「${LL(CREW[k].sk)}」已就绪！点击下方按钮`),4.5);}
+  if(G.state==='run'&&!ui.overlay&&!tutOn())for(const k of crewKeys())if(!SV.seen['cs_'+k]&&G.crewReady(k)&&G.enemies.length>=3){SV.seen['cs_'+k]=1;persist();showTip(L(`${LL(CREW[k].n)}의 필살기 '${LL(CREW[k].sk)}' 준비! 아래 ${LL(CREW[k].n)} 얼굴을 누르세요`,`${LL(CREW[k].n)}的必杀技「${LL(CREW[k].sk)}」就绪！点击下方头像`),4.5);}
   if(ui.freeze>0){ui.freeze-=dt;}else
   if(!ui.overlay&&G.state==='run'){acc+=dt*ui.speed;let n=0;while(acc>=DT&&n<8){G.tick();acc-=DT;n++;if(G.state!=='run')break;}if(n>=8)acc=0;AL=Math.max(0,Math.min(1,acc/DT));}else AL=1;
   FDT=dt;
@@ -153,14 +168,15 @@ function updateBattle(dt){
   updateTut(dt);
 }
 /* ---------- 버튼 배치 ---------- */
-const BAR={slam:{x:30,y:772,r:22},key:{x:215,y:772,r:15},wave:{x:238,y:752,w:136,h:40},speed:{x:416,y:772,r:20},pause:{x:424,y:23,r:16}};
-const crewKeys=()=>TOWER_IDS.filter(k=>G.unlocked(k));
-const crewBtn=i=>({x:79+i*49,y:772,r:22});
+const BAR={key:{x:416,y:716,r:15},wave:{x:262,y:752,w:114,h:40},speed:{x:416,y:772,r:20},pause:{x:424,y:23,r:16}};
+const crewKeys=()=>CREW_IDS.filter(c=>G.joined(c));
+const crewBtn=i=>({x:27+i*41,y:772,r:19});
 /* 아래(또는 위)에서 올라오는 카드: 수호탑 정보·강화, 건설 고르기 */
-function sheetY(y){return y>440?62:572;}
-function towerSheet(t){const Y=sheetY(t.y),X=10,w=430,o={X,Y,w,h:152,sell:{x:X+104,y:Y+104,w:92,h:36}};
-  if(t.lv>=MAX_TLV)o.max={x:X+206,y:Y+102,w:212,h:40};else if(t.lv===MAX_TLV-1)o.br=[{x:X+206,y:Y+102,w:103,h:40},{x:X+315,y:Y+102,w:103,h:40}];else o.up={x:X+206,y:Y+102,w:212,h:40};return o;}
-function buildSheet(i){const s=G.M.spots[i],Y=sheetY(s.y),X=10,w=430,ks=TOWER_IDS.filter(k=>UNLOCK[k]<OPEN_N||G.unlocked(k)),cw=Math.min(100,(w-20-(ks.length-1)*8)/ks.length);
+function sheetY(y){return y>420?62:536;}
+function towerSheet(t){const Y=sheetY(t.y),X=10,w=430,o={X,Y,w,h:196,sell:{x:X+104,y:Y+100,w:92,h:36}};
+  if(t.lv>=MAX_TLV)o.max={x:X+206,y:Y+98,w:212,h:40};else if(t.lv===MAX_TLV-1)o.br=[{x:X+206,y:Y+98,w:103,h:40},{x:X+315,y:Y+98,w:103,h:40}];else o.up={x:X+206,y:Y+98,w:212,h:40};
+  o.crew=crewKeys().map((c,i)=>({c,x:X+122+i*44,y:Y+170,r:17}));return o;}
+function buildSheet(i){const s=G.M.spots[i],Y=s.y>420?62:572,X=10,w=430,ks=TOWER_IDS.filter(k=>UNLOCK[k]<OPEN_N||G.unlocked(k)),cw=Math.min(100,(w-20-(ks.length-1)*8)/ks.length);
   return {X,Y,w,h:152,cards:ks.map((k,j)=>({k,x:X+10+j*(cw+8),y:Y+10,w:cw,h:84})),build:{x:X+w-132,y:Y+104,w:120,h:38}};}
 const hitC=(p,b,pad)=>Math.hypot(p.x-b.x,p.y-b.y)<b.r+(pad||4);
 const hitR=(p,b)=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h;
@@ -170,14 +186,15 @@ function tapBattle(p){
   if(tapTut(p))return;
   if(hitC(p,BAR.pause,8)){ui.overlay='pause';sfx('tap');return;}
   if(p.y>740){
-    if(hitC(p,BAR.slam,1)){if(G.cmdReady('slam')){G.cmd('slam');ui.sel=null;}else sfx('tap');return;}
-    const ks=crewKeys();for(let i=0;i<ks.length;i++)if(hitC(p,crewBtn(i),1)){const k=ks[i];
-      if(!G.towers.some(t=>t.k===k))showTip(L(`${LL(CREW[k].n)}의 스킬은 ${LL(TW_TXT[k][0])}을(를) 지으면 쓸 수 있어요`,`建造${LL(TW_TXT[k][0])}后可使用${LL(CREW[k].n)}的技能`),2.5);
-      else if(!G.crewSkill(k))sfx('tap');else ui.sel=null;return;}
+    const ks=crewKeys();for(let i=0;i<ks.length;i++)if(hitC(p,crewBtn(i),1)){const c=ks[i],T=G.crewTower(c);
+      if(!T){if(!G.towers.length){showTip(L('먼저 수호탑을 지어요. 대원은 수호탑에 합체해서 싸워요','先建造守护塔。队员需要合体到塔上作战'),2.5);return;}
+        ui.place=ui.place===c?null:c;ui.sel=null;sfx('tap');if(ui.place)showTip(L(`${LL(CREW[c].n)}을(를) 태울 수호탑을 누르세요 (★ 표시는 공명)`,`点击要让${LL(CREW[c].n)}合体的守护塔（★为共鸣）`),3);return;}
+      if(G.crewSkill(c)){ui.sel=null;ui.place=null;}else{ui.sel={type:'tower',t:T};ui.opt=null;sfx('tap');}return;}
     if(hitR(p,BAR.wave)){if(G.callWave())ui.sel=null;return;}
     if(hitC(p,BAR.speed)){ui.speed=ui.speed===1?2:1;SV.opt.fast=ui.speed===2?1:0;persist();sfx('tap');return;}
     return;
   }
+  if(p.y<=740&&ui.place){const c=ui.place;ui.place=null;for(const t of G.towers)if(Math.hypot(p.x-t.x,p.y-t.y+10)<28){G.merge(c,t);return;}sfx('tap');return;}
   const sel=ui.sel;
   if(sel&&sel.type==='spot'){const S=buildSheet(sel.i);if(p.x>=S.X&&p.x<=S.X+S.w&&p.y>=S.Y&&p.y<=S.Y+S.h){
       for(const c of S.cards)if(hitR(p,c)){if(!G.unlocked(c.k)){showTip(L(`${UNLOCK[c.k]}판을 깨면 합류해요`,`通关第${UNLOCK[c.k]}关后加入`),2);return;}ui.opt=c.k;sfx('tap');return;}
@@ -186,11 +203,11 @@ function tapBattle(p){
   if(sel&&sel.type==='tower'){const S=towerSheet(sel.t),t=sel.t;if(p.x>=S.X&&p.x<=S.X+S.w&&p.y>=S.Y&&p.y<=S.Y+S.h){
       if(hitR(p,S.sell)){G.sell(t);ui.sel=null;}
       else if(S.up&&hitR(p,S.up)){if(!G.upgrade(t)){showTip(L('진주가 부족해요','珍珠不足'),1.5);sfx('tap');}}
-      else if(S.br)S.br.forEach((b,bi)=>{if(!hitR(p,b))return;if(ui.opt!=='br'+bi){ui.opt='br'+bi;sfx('tap');}else if(G.upgrade(t,bi)){ui.opt=null;}else{showTip(L('진주가 부족해요','珍珠不足'),1.5);sfx('tap');}});
+      else if(S.br&&S.br.some(b=>hitR(p,b)))S.br.forEach((b,bi)=>{if(!hitR(p,b))return;if(ui.opt!=='br'+bi){ui.opt='br'+bi;sfx('tap');}else if(G.upgrade(t,bi)){ui.opt=null;}else{showTip(L('진주가 부족해요','珍珠不足'),1.5);sfx('tap');}});
+      else if(t.crew&&hitR(p,{x:S.X+S.w-102,y:S.Y+154,w:88,h:34})){G.unmerge(t);sfx('tap');}
+      else if(!t.crew)for(const b of S.crew)if(Math.hypot(p.x-(b.x+16),p.y-b.y)<b.r+4){G.merge(b.c,t);break;}
       return;}}
-  if(sel&&sel.type==='hero'){const h=G.hero;if(Math.hypot(p.x-h.x,p.y-h.y)>20){G.moveHero(p.x,p.y);fx({k:'ring',x:p.x,y:p.y,r0:14,r:4,col:'rgba(120,255,220,.9)',life:.35});ui.sel=null;ui.heroMoved=true;sfx('tap');SV.seen.hero=1;persist();return;}}
   ui.opt=null;
-  if(Math.hypot(p.x-G.hero.x,p.y-G.hero.y+6)<22){ui.sel={type:'hero'};sfx('tap');return;}
   for(const t of G.towers)if(Math.hypot(p.x-t.x,p.y-t.y+10)<24){if(G.clean(t))return;ui.sel={type:'tower',t};sfx('tap');return;}
   for(const k in G.M.gates){const gt=G.M.gates[k];if(Math.hypot(p.x-gt.x,p.y-gt.y)<24){if(!G.flipGate(k))showTip(L('🔑 수문 열쇠가 없어요 (2웨이브마다 1개)','🔑 没有水闸钥匙（每2波获得1把）'),2);ui.sel=null;return;}}
   for(let i=0;i<G.M.spots.length;i++){const s=G.M.spots[i];if(Math.hypot(p.x-s.x,p.y-s.y)<26&&!G.towers.some(t=>t.spot===i)){ui.sel={type:'spot',i};ui.opt=ui.tut&&ui.tut.i===4&&G.gold>=G.cost('bubble')?'bubble':TOWER_IDS.find(k=>G.unlocked(k)&&G.gold>=G.cost(k))||'coral';sfx('tap');return;}}
@@ -267,7 +284,7 @@ function drawBattle(dt){
   for(const z of G.zones){x.save();x.translate(z.x,z.y);x.globalAlpha=Math.min(1,z.t*2);for(let i=0;i<3;i++){x.rotate(time*4);x.strokeStyle=`rgba(150,220,255,${.5-i*.12})`;x.lineWidth=3;x.beginPath();x.arc(0,0,z.r*(1-i*.28),0,4.2);x.stroke();}x.restore();}
   drawTemple(x,time,ui.hurtT);
   /* 탑·적·영웅을 아래쪽이 앞에 오게 */
-  const ents=[...G.towers.map(t=>({y:t.y,f:()=>drawTower(x,t,time,sel&&sel.t===t)})),...G.enemies.map(e=>({y:e.y,f:()=>drawEnemy(x,e,time)})),...G.allies.map(a=>({y:a.y,f:()=>{a.fade=Math.min(1,a.t*2.5);drawEnemy(x,a,time);if(a.act==='block'){x.strokeStyle='rgba(150,255,240,.9)';x.lineWidth=3;x.beginPath();x.arc(a.x,a.y,a.r+12,-Math.PI/2,-Math.PI/2+Math.PI*2*a.t/a.T);x.stroke();}}})),{y:G.hero.y+2,f:()=>drawHero(x,G.hero,time,sel&&sel.type==='hero')}];
+  const ents=[...G.towers.map(t=>({y:t.y,f:()=>{drawTower(x,t,time,sel&&sel.t===t);drawCrewBadge(x,t);}})),...G.enemies.map(e=>({y:e.y,f:()=>drawEnemy(x,e,time)})),...G.allies.map(a=>({y:a.y,f:()=>{a.fade=Math.min(1,a.t*2.5);drawEnemy(x,a,time);if(a.act==='block'){x.strokeStyle='rgba(150,255,240,.9)';x.lineWidth=3;x.beginPath();x.arc(a.x,a.y,a.r+12,-Math.PI/2,-Math.PI/2+Math.PI*2*a.t/a.T);x.stroke();}}}))];
   ents.sort((a,b)=>a.y-b.y);for(const e of ents)e.f();
   /* 룬 광선 */
   for(const t of G.towers)if(t.k==='rune'&&t.beam>0){x.strokeStyle='rgba(220,170,255,.85)';x.lineWidth=2.5;x.beginPath();x.moveTo(t.x,t.y-40);x.lineTo(t.beamX,t.beamY);x.stroke();x.strokeStyle='rgba(199,125,255,.3)';x.lineWidth=6;x.stroke();}
@@ -279,6 +296,9 @@ function drawBattle(dt){
     else if(p.kind==='bolt'){x.rotate(p.a||0);glow(x,0,0,9,'rgba(120,240,255,.7)');x.strokeStyle='#eaffff';x.lineWidth=2.5;x.lineCap='round';x.beginPath();x.arc(-8,0,10,-.9,.9);x.stroke();}
     x.restore();}
   if(ui.aim){x.fillStyle='rgba(255,180,90,.08)';x.fillRect(0,46,W,694);txt(x,L('💥 떨어뜨릴 곳을 누르세요','💥 点击落点'),W/2,130,14,'#ffcf8a','center','rgba(0,0,0,.8)');}
+  /* 합체 고르기 */
+  if(ui.place){const C=CREW[ui.place];for(const t of G.towers){const sig=C.tw===t.k,pu=.5+.5*Math.sin(time*6);x.strokeStyle=sig?'#ffd23f':'rgba(255,255,255,.85)';x.lineWidth=sig?3.5:2.5;x.setLineDash([6,5]);x.lineDashOffset=-time*25;x.beginPath();x.ellipse(t.x,t.y+6,28+pu*3,14+pu*1.5,0,0,7);x.stroke();x.setLineDash([]);
+      if(sig)txt(x,L('★ 공명','★ 共鸣'),t.x,t.y-46,11,'#ffd23f','center',NAVY,900);}}
   drawFx(x,dt);
   if(ui.hurtT>0){const gr=x.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.7);gr.addColorStop(0,'rgba(255,0,60,0)');gr.addColorStop(1,`rgba(255,0,60,${ui.hurtT*.5})`);x.fillStyle=gr;x.fillRect(0,0,W,H);}
   drawRays(x,1);
@@ -303,16 +323,14 @@ function drawHud(x){
   if(G.mutList.length)cx+=6;for(const b of G.blessList){chip(x,cx,56,BLESS[b].ic,'rgba(190,130,20,.9)');cx+=23;}
   /* 아래: 떠 있는 버튼들 */
   gr=x.createLinearGradient(0,712,0,H);gr.addColorStop(0,'rgba(4,14,30,0)');gr.addColorStop(.5,'rgba(4,14,30,.78)');gr.addColorStop(1,'rgba(4,14,30,.92)');x.fillStyle=gr;x.fillRect(0,712,W,88);
-  {const B=BAR.slam,C=CMD.slam,cd=G.cmdCd.slam,cdF=cd>0?cd/(C.cd*G.B.heroCd):0,rdy=cdF<=0;if(rdy&&G.state==='run')glow(x,B.x,B.y,B.r+10,'rgba(110,220,255,.45)',.55+.35*Math.sin(time*4));
-    roundBtn(x,B.x,B.y,B.r,PAL.B,rdy);x.save();x.beginPath();x.arc(B.x,B.y,B.r-2,0,7);x.clip();x.globalAlpha=cdF>0?.45:1;drawHero(x,{x:B.x,y:B.y+10,face:1,lv:G.hero.lv,atk:0,moving:false},0,false);x.restore();
-    if(cdF>0){x.fillStyle='rgba(4,12,26,.55)';x.beginPath();x.moveTo(B.x,B.y);x.arc(B.x,B.y,B.r-1,-Math.PI/2,-Math.PI/2+cdF*Math.PI*2);x.closePath();x.fill();txt(x,''+Math.ceil(cd),B.x,B.y+1,15,'#fff','center',NAVY,900);}
-    txt(x,LL(CREW.hero.n),B.x,B.y-B.r-7,9,'#fff','center',NAVY,900);}
-  crewKeys().forEach((k,i)=>{const B=crewBtn(i),C=CREW[k],has=G.towers.some(t=>t.k===k),cd=G.crewCd[k]||0,cdF=cd>0?cd/C.cd:0,rdy=has&&cdF<=0;
-    if(rdy&&G.state==='run')glow(x,B.x,B.y,B.r+10,hexA(TCOL[k],.6),.55+.35*Math.sin(time*4+i));
-    roundBtn(x,B.x,B.y,B.r,has?PAL.B:PAL.X,rdy);x.save();x.beginPath();x.arc(B.x,B.y,B.r-2,0,7);x.clip();x.globalAlpha=!has?.3:cdF>0?.45:1;towerIcon(x,k,B.x,B.y+8,.95);x.restore();x.globalAlpha=1;
-    if(has&&cdF>0){x.fillStyle='rgba(4,12,26,.55)';x.beginPath();x.moveTo(B.x,B.y);x.arc(B.x,B.y,B.r-1,-Math.PI/2,-Math.PI/2+cdF*Math.PI*2);x.closePath();x.fill();txt(x,''+Math.ceil(cd),B.x,B.y+1,15,'#fff','center',NAVY,900);}
-    if(rdy){x.strokeStyle=TCOL[k];x.lineWidth=2.5;x.beginPath();x.arc(B.x,B.y,B.r+1,0,7);x.stroke();}
-    txt(x,LL(C.n),B.x,B.y-B.r-7,9,has?'#fff':'#8fa0b4','center',NAVY,900);});
+  crewKeys().forEach((c,i)=>{const B=crewBtn(i),C=CREW[c],T=G.crewTower(c),cd=G.crewCd[c]||0,cdF=cd>0?cd/C.cd:0,rdy=!!T&&cdF<=0,pl=ui.place===c;
+    if((rdy&&G.state==='run')||pl)glow(x,B.x,B.y,B.r+10,hexA(pl?'#ffd23f':C.col,.6),.55+.35*Math.sin(time*4+i));
+    crewFace(x,c,B.x,B.y,B.r,!T&&!pl);
+    if(T&&cdF>0){x.fillStyle='rgba(4,12,26,.55)';x.beginPath();x.moveTo(B.x,B.y);x.arc(B.x,B.y,B.r-1,-Math.PI/2,-Math.PI/2+cdF*Math.PI*2);x.closePath();x.fill();txt(x,''+Math.ceil(cd),B.x,B.y+1,15,'#fff','center',NAVY,900);}
+    if(rdy||pl){x.strokeStyle=pl?'#ffd23f':C.col;x.lineWidth=3;x.beginPath();x.arc(B.x,B.y,B.r+1.5,0,7);x.stroke();}
+    if(!T){pill(x,B.x-17,B.y+11,34,14,pl?'#c98a1a':'rgba(4,14,30,.9)');txt(x,L('합체','合体'),B.x,B.y+18,8.5,'#fff','center',null,900);}
+    else if(G.reso(T)){txt(x,'★',B.x+B.r-3,B.y-B.r+4,11,'#ffd23f','center',NAVY,900);}
+    txt(x,LL(C.n),B.x,B.y-B.r-7,9,'#fff','center',NAVY,900);});
   if(G.hasGate){const KB=BAR.key;roundBtn(x,KB.x,KB.y,KB.r,G.keys>0?PAL.Y:PAL.X);txt(x,'🔑',KB.x,KB.y-3,10,'#fff');txt(x,`${G.keys}/${G.keyMax}`,KB.x,KB.y+8,8,'#fff','center',NAVY,900);}
   const WB=BAR.wave;let lab,sub='',act=false;
   if(G.state==='prep'){lab=L('전투 시작','开始战斗');act=true;}
@@ -333,21 +351,31 @@ function drawBuildMenu(x,i){
     if(lock){icon(x,'lock',c.x+c.w/2,c.y+34,1.5,'#9fb0c4');txt(x,L(`${UNLOCK[c.k]}판`,`第${UNLOCK[c.k]}关`),c.x+c.w/2,c.y+66,10,'#9fb0c4','center',NAVY,900);continue;}
     x.globalAlpha=can?1:.5;towerIcon(x,c.k,c.x+c.w/2,c.y+38,1.15);x.globalAlpha=1;
     pill(x,c.x+c.w/2-26,c.y+c.h-24,52,19,'rgba(4,14,30,.85)');icon(x,'gem',c.x+c.w/2-15,c.y+c.h-15,.62,'#5ff0ff');txt(x,''+cost,c.x+c.w/2+7,c.y+c.h-14,11,can?'#fff':'#ff8aa0','center',null,900);}
-  if(ui.opt){const T=TW_TXT[ui.opt],C=CREW[ui.opt];txt(x,LL(T[0]),S.X+16,S.Y+112,14,TCOL[ui.opt],'left',NAVY,900);const tw=x.measureText(LL(T[0])).width;txt(x,`${LL(C.role)} ${LL(C.n)}`,S.X+24+tw,S.Y+113,10,'#bfe6ff','left',null,700);
+  if(ui.opt){const T=TW_TXT[ui.opt];txt(x,LL(T[0]),S.X+16,S.Y+112,14,TCOL[ui.opt],'left',NAVY,900);const tw=x.measureText(LL(T[0])).width;const fc=CREW_IDS.find(c=>CREW[c].tw===ui.opt);if(fc&&G.joined(fc))txt(x,L(`★ ${LL(CREW[fc].n)}와(과) 공명`,`★ 与${LL(CREW[fc].n)}共鸣`),S.X+24+tw,S.Y+113,10,'#ffd23f','left',null,800);
     txt(x,LL(T[1]).slice(0,LANG==='zh'?22:26),S.X+16,S.Y+132,10,'#d8f2ff','left',null,700);btn(x,S.build,L('건설','建造'),G.gold>=G.cost(ui.opt)?'G':'X',15);}
 }
 function drawTowerMenu(x,t){
-  const S=towerSheet(t),T=TW_TXT[t.k],C=CREW[t.k],tier=G.tier(),dm=G.dmg(t),cur=t.br?BRANCH[t.k].find(b=>b.id===t.br):null,c=G.upCost(t),can=G.gold>=c;sheetBg(x,S);
-  rr(x,S.X+12,S.Y+12,82,128,14);x.fillStyle='rgba(8,22,40,.55)';x.fill();towerIcon(x,t.k,S.X+53,S.Y+62,1.5);
-  for(let i=0;i<MAX_TLV;i++){x.fillStyle=i<t.lv?(t.lv>=MAX_TLV?'#ffd23f':'#5ff0dc'):'rgba(255,255,255,.18)';x.beginPath();x.arc(S.X+29+i*16,S.Y+124,5,0,7);x.fill();x.strokeStyle=NAVY;x.lineWidth=1.5;x.stroke();}
-  txt(x,LL(T[0])+(cur?` · ${LL(cur.n)}`:''),S.X+106,S.Y+24,15,TCOL[t.k],'left',NAVY,900);txt(x,`${LL(C.role)} ${LL(C.n)}`,S.X+S.w-16,S.Y+24,10,'#bfe6ff','right',null,700);
-  txt(x,L(`정화력 ${dm.toFixed(1)} · 간격 ${G.rate(t).toFixed(2)}초`,`净化力 ${dm.toFixed(1)} · 间隔 ${G.rate(t).toFixed(2)}秒`)+(t.aura>0?L(`  · 룬 +${Math.round(t.aura*100)}%`,`  · 符文 +${Math.round(t.aura*100)}%`):''),S.X+106,S.Y+46,11,'#fff','left',null,700);
+  const S=towerSheet(t),T=TW_TXT[t.k],tier=G.tier(),dm=G.dmg(t),cur=t.br?BRANCH[t.k].find(b=>b.id===t.br):null,c=G.upCost(t),can=G.gold>=c;sheetBg(x,S);
+  rr(x,S.X+12,S.Y+12,82,124,14);x.fillStyle='rgba(8,22,40,.55)';x.fill();towerIcon(x,t.k,S.X+53,S.Y+60,1.5);
+  for(let i=0;i<MAX_TLV;i++){x.fillStyle=i<t.lv?(t.lv>=MAX_TLV?'#ffd23f':'#5ff0dc'):'rgba(255,255,255,.18)';x.beginPath();x.arc(S.X+29+i*16,S.Y+122,5,0,7);x.fill();x.strokeStyle=NAVY;x.lineWidth=1.5;x.stroke();}
+  txt(x,LL(T[0])+(cur?` · ${LL(cur.n)}`:''),S.X+106,S.Y+24,15,TCOL[t.k],'left',NAVY,900);
+  txt(x,L(`정화력 ${dm.toFixed(1)} · 간격 ${G.rate(t).toFixed(2)}초`,`净化力 ${dm.toFixed(1)} · 间隔 ${G.rate(t).toFixed(2)}秒`)+(t.aura>0?L(`  · 증폭 +${Math.round(t.aura*100)}%`,`  · 增幅 +${Math.round(t.aura*100)}%`):''),S.X+106,S.Y+45,11,'#fff','left',null,700);
   const brI=ui.opt&&ui.opt.startsWith('br')?+ui.opt.slice(2):-1;
-  wrap(x,brI>=0&&S.br?`${LL(BRANCH[t.k][brI].n)}: ${LL(BRANCH[t.k][brI].d)}`:cur?LL(cur.d):`✦ ${LL(T[2])} Lv${tier}: ${LL(T[3](tier))}`,S.X+106,S.Y+66,S.w-124,10,brI>=0?'#ffe27a':'#d8f2ff',14,'left');
+  wrap(x,brI>=0&&S.br?`${LL(BRANCH[t.k][brI].n)}: ${LL(BRANCH[t.k][brI].d)}`:cur?LL(cur.d):`✦ ${LL(T[2])} Lv${tier}: ${LL(T[3](tier))}`,S.X+106,S.Y+64,S.w-124,10,brI>=0?'#ffe27a':'#d8f2ff',13,'left');
   btn(x,S.sell,L(`판매 +${G.sellVal(t)}`,`出售 +${G.sellVal(t)}`),'X',11);
   if(S.up)btn(x,S.up,L(`강화   ◆ ${c}`,`升级   ◆ ${c}`),can?'G':'X',15);
   else if(S.max)btn(x,S.max,L('최고 단계','已满级'),'X',13);
   else S.br.forEach((b,j)=>{const on=brI===j;btn(x,b,on?L('각성!','觉醒！'):LL(BRANCH[t.k][j].n),on?(can?'Y':'X'):'B',on?14:11,on?'◆ '+c:(j?'B':'A')+L(' 각성 ◆',' 觉醒 ◆')+c);});
+  /* 대원 합체 줄 */
+  x.fillStyle='rgba(255,255,255,.12)';x.fillRect(S.X+12,S.Y+146,S.w-24,1.5);
+  if(t.crew){const C=CREW[t.crew],rs=G.reso(t);crewFace(x,t.crew,S.X+40,S.Y+172,19);if(rs){x.strokeStyle='#ffd23f';x.lineWidth=3;x.beginPath();x.arc(S.X+40,S.Y+172,22,0,7);x.stroke();}
+    txt(x,LL(C.n)+(rs?L('  공명!','  共鸣！'):''),S.X+66,S.Y+160,12,rs?'#ffd23f':C.col,'left',NAVY,900);txt(x,LL(C.td(G.trF(t))).slice(0,LANG==='zh'?16:22),S.X+66,S.Y+180,9.5,'#d8f2ff','left',null,700);}
+  else{txt(x,L('대원 없음','无队员'),S.X+40,S.Y+164,10,'#9fb0c4','center',null,800);txt(x,L('혼자 싸움','独自作战'),S.X+40,S.Y+180,9,'#9fb0c4','center',null,700);}
+  const xs=S.crew;if(xs.length){const x0=xs[0].x-30;if(!t.crew)txt(x,L('합체 ▸','合体 ▸'),x0+4,S.Y+172,11,'#ffe27a','left',NAVY,900);}
+  for(const b of xs){if(t.crew)continue;const C=CREW[b.c],busy=G.crewTower(b.c),sig=C.tw===t.k;crewFace(x,b.c,b.x+16,b.y,b.r,!!busy&&!sig&&false);
+    if(sig){x.strokeStyle='#ffd23f';x.lineWidth=2.5;x.beginPath();x.arc(b.x+16,b.y,b.r+3,0,7);x.stroke();txt(x,L('공명','共鸣'),b.x+16,b.y-b.r-6,8,'#ffd23f','center',NAVY,900);}
+    if(busy){pill(x,b.x+3,b.y+10,26,12,'rgba(4,14,30,.85)');txt(x,L('이동','移动'),b.x+16,b.y+16,7.5,'#bfe6ff','center',null,900);}}
+  if(t.crew){const ub={x:S.X+S.w-102,y:S.Y+154,w:88,h:34};btn(x,ub,L('내리기','卸下'),'B',12);S.unb=ub;}
 }
 function arrowHint(x,X,Y,s){const b=Math.sin(time*6)*5;x.fillStyle='#ffe27a';x.beginPath();x.moveTo(X,Y-6+b);x.lineTo(X-9,Y-20+b);x.lineTo(X+9,Y-20+b);x.closePath();x.fill();txt(x,s,X,Y-32+b,12,'#fff','center','rgba(0,0,0,.85)');}
 function drawHints(x){drawTut(x);}
@@ -361,10 +389,12 @@ const TUT=[
   {t:['수호탑이 물든 생물을 씻어 내요. 다 씻긴 생물은 맑은 색으로 돌아와 잠깐 우리를 도와요!','守护塔会洗去被污染的生物。净化后它们恢复清澈，暂时帮助我们！'],tg:null,done:()=>G.purified>=4,minT:3.5},
   {t:['진주가 모였어요. 다른 바위섬에 하나 더 지어요. 거품 구슬은 적을 느리게 해요','珍珠够了。在另一座岩岛上再建一座。泡泡宝珠能让敌人变慢'],when:()=>G.gold>=G.cost('bubble'),
    tg:()=>{if(ui.sel&&ui.sel.type==='spot'){const b=buildSheet(ui.sel.i).build;return {x:b.x+b.w/2,y:b.y+b.h/2,r:46};}const i=G.M.spots.findIndex((s,j)=>!G.towers.some(t=>t.spot===j));if(i<0)return null;const s=G.M.spots[i];return {x:s.x,y:s.y,r:32};},done:()=>G.towers.length>=2},
-  {t:['대원 버튼이 켜졌어요! 누르면 그 대원의 필살기가 나가요','队员按钮亮了！点击即可释放该队员的必杀技'],when:()=>G.enemies.length>=3&&crewKeys().some(k=>G.crewReady(k)),
-   tg:()=>{const ks=crewKeys(),i=ks.findIndex(k=>G.crewReady(k));if(i<0)return null;const B=crewBtn(i);return {x:B.x,y:B.y,r:30};},done:()=>Object.values(G.crewCd).some(v=>v>0)},
-  {t:['대장 가드를 누른 뒤, 원하는 곳을 누르면 옮겨요. 적 가까이 두면 함께 싸워요','点击队长卫士，再点击目的地即可移动。靠近敌人他会一起战斗'],
-   tg:()=>ui.sel&&ui.sel.type==='hero'?null:{x:G.hero.x,y:G.hero.y,r:30},done:()=>ui.heroMoved},
+  {t:['대원 코라를 수호탑에 태워요. 아래 코라를 누른 뒤 산호 궁수를 누르세요 (전용 탑이면 "공명"!)','让队员珂拉登上守护塔。点击下方珂拉，再点击珊瑚弓手（专属塔会「共鸣」！）'],when:()=>G.enemies.length>=2||G.wave>=2,
+   tg:()=>{if(ui.place==='cora'){const t=G.towers.find(t=>t.k==='coral')||G.towers[0];return t?{x:t.x,y:t.y-6,r:32}:null;}const B=crewBtn(crewKeys().indexOf('cora'));return {x:B.x,y:B.y,r:28};},done:()=>!!G.crewTower('cora')},
+  {t:['합체한 대원은 필살기를 써요! 코라 버튼을 눌러요','合体的队员可以使用必杀技！点击珂拉按钮'],when:()=>G.crewReady('cora')&&G.enemies.length>=2,
+   tg:()=>{const B=crewBtn(crewKeys().indexOf('cora'));return {x:B.x,y:B.y,r:28};},done:()=>(G.crewCd.cora||0)>0},
+  {t:['대장 가드도 탑에 태워요. 아래 가드를 누른 뒤 다른 수호탑을 누르세요. 주변 탑까지 강해져요','让队长卫士也登上塔。点击下方卫士，再点击另一座守护塔，周围的塔也会变强'],when:()=>G.towers.filter(t=>!t.crew).length>0,
+   tg:()=>{if(ui.place==='hero'){const t=G.towers.find(t=>!t.crew);return t?{x:t.x,y:t.y-6,r:32}:null;}const B=crewBtn(0);return {x:B.x,y:B.y,r:28};},done:()=>!!G.crewTower('hero')},
   {t:['수호탑을 눌러 강화하면 훨씬 세져요','点击守护塔进行升级，会强很多'],when:()=>G.towers.length&&G.gold>=G.upCost(G.towers[0]),
    tg:()=>{if(ui.sel&&ui.sel.type==='tower'){const S=towerSheet(ui.sel.t);if(S.up)return {x:S.up.x+S.up.w/2,y:S.up.y+S.up.h/2,r:60};return null;}const t=G.towers[0];return {x:t.x,y:t.y-8,r:32};},done:()=>G.towers.some(t=>t.lv>=2)},
 ];
@@ -372,7 +402,7 @@ const TUT_SKIP={x:W-92,y:0,w:80,h:30};
 function tutOn(){return ui.tut&&ui.tut.i<TUT.length&&!ui.overlay;}
 function updateTut(dt){if(!ui.tut)return;const u=ui.tut;if(u.i>=TUT.length)return;const s=TUT[u.i];u.t+=dt;
   if(s.back&&s.back()&&!s.done()){u.i--;u.t=0;return;}
-  if(s.when&&!s.when()){u.wait=true;return;}u.wait=false;
+  if(s.when&&!s.when()&&!s.done()){u.wait=true;return;}u.wait=false;
   if(s.done()&&u.t>=(s.minT||0)){u.i++;u.t=0;sfx('coin');
     if(u.i>=TUT.length){SV.seen.tut=1;persist();fx({k:'banner',s:L('기본 익히기 끝!','新手教学完成！'),s2:L('남은 웨이브를 막아 보세요','守住剩下的波次吧'),y:400,col:'#ffd23f',size:22,life:1.8});}}}
 function drawTut(x){if(!tutOn()||ui.tut.wait)return;const s=TUT[ui.tut.i],T=s.tg?s.tg():null,p=.5+.5*Math.sin(time*5);
@@ -393,15 +423,18 @@ function drawOverlay(x){
   if(o==='intro'){const S=G.S;panel(x,24,110,W-48,560);
     txt(x,`${LL(AREAS[S.area].n)} · ${G.si+1}`,W/2,140,12,'#bfe6ff','center',null,800);txt(x,LL(G.M.name),W/2,168,24,'#fff','center',NAVY,900);txt(x,L(`웨이브 ${S.waves}`,`${S.waves} 波`),W/2,196,12,'#bfe6ff','center',null,800);
     let y=222;const sec=(t,c)=>{x.fillStyle='rgba(255,255,255,.12)';x.fillRect(44,y,W-88,1.5);y+=18;txt(x,t,46,y,14,c,'left',NAVY,900);y+=22;};
+    const nc=CREW_IDS.find(c=>CREW[c].join===G.si&&G.si>0);
+    if(nc){const C=CREW[nc];sec(L('새 대원 합류!','新队员加入！'),'#9ffff0');crewFace(x,nc,72,y+14,24);txt(x,`${LL(C.n)} · ${LL(C.role)}`,108,y,13,C.col,'left',NAVY,900);
+      y=wrap(x,L('합체 · ','合体 · ')+LL(C.td(1)),108,y+18,W-156,11,'#d8f2ff',15,'left');y=wrap(x,L(`★ ${LL(TW_TXT[C.tw][0])}에 타면 공명`,`★ 登上${LL(TW_TXT[C.tw][0])}即共鸣`),108,y,W-156,11,'#ffd23f',15,'left');y=wrap(x,`✦ ${LL(C.sk)}: ${LL(C.d)}`,108,y,W-156,11,'#9ff0e0',15,'left')+6;}
     const nt=TOWER_IDS.find(k=>UNLOCK[k]===G.si&&G.si>0);
-    if(nt){sec(L('새 대원 합류!','新队员加入！'),'#9ffff0');towerIcon(x,nt,72,y+12,.9);txt(x,`${LL(CREW[nt].n)} · ${LL(CREW[nt].role)}`,104,y,13,TCOL[nt],'left',NAVY,900);y=wrap(x,`${LL(TW_TXT[nt][0])}: ${LL(TW_TXT[nt][1])}`,104,y+18,W-150,11,'#d8f2ff',15,'left');y=wrap(x,`✦ ${LL(CREW[nt].sk)}: ${LL(CREW[nt].d)}`,104,y,W-150,11,'#ffe27a',15,'left')+6;}
+    if(nt){sec(L('새 수호탑','新守护塔'),'#9ffff0');towerIcon(x,nt,72,y+12,.9);txt(x,LL(TW_TXT[nt][0]),104,y,13,TCOL[nt],'left',NAVY,900);y=wrap(x,LL(TW_TXT[nt][1]),104,y+18,W-150,11,'#d8f2ff',15,'left')+6;}
     if(S.fresh){sec(L('새로운 심연 생물','新的深渊生物'),'#ffb0f0');const e={k:S.fresh,x:72,y:y+16,a:0,r:ENEMIES[S.fresh].r,hp:1,mhp:1,shield:0,id:1,spawnT:0,inv:false,slow:0,slowT:0,stun:0,trap:0,lift:0,hitT:0,icon:1};
       drawEnemy(x,e,time);txt(x,LL(EN_TXT[S.fresh][0]),104,y,13,'#fff','left',NAVY,900);y=wrap(x,L('특기 · ','特技 · ')+LL(EN_TXT[S.fresh][1]),104,y+18,W-150,11,'#f0d8ff',15,'left');
       if(PURE[S.fresh])y=wrap(x,L('정화하면 · ','净化后 · ')+LL(PURE[S.fresh].d),104,y,W-150,11,'#9ffff0',15,'left');y+=6;}
     if(S.boss){sec(L('구역 보스','区域首领'),'#ffb0f0');txt(x,LL(EN_TXT[S.boss][0]),56,y,13,'#fff','left',NAVY,900);y=wrap(x,LL(EN_TXT[S.boss][1]),56,y+18,W-110,11,'#f0d8ff',15,'left')+4;}
     if(ui.newMech.length){sec(L('이 지도의 장치','本地图机关'),'#ffe27a');for(const m of ui.newMech){y=wrap(x,LL(MECH_TIP[m]),48,y,W-96,11,'#d8f2ff',15,'left')+4;}}
     if(G.mutList.length){sec(L('심연이 강해졌어요','深渊变强了'),'#e0b0ff');for(const m of G.mutList){txt(x,MUTS[m].ic+' '+LL(MUTS[m].n),56,y,11,'#e0b0ff','left',null,700);y+=16;}}
-    {const my=avgLv();if(my<S.rec-1){y+=6;pill(x,40,y,W-80,30,'rgba(120,40,20,.7)');txt(x,L(`대원 레벨이 낮아요 (권장 ${S.rec} · 내 평균 ${my.toFixed(1)}) · 홈 > 대원`,`队员等级偏低（推荐 ${S.rec} · 我的平均 ${my.toFixed(1)}）· 主页>队员`),W/2,y+15,11,'#ffd0b0','center',null,800);}}
+    {const my=avgLv();if(my<S.rec-1){y+=6;pill(x,40,y,W-80,30,'rgba(120,40,20,.7)');txt(x,L(`레벨이 낮아요 (권장 ${S.rec} · 내 평균 ${my.toFixed(1)}) · 홈 > 강화`,`队员等级偏低（推荐 ${S.rec} · 我的平均 ${my.toFixed(1)}）· 主页>强化`),W/2,y+15,11,'#ffd0b0','center',null,800);}}
     btn(x,B[0],L('출격 준비','准备出击'),'Y',16);return;}
   if(o==='cards'){panel(x,24,120,W-48,600);if(G.pendMut)txt(x,L('심연이 꿈틀거려요…','深渊在蠢动……'),W/2,150,18,'#e0b0ff','center','rgba(0,0,0,.5)');
     const m=MUTS[G.pendMut];if(m){rr(x,44,172,W-88,58,12);x.fillStyle='rgba(90,30,130,.6)';x.fill();x.strokeStyle='#b070ff';x.lineWidth=1.5;x.stroke();
@@ -423,8 +456,8 @@ function drawOverlay(x){
       if(S2.boss)wrap(x,LL(AREAS[S2.area].end),W/2,392,W-120,10.5,'#ffe9a8',14);
       else if(G.si<STAGE_N-1)txt(x,L(`다음: 수심 ${depthOf(G.si+1)}m`,`下一关：水深 ${depthOf(G.si+1)}米`),W/2,396,12,'#9fd');}
     else{txt(x,L(`웨이브 ${G.wave}/${G.S.waves}에서 무너졌어요`,`在第 ${G.wave}/${G.S.waves} 波失守`),W/2,320,13,'#cde');
-      {const tips=[[L('대원 버튼을 아끼지 말고 써요. 필살기는 금방 다시 차요','别吝啬队员按钮，必杀技很快就会恢复')],[L('남은 진주로 수호탑을 강화하면 같은 자리에서 훨씬 세져요','用剩下的珍珠升级守护塔，同一位置会强很多')],[L('거품 구슬로 늦추면 다른 수호탑이 더 오래 정화해요','用泡泡宝珠减速，其他塔就能净化更久')],[L('홈 > 대원에서 레벨을 올리면 모든 판이 쉬워져요','在主页>队员中升级，所有关卡都会变简单')]];
-        if(G.hasGate)tips.push([L('갈림길의 수문을 눌러 적을 긴 길로 돌려요','点击岔路的水闸，把敌人引到长路')]);if(G.S.kinds.includes('ray'))tips.push([L('투명한 가오리는 해파리 등대나 가드 근처에서만 보여요','隐身鳐鱼只在水母灯塔或卫士附近现形')]);
+      {const tips=[[L('대원 버튼을 아끼지 말고 써요. 필살기는 금방 다시 차요','别吝啬队员按钮，必杀技很快就会恢复')],[L('남은 진주로 수호탑을 강화하면 같은 자리에서 훨씬 세져요','用剩下的珍珠升级守护塔，同一位置会强很多')],[L('거품 구슬로 늦추면 다른 수호탑이 더 오래 정화해요','用泡泡宝珠减速，其他塔就能净化更久')],[L('홈 > 강화에서 레벨을 올리면 모든 판이 쉬워져요','在主页>强化中升级，所有关卡都会变简单')]];
+        if(G.hasGate)tips.push([L('갈림길의 수문을 눌러 적을 긴 길로 돌려요','点击岔路的水闸，把敌人引到长路')]);if(G.S.kinds.includes('ray'))tips.push([L('투명한 가오리는 해파리 등대나 가드가 탄 탑 근처에서만 보여요','隐身鳐鱼只在水母灯塔或卫士附近现形')]);
         pill(x,60,346,W-120,24,'rgba(255,210,63,.18)');txt(x,L('다시 해볼 때 팁','再试一次的提示'),W/2,358,11,'#ffe27a','center',null,900);wrap(x,tips[(G.si*3+G.wave)%tips.length][0],W/2,388,W-130,12,'#eaf6ff',17);}}
     btn(x,B[0],L('다시','重来'),'#6a8a9a');btn(x,B[1],L('지도','地图'),'#6a8a9a');if(B[2])btn(x,B[2],L('다음 판 ▶','下一关 ▶'),'#3fd0c0',17);}
 }
@@ -436,7 +469,7 @@ function mission(id,n){for(const m of SV.mis)if(m.id===id&&!m.got)m.p=Math.min(M
 const loginReady=()=>SV.login.last!==today();
 const rewardBadge=()=>loginReady()||SV.mis.some(m=>!m.got&&m.p>=MIS[m.id][0]);
 const metaOpen=k=>k==='hero'||UNLOCK[k]<=Math.min(cleared(),OPEN_N-1);
-const canUp=()=>[...TOWER_IDS,'hero'].some(k=>metaOpen(k)&&SV.lv[k]<MAX_LV&&SV.coins>=lvCost(SV.lv[k]));
+const canUp=()=>[...TOWER_IDS,'hero',...CREW_IDS].some(k=>(CREW_IDS.includes(k)?CREW[k].join<=Math.min(cleared(),OPEN_N-1):metaOpen(k))&&SV.lv[k]<MAX_LV&&SV.coins>=lvCost(SV.lv[k]));
 const avgLv=()=>{const ks=[...TOWER_IDS,'hero'].filter(metaOpen);return ks.reduce((a,k)=>a+SV.lv[k],0)/ks.length;};
 dailyInit();
 /* ---------- 공통 머리띠 ---------- */
@@ -452,8 +485,9 @@ function drawStory(dt){const x=g;x.setTransform(K,0,0,K,0,0);seaBg(x,dt,story.ti
   const V=story.vis?story.vis[story.i]:'temple',cy=330;
   if(V==='abyss'){if(IMG.abyss_rift){x.save();x.translate(W/2,cy);x.rotate(time*.3);drawImg(x,IMG.abyss_rift,0,90,220);x.restore();}
     ['minnow','crab','eel','ray','minnow'].forEach((k,i)=>{const a=time*.5+i*1.26,e={k,x:W/2+Math.cos(a)*150,y:cy+Math.sin(a)*70+20,a:Math.cos(a+1.57)<0?Math.PI:0,r:12,hp:1,mhp:1,shield:0,id:i,spawnT:0,inv:false,slow:0,slowT:0,stun:0,trap:0,lift:0,hitT:0,prog:time*40};drawEnemy(x,e,time);});}
-  else if(V==='crew'){['hero','coral','bubble','jelly'].forEach((k,i)=>{const X=70+i*103,Y=cy+40+Math.sin(time*2+i)*4;glow(x,X,Y-10,46,'rgba(120,230,255,.25)');
-      if(k==='hero')drawHero(x,{x:X,y:Y,face:1,lv:1,atk:0,moving:false},time,false);else towerIcon(x,k,X,Y,1.2);txt(x,LL(CREW[k].n),X,Y+44,15,k==='hero'?'#bff':TCOL[k],'center',NAVY,900);txt(x,LL(CREW[k].role),X,Y+62,10,'#d8f2ff','center',NAVY,800);});}
+  else if(V==='crew'){['hero','cora','bogle','lumi'].forEach((k,i)=>{const X=70+i*103,Y=cy+30+Math.sin(time*2+i)*4;glow(x,X,Y,52,hexA(CREW[k].col,.3));crewFace(x,k,X,Y,36);txt(x,LL(CREW[k].n),X,Y+52,15,CREW[k].col,'center',NAVY,900);txt(x,LL(CREW[k].role),X,Y+70,10,'#d8f2ff','center',NAVY,800);});}
+  else if(V&&V.startsWith('join_')){const c=V.slice(5),C=CREW[c],Y=cy+10;glow(x,W/2,Y,110,hexA(C.col,.35),.7+.3*Math.sin(time*2));crewFace(x,c,W/2,Y,64);txt(x,LL(C.role),W/2,Y+84,13,C.col,'center',NAVY,900);
+    towerIcon(x,C.tw,W/2+96,Y+40,1);txt(x,L('★ 공명','★ 共鸣'),W/2+96,Y+70,10,'#ffd23f','center',NAVY,900);}
   else if(V==='pure'){const ph=(time*.6)%2,pu=ph>1;['crab','eel'].forEach((k,i)=>{const X=(W/2+(i?90:-90))/1.7,e={k,x:X,y:(cy+30)/1.7,a:0,r:16,hp:1,mhp:1,shield:0,id:i,spawnT:0,inv:false,slow:0,slowT:0,stun:0,trap:0,lift:0,hitT:0,prog:time*30,pure:pu?1:0};x.save();x.scale(1.7,1.7);drawEnemy(x,e,time);x.restore();
       if(Math.abs(ph-1)<.08)burst(X,cy+30,'#bffff4',3,80,2.5,.5);});txt(x,pu?L('맑아졌어요!','恢复清澈！'):L('물든 생물','被污染的生物'),W/2,cy-40,18,pu?'#9ffff0':'#e0b0ff','center',NAVY,900);drawFx(x,1/60);}
   else if(IMG.temple_gate){x.globalAlpha=.95;drawImg(x,IMG.temple_gate,W/2,430,260);x.globalAlpha=1;}
@@ -466,7 +500,9 @@ function drawStory(dt){const x=g;x.setTransform(K,0,0,K,0,0);seaBg(x,dt,story.ti
 function tapStory(p){sfx('tap');const s=LL(story.pages[story.i]);if(p.y<60&&p.x>W-90){const f=story.then;story=null;f();return;}
   if(story.t*(LANG==='zh'?22:34)<s.length){story.t=99;return;}
   if(++story.i>=story.pages.length){const f=story.then;story=null;f();}else story.t=0;}
-function tryEnter(si){const a=Math.floor(si/PER_AREA);if(!SV.seen['a'+a]){SV.seen['a'+a]=1;persist();showStory(`${a+1}. ${LL(AREAS[a].n)}`,AREAS[a].intro,()=>enterBattle(si));story.tint=AREAS[a].tint;}else enterBattle(si);}
+function tryEnter(si){const a=Math.floor(si/PER_AREA),nc=CREW_IDS.find(c=>CREW[c].join===si&&si>0&&!SV.seen['join_'+c]);
+  const go=()=>{if(nc){SV.seen['join_'+nc]=1;persist();showStory(L(`${LL(CREW[nc].n)} 합류`,`${LL(CREW[nc].n)} 加入`),CREW[nc].joinTxt,()=>enterBattle(si),['join_'+nc,'join_'+nc]);}else enterBattle(si);};
+  if(!SV.seen['a'+a]){SV.seen['a'+a]=1;persist();showStory(`${a+1}. ${LL(AREAS[a].n)}`,AREAS[a].intro,go);story.tint=AREAS[a].tint;}else go();}
 /* ---------- 지도(판 고르기): 구역 5개를 좌우로 넘긴다 ---------- */
 const NODE=[[118,170],[300,222],[196,282],[338,338],[124,396],[262,452],[364,510],[210,566],[96,622],[250,690]];
 let mapArea=-1;
@@ -493,19 +529,27 @@ function tapMap(p){if(hitBack(p)){scr='home';sfx('tap');return;}
   if(a<AREAS.length-1&&hitR(p,MAPB.next)&&cl>=(a+1)*PER_AREA){mapArea++;sfx('tap');return;}
   NODE.forEach((q,j)=>{const i=a*PER_AREA+j;if(Math.hypot(p.x-q[0],p.y-q[1])<30&&i<=cl&&i<OPEN_N){sfx('tap');tryEnter(i);}});}
 /* ---------- 수호대 강화(판 밖 성장) ---------- */
-const upRow=i=>({x:24,y:104+i*104,w:W-48,h:94});
-function drawUpgrade(dt){const x=g;x.setTransform(K,0,0,K,0,0);seaBg(x,dt,'rgba(0,10,20,.45)');header(x,L('수비대원','守卫队员'),L('레벨 1마다 정화력 +7%','每级 净化力 +7%'));
-  [...TOWER_IDS,'hero'].forEach((k,i)=>{const b=upRow(i),open=metaOpen(k),lv=SV.lv[k],c=lvCost(lv),max=lv>=MAX_LV,can=open&&!max&&SV.coins>=c;panel(x,b.x,b.y,b.w,b.h);
-    if(k==='hero'){x.save();x.beginPath();x.rect(b.x,b.y,90,b.h);x.clip();drawHero(x,{x:b.x+46,y:b.y+54,face:1,lv:1,atk:0,moving:false},0,false);x.restore();}else towerIcon(x,k,b.x+46,b.y+56,1.15);
-    const name=`${LL(CREW[k].n)} · ${k==='hero'?LL(CREW[k].role):LL(TW_TXT[k][0])}`;
-    txt(x,name,b.x+96,b.y+24,14,k==='hero'?'#bff':TCOL[k],'left');
-    if(!open){txt(x,L(`🔒 ${UNLOCK[k]}판을 깨면 합류`,`🔒 通关第${UNLOCK[k]}关后加入`),b.x+96,b.y+52,12,'#9ab','left');return;}
-    txt(x,`Lv ${lv}`+(max?' (MAX)':` → ${lv+1}`),b.x+96,b.y+48,13,'#fff','left');
-    txt(x,L(`정화력 ×${masteryMul(lv).toFixed(2)}`,`净化力 ×${masteryMul(lv).toFixed(2)}`)+(max?'':`  →  ×${masteryMul(lv+1).toFixed(2)}`),b.x+96,b.y+70,11,'#9fd','left');
-    if(!max){const bb={x:b.x+b.w-112,y:b.y+26,w:100,h:44};btn(x,bb,'◆ '+c,can?'#d0a030':'#555',14);}});
+/* ---------- 강화: 수호탑(혼자 싸울 때 힘) / 대원(합체했을 때 힘) ---------- */
+let upTab=0;
+const UPT=[{x:60,y:76,w:160,h:34},{x:230,y:76,w:160,h:34}];
+const upRow=i=>({x:24,y:120+i*98,w:W-48,h:90});
+const upKeys=()=>upTab?CREW_IDS:TOWER_IDS;
+const upOpen=k=>TOWER_IDS.includes(k)?metaOpen(k):CREW[k].join<=Math.min(cleared(),OPEN_N-1);
+function upEff(k,lv){return TOWER_IDS.includes(k)?masteryMul(lv):crewMul(lv);}
+function drawUpgrade(dt){const x=g;x.setTransform(K,0,0,K,0,0);seaBg(x,dt,'rgba(0,10,20,.45)');header(x,L('강화','强化'));
+  [L('수호탑','守护塔'),L('수비대원','守卫队员')].forEach((s,i)=>btn(x,UPT[i],s,upTab===i?'Y':'X',13));
+  txt(x,upTab?L('대원은 수호탑에 합체했을 때 그 탑을 강하게 해요','队员合体到守护塔时会强化该塔'):L('수호탑이 혼자 싸울 때의 기본 정화력이에요','守护塔独自作战时的基础净化力'),W/2,124,10.5,'#bfe6ff','center',NAVY,800);
+  upKeys().forEach((k,i)=>{const b=upRow(i),bb={...b,y:b.y+14},open=upOpen(k),lv=SV.lv[k],c=lvCost(lv),max=lv>=MAX_LV,can=open&&!max&&SV.coins>=c;panel(x,bb.x,bb.y,bb.w,bb.h);
+    if(TOWER_IDS.includes(k)){x.globalAlpha=open?1:.35;towerIcon(x,k,bb.x+46,bb.y+52,1.1);x.globalAlpha=1;}else crewFace(x,k,bb.x+46,bb.y+45,30,!open);
+    const name=TOWER_IDS.includes(k)?LL(TW_TXT[k][0]):`${LL(CREW[k].n)} · ${LL(CREW[k].role)}`;txt(x,name,bb.x+92,bb.y+22,14,TOWER_IDS.includes(k)?TCOL[k]:CREW[k].col,'left',NAVY,900);
+    if(!open){const j=TOWER_IDS.includes(k)?UNLOCK[k]:CREW[k].join;txt(x,L(`${j}판을 깨면 합류`,`通关第${j}关后加入`),bb.x+92,bb.y+50,12,'#9fb0c4','left',null,800);return;}
+    txt(x,`Lv ${lv}`+(max?' (MAX)':` → ${lv+1}`),bb.x+92,bb.y+45,13,'#fff','left',NAVY,900);
+    const lab=TOWER_IDS.includes(k)?L('정화력','净化力'):L('합체 시 정화력','合体时净化力');
+    txt(x,`${lab} ×${upEff(k,lv).toFixed(2)}`+(max?'':`  →  ×${upEff(k,lv+1).toFixed(2)}`),bb.x+92,bb.y+66,10.5,'#9ff0e0','left',null,800);
+    if(!max)btn(x,{x:bb.x+bb.w-110,y:bb.y+24,w:98,h:42},'◆ '+c,can?'G':'X',14);});
 }
-function tapUpgrade(p){if(hitBack(p)){scr='home';sfx('tap');return;}
-  [...TOWER_IDS,'hero'].forEach((k,i)=>{const b=upRow(i),bb={x:b.x+b.w-112,y:b.y+26,w:100,h:44},lv=SV.lv[k];if(!hitR(p,bb)||!metaOpen(k)||lv>=MAX_LV)return;
+function tapUpgrade(p){if(hitBack(p)){scr='home';sfx('tap');return;}UPT.forEach((b,i)=>{if(hitR(p,b)){upTab=i;sfx('tap');}});
+  upKeys().forEach((k,i)=>{const b=upRow(i),bb={x:b.x+b.w-110,y:b.y+14+24,w:98,h:42},lv=SV.lv[k];if(!hitR(p,bb)||!upOpen(k)||lv>=MAX_LV)return;
     const c=lvCost(lv);if(SV.coins<c){sfx('tap');return;}SV.coins-=c;SV.lv[k]++;persist();sfx('up');burst(bb.x+50,bb.y+22,'#ffe27a',16,90,2.5,.6);});}
 /* ---------- 도감: 적 스킬 · 수호탑 각성 · 지휘 스킬 ---------- */
 let dexTab=0;
@@ -521,11 +565,12 @@ function drawDex(dt){const x=g;x.setTransform(K,0,0,K,0,0);seaBg(x,dt,'rgba(0,10
   else if(dexTab===1){TOWER_IDS.forEach((k,i)=>{const y=114+i*128,T=TW_TXT[k];panel(x,20,y,W-40,120);towerIcon(x,k,52,y+38,.85);txt(x,LL(T[0]),86,y+18,14,TCOL[k],'left');wrap(x,LL(T[1]),86,y+36,W-124,10,'#cde',12,'left');
       txt(x,`✦ ${LL(T[2])}: ${LL(T[3](1))}`,32,y+64,10,'#ffe9a8','left');
       BRANCH[k].forEach((b,j)=>txt(x,`${L('각성','觉醒')} ${j?'B':'A'} · ${LL(b.n)}: ${LL(b.d)}`,32,y+82+j*17,10,j?'#ffc9a8':'#a8e8ff','left'));});}
-  else{['hero',...TOWER_IDS].forEach((k,i)=>{const y=112+i*98,C=CREW[k],open=k==='hero'||UNLOCK[k]<=Math.min(cl,OPEN_N-1);panel(x,20,y,W-40,90);
-      if(k==='hero'){x.save();x.beginPath();x.rect(20,y,80,90);x.clip();drawHero(x,{x:60,y:y+50,face:1,lv:1,atk:0,moving:false},0,false);x.restore();}else{x.globalAlpha=open?1:.35;towerIcon(x,k,60,y+52,1.1);x.globalAlpha=1;}
-      txt(x,LL(C.n),104,y+20,15,k==='hero'?'#bff':TCOL[k],'left',NAVY,900);txt(x,LL(C.role),W-34,y+20,10,'#bfe6ff','right',null,700);
-      if(!open){txt(x,L(`${UNLOCK[k]}판을 깨면 합류해요`,`通关第${UNLOCK[k]}关后加入`),104,y+50,11,'#9fb0c4','left',null,700);return;}
-      wrap(x,LL(C.bio),104,y+40,W-150,10,'#d8f2ff',13,'left');const sn=k==='hero'?CMD.slam.n:C.sk,sd=k==='hero'?CMD.slam:C;txt(x,`✦ ${LL(sn)} (${sd.cd}${L('초','秒')}): ${LL(sd.d)}`.slice(0,LANG==='zh'?40:46),104,y+74,9.5,'#ffe27a','left',null,700);});}
+  else{CREW_IDS.forEach((k,i)=>{const y=112+i*98,C=CREW[k],open=C.join<=Math.min(cl,OPEN_N-1);panel(x,20,y,W-40,90);crewFace(x,k,60,y+45,30,!open);
+      txt(x,LL(C.n),104,y+20,15,C.col,'left',NAVY,900);txt(x,LL(C.role),W-34,y+20,10,'#bfe6ff','right',null,700);
+      if(!open){txt(x,L(`${C.join}판을 깨면 합류해요`,`通关第${C.join}关后加入`),104,y+50,11,'#9fb0c4','left',null,700);return;}
+      txt(x,L('합체 · ','合体 · ')+LL(C.td(1)),104,y+40,9.5,'#d8f2ff','left',null,700);
+      txt(x,C.tw?L(`★ 공명: ${LL(TW_TXT[C.tw][0])}에 타면 효과 ×${RESO_TRAIT}, 정화력 ×${RESO_DMG}`,`★ 共鸣：登上${LL(TW_TXT[C.tw][0])}时效果×${RESO_TRAIT}，净化力×${RESO_DMG}`):L('대장: 어느 탑에 타도 주변 탑을 이끌어요','队长：登上任何塔都能带领周围的塔'),104,y+57,9.5,'#ffd23f','left',null,700);
+      txt(x,`✦ ${LL(C.sk)} (${C.cd}${L('초','秒')}): ${LL(C.d)}`.slice(0,LANG==='zh'?36:44),104,y+74,9.5,'#9ff0e0','left',null,700);});}
 }
 function tapDex(p){if(hitBack(p)){scr='home';sfx('tap');return;}DEXT.forEach((b,i)=>{if(hitR(p,b)){dexTab=i;sfx('tap');}});}
 /* ---------- 보상: 출석 7일 · 하루 미션 3개 ---------- */
@@ -568,7 +613,7 @@ function drawHome(dt){
   roundBtn(x,30,36,17,PAL.B);icon(x,'gear',30,36,1);coinChip(x,W-58,36);
   const cl=Math.min(cleared(),OPEN_N),pu=Math.sin(time*3)*2,b=HOME_BTN.start;
   btn(x,{x:b.x-pu,y:b.y-pu*.5,w:b.w+pu*2,h:b.h+pu},L('출격','出击'),'Y',26,cl>=OPEN_N?L('다시 도전하기','再次挑战'):L(`${cl+1}판 · ${LL(AREAS[0].n)}`,`第${cl+1}关 · ${LL(AREAS[0].n)}`));
-  tile(x,HOME_BTN.up,'up',L('대원','队员'));if(canUp())dot(x,HOME_BTN.up);
+  tile(x,HOME_BTN.up,'up',L('강화','强化'));if(canUp())dot(x,HOME_BTN.up);
   tile(x,HOME_BTN.dex,'book',L('도감','图鉴'));
   tile(x,HOME_BTN.rw,'gift',L('보상','奖励'));if(rewardBadge())dot(x,HOME_BTN.rw);
   txt(x,'v'+BUILD,W-8,H-10,9,'rgba(255,255,255,.3)','right',null,700);
@@ -590,9 +635,9 @@ let guide={p:0,from:'home'};
 const GUIDE=[
   {t:['목표: 신전을 지켜요','目标：守护神殿'],d:[['심연 동굴에서 보랏빛으로 물든 바다 생물이 신전으로 몰려와요.','被深渊染紫的海洋生物从深渊洞窟涌向神殿。'],['신전에 닿으면 생명이 줄고, 0이 되면 져요.','到达神殿会扣生命，归零即失败。'],['남은 생명 18 이상이면 별 3개, 10 이상이면 별 2개예요.','剩余生命18以上得3星，10以上得2星。']],v:'goal'},
   {t:['수호탑 짓기와 강화','建造与升级守护塔'],d:[['빛나는 바위섬을 누르면 아래에 카드가 나와요. 수호탑을 고르고 "건설".','点击发光的岩岛，下方会出现卡片。选好守护塔后点「建造」。'],['생물을 정화하면 진주를 얻어요. 진주로 더 짓거나 강화해요.','净化生物可获得珍珠，用来建造或升级。'],['3단계에서 한 번 더 올리면 "각성": A·B 두 갈래 중 하나를 골라요.','3级后再升一次即「觉醒」：从A/B两种路线中选一个。']],v:'tower'},
-  {t:['수비대원과 필살기','守卫队员与必杀技'],d:[['수호탑마다 맡은 대원이 있어요. 그 수호탑을 지으면 아래 대원 버튼이 켜져요.','每座守护塔都有负责的队员。建造后下方的队员按钮会亮起。'],['버튼을 누르면 필살기! 같은 수호탑이 많고 높을수록 세져요.','点击按钮释放必杀技！同类塔越多、等级越高越强。']],v:'crew'},
+  {t:['수비대원 합체','守卫队员合体'],d:[['수호탑은 혼자서도 싸워요. 아래 대원 얼굴을 누르고 수호탑을 누르면 그 탑에 "합체"해요.','守护塔可以独自作战。点击下方队员头像再点击守护塔即可「合体」。'],['대원마다 특성이 더해져요(코라: 사거리·치명, 보글: 둔화, 루미: 연쇄). 전용 탑에 타면 "공명"으로 훨씬 강해져요.','每位队员会附加特性（珂拉：射程·暴击，泡泡：减速，露米：连锁）。登上专属塔会「共鸣」，强很多。'],['합체한 대원만 필살기를 써요. 대원은 이야기가 진행되며 합류해요.','只有合体的队员能使用必杀技。队员会随剧情加入。']],v:'crew'},
   {t:['정화: 죽이지 않고 되돌려요','净化：不是消灭，而是唤回'],d:[['다 씻긴 생물은 맑은 색으로 돌아와 잠깐 우리를 도와요.','被净化的生物会恢复清澈，暂时帮助我们。']],v:'pure'},
-  {t:['웨이브·카드·성장','波次·卡牌·成长'],d:[['"다음 웨이브"를 일찍 부르면 남은 시간만큼 진주 보너스.','提前召唤「下一波」可按剩余时间获得珍珠奖励。'],['3웨이브마다 축복 카드를 1장 골라요. 4판부터는 그때 심연도 강해져요.','每3波选择1张祝福卡。从第4关起，深渊也会同时变强。'],['판을 깨면 코인. 홈 > 대원에서 대원 레벨을 올리면 모든 판이 쉬워져요.','过关获得金币。在主页>队员中提升等级，所有关卡都会变简单。']],v:'grow'},
+  {t:['웨이브·카드·성장','波次·卡牌·成长'],d:[['"다음 웨이브"를 일찍 부르면 남은 시간만큼 진주 보너스.','提前召唤「下一波」可按剩余时间获得珍珠奖励。'],['3웨이브마다 축복 카드를 1장 골라요. 4판부터는 그때 심연도 강해져요.','每3波选择1张祝福卡。从第4关起，深渊也会同时变强。'],['판을 깨면 코인. 홈 > 강화에서 수호탑·대원 레벨을 올리면 모든 판이 쉬워져요.','过关获得金币。在主页>队员中提升等级，所有关卡都会变简单。']],v:'grow'},
 ];
 const GB={prev:{x:24,y:724,w:120,h:48},next:{x:W-144,y:724,w:120,h:48}};
 function openGuide(from){guide={p:0,from};scr='guide';}
@@ -603,9 +648,8 @@ function drawGuide(dt){const x=g;x.setTransform(K,0,0,K,0,0);seaBg(x,dt,'rgba(0,
     for(let i=0;i<3;i++){const e={k:['minnow','crab','eel'][i],x:170+i*45+((time*30)%45),y:cy+10+i*6,a:0,r:10,hp:1,mhp:1,shield:0,id:i,spawnT:0,inv:false,slow:0,slowT:0,stun:0,trap:0,lift:0,hitT:0,prog:time*40,icon:1};drawEnemy(x,e,time);}
     icon(x,'heart',W/2,cy+76,1.4,'#ff5f86');txt(x,'20',W/2+24,cy+77,16,'#fff','left',NAVY,900);}
   else if(V==='tower'){['coral','bubble','jelly'].forEach((k,i)=>{towerIcon(x,k,110+i*115,cy+30,1.3);pill(x,110+i*115-28,cy+64,56,20);icon(x,'gem',110+i*115-16,cy+74,.65,'#5ff0ff');txt(x,''+TOWERS[k].cost,110+i*115+8,cy+75,11,'#fff','center',null,900);});}
-  else if(V==='crew'){['hero','coral','bubble','jelly'].forEach((k,i)=>{const X=72+i*102;x.fillStyle='rgba(0,0,0,.3)';x.beginPath();x.arc(X,cy+18,34,0,7);x.fill();
-      if(k==='hero')drawHero(x,{x:X,y:cy+28,face:1,lv:1,atk:0,moving:false,icon:1},time,false);else towerIcon(x,k,X,cy+24,1.05);
-      txt(x,LL(CREW[k].n),X,cy+66,13,k==='hero'?'#bff':TCOL[k],'center',NAVY,900);txt(x,k==='hero'?LL(CMD.slam.n):LL(CREW[k].sk),X,cy+84,10,'#fff','center',NAVY,800);});}
+  else if(V==='crew'){towerIcon(x,'coral',110,cy+20,1.2);txt(x,'+',190,cy+10,26,'#fff','center',NAVY,900);crewFace(x,'cora',260,cy+6,30);txt(x,'=',318,cy+10,26,'#fff','center',NAVY,900);
+    towerIcon(x,'coral',380,cy+20,1.2);crewFace(x,'cora',395,cy-24,12);glow(x,380,cy,40,'rgba(255,210,63,.3)');txt(x,L('★ 공명!','★ 共鸣！'),380,cy+62,12,'#ffd23f','center',NAVY,900);txt(x,L('혼자 싸움','独自作战'),110,cy+62,11,'#bfe6ff','center',NAVY,800);}
   else if(V==='pure'){['minnow','crab','eel','ray'].forEach((k,i)=>{const Y=cy-36+i*40,A={k,x:80,y:Y,a:0,r:10,hp:1,mhp:1,shield:0,id:i,spawnT:0,inv:false,slow:0,slowT:0,stun:0,trap:0,lift:0,hitT:0,prog:time*30,icon:1};
       drawEnemy(x,A,time);txt(x,'→',116,Y,16,'#9ffff0','center',NAVY,900);drawEnemy(x,Object.assign({},A,{x:150,pure:1}),time);
       txt(x,LL(PURE[k].nm||PURE[k].n),184,Y-7,12,'#9ffff0','left',NAVY,900);txt(x,LL(PURE[k].d),184,Y+9,9.5,'#d8f2ff','left',null,700);});}

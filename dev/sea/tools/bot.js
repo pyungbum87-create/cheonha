@@ -2,13 +2,13 @@
 const fs=require('fs'),vm=require('vm'),path=require('path');
 const ctx={console,Math,Set,Object,Array,JSON};vm.createContext(ctx);
 for(const f of ['data.js','core.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../src',f),'utf8'),ctx);
-vm.runInContext('this.Game=Game;this.stageInfo=stageInfo;this.buildMap=buildMap;this.TOWERS=TOWERS;this.recLv=recLv;this.CMD=CMD;this.dist=dist',ctx);
+vm.runInContext('this.Game=Game;this.stageInfo=stageInfo;this.buildMap=buildMap;this.TOWERS=TOWERS;this.recLv=recLv;this.CMD=CMD;this.CREW_IDS=CREW_IDS;this.CREW=CREW;this.dist=dist',ctx);
 const {Game}=ctx;
 function play(si,skill){
-  const mlv=Math.max(1,ctx.recLv(si)+(+process.env.DLV||0));const lv={};for(const k of ['coral','bubble','jelly','conch','rune','hero'])lv[k]=mlv;const g=new Game(si,{lv}),M=g.M,good=skill==='good',weak=skill==='weak';const order=M.spots.map((_,i)=>i);if(weak)order.sort((a,b)=>((a*7)%5)-((b*7)%5));
+  const mlv=Math.max(1,ctx.recLv(si)+(+process.env.DLV||0));const lv={};for(const k of ['coral','bubble','jelly','conch','rune','hero','cora','bogle','lumi','sora','arin'])lv[k]=mlv;const g=new Game(si,{lv}),M=g.M,good=skill==='good',weak=skill==='weak';const order=M.spots.map((_,i)=>i);if(weak)order.sort((a,b)=>((a*7)%5)-((b*7)%5));
   // 자리 순서: 신전에 가까운(늦게 지나가는) 자리보다 덮는 길이 많은 자리 먼저 = 이미 정렬됨
   const plan=good?['coral','bubble','jelly','coral','conch','rune','jelly','coral','conch','bubble','coral','jelly']:['coral','coral','jelly','bubble','coral','conch','jelly','coral','bubble','conch','coral','jelly'];
-  let pi=0,steps=0;g.moveHero(M.spots[0].x,M.spots[0].y+10);
+  let pi=0,steps=0;
   g.callWave();
   while(g.state!=='win'&&g.state!=='lose'&&steps<60*60*25){
     if(g.state==='card'){const pref=['skill','allDmg','hero','lives','gold','discount','coral','jelly','conch','bubble','rune','vent','key','reverse'];let bi=0,bv=99;g.cards.forEach((c,i)=>{const v=pref.indexOf(c);if(v<bv){bv=v;bi=i;}});g.pickCard(good?bi:0);continue;}
@@ -20,8 +20,9 @@ function play(si,skill){
       // 먹물 닦기(잘하는 봇)
       if(good)for(const t of g.towers)if(t.ink>0)g.clean(t);
       // 영웅 스킬
-      if(good){const n=g.enemies.filter(e=>ctx.dist(e.x,e.y,g.hero.x,g.hero.y)<80).length;if(n>=3)g.cmd('slam');if(g.enemies.length>=5)for(const k of ['jelly','bubble','coral','conch','rune'])g.crewSkill(k);}
-      else if(steps%600===0){g.cmd('slam');if(!weak)for(const k of ['jelly','bubble','coral'])g.crewSkill(k);}
+      for(const c of ctx.CREW_IDS)if(g.joined(c)&&!g.crewTower(c)&&g.towers.length){const free=g.towers.filter(t=>!t.crew),sig=free.find(t=>t.k===ctx.CREW[c].tw)||(weak?null:free.sort((a,b)=>b.lv-a.lv)[0]);if(sig)g.merge(c,sig);}
+      if(good){if(g.enemies.length>=5)for(const k of ctx.CREW_IDS)g.crewSkill(k);}
+      else if(steps%600===0){if(!weak)for(const k of ctx.CREW_IDS)g.crewSkill(k);}
       // 수문: 긴 길로
       if(good&&!process.env.NOGATE&&g.keys>0)for(const k in M.gates){const G=M.gates[k],L=G.to.map(id=>M.segs[id].len);const want=L[0]>=L[1]?0:1;if(G.st!==want&&g.spawning)g.flipGate(k);}
       if(g.nextT>0&&g.nextT<WAVE_GAP_EARLY)g.callWave();
