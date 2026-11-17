@@ -1,0 +1,587 @@
+{
+ "factions": [
+  [
+   "wei",
+   "曹",
+   "#2f5d9e"
+  ],
+  [
+   "shu",
+   "刘",
+   "#2f8a57"
+  ],
+  [
+   "wu",
+   "孙",
+   "#c2412d"
+  ],
+  [
+   "yuan",
+   "袁",
+   "#a68a2a"
+  ],
+  [
+   "ys",
+   "术",
+   "#b06a2c"
+  ],
+  [
+   "lb",
+   "表",
+   "#3f8f8f"
+  ],
+  [
+   "lz",
+   "璋",
+   "#8a6b8f"
+  ],
+  [
+   "zl",
+   "鲁",
+   "#6f7d3a"
+  ],
+  [
+   "md",
+   "马",
+   "#a05a6a"
+  ],
+  [
+   "dz",
+   "卓",
+   "#4b3b55"
+  ],
+  [
+   "gsz",
+   "瓒",
+   "#5f86a8"
+  ],
+  [
+   "tq",
+   "谦",
+   "#9c8b6e"
+  ],
+  [
+   "lvb",
+   "吕",
+   "#7a3b3b"
+  ],
+  [
+   "gsd",
+   "度",
+   "#4f6f6a"
+  ],
+  [
+   "zx",
+   "绣",
+   "#8a7a4a"
+  ],
+  [
+   "lj",
+   "傕",
+   "#5a4a3a"
+  ],
+  [
+   "sx",
+   "燮",
+   "#3f6f9a"
+  ],
+  [
+   "kr",
+   "孔",
+   "#9a8a6a"
+  ],
+  [
+   "han",
+   "漢",
+   "#8a2b2b"
+  ],
+  [
+   "hj",
+   "黃",
+   "#c9a227"
+  ]
+ ],
+ "scenarios": {
+  "184": {
+   "y": 184,
+   "short": "황건적의 난",
+   "desc": "창천이 이미 죽었으니 황천이 일어나리라. 장각의 황건적이 여덟 주에서 들고일어났다. 조정은 의용군을 모으고, 탁군의 돗자리 장수는 칼을 쥔다.",
+   "own": {
+    "han": [
+     "yp",
+     "bp",
+     "ji",
+     "np",
+     "py",
+     "jny",
+     "sd",
+     "pu",
+     "cl",
+     "xb",
+     "xp",
+     "ly",
+     "hn",
+     "ca",
+     "ad",
+     "ts",
+     "ww",
+     "qi",
+     "xn",
+     "xy",
+     "sy",
+     "hz",
+     "zt",
+     "cd",
+     "jz",
+     "ya",
+     "jg",
+     "jl",
+     "jx",
+     "wl",
+     "chs",
+     "ll",
+     "gy",
+     "sc",
+     "lu",
+     "cs",
+     "yz",
+     "jy",
+     "wx",
+     "kj",
+     "nh",
+     "jzh"
+    ],
+    "hj": [
+     "ye",
+     "xc",
+     "wn",
+     "rn",
+     "bh"
+    ]
+   },
+   "rulers": {
+    "han": "hejin",
+    "hj": "zhangjiao"
+   },
+   "picks": [
+    [
+     "zhangjiao",
+     0
+    ]
+   ]
+  },
+  "190": {
+   "y": 190,
+   "short": "반동탁 연합",
+   "desc": "동탁이 낙양과 장안을 쥐었다. 제후들이 들고일어나고, 유비는 아직 공손찬의 객장이다. 주인 없는 땅이 많다.",
+   "own": {
+    "dz": [
+     "ly",
+     "ca",
+     "hn",
+     "ad",
+     "ts"
+    ],
+    "yuan": [
+     "np",
+     "ye"
+    ],
+    "gsz": [
+     "bp",
+     "ji"
+    ],
+    "wei": [
+     "cl"
+    ],
+    "ys": [
+     "wn"
+    ],
+    "tq": [
+     "xp",
+     "xb"
+    ],
+    "wu": [
+     "chs"
+    ],
+    "lb": [
+     "xy",
+     "jl",
+     "jx"
+    ],
+    "lz": [
+     "cd",
+     "zt",
+     "jz"
+    ],
+    "zl": [
+     "hz"
+    ],
+    "md": [
+     "ww"
+    ],
+    "gsd": [
+     "yp"
+    ],
+    "kr": [
+     "bh"
+    ]
+   },
+   "rulers": {
+    "dz": "dongzhuo",
+    "yuan": "yuanshao",
+    "gsz": "gongsunzan",
+    "wei": "cao",
+    "ys": "yuanshu",
+    "tq": "taoqian",
+    "wu": "sunjian",
+    "lb": "liubiao",
+    "lz": "liuyan",
+    "zl": "zhanglu",
+    "md": "mateng",
+    "gsd": "gongsundu",
+    "kr": "kongrong"
+   },
+   "picks": [
+    [
+     "cao",
+     0
+    ],
+    [
+     "sunjian",
+     0
+    ],
+    [
+     "gongsunzan",
+     0
+    ],
+    [
+     "dongzhuo",
+     500
+    ],
+    [
+     "yuanshao",
+     500
+    ],
+    [
+     "mateng",
+     900
+    ],
+    [
+     "liubiao",
+     1400
+    ],
+    [
+     "yuanshu",
+     2000
+    ],
+    [
+     "taoqian",
+     2600
+    ],
+    [
+     "liuyan",
+     2600
+    ],
+    [
+     "kongrong",
+     3000
+    ],
+    [
+     "gongsundu",
+     3200
+    ],
+    [
+     "zhanglu",
+     3200
+    ]
+   ]
+  },
+  "196": {
+   "y": 196,
+   "short": "군웅할거",
+   "desc": "동탁은 죽고 천하는 갈라졌다. 조조가 허창에 황제를 모셨고, 여포가 서주를 빼앗았다. 손책은 강동을 휩쓴다.",
+   "own": {
+    "wei": [
+     "xc",
+     "cl",
+     "pu",
+     "qi"
+    ],
+    "shu": [
+     "xb"
+    ],
+    "lvb": [
+     "xp"
+    ],
+    "wu": [
+     "jy",
+     "wx",
+     "kj"
+    ],
+    "yuan": [
+     "ye",
+     "np",
+     "py",
+     "bh",
+     "jny",
+     "sd"
+    ],
+    "gsz": [
+     "ji",
+     "bp"
+    ],
+    "gsd": [
+     "yp"
+    ],
+    "ys": [
+     "sc",
+     "rn",
+     "lu"
+    ],
+    "lb": [
+     "xy",
+     "jl",
+     "jx",
+     "chs",
+     "wl",
+     "ll",
+     "gy",
+     "xn"
+    ],
+    "zx": [
+     "wn"
+    ],
+    "lz": [
+     "cd",
+     "zt",
+     "jz",
+     "ya",
+     "jg"
+    ],
+    "zl": [
+     "hz"
+    ],
+    "md": [
+     "ww",
+     "ad",
+     "ts"
+    ],
+    "lj": [
+     "ca",
+     "hn"
+    ],
+    "sx": [
+     "jzh",
+     "nh"
+    ]
+   },
+   "rulers": {
+    "wei": "cao",
+    "shu": "liubei",
+    "lvb": "lvbu",
+    "wu": "sunce",
+    "yuan": "yuanshao",
+    "gsz": "gongsunzan",
+    "gsd": "gongsundu",
+    "ys": "yuanshu",
+    "lb": "liubiao",
+    "zx": "zhangxiu",
+    "lz": "liuzhang",
+    "zl": "zhanglu",
+    "md": "mateng",
+    "lj": "lijue",
+    "sx": "shixie"
+   },
+   "picks": [
+    [
+     "cao",
+     0
+    ],
+    [
+     "liubei",
+     0
+    ],
+    [
+     "sunce",
+     0
+    ],
+    [
+     "lvbu",
+     300
+    ],
+    [
+     "yuanshao",
+     500
+    ],
+    [
+     "gongsunzan",
+     700
+    ],
+    [
+     "mateng",
+     900
+    ],
+    [
+     "zhangxiu",
+     1200
+    ],
+    [
+     "liubiao",
+     1400
+    ],
+    [
+     "yuanshu",
+     2000
+    ],
+    [
+     "lijue",
+     2400
+    ],
+    [
+     "liuzhang",
+     2600
+    ],
+    [
+     "shixie",
+     3000
+    ],
+    [
+     "gongsundu",
+     3200
+    ],
+    [
+     "zhanglu",
+     3200
+    ]
+   ]
+  },
+  "200": {
+   "y": 200,
+   "short": "관도대전",
+   "desc": "하북의 원소와 중원의 조조가 관도에서 맞선다. 손책은 강동을 다지고, 유비는 여남에 몸을 숨겼다. 관우는 잠시 조조 곁에 있다.",
+   "own": {
+    "wei": [
+     "xc",
+     "cl",
+     "pu",
+     "qi",
+     "xb",
+     "xp",
+     "ly",
+     "hn",
+     "ca",
+     "wn",
+     "sc"
+    ],
+    "yuan": [
+     "ye",
+     "np",
+     "py",
+     "bh",
+     "jny",
+     "sd",
+     "ji",
+     "bp"
+    ],
+    "shu": [
+     "rn"
+    ],
+    "wu": [
+     "jy",
+     "wx",
+     "kj",
+     "lu",
+     "yz",
+     "cs"
+    ],
+    "lb": [
+     "xy",
+     "xn",
+     "jl",
+     "jx",
+     "chs",
+     "wl",
+     "ll",
+     "gy"
+    ],
+    "lz": [
+     "cd",
+     "zt",
+     "jz",
+     "ya",
+     "jg"
+    ],
+    "zl": [
+     "hz",
+     "sy"
+    ],
+    "md": [
+     "ww",
+     "ad",
+     "ts"
+    ],
+    "gsd": [
+     "yp"
+    ],
+    "sx": [
+     "jzh",
+     "nh"
+    ]
+   },
+   "rulers": {
+    "wei": "cao",
+    "yuan": "yuanshao",
+    "shu": "liubei",
+    "wu": "sunce",
+    "lb": "liubiao",
+    "lz": "liuzhang",
+    "zl": "zhanglu",
+    "md": "mateng",
+    "gsd": "gongsundu",
+    "sx": "shixie"
+   },
+   "picks": [
+    [
+     "cao",
+     0
+    ],
+    [
+     "yuanshao",
+     0
+    ],
+    [
+     "sunce",
+     0
+    ],
+    [
+     "liubei",
+     300
+    ],
+    [
+     "liubiao",
+     900
+    ],
+    [
+     "mateng",
+     900
+    ],
+    [
+     "liuzhang",
+     1400
+    ],
+    [
+     "shixie",
+     2000
+    ],
+    [
+     "zhanglu",
+     2600
+    ],
+    [
+     "gongsundu",
+     3200
+    ]
+   ]
+  }
+ }
+}

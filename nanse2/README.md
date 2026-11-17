@@ -1,6 +1,8 @@
 # 난세일생 2 (nanse2)
 
-난세일생을 새 구조로 다시 만드는 작업 폴더. 기존 게임은 `../nanse/`에 그대로 있다.
+난세일생 2. 기존 난세일생(`../nanse/src`) 코드를 가져와 새 데이터·새 규칙으로 개조한다. 기존 게임은 `../nanse/`에 그대로 있다.
+
+테스트 주소: https://pyungbum87-create.github.io/cheonha/nanse2/
 설계서: 난세일생 게임 설계서 (claude.ai Docs)
 
 ## 지금 있는 것 (2026-11-17)
@@ -27,3 +29,18 @@ node tools/similarity.js ../nanse/index.html data/people.json   # 기존(코에�
 - 코에이 시리즈의 능력치 수치·항목·그림·UI·보물 이름을 쓰지 않는다.
 - 역사는 삼국지연의 원작 기준, 대사와 설명은 직접 쓴다.
 - 연도에 `est=e` 표시가 있는 인물은 생몰년이 추정값이다.
+
+## 게임 빌드
+
+```
+node tools/gen_data.js                 # data/ → src/game_src.html 의 DATA 구간
+ESBUILD=<esbuild 경로> bash src/rebuild.sh   # 데이터 넣기 + 전투 그림 합치기 + 압축 → src/min.html
+cp src/min.html index.html             # 배포
+node tools/sim.js 40 300               # 화면 없이 40판 × 최대 300개월 자동 진행, 튕김 검사
+node tools/era_check.js                # 184년 시작 → 190년 시대 전환 확인
+```
+
+- 능력치는 화면에 1~20으로 보이고, 엔진 내부는 ×5 한 100점 척도로 계산한다(기존 공식 유지).
+- 정무는 태수 자동 내정(개발도)에 쓰인다.
+- 184년에 시작한 판은 190년 1월에 군웅할거로 넘어간다(eraShift190). 그 전에는 통일 판정이 없다.
+- 저장 키는 `nanse5-*` (기존 난세일생 `nanse4-*`와 섞이지 않음).

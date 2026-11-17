@@ -1,0 +1,317 @@
+# 형식: id 연도 세력 성|연도 세력 성 ...  (그 연도부터 다음 기록 전까지 그 세력·성에 있음)
+# 세력: han 후한 조정, hj 황건적, free 재야, local 그 성의 주인을 따름. 나머지는 게임의 세력 id.
+# 기존 난세일생에 있던 장수는 기존 경력 앞에 184년 기록만 붙인다(@ 표시).
+@cao 184 han ly
+@xiahoudun 184 free qi
+@xiahouyuan 184 free qi
+@caoren 184 free qi
+@caohong 184 free qi
+@dianwei 184 free cl
+@xuchu 184 free qi
+@yujin 184 free pu
+@yuejin 184 free pu
+@lidian 184 free pu
+@xunyu 184 free xc
+@xunyou 184 free xc
+@guojia 184 free xc
+@chengyu 184 free pu
+@jiaxu 184 free ww
+@zhangliao 184 han jny
+@manchong 184 free pu
+@kongrong 184 han ly
+@tianyu 184 free ji
+@liubei 184 free ji
+@guanyu 184 free ji
+@zhangfei 184 free ji
+@zhaoyun 184 free np
+@jianyong 184 free ji
+@sunqian 184 free bh
+@mizhu 184 free xp
+@huangzhong 184 free chs
+@yanyan 184 free jz
+@sunjian 184 han xp
+@chengpu 184 han xp
+@huanggai 184 han xp
+@hantang 184 han xp
+@zhangzhao 184 free xp
+@shixie 184 han jzh
+@dongzhuo 184 han hn
+@lvbu 184 han jny
+@huaxiong 184 han hn
+@lijue 184 han hn
+@guosi 184 han hn
+@liru 184 han hn
+@xurong 184 han hn
+@yuanshao 184 han ly
+@jushou 184 free ye
+@tianfeng 184 free ye
+@shenpei 184 free ye
+@guotu 184 free xc
+@gongsunzan 184 han bp
+@gongsundu 184 han yp
+@taoqian 184 han xp
+@yuanshu 184 han ly
+@liubiao 184 han ly
+@kuaiyue 184 free xy
+@huangzu 184 han jx
+@caimao 184 free xy
+@liuyan 184 han ly
+@zhanglu 184 free hz
+@mateng 184 free ww
+@hansui 184 free ww
+@gaoshun 184 free jny
+@chengong 184 free pu
+@zhangxiu 184 free ww
+@zangba 184 free pu
+@yanliang 184 free ye
+@wenchou 184 free ye
+@zhanghe 184 han ye
+@gaolan 184 free ye
+@zhoucang 184 hj ye
+@liaohua 184 free xy
+@zhangsong 184 free cd
+@zhangren 184 free cd
+@huangquan 184 free cd
+@xushu 184 free xc
+@lusu 184 free xp
+@zhouyu 184 free lu
+@zhoutai 184 free jx
+@jiangqin 184 free lu
+@wenpin 184 free xy
+@zhangzhao 184 free xp
+# 새로 넣은 인물
+hejin 184 han ly
+zhangrang 184 han ly
+lushi 184 han ly
+huangfusong 184 han ly|190 dz ca
+zhujun 184 han ly|190 free ly
+wangyun 184 han ly|190 dz ly
+caiyong 184 free kj|190 dz ly
+dongcheng 184 han hn|190 dz hn|196 wei xc
+yangbiao 184 han ly|190 dz ly|196 wei xc
+dingyuan 184 han jny
+liuyu 184 han ji|190 free ji
+zhongyao 184 free xc|190 dz ca|196 wei ca|200 wei ca
+diaochan 184 free ly|190 dz ly|196 lvb xp
+caiyan 184 free kj|190 dz ly|196 free ad|200 free ad
+zhangjiao 184 hj ye
+zhangbao_hj 184 hj ye
+zhangliang_hj 184 hj ye
+chengyuanzhi 184 hj ye
+dengmao 184 hj ye
+hanzhong 184 hj wn
+sunzhong 184 hj wn
+zhaohong 184 hj wn
+peiyuanshao 184 hj ye|190 free ly
+liubi 184 hj rn|196 free rn|200 shu rn
+gongdu 184 hj rn|196 free rn|200 shu rn
+guanhai 184 hj bh|190 free bh
+heyi 184 hj rn|190 free rn
+huangshao 184 hj rn|190 free rn
+heman 184 hj rn|190 free rn
+zhangyan 184 hj ye|190 free sd|196 free sd|200 free sd
+lisu 184 han jny|190 dz ly
+huzhen 184 han hn|190 dz ly
+niufu 184 han hn|190 dz ca
+dongmin 184 han hn|190 dz ca
+zhangji 184 han hn|190 dz hn|196 lj hn
+fanchou 184 han hn|190 dz hn|196 lj ca
+wangfang 190 dz ca|194 lj ca
+limeng 190 dz ca|194 lj ca
+haomeng 184 free jny|190 dz ly|196 lvb xp
+caoxing 184 free jny|190 dz ly|196 lvb xp
+chenglian 184 free jny|190 dz ly|196 lvb xp
+weixu 184 free jny|190 dz ly|196 lvb xp|200 wei xc
+songxian 184 free jny|190 dz ly|196 lvb xp|200 wei xc
+houcheng 184 free jny|190 dz ly|196 lvb xp|200 wei xc
+chenggui 184 free xp|190 tq xp|196 lvb xp|200 wei xp
+chendeng 184 free xp|190 tq xp|196 lvb xp|200 wei xp
+yanshi 184 free jny|190 dz ly|196 lvb xp
+lvbudaughter 196 lvb xp
+huchenger 184 free ww|190 dz hn|196 zx wn
+zoushi 190 dz hn|196 zx wn
+yangfeng 184 free jny|190 dz ca|196 free ly
+hanxian 184 free jny|190 free jny|196 free ly
+caochun 184 free qi|190 wei cl|196 wei xc|200 wei xc
+caoang 190 wei cl|196 wei xc
+caoanmin 190 wei cl|196 wei xc
+caopi 196 wei xc|200 wei xc
+xiahouen 196 wei xc|200 wei xc
+liuye 184 free sc|190 free sc|196 wei xc|200 wei xc
+maojie 184 free cl|190 wei cl|196 wei xc|200 wei xc
+lvqian 184 free pu|190 wei cl|196 wei pu|200 wei pu
+xuyou 184 han ly|190 yuan np|196 yuan ye|200 yuan ye
+renjun 184 free cl|190 wei cl|196 wei xc|200 wei xc
+zaozhi 184 free xc|190 wei cl|196 wei xc|200 wei xc
+dongzhao 184 free pu|190 yuan np|196 wei xc|200 wei xc
+huaxin 184 han ly|190 free yz|196 free yz|200 wei xc
+wanglang 184 han ly|190 free kj|196 free kj|200 wei xc
+chenqun 184 free xc|190 tq xp|196 shu xb|200 wei xc
+kongxiu 196 wei ly|200 wei ly
+mengtan 196 wei ly|200 wei ly
+hanfu_ly 184 han ly|190 dz ly|196 wei ly|200 wei ly
+bianxi 196 wei xc|200 wei ly
+wangzhi 196 wei xc|200 wei ly
+qinqi 196 wei xc|200 wei ly
+caiyang 184 free qi|190 wei cl|196 wei xc|200 wei xc
+wangzhong 190 wei cl|196 wei xc|200 wei xc
+liudai_cao 190 wei cl|196 wei xc|200 wei xc
+bianshi 184 free ly|190 wei cl|196 wei xc|200 wei xc
+dingshi 184 free qi|190 wei cl|196 wei xc|200 wei xc
+chezhou 196 wei xc|200 wei xc
+mifang 184 free xp|190 tq xp|196 shu xb|200 shu rn
+guanping 196 free ji|200 shu rn
+mishi 184 free xp|190 tq xp|196 shu xb|200 shu rn
+ganshi 184 free xb|196 shu xb|200 shu rn
+gongsunyue 184 han bp|190 gsz bp
+gongsunxu 190 gsz bp|196 gsz bp
+yangang_gs 184 han bp|190 gsz bp
+tiankai 184 han bp|190 gsz ji|196 gsz ji
+guanjing 184 han bp|190 gsz bp|196 gsz bp
+liuyu_son 184 han ji|190 free ji|196 yuan np
+xianyufu 184 han ji|190 free ji|196 yuan ji
+caobao 184 han xp|190 tq xp
+zhangkai 184 hj rn|190 tq xp
+sunguan 184 free pu|190 free xp|196 lvb xp|200 wei xp
+yuantan 190 yuan np|196 yuan bh|200 yuan bh
+yuanxi 190 yuan np|196 yuan ji|200 yuan ji
+yuanshang 196 yuan ye|200 yuan ye
+gaogan 184 free ly|190 yuan np|196 yuan sd|200 yuan jny
+quyi 184 free ye|190 yuan ye|196 yuan ye
+chunyuqiong 184 han ly|190 yuan np|196 yuan ye|200 yuan ye
+hanmeng 190 yuan np|196 yuan ye|200 yuan ye
+jiangyiqu 190 yuan ye|196 yuan ye|200 yuan ye
+fengji 184 free ly|190 yuan np|196 yuan ye|200 yuan ye
+xinping 184 free xc|190 yuan ye|196 yuan ye|200 yuan ye
+xinpi 184 free xc|190 yuan ye|196 yuan ye|200 yuan ye
+chenlin 184 han ly|190 yuan np|196 yuan ye|200 yuan ye
+hanfu 184 han ly|190 yuan ye
+geng_wu 184 han ye|190 yuan ye
+zhenshi 196 yuan ji|200 yuan ji
+jiling 184 free wn|190 ys wn|196 ys sc
+zhangxun 184 free wn|190 ys wn|196 ys sc
+leibo 190 ys wn|196 ys sc|200 free sc
+chenlan 190 ys wn|196 ys sc|200 free sc
+yanghong 184 free ly|190 ys wn|196 ys sc
+yanxiang 184 free ly|190 ys wn|196 ys sc
+hanyin 184 free ly|190 ys wn|196 ys sc
+lifeng 190 ys wn|196 ys sc
+liuxun 190 ys wn|196 ys lu|200 wei xc
+qiaorui 190 ys wn|196 ys sc
+yushe 190 ys wn
+yuejiu 190 ys wn|196 ys sc
+lianggang 190 ys wn|196 ys sc
+chenji_ys 190 ys wn|196 ys sc
+sunquan 196 wu wx|200 wu wx
+sunjing 184 free kj|190 wu chs|196 wu kj|200 wu kj
+sunben 184 free kj|190 wu chs|196 wu jy|200 wu yz
+wujing 184 free kj|190 wu chs|196 wu jy|200 wu jy
+wushi 184 free kj|190 wu chs|196 wu wx|200 wu wx
+zumao 184 han xp|190 wu chs
+chenwu 184 free lu|190 free lu|196 wu jy|200 wu jy
+dongxi 184 free kj|190 free kj|196 wu kj|200 wu kj
+lingcao 184 free wx|190 free wx|196 wu wx|200 wu wx
+taishici 184 free bh|190 free bh|196 wu jy|200 wu yz
+zhanghong 184 free xp|190 free xp|196 wu wx|200 wu wx
+lvfan 184 free rn|190 free sc|196 wu wx|200 wu wx
+yufan 184 free kj|190 free kj|196 wu kj|200 wu kj
+guyong 184 free wx|190 free wx|196 free wx|200 wu wx
+lumeng 196 wu jy|200 wu jy
+daqiao 196 free lu|200 wu wx
+xiaoqiao 196 free lu|200 wu wx
+qiaoguo 184 free lu|196 free lu|200 wu wx
+liuyao 184 han ly|190 free jy|196 free yz
+zerong 184 free xp|190 free jy|196 free yz
+xueli 184 free jy|190 free jy
+yumi 184 free jy|190 free jy
+zhangying 184 free jy|190 free jy
+fanneng 184 free jy|190 free jy
+yanbaihu 184 free wx|190 free wx
+yanyu 184 free wx|190 free wx
+xugong 184 free wx|190 free wx|196 free wx
+kuailiang 184 free xy|190 lb xy|196 lb xy|200 lb xy
+zhangyun 190 lb xy|196 lb xy|200 lb jl
+wangwei 190 lb xy|196 lb xy|200 lb xy
+liuqi 196 lb xy|200 lb jx
+liucong 200 lb xy
+yiji 184 free xy|190 lb xy|196 lb xy|200 lb xy
+ganning 190 free jz|196 free jx|200 lb jx
+liufan 184 han ly|190 lz cd
+lengbao 190 lz cd|196 lz cd|200 lz zt
+dengxian 190 lz cd|196 lz cd|200 lz zt
+wuyi 190 lz cd|196 lz cd|200 lz cd
+liyan 184 free wn|190 lb xy|196 lb chs|200 lz cd
+mengda 196 lz cd|200 lz cd
+fazheng 196 lz cd|200 lz cd
+wanglei 184 free cd|190 lz cd|196 lz cd|200 lz cd
+zhangwei 190 zl hz|196 zl hz|200 zl hz
+yanpu 190 zl hz|196 zl hz|200 zl hz
+yangsong 190 zl hz|196 zl hz|200 zl hz
+yangang 190 zl hz|196 zl hz|200 zl hz
+yangren 190 zl hz|196 zl hz|200 zl hz
+machao 196 md ww|200 md ww
+madai 196 md ww|200 md ww
+pangde 184 free ww|190 md ww|196 md ww|200 md ww
+maxiu 196 md ww|200 md ww
+matie 200 md ww
+yanxing 184 free ww|190 md ww|196 md ad|200 md ad
+chengyi 184 free ww|190 md ww|196 md ad|200 md ad
+baoxin 184 han ly|190 free pu
+baozhong 184 free pu|190 free pu
+wangkuang 184 han ly|190 free jny
+fangyue 184 free jny|190 free jny
+liudai_yan 184 han ly|190 free pu
+qiaomao 184 han ly|190 free pu
+kongzhou 184 han ly|190 free rn
+zhangmiao 184 han ly|190 wei cl
+zhangchao 184 free xp|190 tq xp
+zanghong 184 free xp|190 free bh|196 yuan bh
+zhangyang 184 han jny|190 free jny|196 free jny
+mugu 190 free jny|196 free jny
+yangchou 190 free jny|196 free jny
+suigu 190 free jny|196 free jny
+mushun 184 free jny|190 free jny
+yuanyi 184 han ly|190 free pu
+panfeng 184 han ye|190 yuan ye
+wuanguo 184 free bh|190 kr bh
+lvgong 190 lb xy|196 lb xy|200 lb xy
+chensheng 190 lb xy
+zhanghu 190 lb xy
+gongsunkang 196 gsd yp|200 gsd yp
+wangzifu 184 han ly|190 dz ca|196 wei xc|200 wei xc
+chongji 184 han ly|190 dz ca|196 wei xc|200 wei xc
+wuzilan 184 han ly|190 dz ca|196 wei xc|200 wei xc
+wushi_han 184 han ly|190 dz ca|196 wei xc|200 wei xc
+jiping 184 free ly|196 wei xc|200 wei xc
+xiandi 190 dz ly|196 wei xc|200 wei xc
+fushou 190 dz ly|196 wei xc|200 wei xc
+dongguiren 196 wei xc|200 wei xc
+zhugeliang 196 free xy|200 free xy
+pangtong 196 free xy|200 free xy
+simahui 184 free xc|190 free xy|196 free xy|200 free xy
+simayi 196 free ly|200 free ly
+simalang 184 free ly|190 free ly|196 wei xc|200 wei xc
+luxun 196 free wx|200 wu wx
+maliang 200 free xy
+masu 200 free xy
+weiyan 190 free xy|196 lb xy|200 lb chs
+guanxing 200 shu rn
+zhangbao 200 shu rn
+dengai 200 free xc
+xushao 184 free rn|190 free yz
+huatuo 184 free qi|190 free qi|196 free wx|200 free xc
+yuji 184 free wx|190 free wx|196 free wx
+sunfuren 196 wu wx|200 wu wx
+huangshi_zg 196 free xy|200 free xy
+zhugejin 196 free wx|200 wu wx
+xusheng 196 free wx|200 wu wx
+panzhang 196 free jy|200 wu jy
+zhuhuan 196 free wx|200 wu wx
+kanze 196 free kj|200 wu kj
+zhuran 196 free wx|200 wu wx
+lingtong 200 wu wx
+dingfeng 200 wu wx
+guohuai 200 free jny
+caozhen 200 wei xc
+tianshi_py 184 free pu|190 free pu|196 free pu
+# 200년 이후 등장 (기존 경력을 그대로 씀)
