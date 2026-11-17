@@ -21,7 +21,7 @@ function tip(key,text,sec){if(S.tips[key]||!B)return;S.tips[key]=1;B.tip={text,t
 function banner(text,big,col){B.banner={text,t:0,big:!!big,col:col||'#fff'};}
 function shake(n){B.shake=Math.max(B.shake,n);}
 /* ---------- 이펙트 도구: 번쩍임(빛 번짐) · 불똥 · 연기 · 별가루 · 자국 · 날아가는 동전 ---------- */
-const ECOL={crab:'#ff8a65',jelly:'#c8e6ff',fish:'#6fb8ff',puffer:'#ffd76a',hermit:'#e9bd7e',octo:'#c9a2f2',gull:'#ffffff',elite:'#e2685c',boss:'#ff7a5c'};
+const ECOL={crab:'#ff8a65',jelly:'#c8e6ff',fish:'#6fb8ff',puffer:'#ffd76a',hermit:'#e9bd7e',octo:'#c9a2f2',gull:'#ffffff',turtle:'#4fa35e',shrimp:'#ff9db0',elite:'#e2685c',boss:'#ff7a5c'};
 const TCOL={tt:'#fff1d6',didi:'#8fd4ff',peng:'#ffb347',shan:'#ffe9a0',dun:'#ffffff',zhuo:'#ffc9d6'};
 const GLOW={};
 function glow(x,y,r,col,a){let c=GLOW[col];if(!c){c=GLOW[col]=mkCanvas(64,64);const q=c.getContext('2d'),gr=q.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.3,'rgba(255,255,255,.75)');gr.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=gr;q.fillRect(0,0,64,64);q.globalCompositeOperation='source-in';q.fillStyle=col;q.fillRect(0,0,64,64);}
@@ -54,6 +54,16 @@ function consumeFx(){
       coins(f.x,f.y,boss?12:el?5:f.g>=12?2:1);floatTxt(f.x,f.y-18,'+'+f.g,'#ffd93d',boss?17:el?13:10);sfx('kill');
       if(boss){shake(12);vib(70);hitStop(.12);stars(f.x,f.y,24,FW_COL,6);smoke(f.x,f.y,6,22);}else if(el){shake(5);hitStop(.04);}break;}
     case 'blast':boom(f.x,f.y,f.r,f.kind);break;
+    case 'trait':switch(f.t){
+      case 'puff':ring(f.x,f.y,22,'#ffe9a0',3,14);sfx('puff');tip('tr_puff',L('복어가 놀라 부풀었어요! 3초 동안 편식이 심해져요. 빙수와 차는 그대로 먹어요','河豚吓得鼓起来了！3 秒内更挑食，但刨冰和茶照吃不误'),7);break;
+      case 'hide':ring(f.x,f.y,16,'#e9bd7e',2.5,12);sfx('hide');tip('tr_hide',L('소라게가 껍데기에 숨었어요. 만두·팝콘을 던지면 깜짝 놀라 튀어나와요','寄居蟹躲进壳里了，扔包子或爆米花能把它吓出来'),7);break;
+      case 'pop':flash(f.x,f.y,22,'#fff3c0',6);stars(f.x,f.y-6,6,['#ffd93d','#fff'],3);floatTxt(f.x,f.y-22,L('깜짝!','吓一跳！'),'#ffd93d',11);sfx('break');break;
+      case 'fade':ring(f.x,f.y,18,'#d9f2ff',2,16);sfx('fade');tip('tr_fade',L('해파리가 투명해졌어요! 한 명씩 노리는 가게는 못 봐요. 만두·팝콘·찹쌀떡은 닿아요','水母变透明了！单体小吃摊看不见它，包子、爆米花和年糕照样能喂到'),7);break;
+      case 'leap':ring(f.x,f.y,14,'#ffffff',3,12);for(let i=0;i<4;i++)P('dot',f.x,f.y,rnd(-1.8,1.8),rnd(-3,-1.4),rnd(12,18),rnd(1.6,2.4),'#d9f2ff',.2);sfx('leap');tip('tr_leap',L('날치가 뛰어올랐어요! 만두와 찹쌀떡은 넘어가요. 느려진 날치는 못 뛰어요','飞鱼跳起来了！包子和年糕会被它跳过去，被减速的飞鱼跳不起来'),7);break;
+      case 'dart':P('smoke',f.x,f.y+6,0,-.2,14,6,'#f6e2b8');sfx('leap');tip('tr_dart',L('새우는 처음 간식에 맞으면 깜짝 놀라 앞으로 톡 튀어요','小虾第一次被喂到会吓得往前一蹿'),6);break;
+      case 'block':flash(f.x,f.y-8,12,'#dfe7ee',4);sparks(f.x,f.y-8,3,'#dfe7ee',4);if(Math.random()<.4)floatTxt(f.x,f.y-22,L('깡!','当！'),'#dfe7ee',10);sfx('block');tip('tr_block',L('양동이 투구가 간식을 6번 튕겨 내요. 빠르게 던지는 빙수가 잘 벗겨요','水桶头盔能挡 6 次投喂，出手快的刨冰最容易打掉它'),7);break;
+      case 'break':burst(f.x,f.y-10,8,['#c9d3dc','#8fa3b8'],4,3);ring(f.x,f.y-6,20,'#dfe7ee',3,14);floatTxt(f.x,f.y-24,L('양동이 벗겨짐!','水桶掉啦！'),'#fff',11);sfx('break');shake(3);break;
+      case 'rush':floatTxt(f.x,f.y-22,L('신난다!','冲呀！'),'#8ce99a',11);sfx('leap');tip('tr_rush',L('거북은 배가 반쯤 차면 신나서 달려요. 미리 느리게 해 두세요','海龟吃到半饱会兴奋冲刺，记得提前减速'),7);break;}break;
     case 'splash':ring(f.x,f.y,9,'#bfe8ff',2,10);for(let i=0;i<3;i++)P('dot',f.x,f.y,rnd(-1.6,1.6),rnd(-2.6,-1),rnd(12,18),rnd(1.6,2.4),'#bfe8ff',.2);sfx('splash');break;
     case 'pingpong':flash(f.x,f.y,16,'#ffffff',5);sparks(f.x,f.y,5,['#fff','#ffb347'],5);ring(f.x,f.y,10,'#ffffff',2.5,9);break;
     case 'shoot':{const sp=run.spots[f.i],tv=B.tv[f.i]||(B.tv[f.i]={sq:0,sv:0,lean:0,lt:0});let tx=sp.x;for(let k=run.pr.length-1;k>=0;k--)if(run.pr[k].i===f.i){tx=run.pr[k].tx;break;}if(f.id==='shan'){const e=run.en.find(q=>q.id===sp.tw.tgt);if(e)tx=e.x;}tv.lt=Math.max(-1,Math.min(1,(tx-sp.x)/70))*.15;tv.sv+=f.id==='shan'?.02:f.id==='didi'?.035:.07;if(f.id!=='shan')flash(sp.x,sp.y-34,f.id==='tt'||f.id==='peng'?15:10,TCOL[f.id],4);if(f.id==='tt')smoke(sp.x,sp.y-36,1,7);sfx('s_'+f.id);break;}
@@ -149,7 +159,7 @@ function drawDecals(){
    · 먹으면 용수철처럼 움찔하고, 배가 찰수록 통통해진다
    · 화면 주사율이 높아도 끊기지 않게 틱 사이를 이어 그린다 */
 const GAIT={crab:{step:9,hop:0,sway:.11,sq:.03,slide:1.6},jelly:{step:24,hop:3.5,sway:.03,sq:.14,pulse:1},fish:{step:27,hop:10,sway:.22,sq:.1,arc:1},puffer:{step:14,hop:1.6,sway:.13,sq:.05},
-  hermit:{step:12,hop:.8,sway:.05,sq:.06,slide:.8},octo:{step:17,hop:4,sway:.05,sq:.13},gull:{step:20,hop:0,sway:.04,sq:0,flap:1},turtle:{step:13,hop:1.4,sway:.07,sq:.04},
+  hermit:{step:12,hop:.8,sway:.05,sq:.06,slide:.8},octo:{step:17,hop:4,sway:.05,sq:.13},gull:{step:20,hop:0,sway:.04,sq:0,flap:1},turtle:{step:13,hop:1.4,sway:.07,sq:.04},shrimp:{step:9,hop:1.2,sway:.1,sq:.05,slide:1},
   elite:{step:16,hop:2.4,sway:.08,sq:.06,stomp:1},boss:{step:22,hop:3,sway:.05,sq:.05,stomp:2}};
 function animEnemies(f,n){
   for(const e of run.en){let v=e._v;
@@ -181,14 +191,22 @@ function drawEnemies(){
     if(G.flap){sx=1+.1*Math.sin(T*16+e.ph);hop=7+Math.sin(T*3+e.ph)*3;rot=v.lean*2.2;}
     if(stun){rot=Math.sin(T*11+e.ph)*.09;hop=0;}
     if(e.kb>0){rot=v.spin;hop=6;}
+    // 특기는 전부 같은 그림 한 장을 늘이고·줄이고·흐리게 해서 보여 준다 (그림체가 바뀌어도 어긋나지 않음)
+    let fa=1;
+    if(e.puffT>0){const w=1.3*Math.min(1,(ENEMIES.puffer.puff*60-e.puffT)/8+.75)+Math.sin(T*10)*.03;sx*=w;sy*=w;hop+=3;}
+    if(e.hideT>0){const q=Math.min(1,(96-e.hideT)/6,e.hideT/6);sy*=1-.42*q;sx*=1+.14*q;hop=0;rot=Math.sin(T*22)*.02*q;}
+    if(e.fadeT>0){const q=Math.min(1,(78-e.fadeT)/10,e.fadeT/10);fa=1-.7*q;}
+    if(e.leapT>0){const q=1-e.leapT/26;hop+=Math.sin(q*3.1416)*26;rot=-.35*Math.cos(q*3.1416)*(v.face<0?-1:1);}
+    if(e.dartT>0){sy*=1.22;sx*=.84;}
     const full=Math.max(0,Math.min(1,1-e.hp/e.max)),age=T-v.born,grow=age<.35?.5+.5*Math.sin(age/.35*1.5708):1,a=age<.25?age/.25:1;
     sx=(sx+v.sq*.9)*(1+full*.16)*grow;sy=(sy-v.sq)*(1+full*.04)*grow;
     // 그림자: 뛰어오르면 작아진다
     const gy=e.y+v.vy*al+(e.air?26:e.r*.8),sh=Math.max(.45,1-hop/26);g.fillStyle='rgba(60,40,20,'+((e.air?.13:.19)*a)+')';g.beginPath();g.ellipse(x,gy,e.r*.92*sh*(1+full*.12),e.r*.32*sh,0,0,6.2832);g.fill();
     if(e.slow>0){g.fillStyle='rgba(150,215,255,.5)';g.beginPath();g.ellipse(x,gy,e.r*1.25,e.r*.48,0,0,6.2832);g.fill();g.strokeStyle='rgba(255,255,255,.8)';g.lineWidth=1;g.stroke();}
     const yy=y+e.r*.25-hop;if(e.shred>0)glow(x,yy-e.r*.3,e.r*2.2,'#ffe9a0',.35);
-    const o={sx:sx*(v.face<0?-1:1)*Math.max(.25,Math.abs(v.face)),sy,rot,a};drawSpr(k,x,yy,size,o);if(e.hit>0)drawSpr(k,x,yy,size,{sx:o.sx,sy,rot,white:1,a:e.hit/6*.6});
+    const o={sx:sx*(v.face<0?-1:1)*Math.max(.25,Math.abs(v.face)),sy,rot,a:a*fa};if(e.fadeT>0){g.strokeStyle='rgba(255,255,255,'+(.5*(1-fa))+')';g.lineWidth=1.2;circ(x,yy,e.r*(1.1+Math.sin(T*6)*.1));g.stroke();}drawSpr(k,x,yy,size,o);if(e.hit>0)drawSpr(k,x,yy,size,{sx:o.sx,sy,rot,white:1,a:e.hit/6*.6});
     if(e.slow>0){g.fillStyle='rgba(215,240,255,.9)';for(let i=0;i<2;i++){const an=T*2+i*3.14+e.ph;circ(x+Math.cos(an)*e.r*.9,yy-e.r*.5+Math.sin(an*1.3)*4,1.6);g.fill();}}
+    if(e.shield>0)for(let i=0;i<e.shield;i++){g.fillStyle='#c9d3dc';g.strokeStyle=INK;g.lineWidth=.9;circ(x-(e.shield-1)*2.6+i*5.2,yy-size*.5-11,2.1);g.fill();g.stroke();}
     if(stun)for(let i=0;i<2;i++){const an=T*7+i*3.14;txt('★',x+Math.cos(an)*e.r*.8,yy-e.r-6+Math.sin(an)*3,8,'#ffd93d','center',INK,2);}
     if(e.hp<e.max*.999||e.k==='elite'||e.k==='boss'){const w=Math.max(18,e.r*1.9),by=yy-size*.5-3;g.fillStyle=e.armor>=.5?'rgba(40,70,110,.8)':'rgba(60,36,20,.75)';rr(x-w/2-1,by-1,w+2,5.5,2.5);g.fill();g.fillStyle=full>.7?'#7ddc6a':full>.35?'#ffd24d':'#ffb347';rr(x-w/2,by,Math.max(1.5,w*full),3.5,1.7);g.fill();}
   }

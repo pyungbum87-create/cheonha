@@ -17,16 +17,18 @@ const MAX_LV=20;
 const heroMul=lv=>1+.07*(lv-1);                    // 판 밖에서 동전으로 올리는 타워 숙련
 const lvCost=lv=>Math.round(60*Math.pow(lv,1.5));
 
+/* 손님마다 그 생물다운 특기가 하나씩 있다. from = 몇 번째 장(0부터)부터 특기를 쓰는가 (첫 장은 특기 없이 배운다) */
 const ENEMIES={
   crab:  {hp:30,  sp:34,r:13,gold:5, cost:1},
-  jelly: {hp:13,  sp:40,r:11,gold:3, cost:.5},
-  fish:  {hp:22,  sp:76,r:11,gold:4, cost:.9},
-  puffer:{hp:85,  sp:26,r:13,gold:13, cost:2.6,armor:.5},
-  hermit:{hp:150, sp:20,r:14,gold:20,cost:4,  armor:.7},
-  octo:  {hp:105, sp:28,r:14,gold:16,cost:3.2,ink:6},
-  gull:  {hp:42,  sp:58,r:12,gold:9, cost:1.7,air:true},
-  turtle:{hp:240, sp:19,r:14,gold:26,cost:5.2,armor:.4,rush:1.9},   // 반쯤 배가 차면 신나서 달린다
-  elite: {hp:430, sp:22,r:19,gold:50,cost:11, armor:.3,leak:3},
+  jelly: {hp:13,  sp:40,r:11,gold:3, cost:.5, fade:4.5,from:2},              // 투명해져서 한 명씩 노리는 가게가 못 봄 (범위 간식은 닿음)
+  fish:  {hp:22,  sp:76,r:11,gold:4, cost:.9, leap:3.5,from:1},              // 물 위로 뛰어올라 땅 간식을 넘어감 (느려지면 못 뜀)
+  puffer:{hp:85,  sp:26,r:13,gold:13,cost:2.6,armor:.3,puff:3,from:1},       // 놀라면 부풀어 3초 동안 편식이 심해짐
+  hermit:{hp:150, sp:20,r:14,gold:20,cost:4,  armor:.5,hide:5,from:2},       // 껍데기에 숨음 (팝콘·만두 냄새에 깜짝 놀라 튀어나옴)
+  octo:  {hp:105, sp:28,r:14,gold:16,cost:3.2,ink:6},                        // 가게에 먹물
+  gull:  {hp:42,  sp:58,r:12,gold:9, cost:1.7,air:true,leak:2},              // 길을 무시하고 날아와 간식 2개를 낚아챔
+  turtle:{hp:240, sp:19,r:14,gold:26,cost:5.2,armor:.4,rush:1.9},            // 반쯤 배가 차면 신나서 달림
+  shrimp:{hp:16,  sp:60,r:10,gold:3, cost:.7, dart:1},                       // 처음 간식에 맞으면 깜짝 놀라 앞으로 톡 튐
+  elite: {hp:430, sp:22,r:19,gold:50,cost:11, armor:.3,leak:3,shield:6,from:3}, // 양동이 투구가 간식 6개를 튕겨 냄
   boss:  {hp:2400,sp:13,r:30,gold:120,cost:0, armor:.2,leak:20},
 };
 const START_LIVES=20,WAVE_GAP=6,BONUS_PER_SEC=3,REVIVE_LIVES=10;
@@ -42,17 +44,17 @@ const STAGES=[
    paths:[[[110,66],[110,215],[225,325],[225,430],[100,500],[100,615],[225,665],[225,GATE_Y]],[[340,66],[340,215],[225,325],[225,430],[100,500],[100,615],[225,665],[225,GATE_Y]]]},
   {waves:10,hp:1.6, budget:15,gold:320,spots:10,kinds:['crab','puffer','octo','gull','fish','hermit'],boss:'octoboss',bossHp:7000,rec:6,theme:3,
    paths:[[[225,66],[70,135],[70,300],[385,300],[385,470],[160,470],[160,600],[330,640],[225,GATE_Y]]]},
-  {waves:11,hp:1.9, budget:16,gold:360,spots:11,kinds:['fish','octo','hermit','gull','puffer','jelly','crab'],boss:'whale',bossHp:8500,rec:8,theme:4,
+  {waves:11,hp:1.8, budget:16,gold:370,spots:11,kinds:['fish','octo','hermit','gull','puffer','jelly','crab'],boss:'whale',bossHp:8500,rec:8,theme:4,
    paths:[[[80,66],[80,250],[370,350],[370,560],[225,640],[225,GATE_Y]],[[370,66],[370,200],[80,400],[80,580],[225,640],[225,GATE_Y]]]},
-  {waves:11,hp:2.9, budget:18,gold:380,spots:11,kinds:['crab','turtle','fish','puffer','gull','jelly'],boss:'whale',bossHp:12500,rec:10,theme:0,
+  {waves:11,hp:2.9, budget:18,gold:380,spots:11,kinds:['crab','turtle','shrimp','puffer','gull','fish','jelly'],boss:'whale',bossHp:12500,rec:10,theme:0,
    paths:[[[360,66],[360,180],[90,180],[90,330],[360,330],[360,480],[90,480],[90,620],[225,660],[225,GATE_Y]]]},
-  {waves:12,hp:2.5, budget:17,gold:420,spots:11,kinds:['fish','turtle','octo','hermit','gull','crab'],boss:'pirate',bossHp:12000,rec:12,theme:1,
+  {waves:12,hp:2.15,budget:17,gold:440,spots:11,kinds:['fish','turtle','octo','hermit','gull','crab'],boss:'pirate',bossHp:12000,rec:12,theme:1,
    paths:[[[60,66],[60,300],[200,380],[200,520],[225,620],[225,GATE_Y]],[[390,66],[390,300],[250,380],[250,520],[225,620],[225,GATE_Y]]]},
-  {waves:12,hp:2.9, budget:18,gold:440,spots:12,kinds:['puffer','gull','turtle','octo','fish','hermit','jelly'],boss:'pirate',bossHp:15000,rec:14,theme:2,
+  {waves:12,hp:2.9, budget:18,gold:440,spots:12,kinds:['puffer','shrimp','gull','turtle','octo','fish','hermit','jelly'],boss:'pirate',bossHp:15000,rec:14,theme:2,
    paths:[[[100,66],[100,170],[380,170],[380,290],[70,290],[70,410],[380,410],[380,540],[150,560],[150,650],[225,GATE_Y]]]},
   {waves:12,hp:2.9, budget:17,gold:480,spots:12,kinds:['turtle','fish','octo','gull','hermit','puffer','crab'],boss:'octoboss',bossHp:17000,rec:16,theme:3,
    paths:[[[70,66],[70,260],[225,360],[225,470],[110,540],[110,640],[225,675],[225,GATE_Y]],[[225,66],[225,360],[225,470],[110,540],[110,640],[225,675],[225,GATE_Y]],[[380,66],[380,260],[225,360],[225,470],[110,540],[110,640],[225,675],[225,GATE_Y]]]},
-  {waves:13,hp:3.0, budget:18,gold:520,spots:12,kinds:['octo','turtle','gull','hermit','fish','puffer','jelly','crab'],boss:'whale',bossHp:21000,rec:18,theme:4,
+  {waves:13,hp:2.3, budget:17,gold:560,spots:12,kinds:['octo','turtle','shrimp','gull','hermit','fish','puffer','jelly','crab'],boss:'whale',bossHp:21000,rec:18,theme:4,
    paths:[[[90,66],[90,180],[360,260],[360,380],[90,460],[90,580],[225,650],[225,GATE_Y]],[[360,66],[360,180],[90,260],[90,380],[360,460],[360,580],[225,650],[225,GATE_Y]]]},
 ];
 /* 파도 내용: 장마다 정해진 규칙으로 만든다(무작위 아님). 뒤로 갈수록 예산이 늘고 새 적이 섞인다 */

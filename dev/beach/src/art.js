@@ -108,6 +108,9 @@ const DRAW_EN={
     shape(x,'#e9bd7e',()=>{x.arc(0,-12,38,0,6.2832);});x.strokeStyle='#b98346';x.lineWidth=5;x.beginPath();x.arc(2,-12,24,.4,5.2);x.stroke();x.beginPath();x.arc(4,-12,11,.8,5.6);x.stroke();face(x,0,24,11,4.5);},
   octo:x=>drawOcto(x,'#c9a2f2',{}),
   turtle:x=>drawTurtle(x,{}),
+  shrimp:x=>{x.strokeStyle='#e8718a';x.lineWidth=4;x.lineCap='round';for(const s of [-1,1]){x.beginPath();x.moveTo(s*8,-30);x.quadraticCurveTo(s*30,-56,s*44,-34);x.stroke();}
+    shape(x,'#ff9db0',()=>{x.moveTo(-10,-40);x.lineTo(0,-58);x.lineTo(10,-40);});shape(x,'#ffb3c1',()=>{x.ellipse(0,0,26,40,0,0,6.2832);});x.strokeStyle='rgba(200,80,110,.55)';x.lineWidth=3;for(const yy of [-22,-9,4]){x.beginPath();x.moveTo(-22,yy);x.quadraticCurveTo(0,yy+8,22,yy);x.stroke();}
+    for(const s of [-1,1])for(let i=0;i<2;i++){x.strokeStyle=INK;x.lineWidth=4;x.beginPath();x.moveTo(s*22,6+i*12);x.lineTo(s*34,14+i*13);x.stroke();}face(x,0,16,10,4.6);},
   pirate:x=>drawTurtle(x,{hat:1,mood:'grr',col:'#3f8f6a'}),
   gull:x=>{shape(x,'#eef3f8',()=>{x.moveTo(-14,-6);x.quadraticCurveTo(-44,-34,-62,-8);x.quadraticCurveTo(-40,-10,-16,12);});shape(x,'#eef3f8',()=>{x.moveTo(14,-6);x.quadraticCurveTo(44,-34,62,-8);x.quadraticCurveTo(40,-10,16,12);});
     shape(x,'#ffffff',()=>{x.ellipse(0,2,24,30,0,0,6.2832);});shape(x,'#ffb347',()=>{x.moveTo(-7,14);x.lineTo(0,30);x.lineTo(7,14);},4);x.fillStyle='#8fa3b8';x.beginPath();x.ellipse(0,-24,12,6,0,0,6.2832);x.fill();face(x,0,0,10,4.5,'brow');},

@@ -18,16 +18,18 @@ const MAX_LV=20;
 const heroMul=lv=>1+.07*(lv-1);                    // 판 밖에서 동전으로 올리는 타워 숙련
 const lvCost=lv=>Math.round(60*Math.pow(lv,1.5));
 
+/* 손님마다 그 생물다운 특기가 하나씩 있다. from = 몇 번째 장(0부터)부터 특기를 쓰는가 (첫 장은 특기 없이 배운다) */
 const ENEMIES={
   crab:  {hp:30,  sp:34,r:13,gold:5, cost:1},
-  jelly: {hp:13,  sp:40,r:11,gold:3, cost:.5},
-  fish:  {hp:22,  sp:76,r:11,gold:4, cost:.9},
-  puffer:{hp:85,  sp:26,r:13,gold:13, cost:2.6,armor:.5},
-  hermit:{hp:150, sp:20,r:14,gold:20,cost:4,  armor:.7},
-  octo:  {hp:105, sp:28,r:14,gold:16,cost:3.2,ink:6},
-  gull:  {hp:42,  sp:58,r:12,gold:9, cost:1.7,air:true},
-  turtle:{hp:240, sp:19,r:14,gold:26,cost:5.2,armor:.4,rush:1.9},   // 반쯤 배가 차면 신나서 달린다
-  elite: {hp:430, sp:22,r:19,gold:50,cost:11, armor:.3,leak:3},
+  jelly: {hp:13,  sp:40,r:11,gold:3, cost:.5, fade:4.5,from:2},              // 투명해져서 한 명씩 노리는 가게가 못 봄 (범위 간식은 닿음)
+  fish:  {hp:22,  sp:76,r:11,gold:4, cost:.9, leap:3.5,from:1},              // 물 위로 뛰어올라 땅 간식을 넘어감 (느려지면 못 뜀)
+  puffer:{hp:85,  sp:26,r:13,gold:13,cost:2.6,armor:.3,puff:3,from:1},       // 놀라면 부풀어 3초 동안 편식이 심해짐
+  hermit:{hp:150, sp:20,r:14,gold:20,cost:4,  armor:.5,hide:5,from:2},       // 껍데기에 숨음 (팝콘·만두 냄새에 깜짝 놀라 튀어나옴)
+  octo:  {hp:105, sp:28,r:14,gold:16,cost:3.2,ink:6},                        // 가게에 먹물
+  gull:  {hp:42,  sp:58,r:12,gold:9, cost:1.7,air:true,leak:2},              // 길을 무시하고 날아와 간식 2개를 낚아챔
+  turtle:{hp:240, sp:19,r:14,gold:26,cost:5.2,armor:.4,rush:1.9},            // 반쯤 배가 차면 신나서 달림
+  shrimp:{hp:16,  sp:60,r:10,gold:3, cost:.7, dart:1},                       // 처음 간식에 맞으면 깜짝 놀라 앞으로 톡 튐
+  elite: {hp:430, sp:22,r:19,gold:50,cost:11, armor:.3,leak:3,shield:6,from:3}, // 양동이 투구가 간식 6개를 튕겨 냄
   boss:  {hp:2400,sp:13,r:30,gold:120,cost:0, armor:.2,leak:20},
 };
 const START_LIVES=20,WAVE_GAP=6,BONUS_PER_SEC=3,REVIVE_LIVES=10;
@@ -43,17 +45,17 @@ const STAGES=[
    paths:[[[110,66],[110,215],[225,325],[225,430],[100,500],[100,615],[225,665],[225,GATE_Y]],[[340,66],[340,215],[225,325],[225,430],[100,500],[100,615],[225,665],[225,GATE_Y]]]},
   {waves:10,hp:1.6, budget:15,gold:320,spots:10,kinds:['crab','puffer','octo','gull','fish','hermit'],boss:'octoboss',bossHp:7000,rec:6,theme:3,
    paths:[[[225,66],[70,135],[70,300],[385,300],[385,470],[160,470],[160,600],[330,640],[225,GATE_Y]]]},
-  {waves:11,hp:1.9, budget:16,gold:360,spots:11,kinds:['fish','octo','hermit','gull','puffer','jelly','crab'],boss:'whale',bossHp:8500,rec:8,theme:4,
+  {waves:11,hp:1.8, budget:16,gold:370,spots:11,kinds:['fish','octo','hermit','gull','puffer','jelly','crab'],boss:'whale',bossHp:8500,rec:8,theme:4,
    paths:[[[80,66],[80,250],[370,350],[370,560],[225,640],[225,GATE_Y]],[[370,66],[370,200],[80,400],[80,580],[225,640],[225,GATE_Y]]]},
-  {waves:11,hp:2.9, budget:18,gold:380,spots:11,kinds:['crab','turtle','fish','puffer','gull','jelly'],boss:'whale',bossHp:12500,rec:10,theme:0,
+  {waves:11,hp:2.9, budget:18,gold:380,spots:11,kinds:['crab','turtle','shrimp','puffer','gull','fish','jelly'],boss:'whale',bossHp:12500,rec:10,theme:0,
    paths:[[[360,66],[360,180],[90,180],[90,330],[360,330],[360,480],[90,480],[90,620],[225,660],[225,GATE_Y]]]},
-  {waves:12,hp:2.5, budget:17,gold:420,spots:11,kinds:['fish','turtle','octo','hermit','gull','crab'],boss:'pirate',bossHp:12000,rec:12,theme:1,
+  {waves:12,hp:2.15,budget:17,gold:440,spots:11,kinds:['fish','turtle','octo','hermit','gull','crab'],boss:'pirate',bossHp:12000,rec:12,theme:1,
    paths:[[[60,66],[60,300],[200,380],[200,520],[225,620],[225,GATE_Y]],[[390,66],[390,300],[250,380],[250,520],[225,620],[225,GATE_Y]]]},
-  {waves:12,hp:2.9, budget:18,gold:440,spots:12,kinds:['puffer','gull','turtle','octo','fish','hermit','jelly'],boss:'pirate',bossHp:15000,rec:14,theme:2,
+  {waves:12,hp:2.9, budget:18,gold:440,spots:12,kinds:['puffer','shrimp','gull','turtle','octo','fish','hermit','jelly'],boss:'pirate',bossHp:15000,rec:14,theme:2,
    paths:[[[100,66],[100,170],[380,170],[380,290],[70,290],[70,410],[380,410],[380,540],[150,560],[150,650],[225,GATE_Y]]]},
   {waves:12,hp:2.9, budget:17,gold:480,spots:12,kinds:['turtle','fish','octo','gull','hermit','puffer','crab'],boss:'octoboss',bossHp:17000,rec:16,theme:3,
    paths:[[[70,66],[70,260],[225,360],[225,470],[110,540],[110,640],[225,675],[225,GATE_Y]],[[225,66],[225,360],[225,470],[110,540],[110,640],[225,675],[225,GATE_Y]],[[380,66],[380,260],[225,360],[225,470],[110,540],[110,640],[225,675],[225,GATE_Y]]]},
-  {waves:13,hp:3.0, budget:18,gold:520,spots:12,kinds:['octo','turtle','gull','hermit','fish','puffer','jelly','crab'],boss:'whale',bossHp:21000,rec:18,theme:4,
+  {waves:13,hp:2.3, budget:17,gold:560,spots:12,kinds:['octo','turtle','shrimp','gull','hermit','fish','puffer','jelly','crab'],boss:'whale',bossHp:21000,rec:18,theme:4,
    paths:[[[90,66],[90,180],[360,260],[360,380],[90,460],[90,580],[225,650],[225,GATE_Y]],[[360,66],[360,180],[90,260],[90,380],[360,460],[360,580],[225,650],[225,GATE_Y]]]},
 ];
 /* 파도 내용: 장마다 정해진 규칙으로 만든다(무작위 아님). 뒤로 갈수록 예산이 늘고 새 적이 섞인다 */
@@ -133,29 +135,35 @@ function callWave(s){
 function spawn(s,k,pi,d0){
   const b=ENEMIES[k],hp=k==='boss'?s.S.bossHp:b.hp*s.cur.hp,p=s.paths[pi%s.paths.length];
   const e={id:s.uid++,k,bk:k==='boss'?s.S.boss:'',pi:pi%s.paths.length,d:d0||0,x:0,y:0,hp,max:hp,sp:b.sp,r:b.r,armor:b.armor||0,air:!!b.air,gold:b.gold,leak:b.leak||1,
-    slow:0,slowT:0,stun:0,kb:0,shred:0,hit:0,rush:false,inkT:(b.ink||0)*TICK*.5,ph:s.rand()*6.28,ox:k==='boss'?0:(s.rand()-.5)*15,oy:k==='boss'?0:(s.rand()-.5)*9,dead:false,len:p.len};
+    slow:0,slowT:0,stun:0,kb:0,shred:0,hit:0,rush:false,puffT:0,puffed:false,hideT:0,hideCd:0,fadeT:0,fadeCd:0,leapT:0,leapCd:0,dartT:0,darted:false,shield:0,inkT:(b.ink||0)*TICK*.5,ph:s.rand()*6.28,ox:k==='boss'?0:(s.rand()-.5)*15,oy:k==='boss'?0:(s.rand()-.5)*9,dead:false,len:p.len};
   if(e.air){const a=p.s[0],z=p.s[p.s.length-1];e.ax=a.x+(s.rand()-.5)*120;e.ay=a.y;e.zx=z.x;e.zy=z.y;e.len=Math.hypot(e.zx-e.ax,e.zy-e.ay);}
+  if(s.si>=(b.from||0)){if(b.hide)e.hideCd=Math.round((2+s.rand()*2.5)*TICK);if(b.fade)e.fadeCd=Math.round((1.5+s.rand()*3)*TICK);if(b.leap)e.leapCd=Math.round((1.5+s.rand()*2)*TICK);if(b.shield)e.shield=b.shield;e.tr=true;}
   place(s,e);s.en.push(e);if(k==='boss'){s.boss=e;s.bossT=0;s.fx.push({e:'boss',bk:e.bk});}return e;
 }
 function place(s,e){if(e.air){const q=Math.min(1,e.d/e.len);e.x=e.ax+(e.zx-e.ax)*q;e.y=e.ay+(e.zy-e.ay)*q;}else{const p=pathPos(s.paths[e.pi],e.d);e.x=p.x+e.ox;e.y=p.y+e.oy;}}
 
 function hurt(s,e,d,cls){
   if(e.dead)return;
-  if(cls==='exp')d*=e.k==='hermit'?1.5:1-e.armor;else if(cls==='phy')d*=1-e.armor;
+  if(e.shield>0){e.shield--;e.hit=6;s.fx.push({e:'trait',t:e.shield?'block':'break',x:e.x,y:e.y});return;}                 // 양동이 투구
+  const arm=e.puffT>0?.8:e.armor;let res=cls!=='mag'&&arm>=.5&&!(cls==='exp'&&e.k==='hermit');
+  if(e.hideT>0){if(cls==='exp'){d*=2;e.hideT=0;e.stun=Math.max(e.stun,.7*TICK);res=false;s.fx.push({e:'trait',t:'pop',x:e.x,y:e.y});}else{d*=.15;res=true;}}   // 껍데기 속
+  else if(cls==='exp')d*=e.k==='hermit'?1.5:1-arm;else if(cls==='phy')d*=1-arm;
   if(e.shred>0)d*=1.35;
-  e.hp-=d;e.hit=6;s.fx.push({e:'hit',x:e.x,y:e.y,v:d,k:e.k,weak:cls==='exp'&&e.k==='hermit',res:cls!=='mag'&&e.armor>=.5&&!(cls==='exp'&&e.k==='hermit')});
+  e.hp-=d;e.hit=6;s.fx.push({e:'hit',x:e.x,y:e.y,v:d,k:e.k,weak:cls==='exp'&&e.k==='hermit',res});
+  if(e.tr&&e.k==='puffer'&&!e.puffed&&e.hp>0&&e.hp<e.max*.75){e.puffed=true;e.puffT=ENEMIES.puffer.puff*TICK;s.fx.push({e:'trait',t:'puff',x:e.x,y:e.y});}
+  if(e.k==='shrimp'&&!e.darted&&e.hp>0){e.darted=true;e.dartT=12;s.fx.push({e:'trait',t:'dart',x:e.x,y:e.y});}
   if(e.hp<=0){e.dead=true;s.kills++;let g=e.gold;
     for(const sp of s.spots){const tw=sp.tw;if(tw&&tw.id==='zhuo'&&tw.ink<=0){const st=towerStat(s,tw);if((sp.x-e.x)**2+(sp.y-e.y)**2<st.range*st.range){g+=st.gold;break;}}}
     s.gold+=g;s.fx.push({e:'die',x:e.x,y:e.y,k:e.k,bk:e.bk,g,air:e.air,pi:e.pi,d:e.d,ox:e.ox,oy:e.oy});}
 }
 function blast(s,x,y,r,d,cls,kind,eff,air){
-  for(const e of s.en){if(e.dead||(e.air&&!air))continue;const q=r+e.r;if((e.x-x)**2+(e.y-y)**2<q*q){hurt(s,e,d,cls);if(eff&&!e.dead){if(eff.slow&&e.k!=='boss'){e.slow=Math.max(e.slow,eff.slow);e.slowT=Math.max(e.slowT,eff.slowT*TICK);}if(eff.stun&&e.k!=='boss')e.stun=Math.max(e.stun,eff.stun*TICK);}}}
+  for(const e of s.en){if(e.dead||((e.air||e.leapT>0)&&!air))continue;const q=r+e.r;if((e.x-x)**2+(e.y-y)**2<q*q){hurt(s,e,d,cls);if(eff&&!e.dead){if(eff.slow&&e.k!=='boss'){e.slow=Math.max(e.slow,eff.slow);e.slowT=Math.max(e.slowT,eff.slowT*TICK);}if(eff.stun&&e.k!=='boss')e.stun=Math.max(e.stun,eff.stun*TICK);}}}
   s.fx.push({e:'blast',x,y,r,kind});
 }
 const progress=e=>e.d/e.len;
 function pickTarget(s,sp,st,b,skip,strong){
   let best=null,bv=-1;const r2=st.range*st.range;
-  for(const e of s.en){if(e.dead||(e.air&&!b.air)||(skip&&skip.indexOf(e.id)>=0))continue;if((e.x-sp.x)**2+(e.y-sp.y)**2>r2)continue;const v=strong?e.hp:progress(e);if(v>bv){bv=v;best=e;}}
+  for(const e of s.en){if(e.dead||e.fadeT>0||((e.air||e.leapT>0)&&!b.air)||(skip&&skip.indexOf(e.id)>=0))continue;if((e.x-sp.x)**2+(e.y-sp.y)**2>r2)continue;const v=strong?e.hp:progress(e);if(v>bv){bv=v;best=e;}}
   return best;
 }
 function stepTowers(s){
@@ -163,7 +171,7 @@ function stepTowers(s){
     if(tw.ink>0){tw.ink--;tw.tgt=0;continue;}
     tw.cd-=1/TICK;if(tw.cd>0)continue;const b=TOWERS[tw.id],st=towerStat(s,tw);
     if(b.beam){ // 등롱 빛줄기: 한 적을 계속 비출수록 세진다
-      let t=null;if(tw.tgt)for(const e of s.en)if(e.id===tw.tgt&&!e.dead&&(e.x-sp.x)**2+(e.y-sp.y)**2<=st.range*st.range){t=e;break;}
+      let t=null;if(tw.tgt)for(const e of s.en)if(e.id===tw.tgt&&!e.dead&&!(e.fadeT>0)&&(e.x-sp.x)**2+(e.y-sp.y)**2<=st.range*st.range){t=e;break;}
       if(!t){t=pickTarget(s,sp,st,b);tw.ramp=0;}
       if(!t){tw.tgt=0;tw.cd=.1;continue;}
       tw.tgt=t.id;tw.ramp=Math.min(12,tw.ramp+1);tw.cd=st.cd;tw.anim=4;const d=st.dmg*(1+tw.ramp*.08);if(st.shred)t.shred=TICK;hurt(s,t,d,'mag');
@@ -205,8 +213,13 @@ function stepEnemies(s){
   for(const e of s.en){if(e.dead)continue;if(e.hit>0)e.hit--;if(e.shred>0)e.shred--;if(e.slowT>0){if(--e.slowT<=0)e.slow=0;}
     if(e.kb>0){const m=Math.min(e.kb,e.kb>120?9:5);e.d=Math.max(0,e.d-m);e.kb-=m;place(s,e);if(e.stun>0)e.stun--;continue;}   // 파도에 떠밀려 가는 중
     if(e.stun>0){e.stun--;continue;}
-    if(e.k==='turtle'&&!e.rush&&e.hp<e.max*.5){e.rush=true;s.fx.push({e:'rush',x:e.x,y:e.y});}
-    e.d+=e.sp/TICK*(1-e.slow)*(surge&&e.k!=='boss'?1.7:1)*(e.rush?ENEMIES.turtle.rush:1);place(s,e);
+    if(e.puffT>0)e.puffT--;if(e.dartT>0)e.dartT--;
+    if(e.hideT>0){e.hideT--;continue;}                                                                                   // 껍데기 속에서는 안 움직인다
+    if(e.hideCd>0&&--e.hideCd<=0){e.hideCd=Math.round(ENEMIES.hermit.hide*TICK);e.hideT=Math.round(1.6*TICK);s.fx.push({e:'trait',t:'hide',x:e.x,y:e.y});continue;}
+    if(e.fadeT>0)e.fadeT--;else if(e.fadeCd>0&&--e.fadeCd<=0){e.fadeCd=Math.round(ENEMIES.jelly.fade*TICK);e.fadeT=78;s.fx.push({e:'trait',t:'fade',x:e.x,y:e.y});}
+    if(e.leapT>0)e.leapT--;else if(e.leapCd>0&&--e.leapCd<=0){e.leapCd=Math.round(ENEMIES.fish.leap*TICK);if(e.slow<=0){e.leapT=26;s.fx.push({e:'trait',t:'leap',x:e.x,y:e.y});}}
+    if(e.k==='turtle'&&!e.rush&&e.hp<e.max*.5){e.rush=true;s.fx.push({e:'trait',t:'rush',x:e.x,y:e.y});}
+    e.d+=e.sp/TICK*(1-e.slow)*(surge&&e.k!=='boss'?1.7:1)*(e.rush?ENEMIES.turtle.rush:1)*(e.leapT>0?2.4:1)*(e.dartT>0?3.5:1)*(e.puffT>0?.6:1);place(s,e);
     if(e.k==='octo'&&--e.inkT<=0){e.inkT=ENEMIES.octo.ink*TICK;if(inkTower(s,e.x,e.y,1))s.fx.push({e:'spit',x:e.x,y:e.y});}
     if(e.d>=e.len){e.dead=true;s.lives=Math.max(0,s.lives-e.leak);s.leaked+=e.leak;s.fx.push({e:'leak',x:e.x,y:e.y,n:e.leak,k:e.k});
       if(s.lives<=0&&s.phase==='run'){if(s.revives>0)s.phase='revive';else finish(s,false);s.fx.push({e:'down'});}}
@@ -254,7 +267,7 @@ if(typeof module!=='undefined')module.exports={newGame,step,advance,build,upgrad
 
 /* ============================== 플랫폼 층: 화면·터치·저장·소리·광고·통계는 여기에만 둔다 ==============================
    위챗(wx)·더우인(tt)으로 옮길 때 이 파일만 손보면 된다. */
-const BUILD='1117-1116';
+const BUILD='1117-1223';
 const PLAT=typeof wx!=='undefined'?'wx':typeof tt!=='undefined'?'tt':'web';
 const API=PLAT==='wx'?wx:PLAT==='tt'?tt:null;
 const VW=750,VH=1334,K=VW/W;
@@ -324,7 +337,7 @@ function bell(m,t,v,dur,dest){const f=mtof(m);tone('sine',f,t,dur||.5,v,0,dest);
 function crackle(t,n,span,v){for(let i=0;i<n;i++)nz(t+Math.random()*span,.03,v*(.5+Math.random()*.5),5000+Math.random()*3000,'highpass');}
 function horn(t,m,dur,v,dest){const c=AU.c,fl=c.createBiquadFilter(),gn=c.createGain();fl.type='lowpass';fl.frequency.setValueAtTime(500,t);fl.frequency.linearRampToValueAtTime(1300,t+dur*.4);gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.07);gn.gain.setValueAtTime(v,t+dur*.7);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);
   for(const dt of [0,.07,7.02]){const o=c.createOscillator();o.type='sawtooth';o.frequency.value=mtof(m+dt);o.connect(fl);o.start(t);o.stop(t+dur+.05);}fl.connect(gn);gn.connect(dest||AU.sfxG);}
-const SFX_GAP={s_tt:.06,s_didi:.05,s_peng:.08,s_shan:.14,s_dun:.06,s_zhuo:.08,hit:.045,kill:.04,ex_bun:.07,ex_fw:.08,splash:.07,gold:.06,leak:.12};
+const SFX_GAP={block:.07,fade:.3,leap:.12,hide:.2,puff:.2,s_tt:.06,s_didi:.05,s_peng:.08,s_shan:.14,s_dun:.06,s_zhuo:.08,hit:.045,kill:.04,ex_bun:.07,ex_fw:.08,splash:.07,gold:.06,leak:.12};
 const COMBO=[0,2,4,7,9,12,14,16,19,21,24];
 function sfx(n,arg){if(!AU.c||!S.opt.sfx||APP.hidden)return;try{const now=AU.c.currentTime;if(now-(AU.last[n]||-9)<(SFX_GAP[n]||.02))return;AU.last[n]=now;const t=now+.004,r=.94+Math.random()*.12;switch(n){
   case 'btn':tone('sine',560,t,.05,.11,760);nz(t,.02,.03,3000,'bandpass',1);break;
@@ -350,6 +363,12 @@ function sfx(n,arg){if(!AU.c||!S.opt.sfx||APP.hidden)return;try{const now=AU.c.c
   case 'tide':nz(t,1,.2,300,'lowpass',0,null,2200);nz(t+.1,.9,.07,3000,'bandpass',.5);tone('sine',72,t,.9,.14,48);break;
   case 'horn':horn(t,57,.6,.055);break;
   case 'boss':[0,.26,.52].forEach(d=>{tone('sine',105,t+d,.3,.32,40);nz(t+d,.12,.08,500,'lowpass');});horn(t+.1,45,.9,.07);break;
+  case 'puff':tone('sine',220,t,.22,.1,560);nz(t,.18,.03,1800,'bandpass',.8);break;
+  case 'hide':tone('sine',420,t,.06,.1,260);nz(t,.03,.04,1500,'bandpass',1.5);break;
+  case 'fade':tone('triangle',1500*r,t,.3,.03,2400);tone('sine',2000,t+.05,.25,.02,3000);break;
+  case 'leap':nz(t,.1,.05,1200,'bandpass',.8,null,3200);tone('sine',500,t,.1,.04,1000);break;
+  case 'block':tone('triangle',1250*r,t,.07,.08,820);nz(t,.03,.05,5000,'highpass');break;
+  case 'break':tone('triangle',900,t,.12,.12,420);nz(t,.1,.07,3000,'bandpass',.8);bell(84,t+.05,.07,.3);break;
   case 'ink':tone('sine',310,t,.2,.1,115);nz(t,.15,.05,600,'lowpass');break;
   case 'clear':tone('sine',520,t,.1,.08,1150);nz(t,.06,.03,6000,'highpass');break;
   case 'bonus':bell(84,t,.07,.25);bell(91,t+.06,.07,.3);break;
@@ -528,6 +547,9 @@ const DRAW_EN={
     shape(x,'#e9bd7e',()=>{x.arc(0,-12,38,0,6.2832);});x.strokeStyle='#b98346';x.lineWidth=5;x.beginPath();x.arc(2,-12,24,.4,5.2);x.stroke();x.beginPath();x.arc(4,-12,11,.8,5.6);x.stroke();face(x,0,24,11,4.5);},
   octo:x=>drawOcto(x,'#c9a2f2',{}),
   turtle:x=>drawTurtle(x,{}),
+  shrimp:x=>{x.strokeStyle='#e8718a';x.lineWidth=4;x.lineCap='round';for(const s of [-1,1]){x.beginPath();x.moveTo(s*8,-30);x.quadraticCurveTo(s*30,-56,s*44,-34);x.stroke();}
+    shape(x,'#ff9db0',()=>{x.moveTo(-10,-40);x.lineTo(0,-58);x.lineTo(10,-40);});shape(x,'#ffb3c1',()=>{x.ellipse(0,0,26,40,0,0,6.2832);});x.strokeStyle='rgba(200,80,110,.55)';x.lineWidth=3;for(const yy of [-22,-9,4]){x.beginPath();x.moveTo(-22,yy);x.quadraticCurveTo(0,yy+8,22,yy);x.stroke();}
+    for(const s of [-1,1])for(let i=0;i<2;i++){x.strokeStyle=INK;x.lineWidth=4;x.beginPath();x.moveTo(s*22,6+i*12);x.lineTo(s*34,14+i*13);x.stroke();}face(x,0,16,10,4.6);},
   pirate:x=>drawTurtle(x,{hat:1,mood:'grr',col:'#3f8f6a'}),
   gull:x=>{shape(x,'#eef3f8',()=>{x.moveTo(-14,-6);x.quadraticCurveTo(-44,-34,-62,-8);x.quadraticCurveTo(-40,-10,-16,12);});shape(x,'#eef3f8',()=>{x.moveTo(14,-6);x.quadraticCurveTo(44,-34,62,-8);x.quadraticCurveTo(40,-10,16,12);});
     shape(x,'#ffffff',()=>{x.ellipse(0,2,24,30,0,0,6.2832);});shape(x,'#ffb347',()=>{x.moveTo(-7,14);x.lineTo(0,30);x.lineTo(7,14);},4);x.fillStyle='#8fa3b8';x.beginPath();x.ellipse(0,-24,12,6,0,0,6.2832);x.fill();face(x,0,0,10,4.5,'brow');},
@@ -623,7 +645,7 @@ function tip(key,text,sec){if(S.tips[key]||!B)return;S.tips[key]=1;B.tip={text,t
 function banner(text,big,col){B.banner={text,t:0,big:!!big,col:col||'#fff'};}
 function shake(n){B.shake=Math.max(B.shake,n);}
 /* ---------- 이펙트 도구: 번쩍임(빛 번짐) · 불똥 · 연기 · 별가루 · 자국 · 날아가는 동전 ---------- */
-const ECOL={crab:'#ff8a65',jelly:'#c8e6ff',fish:'#6fb8ff',puffer:'#ffd76a',hermit:'#e9bd7e',octo:'#c9a2f2',gull:'#ffffff',elite:'#e2685c',boss:'#ff7a5c'};
+const ECOL={crab:'#ff8a65',jelly:'#c8e6ff',fish:'#6fb8ff',puffer:'#ffd76a',hermit:'#e9bd7e',octo:'#c9a2f2',gull:'#ffffff',turtle:'#4fa35e',shrimp:'#ff9db0',elite:'#e2685c',boss:'#ff7a5c'};
 const TCOL={tt:'#fff1d6',didi:'#8fd4ff',peng:'#ffb347',shan:'#ffe9a0',dun:'#ffffff',zhuo:'#ffc9d6'};
 const GLOW={};
 function glow(x,y,r,col,a){let c=GLOW[col];if(!c){c=GLOW[col]=mkCanvas(64,64);const q=c.getContext('2d'),gr=q.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.3,'rgba(255,255,255,.75)');gr.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=gr;q.fillRect(0,0,64,64);q.globalCompositeOperation='source-in';q.fillStyle=col;q.fillRect(0,0,64,64);}
@@ -656,6 +678,16 @@ function consumeFx(){
       coins(f.x,f.y,boss?12:el?5:f.g>=12?2:1);floatTxt(f.x,f.y-18,'+'+f.g,'#ffd93d',boss?17:el?13:10);sfx('kill');
       if(boss){shake(12);vib(70);hitStop(.12);stars(f.x,f.y,24,FW_COL,6);smoke(f.x,f.y,6,22);}else if(el){shake(5);hitStop(.04);}break;}
     case 'blast':boom(f.x,f.y,f.r,f.kind);break;
+    case 'trait':switch(f.t){
+      case 'puff':ring(f.x,f.y,22,'#ffe9a0',3,14);sfx('puff');tip('tr_puff',L('복어가 놀라 부풀었어요! 3초 동안 편식이 심해져요. 빙수와 차는 그대로 먹어요','河豚吓得鼓起来了！3 秒内更挑食，但刨冰和茶照吃不误'),7);break;
+      case 'hide':ring(f.x,f.y,16,'#e9bd7e',2.5,12);sfx('hide');tip('tr_hide',L('소라게가 껍데기에 숨었어요. 만두·팝콘을 던지면 깜짝 놀라 튀어나와요','寄居蟹躲进壳里了，扔包子或爆米花能把它吓出来'),7);break;
+      case 'pop':flash(f.x,f.y,22,'#fff3c0',6);stars(f.x,f.y-6,6,['#ffd93d','#fff'],3);floatTxt(f.x,f.y-22,L('깜짝!','吓一跳！'),'#ffd93d',11);sfx('break');break;
+      case 'fade':ring(f.x,f.y,18,'#d9f2ff',2,16);sfx('fade');tip('tr_fade',L('해파리가 투명해졌어요! 한 명씩 노리는 가게는 못 봐요. 만두·팝콘·찹쌀떡은 닿아요','水母变透明了！单体小吃摊看不见它，包子、爆米花和年糕照样能喂到'),7);break;
+      case 'leap':ring(f.x,f.y,14,'#ffffff',3,12);for(let i=0;i<4;i++)P('dot',f.x,f.y,rnd(-1.8,1.8),rnd(-3,-1.4),rnd(12,18),rnd(1.6,2.4),'#d9f2ff',.2);sfx('leap');tip('tr_leap',L('날치가 뛰어올랐어요! 만두와 찹쌀떡은 넘어가요. 느려진 날치는 못 뛰어요','飞鱼跳起来了！包子和年糕会被它跳过去，被减速的飞鱼跳不起来'),7);break;
+      case 'dart':P('smoke',f.x,f.y+6,0,-.2,14,6,'#f6e2b8');sfx('leap');tip('tr_dart',L('새우는 처음 간식에 맞으면 깜짝 놀라 앞으로 톡 튀어요','小虾第一次被喂到会吓得往前一蹿'),6);break;
+      case 'block':flash(f.x,f.y-8,12,'#dfe7ee',4);sparks(f.x,f.y-8,3,'#dfe7ee',4);if(Math.random()<.4)floatTxt(f.x,f.y-22,L('깡!','当！'),'#dfe7ee',10);sfx('block');tip('tr_block',L('양동이 투구가 간식을 6번 튕겨 내요. 빠르게 던지는 빙수가 잘 벗겨요','水桶头盔能挡 6 次投喂，出手快的刨冰最容易打掉它'),7);break;
+      case 'break':burst(f.x,f.y-10,8,['#c9d3dc','#8fa3b8'],4,3);ring(f.x,f.y-6,20,'#dfe7ee',3,14);floatTxt(f.x,f.y-24,L('양동이 벗겨짐!','水桶掉啦！'),'#fff',11);sfx('break');shake(3);break;
+      case 'rush':floatTxt(f.x,f.y-22,L('신난다!','冲呀！'),'#8ce99a',11);sfx('leap');tip('tr_rush',L('거북은 배가 반쯤 차면 신나서 달려요. 미리 느리게 해 두세요','海龟吃到半饱会兴奋冲刺，记得提前减速'),7);break;}break;
     case 'splash':ring(f.x,f.y,9,'#bfe8ff',2,10);for(let i=0;i<3;i++)P('dot',f.x,f.y,rnd(-1.6,1.6),rnd(-2.6,-1),rnd(12,18),rnd(1.6,2.4),'#bfe8ff',.2);sfx('splash');break;
     case 'pingpong':flash(f.x,f.y,16,'#ffffff',5);sparks(f.x,f.y,5,['#fff','#ffb347'],5);ring(f.x,f.y,10,'#ffffff',2.5,9);break;
     case 'shoot':{const sp=run.spots[f.i],tv=B.tv[f.i]||(B.tv[f.i]={sq:0,sv:0,lean:0,lt:0});let tx=sp.x;for(let k=run.pr.length-1;k>=0;k--)if(run.pr[k].i===f.i){tx=run.pr[k].tx;break;}if(f.id==='shan'){const e=run.en.find(q=>q.id===sp.tw.tgt);if(e)tx=e.x;}tv.lt=Math.max(-1,Math.min(1,(tx-sp.x)/70))*.15;tv.sv+=f.id==='shan'?.02:f.id==='didi'?.035:.07;if(f.id!=='shan')flash(sp.x,sp.y-34,f.id==='tt'||f.id==='peng'?15:10,TCOL[f.id],4);if(f.id==='tt')smoke(sp.x,sp.y-36,1,7);sfx('s_'+f.id);break;}
@@ -751,7 +783,7 @@ function drawDecals(){
    · 먹으면 용수철처럼 움찔하고, 배가 찰수록 통통해진다
    · 화면 주사율이 높아도 끊기지 않게 틱 사이를 이어 그린다 */
 const GAIT={crab:{step:9,hop:0,sway:.11,sq:.03,slide:1.6},jelly:{step:24,hop:3.5,sway:.03,sq:.14,pulse:1},fish:{step:27,hop:10,sway:.22,sq:.1,arc:1},puffer:{step:14,hop:1.6,sway:.13,sq:.05},
-  hermit:{step:12,hop:.8,sway:.05,sq:.06,slide:.8},octo:{step:17,hop:4,sway:.05,sq:.13},gull:{step:20,hop:0,sway:.04,sq:0,flap:1},turtle:{step:13,hop:1.4,sway:.07,sq:.04},
+  hermit:{step:12,hop:.8,sway:.05,sq:.06,slide:.8},octo:{step:17,hop:4,sway:.05,sq:.13},gull:{step:20,hop:0,sway:.04,sq:0,flap:1},turtle:{step:13,hop:1.4,sway:.07,sq:.04},shrimp:{step:9,hop:1.2,sway:.1,sq:.05,slide:1},
   elite:{step:16,hop:2.4,sway:.08,sq:.06,stomp:1},boss:{step:22,hop:3,sway:.05,sq:.05,stomp:2}};
 function animEnemies(f,n){
   for(const e of run.en){let v=e._v;
@@ -783,14 +815,22 @@ function drawEnemies(){
     if(G.flap){sx=1+.1*Math.sin(T*16+e.ph);hop=7+Math.sin(T*3+e.ph)*3;rot=v.lean*2.2;}
     if(stun){rot=Math.sin(T*11+e.ph)*.09;hop=0;}
     if(e.kb>0){rot=v.spin;hop=6;}
+    // 특기는 전부 같은 그림 한 장을 늘이고·줄이고·흐리게 해서 보여 준다 (그림체가 바뀌어도 어긋나지 않음)
+    let fa=1;
+    if(e.puffT>0){const w=1.3*Math.min(1,(ENEMIES.puffer.puff*60-e.puffT)/8+.75)+Math.sin(T*10)*.03;sx*=w;sy*=w;hop+=3;}
+    if(e.hideT>0){const q=Math.min(1,(96-e.hideT)/6,e.hideT/6);sy*=1-.42*q;sx*=1+.14*q;hop=0;rot=Math.sin(T*22)*.02*q;}
+    if(e.fadeT>0){const q=Math.min(1,(78-e.fadeT)/10,e.fadeT/10);fa=1-.7*q;}
+    if(e.leapT>0){const q=1-e.leapT/26;hop+=Math.sin(q*3.1416)*26;rot=-.35*Math.cos(q*3.1416)*(v.face<0?-1:1);}
+    if(e.dartT>0){sy*=1.22;sx*=.84;}
     const full=Math.max(0,Math.min(1,1-e.hp/e.max)),age=T-v.born,grow=age<.35?.5+.5*Math.sin(age/.35*1.5708):1,a=age<.25?age/.25:1;
     sx=(sx+v.sq*.9)*(1+full*.16)*grow;sy=(sy-v.sq)*(1+full*.04)*grow;
     // 그림자: 뛰어오르면 작아진다
     const gy=e.y+v.vy*al+(e.air?26:e.r*.8),sh=Math.max(.45,1-hop/26);g.fillStyle='rgba(60,40,20,'+((e.air?.13:.19)*a)+')';g.beginPath();g.ellipse(x,gy,e.r*.92*sh*(1+full*.12),e.r*.32*sh,0,0,6.2832);g.fill();
     if(e.slow>0){g.fillStyle='rgba(150,215,255,.5)';g.beginPath();g.ellipse(x,gy,e.r*1.25,e.r*.48,0,0,6.2832);g.fill();g.strokeStyle='rgba(255,255,255,.8)';g.lineWidth=1;g.stroke();}
     const yy=y+e.r*.25-hop;if(e.shred>0)glow(x,yy-e.r*.3,e.r*2.2,'#ffe9a0',.35);
-    const o={sx:sx*(v.face<0?-1:1)*Math.max(.25,Math.abs(v.face)),sy,rot,a};drawSpr(k,x,yy,size,o);if(e.hit>0)drawSpr(k,x,yy,size,{sx:o.sx,sy,rot,white:1,a:e.hit/6*.6});
+    const o={sx:sx*(v.face<0?-1:1)*Math.max(.25,Math.abs(v.face)),sy,rot,a:a*fa};if(e.fadeT>0){g.strokeStyle='rgba(255,255,255,'+(.5*(1-fa))+')';g.lineWidth=1.2;circ(x,yy,e.r*(1.1+Math.sin(T*6)*.1));g.stroke();}drawSpr(k,x,yy,size,o);if(e.hit>0)drawSpr(k,x,yy,size,{sx:o.sx,sy,rot,white:1,a:e.hit/6*.6});
     if(e.slow>0){g.fillStyle='rgba(215,240,255,.9)';for(let i=0;i<2;i++){const an=T*2+i*3.14+e.ph;circ(x+Math.cos(an)*e.r*.9,yy-e.r*.5+Math.sin(an*1.3)*4,1.6);g.fill();}}
+    if(e.shield>0)for(let i=0;i<e.shield;i++){g.fillStyle='#c9d3dc';g.strokeStyle=INK;g.lineWidth=.9;circ(x-(e.shield-1)*2.6+i*5.2,yy-size*.5-11,2.1);g.fill();g.stroke();}
     if(stun)for(let i=0;i<2;i++){const an=T*7+i*3.14;txt('★',x+Math.cos(an)*e.r*.8,yy-e.r-6+Math.sin(an)*3,8,'#ffd93d','center',INK,2);}
     if(e.hp<e.max*.999||e.k==='elite'||e.k==='boss'){const w=Math.max(18,e.r*1.9),by=yy-size*.5-3;g.fillStyle=e.armor>=.5?'rgba(40,70,110,.8)':'rgba(60,36,20,.75)';rr(x-w/2-1,by-1,w+2,5.5,2.5);g.fill();g.fillStyle=full>.7?'#7ddc6a':full>.35?'#ffd24d':'#ffb347';rr(x-w/2,by,Math.max(1.5,w*full),3.5,1.7);g.fill();}
   }
@@ -1055,13 +1095,13 @@ function drawSettings(){
 const GUIDE=[
   [['이렇게 해요','怎么玩'],['① 빈 모래 자리를 눌러 간식 가게를 차려요.\n\n② 배고픈 바다 손님이 바다에서 길을 따라 마을로 와요.\n\n③ 가게가 간식을 던져 줘요. 머리 위 막대가 다 차면 배불러서 바다로 돌아가요.\n\n④ 놓친 손님은 마을 간식을 훔쳐 가요. 간식이 0이 되면 끝!\n\n⑤ 파도를 모두 넘기면 클리어. 간식을 18개 이상 지키면 별 3개예요.','① 点空沙堆摆小吃摊。\n\n② 馋嘴的小海怪会从海里沿着路走向小镇。\n\n③ 小吃摊会自动投喂。头顶的条满了，它就吃饱回海里。\n\n④ 没喂饱的客人会偷走小镇的点心，点心为 0 就结束！\n\n⑤ 撑过所有波次就通关，守住 18 份以上点心是 3 星。']],
   [['가게 6종','6 种小吃摊'],null],
-  [['손님마다 입맛이 달라요','客人口味各不同'],['편식쟁이 (파란 막대: 복어·소라게·거북)\n→ 빙수와 차는 잘 먹어요. 소라게는 만두·팝콘을 특히 좋아해요.\n\n갈매기\n→ 길을 무시하고 날아와요. 만두와 찹쌀떡은 하늘까지 못 던져요.\n\n문어\n→ 가게에 먹물을 뿌려요. 가게를 눌러 닦아 주세요.\n\n거북\n→ 배가 반쯤 차면 신나서 달려요. 미리 느리게 해 두세요.\n\n보스\n→ 부하를 부르거나 가게를 멈추게 해요. 탕후루 왕꼬치가 3배로 먹여요.','挑食的客人（蓝条：河豚、寄居蟹、海龟）\n→ 爱吃刨冰和茶。寄居蟹特别爱包子和爆米花。\n\n海鸥\n→ 不走路，直接飞过来。包子和年糕扔不到天上。\n\n章鱼\n→ 会朝小吃摊喷墨汁，点一下摊位擦干净。\n\n海龟\n→ 吃到半饱会兴奋地冲刺，记得提前减速。\n\nBOSS\n→ 会叫帮手或让摊位停工。巨无霸糖葫芦能喂 3 倍。']],
+  [['손님마다 특기가 있어요','每位客人都有绝活'],['해파리: 가끔 투명해져요 → 만두·팝콘·찹쌀떡(범위)으로\n\n날치: 뛰어올라 땅 간식을 넘어가요 → 빙수로 느리게 하면 못 뛰어요\n\n복어: 놀라면 부풀어 편식이 심해져요 → 빙수와 차는 그대로 먹어요\n\n소라게: 껍데기에 숨어요 → 만두·팝콘에 깜짝 놀라 튀어나와요\n\n문어: 가게에 먹물을 뿌려요 → 가게를 눌러 닦아요\n\n갈매기: 길을 무시하고 날아와 간식 2개를 낚아채요 → 만두·찹쌀떡은 하늘에 못 닿아요\n\n거북: 배가 반쯤 차면 달려요 → 미리 느리게\n\n새우: 처음 맞으면 앞으로 톡 튀어요\n\n양동이 꽃게: 투구가 6번 튕겨 내요 → 빠른 빙수로 벗겨요','水母：偶尔变透明 → 用包子、爆米花、年糕（范围）\n\n飞鱼：跳起来越过地面投喂 → 用刨冰减速就跳不起来\n\n河豚：受惊会鼓起来更挑食 → 刨冰和茶照吃\n\n寄居蟹：会躲进壳里 → 包子、爆米花能把它吓出来\n\n章鱼：朝小吃摊喷墨汁 → 点一下摊位擦干净\n\n海鸥：不走路直接飞来，抢走 2 份点心 → 包子和年糕够不着天上\n\n海龟：吃到半饱会冲刺 → 提前减速\n\n小虾：第一次被喂到会往前一蹿\n\n水桶螃蟹：头盔能挡 6 次 → 用出手快的刨冰打掉']],
   [['잘하는 요령','小窍门'],['· 길이 꺾이는 안쪽에 차리면 더 오래 먹일 수 있어요.\n\n· 가게를 누르면 키울 수 있어요. 3단계 다음엔 새 메뉴 두 가지 중 하나를 골라요.\n\n· 다음 파도를 미리 부르면 남은 시간만큼 골드를 더 받아요.\n\n· 큰 파도는 손님을 전부 뒤로 밀어내고, 왕수박은 누른 곳을 한꺼번에 먹여요.\n\n· 막히면 가게 화면에서 동전으로 숙련을 올려요. 모든 판에서 더 맛있어져요.\n\n· 가게를 팔면 쓴 골드의 70%를 돌려받아요.','· 把摊位摆在拐弯内侧，能喂得更久。\n\n· 点一下摊位可以升级，3 级之后从两种新菜单里选一个。\n\n· 提前叫下一波，可按剩余时间多拿金币。\n\n· 大浪会把客人全部推回去，大西瓜能一次喂饱一片。\n\n· 卡关时去小吃摊界面用金币提升熟练度，每一关都更美味。\n\n· 出售摊位可返还 70% 金币。']],
 ];
 function drawGuide(){
   backdrop(.75);topBar(L('안내서','玩法指南'),1);const n=GUIDE.length,pg=Math.max(0,Math.min(n-1,APP.page||0)),G=GUIDE[pg];panel(40,140,670,960,CREAM,30);
   txt(LL(G[0]),375,196,36,RED_D);
-  if(G[1])wrap(LL(G[1]),80,262,24,590,36,INK,'left');
+  if(G[1])wrap(LL(G[1]),80,258,pg===2?21:24,590,pg===2?30:36,INK,'left');
   else TOWER_IDS.forEach((id,i)=>{const y=240+i*140;g.fillStyle=HCOL[id];rr(70,y,110,120,20);g.fill();g.lineWidth=3;g.strokeStyle=INK;g.stroke();stallIcon(id,125,y+96,1);txt(LL(HN[id]),200,y+30,28,INK,'left');wrap(LL(TROLE[id]),200,y+68,21,480,30,'#8a6a4a','left',2);});
   for(let i=0;i<n;i++){g.fillStyle=i===pg?RED:'#d9c8a8';circ(375+(i-(n-1)/2)*34,1070,9);g.fill();}
   btn(60,1124,300,88,L('‹ 앞으로','‹ 上一页'),()=>{sfx('btn');APP.page=pg-1;},{col:CREAM,dk:'#d9c8a8',tc:INK,sz:30,off:pg===0});

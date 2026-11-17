@@ -6,6 +6,16 @@
 3. **움직임은 게임이 만든다.** 그림은 가만히 서 있는 모습 한 장이면 된다. 그래서 모든 그림은 정면을 보고 똑바로 선 좌우 대칭 자세, 움직임 선·잔상·바닥 그림자 없이 그린다(프롬프트에 넣어 둠).
 4. 넣는 이름(베파가 처리): 가게 `tw_tt, tw_didi, tw_peng, tw_shan, tw_dun, tw_zhuo` · 손님 `en_crab …` · 보스 `boss_kingcrab …` · 배경 `bg_1 ~ bg_5`. `dev/beach/art/` 에 이 이름의 webp 가 있으면 코드 그림 대신 자동으로 쓰인다.
 
+## 통일 규격 (그림·효과·동작이 한 벌로 보이게)
+| 항목 | 규칙 |
+|---|---|
+| 자세 | 정면을 보고 가만히 선 좌우 대칭. 움직임 선·잔상·바닥 그림자 없음 (움직임과 그림자는 게임이 붙인다) |
+| 선과 빛 | 굵은 밤색 외곽선, 2단 명암 + 윤기 하이라이트, 빛은 왼쪽 위 |
+| 색 | 가게는 따뜻한 색(빨강·크림·나무색), 손님은 시원한 바다색 위주 → 한눈에 편이 갈린다 |
+| 받은 뒤 베파가 하는 일 | 배경 지우기, 같은 크기 틀에 맞추고 발끝 위치 맞추기, 외곽선 굵기·채도가 튀는 장은 다시 요청 |
+| 효과 | 전부 같은 재료(고리·번쩍임·연기·하트·별가루)와 같은 색 표로 코드가 그린다. 그림에 효과를 그려 넣지 않는다 |
+| 특기 표현 | 부풀기·숨기·투명·뛰기 같은 특기는 같은 그림 한 장을 늘이고 줄이고 흐리게 해서 보여 준다. 특기용 그림을 따로 받지 않으므로 그림체가 어긋날 일이 없다 |
+
 ## 1. 간식 가게 6종 (기준 그림)
 ```
 Sprite sheet for a mobile tower-defense game, 3 columns x 2 rows, six separate night-market food stall towers evenly spaced on a plain pure white background, no text, no numbers, no watermark.
@@ -24,7 +34,7 @@ Each tower is a tiny Chinese night-market food stall that launches its own food,
 ```
 Same art style as the attached reference image. Sprite sheet, 5 columns x 2 rows, ten separate hungry sea creatures evenly spaced on a plain pure white background, no text, no numbers, no watermark. Three-quarter top-down view, each one standing still in a neutral symmetric pose facing the viewer (the game animates them), whole body visible, no motion lines, no ground shadow, looking hungry with sparkling eyes and a little drool, mischievous but cute, not scary, thick dark-brown outline, cel shading, saturated colors.
 1) small orange crab  2) pale-blue jellyfish  3) blue flying fish with wing fins  4) yellow pufferfish with tiny spikes  5) hermit crab in a big spiral shell
-6) lavender octopus with an ink drop on its lips  7) white seagull with wings spread wide  8) green sea turtle with a red bandana  9) tough red crab wearing a silver bucket helmet  10) tiny pink shrimp with long whiskers
+6) lavender octopus with an ink drop on its lips  7) white seagull with wings spread wide  8) green sea turtle with a red bandana  9) tough red crab wearing a silver bucket helmet  10) tiny pink shrimp with long whiskers (already in the game)
 ```
 
 ## 2-2. 배불러서 돌아가는 모습 (2번 결과 그림을 같이 올리고)

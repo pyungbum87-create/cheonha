@@ -70,7 +70,7 @@ function bell(m,t,v,dur,dest){const f=mtof(m);tone('sine',f,t,dur||.5,v,0,dest);
 function crackle(t,n,span,v){for(let i=0;i<n;i++)nz(t+Math.random()*span,.03,v*(.5+Math.random()*.5),5000+Math.random()*3000,'highpass');}
 function horn(t,m,dur,v,dest){const c=AU.c,fl=c.createBiquadFilter(),gn=c.createGain();fl.type='lowpass';fl.frequency.setValueAtTime(500,t);fl.frequency.linearRampToValueAtTime(1300,t+dur*.4);gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.07);gn.gain.setValueAtTime(v,t+dur*.7);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);
   for(const dt of [0,.07,7.02]){const o=c.createOscillator();o.type='sawtooth';o.frequency.value=mtof(m+dt);o.connect(fl);o.start(t);o.stop(t+dur+.05);}fl.connect(gn);gn.connect(dest||AU.sfxG);}
-const SFX_GAP={s_tt:.06,s_didi:.05,s_peng:.08,s_shan:.14,s_dun:.06,s_zhuo:.08,hit:.045,kill:.04,ex_bun:.07,ex_fw:.08,splash:.07,gold:.06,leak:.12};
+const SFX_GAP={block:.07,fade:.3,leap:.12,hide:.2,puff:.2,s_tt:.06,s_didi:.05,s_peng:.08,s_shan:.14,s_dun:.06,s_zhuo:.08,hit:.045,kill:.04,ex_bun:.07,ex_fw:.08,splash:.07,gold:.06,leak:.12};
 const COMBO=[0,2,4,7,9,12,14,16,19,21,24];
 function sfx(n,arg){if(!AU.c||!S.opt.sfx||APP.hidden)return;try{const now=AU.c.currentTime;if(now-(AU.last[n]||-9)<(SFX_GAP[n]||.02))return;AU.last[n]=now;const t=now+.004,r=.94+Math.random()*.12;switch(n){
   case 'btn':tone('sine',560,t,.05,.11,760);nz(t,.02,.03,3000,'bandpass',1);break;
@@ -96,6 +96,12 @@ function sfx(n,arg){if(!AU.c||!S.opt.sfx||APP.hidden)return;try{const now=AU.c.c
   case 'tide':nz(t,1,.2,300,'lowpass',0,null,2200);nz(t+.1,.9,.07,3000,'bandpass',.5);tone('sine',72,t,.9,.14,48);break;
   case 'horn':horn(t,57,.6,.055);break;
   case 'boss':[0,.26,.52].forEach(d=>{tone('sine',105,t+d,.3,.32,40);nz(t+d,.12,.08,500,'lowpass');});horn(t+.1,45,.9,.07);break;
+  case 'puff':tone('sine',220,t,.22,.1,560);nz(t,.18,.03,1800,'bandpass',.8);break;
+  case 'hide':tone('sine',420,t,.06,.1,260);nz(t,.03,.04,1500,'bandpass',1.5);break;
+  case 'fade':tone('triangle',1500*r,t,.3,.03,2400);tone('sine',2000,t+.05,.25,.02,3000);break;
+  case 'leap':nz(t,.1,.05,1200,'bandpass',.8,null,3200);tone('sine',500,t,.1,.04,1000);break;
+  case 'block':tone('triangle',1250*r,t,.07,.08,820);nz(t,.03,.05,5000,'highpass');break;
+  case 'break':tone('triangle',900,t,.12,.12,420);nz(t,.1,.07,3000,'bandpass',.8);bell(84,t+.05,.07,.3);break;
   case 'ink':tone('sine',310,t,.2,.1,115);nz(t,.15,.05,600,'lowpass');break;
   case 'clear':tone('sine',520,t,.1,.08,1150);nz(t,.06,.03,6000,'highpass');break;
   case 'bonus':bell(84,t,.07,.25);bell(91,t+.06,.07,.3);break;
