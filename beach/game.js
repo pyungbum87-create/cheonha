@@ -274,7 +274,7 @@ if(typeof module!=='undefined')module.exports={newGame,step,advance,build,upgrad
 
 /* ============================== 플랫폼 층: 화면·터치·저장·소리·광고·통계는 여기에만 둔다 ==============================
    위챗(wx)·더우인(tt)으로 옮길 때 이 파일만 손보면 된다. */
-const BUILD='1117-1418';
+const BUILD='1117-1443';
 const PLAT=typeof wx!=='undefined'?'wx':typeof tt!=='undefined'?'tt':'web';
 const API=PLAT==='wx'?wx:PLAT==='tt'?tt:null;
 const VW=750,VH=1334,K=VW/W;
@@ -319,7 +319,7 @@ function track(ev,d){try{if(PLAT==='wx'&&API.reportEvent)API.reportEvent(ev,d||{
 /* ---------- 그림 ---------- */
 const IMG={},IMG_FAIL={};
 const MUST=['tuantuan','tt_cheer','didi','pengpeng','shell','gift'],LATER=['shanshan','dundun','zhuozhuo','didi_sick'];
-const ART=["didi", "didi_sick", "dundun", "gift", "pengpeng", "shanshan", "shell", "tt_cheer", "tuantuan", "zhuozhuo"],OPT=ART.filter(n=>/^(tw|en|boss|bg|ic|st)_/.test(n));   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
+const ART=["boss_dragon", "boss_kingcrab", "boss_octoboss", "boss_pirate", "boss_whale", "didi", "didi_sick", "dundun", "en_crab", "en_crab_full", "en_elite", "en_elite_full", "en_fish", "en_fish_full", "en_gull", "en_gull_full", "en_hermit", "en_hermit_full", "en_jelly", "en_jelly_full", "en_octo", "en_octo_full", "en_puffer", "en_puffer_full", "en_shrimp", "en_shrimp_full", "en_turtle", "en_turtle_full", "gift", "pengpeng", "shanshan", "shell", "tt_cheer", "tuantuan", "tw_didi_1", "tw_didi_2", "tw_didi_3", "tw_didi_ice", "tw_didi_jet", "tw_dun_1", "tw_dun_2", "tw_dun_3", "tw_dun_double", "tw_dun_smash", "tw_peng_1", "tw_peng_2", "tw_peng_3", "tw_peng_dragon", "tw_peng_star", "tw_shan_1", "tw_shan_2", "tw_shan_3", "tw_shan_moon", "tw_shan_rainbow", "tw_tt_1", "tw_tt_2", "tw_tt_3", "tw_tt_king", "tw_tt_twin", "tw_zhuo_1", "tw_zhuo_2", "tw_zhuo_3", "tw_zhuo_express", "tw_zhuo_parcel", "zhuozhuo"],OPT=ART.filter(n=>/^(tw|en|boss|bg|ic|st)_/.test(n));   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
 const HERO_IMG={tt:'tuantuan',didi:'didi',peng:'pengpeng',shan:'shanshan',dun:'dundun',zhuo:'zhuozhuo'};
 function loadImg(n,tries){tries=tries||0;const im=API?API.createImage():new Image();
   im.onload=()=>{IMG[n]=im;delete IMG_FAIL[n];onImg(n);};
