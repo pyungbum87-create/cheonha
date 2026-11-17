@@ -63,7 +63,7 @@ function callWave(s){
 function spawn(s,k,pi,d0){
   const b=ENEMIES[k],hp=k==='boss'?s.S.bossHp:b.hp*s.cur.hp,p=s.paths[pi%s.paths.length];
   const e={id:s.uid++,k,bk:k==='boss'?s.S.boss:'',pi:pi%s.paths.length,d:d0||0,x:0,y:0,hp,max:hp,sp:b.sp,r:b.r,armor:b.armor||0,air:!!b.air,gold:b.gold,leak:b.leak||1,
-    slow:0,slowT:0,stun:0,shred:0,hit:0,rush:false,inkT:(b.ink||0)*TICK*.5,ph:s.rand()*6.28,ox:k==='boss'?0:(s.rand()-.5)*15,oy:k==='boss'?0:(s.rand()-.5)*9,dead:false,len:p.len};
+    slow:0,slowT:0,stun:0,kb:0,shred:0,hit:0,rush:false,inkT:(b.ink||0)*TICK*.5,ph:s.rand()*6.28,ox:k==='boss'?0:(s.rand()-.5)*15,oy:k==='boss'?0:(s.rand()-.5)*9,dead:false,len:p.len};
   if(e.air){const a=p.s[0],z=p.s[p.s.length-1];e.ax=a.x+(s.rand()-.5)*120;e.ay=a.y;e.zx=z.x;e.zy=z.y;e.len=Math.hypot(e.zx-e.ax,e.zy-e.ay);}
   place(s,e);s.en.push(e);if(k==='boss'){s.boss=e;s.bossT=0;s.fx.push({e:'boss',bk:e.bk});}return e;
 }
@@ -76,7 +76,7 @@ function hurt(s,e,d,cls){
   e.hp-=d;e.hit=6;s.fx.push({e:'hit',x:e.x,y:e.y,v:d,k:e.k,weak:cls==='exp'&&e.k==='hermit',res:cls!=='mag'&&e.armor>=.5&&!(cls==='exp'&&e.k==='hermit')});
   if(e.hp<=0){e.dead=true;s.kills++;let g=e.gold;
     for(const sp of s.spots){const tw=sp.tw;if(tw&&tw.id==='zhuo'&&tw.ink<=0){const st=towerStat(s,tw);if((sp.x-e.x)**2+(sp.y-e.y)**2<st.range*st.range){g+=st.gold;break;}}}
-    s.gold+=g;s.fx.push({e:'die',x:e.x,y:e.y,k:e.k,bk:e.bk,g,air:e.air});}
+    s.gold+=g;s.fx.push({e:'die',x:e.x,y:e.y,k:e.k,bk:e.bk,g,air:e.air,pi:e.pi,d:e.d,ox:e.ox,oy:e.oy});}
 }
 function blast(s,x,y,r,d,cls,kind,eff,air){
   for(const e of s.en){if(e.dead||(e.air&&!air))continue;const q=r+e.r;if((e.x-x)**2+(e.y-y)**2<q*q){hurt(s,e,d,cls);if(eff&&!e.dead){if(eff.slow&&e.k!=='boss'){e.slow=Math.max(e.slow,eff.slow);e.slowT=Math.max(e.slowT,eff.slowT*TICK);}if(eff.stun&&e.k!=='boss')e.stun=Math.max(e.stun,eff.stun*TICK);}}}
@@ -133,6 +133,7 @@ function inkTower(s,x,y,n){const c=s.spots.map((sp,i)=>({i,sp,d:(sp.x-x)**2+(sp.
 function stepEnemies(s){
   const surge=s.surge>0;if(surge)s.surge--;
   for(const e of s.en){if(e.dead)continue;if(e.hit>0)e.hit--;if(e.shred>0)e.shred--;if(e.slowT>0){if(--e.slowT<=0)e.slow=0;}
+    if(e.kb>0){const m=Math.min(e.kb,e.kb>120?9:5);e.d=Math.max(0,e.d-m);e.kb-=m;place(s,e);if(e.stun>0)e.stun--;continue;}   // 파도에 떠밀려 가는 중
     if(e.stun>0){e.stun--;continue;}
     if(e.k==='turtle'&&!e.rush&&e.hp<e.max*.5){e.rush=true;s.fx.push({e:'rush',x:e.x,y:e.y});}
     e.d+=e.sp/TICK*(1-e.slow)*(surge&&e.k!=='boss'?1.7:1)*(e.rush?ENEMIES.turtle.rush:1);place(s,e);
@@ -173,10 +174,10 @@ function advance(s,dt){s.acc+=Math.min(dt,.25);let n=0;while(s.acc>=1/TICK-1e-9&
 /* ---------- 직접 쓰는 스킬 ---------- */
 const skillMul=s=>1+.5*s.si;
 function castTide(s){if(s.phase!=='run'||s.cd.tide>0||s.ws==='prep')return false;s.cd.tide=SKILL.tide.cd*TICK;s.casts++;
-  for(const e of s.en){if(e.dead||e.air)continue;hurt(s,e,SKILL.tide.dmg*skillMul(s),'mag');if(!e.dead){e.d=Math.max(0,e.d-(e.k==='boss'?SKILL.tide.push*.3:SKILL.tide.push));e.stun=Math.max(e.stun,.5*TICK);place(s,e);}}
+  for(const e of s.en){if(e.dead||e.air)continue;hurt(s,e,SKILL.tide.dmg*skillMul(s),'mag');if(!e.dead){e.kb=e.k==='boss'?SKILL.tide.push*.3:SKILL.tide.push;e.stun=Math.max(e.stun,.5*TICK);}}
   s.fx.push({e:'tide'});return true;}
 function castBomb(s,x,y){if(s.phase!=='run'||s.cd.bomb>0||s.ws==='prep')return false;s.cd.bomb=SKILL.bomb.cd*TICK;s.casts++;blast(s,x,y,SKILL.bomb.r,SKILL.bomb.dmg*skillMul(s),'exp','bomb',{stun:.8},true);return true;}
-function revive(s){if(s.phase!=='revive'||s.revives<=0)return false;s.revives--;s.revived=true;s.lives=REVIVE_LIVES;s.phase='run';for(const e of s.en)if(!e.air&&e.k!=='boss'){e.d=Math.max(0,e.d-200);place(s,e);}s.fx.push({e:'revive'});return true;}
+function revive(s){if(s.phase!=='revive'||s.revives<=0)return false;s.revives--;s.revived=true;s.lives=REVIVE_LIVES;s.phase='run';for(const e of s.en)if(!e.air&&e.k!=='boss')e.kb=200;s.fx.push({e:'revive'});return true;}
 function giveUp(s){if(!s.ended)finish(s,false);}
 
 if(typeof module!=='undefined')module.exports={newGame,step,advance,build,upgrade,sell,callWave,castTide,castBomb,cleanInk,revive,giveUp,towerStat,upCost,towerCost,stageGeo,waveDef,STAGES,TOWERS,TOWER_IDS,BRANCH,UNLOCK};

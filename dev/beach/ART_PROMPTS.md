@@ -3,12 +3,14 @@
 **쓰는 법**
 1. 1번 결과(가게 6종)가 기준 그림이다. 2번부터는 **1번 결과 그림을 같이 올리고** 붙여 넣는다.
 2. 한 장에 여러 개가 들어 있어도 된다. 번호만 알려 주면 베파가 잘라서 넣는다.
-3. 넣는 이름(베파가 처리): 가게 `tw_tt, tw_didi, tw_peng, tw_shan, tw_dun, tw_zhuo` · 손님 `en_crab …` · 보스 `boss_kingcrab …` · 배경 `bg_1 ~ bg_5`. `dev/beach/art/` 에 이 이름의 webp 가 있으면 코드 그림 대신 자동으로 쓰인다.
+3. **움직임은 게임이 만든다.** 그림은 가만히 서 있는 모습 한 장이면 된다. 그래서 모든 그림은 정면을 보고 똑바로 선 좌우 대칭 자세, 움직임 선·잔상·바닥 그림자 없이 그린다(프롬프트에 넣어 둠).
+4. 넣는 이름(베파가 처리): 가게 `tw_tt, tw_didi, tw_peng, tw_shan, tw_dun, tw_zhuo` · 손님 `en_crab …` · 보스 `boss_kingcrab …` · 배경 `bg_1 ~ bg_5`. `dev/beach/art/` 에 이 이름의 webp 가 있으면 코드 그림 대신 자동으로 쓰인다.
 
 ## 1. 간식 가게 6종 (기준 그림)
 ```
 Sprite sheet for a mobile tower-defense game, 3 columns x 2 rows, six separate night-market food stall towers evenly spaced on a plain pure white background, no text, no numbers, no watermark.
 Style: chunky casual strategy game art, three-quarter top-down view, thick dark-brown outline, clean cel shading with a glossy highlight, bright saturated candy colors, big readable silhouettes, cute and cozy.
+Each stall stands upright and still, symmetric, no motion lines, no ground shadow, the whole stall visible with its base at the bottom.
 Each tower is a tiny Chinese night-market food stall that launches its own food, with no cannons or guns:
 1) a stack of bamboo steamers with the lid popping open, flinging hot steamed buns
 2) a shaved-ice stand with a hand-crank ice machine, spraying icy slush
@@ -20,14 +22,19 @@ Each tower is a tiny Chinese night-market food stall that launches its own food,
 
 ## 2. 배고픈 바다 손님 10종
 ```
-Same art style as the attached reference image. Sprite sheet, 5 columns x 2 rows, ten separate hungry sea creatures evenly spaced on a plain pure white background, no text, no numbers, no watermark. Three-quarter top-down view, each one walking toward the viewer, looking hungry with sparkling eyes and a little drool, mischievous but cute, not scary, thick dark-brown outline, cel shading, saturated colors.
+Same art style as the attached reference image. Sprite sheet, 5 columns x 2 rows, ten separate hungry sea creatures evenly spaced on a plain pure white background, no text, no numbers, no watermark. Three-quarter top-down view, each one standing still in a neutral symmetric pose facing the viewer (the game animates them), whole body visible, no motion lines, no ground shadow, looking hungry with sparkling eyes and a little drool, mischievous but cute, not scary, thick dark-brown outline, cel shading, saturated colors.
 1) small orange crab  2) pale-blue jellyfish  3) blue flying fish with wing fins  4) yellow pufferfish with tiny spikes  5) hermit crab in a big spiral shell
-6) lavender octopus with an ink drop on its lips  7) white seagull flying with wings spread  8) green sea turtle with a red bandana  9) tough red crab wearing a silver bucket helmet  10) the same small orange crab but happy and full, patting its round belly
+6) lavender octopus with an ink drop on its lips  7) white seagull with wings spread wide  8) green sea turtle with a red bandana  9) tough red crab wearing a silver bucket helmet  10) tiny pink shrimp with long whiskers
+```
+
+## 2-2. 배불러서 돌아가는 모습 (2번 결과 그림을 같이 올리고)
+```
+Same ten sea creatures as the attached image, same order, same art style and same sizes. Sprite sheet, 5 columns x 2 rows on a plain pure white background, no text, no watermark. Now each one is happily full: round bulging belly, eyes closed in a big satisfied smile, rosy cheeks, a tiny crumb near the mouth. Standing still, neutral symmetric pose facing the viewer, no motion lines, no ground shadow.
 ```
 
 ## 3. 대식가 보스 4종
 ```
-Same art style as the attached reference image. Sprite sheet, 2 columns x 2 rows, four large boss sea creatures on a plain pure white background, no text, no watermark. Three-quarter top-down view, facing the viewer, very hungry and greedy looking but adorable, not scary, very detailed, thick dark-brown outline.
+Same art style as the attached reference image. Sprite sheet, 2 columns x 2 rows, four large boss sea creatures on a plain pure white background, no text, no watermark. Three-quarter top-down view, standing still in a neutral symmetric pose facing the viewer, whole body visible, no motion lines, no ground shadow, very hungry and greedy looking but adorable, not scary, very detailed, thick dark-brown outline.
 1) a huge king crab with a small gold crown, holding a fork and knife in its claws
 2) a giant purple octopus with a tiny crown, each tentacle holding an empty bowl
 3) a big round whale shark with white spots and a wide open hungry mouth
