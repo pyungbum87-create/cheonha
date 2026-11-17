@@ -50,7 +50,7 @@ head=f'''<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="{title}">
+<meta name="apple-mobile-web-app-title" content="동네소동">
 <meta name="theme-color" content="#fbefdc">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -70,7 +70,7 @@ lili=Image.open(R+'/art/lili_joy.webp').convert('RGBA')
 for size in (180,192,512):
     bg=Image.new('RGBA',(size,size),(255,227,194,255));im=lili.copy();im.thumbnail((int(size*.84),int(size*.84)),Image.LANCZOS);bg.alpha_composite(im,((size-im.width)//2,(size-im.height)//2))
     bg.convert('RGB').quantize(128).save(O+'/'+('apple-touch-icon.png' if size==180 else f'icon-{size}.png'),optimize=True)
-json.dump({'name':title,'short_name':title,'lang':'zh-CN','start_url':'./','scope':'./','display':'standalone','orientation':'portrait','background_color':'#fbefdc','theme_color':'#fbefdc','icons':[{'src':'icon-192.png','sizes':'192x192','type':'image/png'},{'src':'icon-512.png','sizes':'512x512','type':'image/png','purpose':'any maskable'}]},open(O+'/manifest.webmanifest','w',encoding='utf-8'),ensure_ascii=False,indent=1)
+json.dump({'name':'동네소동','short_name':'동네소동','lang':'zh-CN','start_url':'./','scope':'./','display':'standalone','orientation':'portrait','background_color':'#fbefdc','theme_color':'#fbefdc','icons':[{'src':'icon-192.png','sizes':'192x192','type':'image/png'},{'src':'icon-512.png','sizes':'512x512','type':'image/png','purpose':'any maskable'}]},open(O+'/manifest.webmanifest','w',encoding='utf-8'),ensure_ascii=False,indent=1)
 CORE=['lili_basic','lili_shock','lili_joy','lili_worry','paw','tt_cheer','flashlight','clock','fu']
 files=['./','manifest.webmanifest','icon-192.png']+['art/%s.webp?v=%s'%(k,BUILD) for k in CORE]+['thumb/'+t+'?v='+BUILD for t in sorted(os.listdir(O+'/thumb'))]
 CACHE='tttown-'+BUILD

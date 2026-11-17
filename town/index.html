@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="团团小镇闹哄哄">
+<meta name="apple-mobile-web-app-title" content="동네소동">
 <meta name="theme-color" content="#fbefdc">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -229,7 +229,7 @@ const QS=new URLSearchParams(location.search);const KEY='tt-photo-v2';let SAVE={
 let LANG='zh';const T=(zh,ko)=>LANG==='ko'?ko:zh;function pickLang(){const q=QS.get('lang');if(q==='zh'||q==='ko')return q;if(SAVE.lang)return SAVE.lang;let tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'';}catch(e){}const nl=(navigator.language||'').toLowerCase();if(/^zh/.test(nl)||/Shanghai|Chongqing|Harbin|Urumqi|Hong_Kong|Macau|Taipei/.test(tz))return 'zh';return /^ko/.test(nl)?'ko':'zh';}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(SAVE));}catch(e){}}
 /* ---------- art ---------- */
-const BUILD='1116-2309';
+const BUILD='1117-1642';
 const CORE=['lili_basic','lili_shock','lili_joy','lili_worry','paw','tt_cheer','flashlight','clock','fu'];
 function stageKeys(st){const k=new Set([st.bg,'lili_basic','lili_shock','lili_joy','lili_worry','tt_cheer']);if(st.hid)k.add(st.hid);for(const o of st.objs){if(o.img)k.add(o.img);for(const a of o.alt||[])if(a.img)k.add(a.img);}for(const t of st.tools)k.add(t.img);for(const r of st.rules)for(const d of r.do)if(d[0]==='tmp'&&d[2].img)k.add(d[2].img);else if(d[0]==='fly')k.add(d[1]);return [...k];}
 const ART={},PEND={};
