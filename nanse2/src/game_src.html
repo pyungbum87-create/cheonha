@@ -2202,6 +2202,7 @@ function createPlayerFaction(){
   const id = 'pf' + (++G.nid);
   G.facs[id] = { id, seal:SEALS[G.surname] || '义', color:'#3a3530', ruler:G.pid, alive:true, gold:0, ally:{} };
   G.pfac = id; G.role = 'ruler'; me().fac = id; G.rank = 0; G.mission = null; G.campaign = null; G.trust = 65; G.flags.king = 1;
+  for (const p of (G.retinue||[]).map(person).filter(p => p && p.fac==='free' && active(p))){ p.fac = id; p.loy = Math.max(p.loy, 80); } G.retinue = [];
   news(`${J(me().n,'이')} 스스로 일어나 세력을 세웠다!`, true, true);
   return id;
 }
@@ -3892,6 +3893,81 @@ function bindRegForm(sc, pr){
   const go = document.getElementById('rgGo');
   if (go) go.onclick = () => { const d = regDraft; if (!d.name) d.name = '이현'; startNew({ ...d, sc, mode:'real' }, sc, 'real', () => { if (!META.helpSeen3){ META.helpSeen3 = 1; saveMeta(); openHelp(); } }); };
 }
+/* ---------------- 내 장수: 직접 만든 장수를 기기에 저장해 두고, 게임 중 휘하로 부른다 ---------------- */
+const CU_MAX = 10, CU_POINTS = 60, CU_STMAX = 18, CU_STMIN = 3;
+const CU_STATS = [['mu','무용'],['yong','용병'],['ji','지략'],['jeong','정무'],['in','인망']];
+const CU_TRAITS = [['ilgi','일기당천'],['gima','기마술'],['sujeon','수전'],['gung','궁술'],['hwagye','화계'],['gangye','간계'],['ganpa','간파'],['susung','수성'],['gongsung','공성'],['sinsok','신속'],['chise','치세'],['dukmang','덕망'],['yongmaeng','용맹'],['chungjeol','충절'],['jangsu','강건']];
+const CU_PERS = [['uiri','의리'],['sinjung','신중'],['yongjang','용장'],['gyohwal','교활'],['onhwa','온화']];
+const CU_W = [['do','대도'],['mo','창·모'],['geuk','극'],['geom','검'],['gung','활'],['pyeon','편·추']];
+const CU_LOOK = { skin:[['a','밝음'],['e','흰'],['b','구릿빛'],['d','검붉음'],['c','붉음']], hat:[['helmet','투구'],['cap','관모'],['band','두건'],['scholar','윤건'],['topknot','상투'],['crown','면류관']],
+  hc:[['#666666','쇠'],['#2b2b2b','먹'],['#a8382a','붉은'],['#3d7a52','푸른'],['#2f5d9e','쪽빛'],['#c9a227','금빛'],['#d9dde2','은빛']],
+  beard:[['none','없음'],['stub','짧은'],['mustache','콧수염'],['goatee','턱수염'],['full','구레나룻'],['long','긴 수염'],['wild','범 수염']], eye:[['sharp','날카로운'],['calm','차분한'],['round','부리부리한'],['closed','가는']] };
+const CU_LBL = { skin:'피부', hat:'쓰개', hc:'쓰개 색', beard:'수염', eye:'눈매' };
+const OLDT = { ilgi:'맹장', yongmaeng:'맹장', gangye:'지장', ganpa:'지장', hwagye:'지장', dukmang:'인덕', chise:'인덕', chungjeol:'충의', gima:'기병', jangsu:'장수', susung:'강철' };
+const cuList = () => META.custom || (META.custom = []);
+const cuUsed = c => CU_STATS.reduce((a,[k]) => a + c.st[k], 0);
+function cuBlank(){ return { id:'cu'+Date.now().toString(36), n:'', female:false, age:22, st:{ mu:10, yong:10, ji:10, jeong:10, in:10 }, tr:['ilgi'], pers:'uiri', w:'do', look:{ skin:'a', hat:'helmet', hc:'#666666', beard:'mustache', bc:'', eye:'sharp', extra:'' } }; }
+const cuPt = (c, size) => ptHTML(c.look, c.age, c.female, '#7a3b2a', size, 'sq');
+function openCustom(){
+  const L = cuList();
+  const rows = L.map(c => `<div class="prow">${cuPt(c, 40)}<span class="nm">${esc(c.n)}</span><span class="mini">${c.female?'여':'남'} · ${c.age}세 · ${CU_STATS.map(([k,n]) => n[0]+c.st[k]).join(' ')}<br>${c.tr.map(t => CU_TRAITS.find(x=>x[0]===t)[1]).join('·')}</span><button class="ghost" data-cue="${c.id}">고치기</button></div>`).join('');
+  const bg = sheet(`<h3>내 장수</h3><p class="small muted">직접 만든 장수는 이 기기에 저장되어 모든 판에서 쓸 수 있다. 게임 중 메뉴의 <b>내 장수 부르기</b>로 휘하에 들인다. (${L.length}/${CU_MAX})</p>
+    ${rows || '<p class="small muted">아직 만든 장수가 없다.</p>'}
+    <button class="btn" id="cuNew" ${L.length>=CU_MAX?'disabled':''}>새 장수 만들기</button><button class="btn2" data-close>닫기</button>`);
+  bg.querySelectorAll('[data-cue]').forEach(b => b.onclick = () => { bg.remove(); const c = L.find(x => x.id===b.dataset.cue); openCuEdit(JSON.parse(JSON.stringify(c)), false); });
+  bg.querySelector('#cuNew').onclick = () => { bg.remove(); openCuEdit(cuBlank(), true); };
+}
+function openCuEdit(c, isNew){
+  const left = CU_POINTS - cuUsed(c);
+  const seg = (k, v, t, on) => `<button class="segb" aria-pressed="${on}" data-${k}="${v}"><b>${t}</b></button>`;
+  const lookRow = k => { const opts = CU_LOOK[k], i = Math.max(0, opts.findIndex(o => o[0]===c.look[k])); return `<button class="ghost" data-lk="${k}" style="display:flex;justify-content:space-between;width:100%"><span>${CU_LBL[k]}</span><b>${opts[i][1]} ▸</b></button>`; };
+  const bg = sheet(`<h3>${isNew?'새 장수 만들기':'장수 고치기'}</h3>
+    <div class="row">${cuPt(c, 88)}<div class="grow" style="display:flex;flex-direction:column;gap:6px">
+      <input id="cuName" maxlength="6" placeholder="이름 (예: 한결)" value="${esc(c.n)}" style="font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper2)">
+      <div class="row">${seg('sx','m','남',!c.female)}${seg('sx','f','여',c.female)}</div>
+      <div class="row between"><span class="small">나이 <b>${c.age}</b>세</span><span class="row"><button class="ghost" data-age="-1">−</button><button class="ghost" data-age="1">+</button></span></div></div></div>
+    <span class="lbl">능력 (남은 포인트 <b style="color:${left?'var(--red)':'var(--good)'}">${left}</b> / 총 ${CU_POINTS}, 항목당 ${CU_STMIN}~${CU_STMAX})</span>
+    ${CU_STATS.map(([k,n]) => `<div class="row between"><span class="small" style="width:3.5em">${n}</span><div class="grow" style="height:7px;border-radius:4px;background:#26201c18;overflow:hidden"><div style="height:7px;width:${c.st[k]/20*100}%;background:var(--ink)"></div></div><b style="width:1.8em;text-align:right">${c.st[k]}</b><button class="ghost" data-st="${k}" data-d="-1">−</button><button class="ghost" data-st="${k}" data-d="1">+</button></div>`).join('')}
+    <span class="lbl">특성 (2개까지)</span>
+    <div class="chips">${CU_TRAITS.map(([k,n]) => `<button class="chip${c.tr.includes(k)?' gold':''}" data-tr="${k}" style="border:0">${n}</button>`).join('')}</div>
+    <span class="lbl">성격</span><div class="three">${CU_PERS.map(([k,n]) => seg('ps',k,n,c.pers===k)).join('')}</div>
+    <span class="lbl">무기</span><div class="three">${CU_W.map(([k,n]) => seg('wp',k,n,c.w===k)).join('')}</div>
+    <span class="lbl">생김새</span>${(c.female ? ['skin','eye'] : Object.keys(CU_LOOK)).map(lookRow).join('')}
+    <button class="btn" id="cuSave">${left<0?'포인트를 넘었다':'저장'}</button>${isNew?'':'<button class="btn2" id="cuDel">이 장수 지우기</button>'}<button class="btn2" data-close>닫기</button>`);
+  const again = () => { const n = bg.querySelector('#cuName'); c.n = n.value.trim().slice(0,6); bg.remove(); openCuEdit(c, isNew); };
+  bg.querySelector('#cuName').oninput = e => { c.n = e.target.value.trim().slice(0,6); };
+  bg.querySelectorAll('[data-sx]').forEach(b => b.onclick = () => { c.female = b.dataset.sx==='f'; again(); });
+  bg.querySelectorAll('[data-age]').forEach(b => b.onclick = () => { c.age = clamp(c.age + +b.dataset.age, 16, 45); again(); });
+  bg.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { const k = b.dataset.st, d = +b.dataset.d, v = c.st[k] + d;
+    if (v < CU_STMIN || v > CU_STMAX || (d>0 && cuUsed(c) >= CU_POINTS)) return; c.st[k] = v; again(); });
+  bg.querySelectorAll('[data-tr]').forEach(b => b.onclick = () => { const k = b.dataset.tr; if (c.tr.includes(k)) c.tr = c.tr.filter(x => x!==k); else { c.tr.push(k); if (c.tr.length>2) c.tr.shift(); } again(); });
+  bg.querySelectorAll('[data-ps]').forEach(b => b.onclick = () => { c.pers = b.dataset.ps; again(); });
+  bg.querySelectorAll('[data-wp]').forEach(b => b.onclick = () => { c.w = b.dataset.wp; again(); });
+  bg.querySelectorAll('[data-lk]').forEach(b => b.onclick = () => { const k = b.dataset.lk, o = CU_LOOK[k], i = o.findIndex(x => x[0]===c.look[k]); c.look[k] = o[(i+1) % o.length][0]; again(); });
+  bg.querySelector('#cuSave').onclick = () => { c.n = bg.querySelector('#cuName').value.trim().slice(0,6);
+    if (!c.n){ toast('이름을 지어 주자.', [], true); return; } if (cuUsed(c) > CU_POINTS) return;
+    const L = cuList(), i = L.findIndex(x => x.id===c.id); if (i>=0) L[i] = c; else if (L.length < CU_MAX) L.push(c);
+    saveMeta(); track('custom_save'); bg.remove(); openCustom(); };
+  const del = bg.querySelector('#cuDel'); if (del) del.onclick = () => { META.custom = cuList().filter(x => x.id!==c.id); saveMeta(); bg.remove(); openCustom(); };
+}
+function cuSummon(c){
+  if (!G || G.people[c.id]) return false;
+  const b = G.year - c.age;
+  const p = { id:c.id, n:c.n, fac:'free', city:G.city, b, d:b+68, m:c.st.mu*5, i:c.st.ji*5, l:c.st.yong*5, c:c.st.in*5, g:c.st.jeong*5,
+    tr: OLDT[c.tr.find(t => OLDT[t])] || '명장', tr2:c.tr.slice(), ap:G.year, alive:true, active:true, loy:95, army:null, look:{ ...c.look }, female:!!c.female, custom:1, wtype:c.w, pers:c.pers };
+  if (G.pfac && (G.role==='ruler' || G.role==='officer')){ p.fac = G.pfac; if (city(p.city).owner!==G.pfac) p.city = capitalOf(G.pfac) || p.city; }
+  G.people[p.id] = p; addBond(p.id, 70);
+  if (!G.pfac){ G.retinue = G.retinue || []; G.retinue.push(p.id); }
+  news(G.role==='ruler' ? `${J(c.n,'이')} 그대의 휘하에 들어왔다.` : `${J(c.n,'이')} 그대를 찾아와 곁을 지키겠다고 한다.`, true, true);
+  return true;
+}
+function openSummon(){
+  const L = cuList();
+  const rows = L.map(c => { const inG = !!G.people[c.id]; return `<div class="prow">${cuPt(c, 40)}<span class="nm">${esc(c.n)}</span><span class="mini">${CU_STATS.map(([k,n]) => n[0]+c.st[k]).join(' ')}</span><button class="ghost" data-sm="${c.id}" ${inG?'disabled':''}>${inG?'함께하는 중':'부르기'}</button></div>`; }).join('');
+  const bg = sheet(`<h3>내 장수 부르기</h3><p class="small muted">${G.role==='ruler'?'부른 장수는 바로 그대의 휘하 장수가 된다.':G.role==='officer'?'부른 장수는 같은 주군을 섬기는 동료가 되어 그대 곁에 선다.':'부른 장수는 그대를 따르는 동료가 된다. 거병하면 그대의 장수가 된다.'} 한 판에 장수마다 한 번씩 부를 수 있다.</p>
+    ${rows || '<p class="small muted">만든 장수가 없다. 처음 화면의 <b>내 장수</b>에서 만들 수 있다.</p>'}<button class="btn2" data-close>닫기</button>`);
+  bg.querySelectorAll('[data-sm]').forEach(b => b.onclick = () => { const c = L.find(x => x.id===b.dataset.sm); if (cuSummon(c)){ bg.remove(); toast(`${c.n}이(가) 함께한다.`, [['내 장수',true]]); save(); render(); } });
+}
 function renderTitle(){
   const pr = prefs(), sc = pr.scen;
   if (!['reg','wei','shu','wu','qun','ruler'].includes(titleTab)) titleTab = 'reg';
@@ -3907,7 +3983,7 @@ function renderTitle(){
   <div class="brand"><span class="seal">乱</span><div><h1>난세일생</h1><p class="small muted">장수로 태어나 군단을 이끌고, 가문을 일으켜 천하를 다투라</p></div></div>
   ${cont}
   <div class="card" style="flex-direction:row;align-items:center;justify-content:space-between;gap:6px"><div><span class="lbl">玉 · 숙명의 별</span><br><b style="font-family:var(--display);font-size:20px;font-weight:400">玉 ${jade()} · ★ ${starTotal()}</b></div>
-    <div class="row"><button class="ghost" id="btnDaily" style="position:relative">매일 과제${dailyDot()?'<i style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--red)"></i>':''}</button><button class="ghost" id="btnHeir">가보</button></div></div>
+    <div class="row"><button class="ghost" id="btnDaily" style="position:relative">매일 과제${dailyDot()?'<i style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--red)"></i>':''}</button><button class="ghost" id="btnHeir">가보</button><button class="ghost" id="btnCu">내 장수</button></div></div>
   <div class="card" style="flex-direction:row;align-items:center;justify-content:space-between"><div><span class="lbl">누적 명성</span><br><b style="font-family:var(--display);font-size:22px;font-weight:400">${fmt(META.fame)}</b></div>
     <div class="row"><button class="ghost" id="btnSet">설정</button><button class="ghost" id="btnHelp">게임 방법</button><button class="ghost" id="btnAch">업적 ${Object.keys(META.ach).length}/${ACH.length}</button></div></div>
   <div class="card">
@@ -3936,6 +4012,7 @@ function renderTitle(){
   $app.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => openPick(b.dataset.pick));
   if (titleTab==='reg') bindRegForm(sc, pr);
   document.getElementById('btnAch').onclick = openAch;
+  document.getElementById('btnCu').onclick = openCustom;
   document.getElementById('btnHelp').onclick = openHelp;
   document.getElementById('btnSet').onclick = openSettings;
   document.getElementById('btnDaily').onclick = openDaily; document.getElementById('btnHeir').onclick = openHeir;
@@ -3989,8 +4066,9 @@ function openHelp(){
 }
 function openMenu(){
   const bg = sheet(`<h3>메뉴</h3>
-    <button class="btn2" id="mChron">연대기</button><button class="btn2" id="mHelp">게임 방법</button><button class="btn2" id="mAch">업적</button>
+    <button class="btn2" id="mCu">내 장수 부르기</button><button class="btn2" id="mChron">연대기</button><button class="btn2" id="mHelp">게임 방법</button><button class="btn2" id="mAch">업적</button>
     <button class="btn2" id="mSet">설정 (소리·진동)</button><button class="btn2" id="mAd" ${adLeft()>0?'':'disabled'}>▶ 광고 보고 군자금 +${fmt(adGold())} (오늘 ${adLeft()}/${adCapNow()})</button><button class="btn2" id="mCopy">💾 저장 칸에 저장하기</button><button class="btn2" id="mTitle">처음 화면으로</button><button class="btn2" data-close>닫기</button>`);
+  bg.querySelector('#mCu').onclick = () => { bg.remove(); openSummon(); };
   bg.querySelector('#mChron').onclick = () => { bg.remove(); sheet(`<h3>연대기</h3><div class="news">${G.chron.slice(-80).reverse().map(c=>`<div><b>${c.y}.${c.m||1}</b> ${esc(c.t)}</div>`).join('')}</div><button class="btn2" data-close>닫기</button>`); };
   bg.querySelector('#mHelp').onclick = () => { bg.remove(); openHelp(); };
   bg.querySelector('#mAch').onclick = () => { bg.remove(); openAch(); };
@@ -4297,7 +4375,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
    BOOT
    ===================================================================== */
 if (SIM){
-  globalThis.T = { newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
 
