@@ -31,6 +31,7 @@ for (const sc of Object.keys(T.SCEN).map(Number)) {
   const S = T.SCEN[sc];
   for (const id of Object.values(S.rulers).slice(0, 3)) plans.push([id, sc]);
   for (const id of ['liubei', 'guanyu', 'cao', 'zhaoyun']) if (!Object.values(S.rulers).includes(id)) plans.push([id, sc]);
+  for (const role of ['ronin', 'officer', 'ruler']) { const fac = (T.regFacs(sc)[0] || [])[0], cs = T.regCities(sc, role); if (role === 'ruler' && !cs.length) continue; plans.push([{ name: '이현', role, focus: 'ji', fac, city: cs[0], sc, mode: 'virtual' }, sc]); }
 }
 const errors = {}, stats = { runs: 0, months: 0, battles: 0, events: 0, deaths: 0, overs: 0 };
 function bad(where, e) { const k = (e && e.message || String(e)) + ' @ ' + where; errors[k] = (errors[k] || 0) + 1; }
@@ -43,7 +44,7 @@ function check() {
 for (let r = 0; r < Math.min(runs, plans.length * 2); r++) {
   const [pid, sc] = plans[r % plans.length];
   stats.runs++;
-  try { T.newGame(pid, sc, 'real'); } catch (e) { bad(`newGame ${pid} ${sc}`, e); continue; }
+  try { if (typeof pid === 'object') T.newRegressor(pid); else T.newGame(pid, sc, 'real'); } catch (e) { bad(`newGame ${pid} ${sc}`, e); continue; }
   for (let m = 0; m < maxMonths; m++) {
     const G = T.G; const ph = G.phase;
     try {
@@ -53,7 +54,7 @@ for (let r = 0; r < Math.min(runs, plans.length * 2); r++) {
       else if (ph === 'battle') { stats.battles++; T.autoBattle(); }
       else if (ph === 'battleEnd') { if (G.battle && G.battle.cap && !G.battle.capDone) try { T.captiveDo('release'); } catch (e) { bad('captive', e); } if (G.battle && G.battle.kind === 'raise') { G.battle = null; G.phase = G.dead ? 'succession' : 'act'; } else T.afterBattle(); }
       else if (ph === 'succession') { stats.deaths++; const c = T.heirCands(); if (c.length) T.succeed(c[0]); else { T.G.over = { kind: 'end' }; T.G.phase = 'over'; } }
-      else if (ph === 'over') { stats.overs++; if (process.env.V) console.log('  종료', pid, sc, '→', G.year+'.'+G.month, JSON.stringify(G.over).slice(0,80)); break; }
+      else if (ph === 'over') { stats.overs++; if (process.env.V) console.log('  종료', typeof pid==='object'?'회귀자 '+pid.role:pid, sc, '→', G.year+'.'+G.month, JSON.stringify(G.over).slice(0,80)); break; }
       else { bad('알 수 없는 단계', new Error(ph)); break; }
       check();
     } catch (e) { bad(`${ph} ${pid} ${sc} ${G.year}.${G.month}`.replace(/ \d+\.\d+$/, ''), e); break; }

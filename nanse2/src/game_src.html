@@ -351,7 +351,7 @@ const UNIFY_N = Math.ceil(CITY_RAW.length*.75);
 /*@@DATA_START@@*/
 // 아래는 tools/gen_data.js 가 data/ 폴더에서 만든다. 직접 고치지 말 것.
 const FAC_RAW = [["wei","曹","#2f5d9e"],["shu","刘","#2f8a57"],["wu","孙","#c2412d"],["yuan","袁","#a68a2a"],["ys","术","#b06a2c"],["lb","表","#3f8f8f"],["lz","璋","#8a6b8f"],["zl","鲁","#6f7d3a"],["md","马","#a05a6a"],["dz","卓","#4b3b55"],["gsz","瓒","#5f86a8"],["tq","谦","#9c8b6e"],["lvb","吕","#7a3b3b"],["gsd","度","#4f6f6a"],["zx","绣","#8a7a4a"],["lj","傕","#5a4a3a"],["sx","燮","#3f6f9a"],["kr","孔","#9a8a6a"],["han","漢","#8a2b2b"],["hj","黃","#c9a227"]];
-const SCEN = {"184":{"y":184,"short":"황건적의 난","desc":"창천이 이미 죽었으니 황천이 일어나리라. 장각의 황건적이 여덟 주에서 들고일어났다. 조정은 의용군을 모으고, 탁군의 돗자리 장수는 칼을 쥔다.","own":{"han":["yp","bp","ji","np","py","jny","sd","pu","cl","xb","xp","ly","hn","ca","ad","ts","ww","qi","xn","xy","sy","hz","zt","cd","jz","ya","jg","jl","jx","wl","chs","ll","gy","sc","lu","cs","yz","jy","wx","kj","nh","jzh"],"hj":["ye","xc","wn","rn","bh"]},"rulers":{"han":"hejin","hj":"zhangjiao"},"picks":[["zhangjiao",0]]},"190":{"y":190,"short":"반동탁 연합","desc":"동탁이 낙양과 장안을 쥐었다. 제후들이 들고일어나고, 유비는 아직 공손찬의 객장이다. 주인 없는 땅이 많다.","own":{"dz":["ly","ca","hn","ad","ts"],"yuan":["np","ye"],"gsz":["bp","ji"],"wei":["cl"],"ys":["wn"],"tq":["xp","xb"],"wu":["chs"],"lb":["xy","jl","jx"],"lz":["cd","zt","jz"],"zl":["hz"],"md":["ww"],"gsd":["yp"],"kr":["bh"]},"rulers":{"dz":"dongzhuo","yuan":"yuanshao","gsz":"gongsunzan","wei":"cao","ys":"yuanshu","tq":"taoqian","wu":"sunjian","lb":"liubiao","lz":"liuyan","zl":"zhanglu","md":"mateng","gsd":"gongsundu","kr":"kongrong"},"picks":[["cao",0],["sunjian",0],["gongsunzan",0],["dongzhuo",500],["yuanshao",500],["mateng",900],["liubiao",1400],["yuanshu",2000],["taoqian",2600],["liuyan",2600],["kongrong",3000],["gongsundu",3200],["zhanglu",3200]]},"196":{"y":196,"short":"군웅할거","desc":"동탁은 죽고 천하는 갈라졌다. 조조가 허창에 황제를 모셨고, 여포가 서주를 빼앗았다. 손책은 강동을 휩쓴다.","own":{"wei":["xc","cl","pu","qi"],"shu":["xb"],"lvb":["xp"],"wu":["jy","wx","kj"],"yuan":["ye","np","py","bh","jny","sd"],"gsz":["ji","bp"],"gsd":["yp"],"ys":["sc","rn","lu"],"lb":["xy","jl","jx","chs","wl","ll","gy","xn"],"zx":["wn"],"lz":["cd","zt","jz","ya","jg"],"zl":["hz"],"md":["ww","ad","ts"],"lj":["ca","hn"],"sx":["jzh","nh"]},"rulers":{"wei":"cao","shu":"liubei","lvb":"lvbu","wu":"sunce","yuan":"yuanshao","gsz":"gongsunzan","gsd":"gongsundu","ys":"yuanshu","lb":"liubiao","zx":"zhangxiu","lz":"liuzhang","zl":"zhanglu","md":"mateng","lj":"lijue","sx":"shixie"},"picks":[["cao",0],["liubei",0],["sunce",0],["lvbu",300],["yuanshao",500],["gongsunzan",700],["mateng",900],["zhangxiu",1200],["liubiao",1400],["yuanshu",2000],["lijue",2400],["liuzhang",2600],["shixie",3000],["gongsundu",3200],["zhanglu",3200]]},"200":{"y":200,"short":"관도대전","desc":"하북의 원소와 중원의 조조가 관도에서 맞선다. 손책은 강동을 다지고, 유비는 여남에 몸을 숨겼다. 관우는 잠시 조조 곁에 있다.","own":{"wei":["xc","cl","pu","qi","xb","xp","ly","hn","ca","wn","sc"],"yuan":["ye","np","py","bh","jny","sd","ji","bp"],"shu":["rn"],"wu":["jy","wx","kj","lu","yz","cs"],"lb":["xy","xn","jl","jx","chs","wl","ll","gy"],"lz":["cd","zt","jz","ya","jg"],"zl":["hz","sy"],"md":["ww","ad","ts"],"gsd":["yp"],"sx":["jzh","nh"]},"rulers":{"wei":"cao","yuan":"yuanshao","shu":"liubei","wu":"sunce","lb":"liubiao","lz":"liuzhang","zl":"zhanglu","md":"mateng","gsd":"gongsundu","sx":"shixie"},"picks":[["cao",0],["yuanshao",0],["sunce",0],["liubei",300],["liubiao",900],["mateng",900],["liuzhang",1400],["shixie",2000],["zhanglu",2600],["gongsundu",3200]]}};
+const SCEN = {"184":{"y":184,"short":"황건적의 난","desc":"창천이 이미 죽었으니 황천이 일어나리라. 장각의 황건적이 여덟 주에서 들고일어났다. 조정은 의용군을 모으고, 탁군의 돗자리 장수는 칼을 쥔다.","own":{"han":["yp","bp","ji","np","py","jny","sd","pu","cl","xb","xp","ly","hn","ca","ad","ts","ww","qi","xn","xy","sy","hz","zt","cd","jz","ya","jg","jl","jx","wl","chs","ll","gy","sc","lu","cs","yz","jy","wx","kj","nh","jzh"],"hj":["ye","xc","wn","rn","bh"]},"rulers":{"han":"hejin","hj":"zhangjiao"},"picks":[["zhangjiao",0]]},"190":{"y":190,"short":"반동탁 연합","desc":"동탁이 낙양과 장안을 쥐었다. 제후들이 들고일어나고, 유비는 아직 공손찬의 객장이다. 주인 없는 땅이 많다.","own":{"dz":["ly","ca","hn","ad","ts"],"yuan":["np","ye"],"gsz":["bp","ji"],"wei":["cl"],"ys":["wn"],"tq":["xp","xb"],"wu":["chs"],"lb":["xy","jl","jx"],"lz":["cd","zt","jz"],"zl":["hz"],"md":["ww"],"gsd":["yp"],"kr":["bh"]},"rulers":{"dz":"dongzhuo","yuan":"yuanshao","gsz":"gongsunzan","wei":"cao","ys":"yuanshu","tq":"taoqian","wu":"sunjian","lb":"liubiao","lz":"liuyan","zl":"zhanglu","md":"mateng","gsd":"gongsundu","kr":"kongrong"},"picks":[["cao",0],["sunjian",0],["gongsunzan",0],["dongzhuo",500],["yuanshao",500],["mateng",900],["liubiao",1400],["yuanshu",2000],["taoqian",2600],["liuyan",2600],["kongrong",3000],["gongsundu",3200],["zhanglu",3200]]},"196":{"y":196,"short":"군웅할거","desc":"동탁은 죽고 천하는 갈라졌다. 조조가 허창에 황제를 모셨고, 여포가 서주를 빼앗았다. 손책은 강동을 휩쓴다.","own":{"wei":["xc","cl","pu","qi"],"shu":["xb"],"lvb":["xp"],"wu":["jy","wx","kj"],"yuan":["ye","np","py","bh","jny","sd"],"gsz":["ji","bp"],"gsd":["yp"],"ys":["sc","rn","lu"],"lb":["xy","jl","jx","chs","wl","ll","gy","xn"],"zx":["wn"],"lz":["cd","zt","jz","ya","jg"],"zl":["hz"],"md":["ww","ad","ts"],"lj":["ca","hn"],"sx":["jzh","nh"]},"rulers":{"wei":"cao","shu":"liubei","lvb":"lvbu","wu":"sunce","yuan":"yuanshao","gsz":"gongsunzan","gsd":"gongsundu","ys":"yuanshu","lb":"liubiao","zx":"zhangxiu","lz":"liuzhang","zl":"zhanglu","md":"mateng","lj":"lijue","sx":"shixie"},"picks":[["cao",0],["liubei",0],["sunce",0],["lvbu",300],["yuanshao",500],["gongsunzan",700],["mateng",900],["zhangxiu",1200],["liubiao",1400],["yuanshu",2000],["lijue",2400],["liuzhang",2600],["shixie",3000],["gongsundu",3200],["zhanglu",3200]]},"200":{"y":200,"short":"관도대전","desc":"하북의 원소와 중원의 조조가 관도에서 맞선다. 손책은 강동을 다지고, 유비는 여남에 몸을 숨겼다. 관우는 잠시 조조 곁에 있다.","own":{"wei":["xc","cl","pu","qi","xb","xp","ly","hn","ca","wn","sc"],"yuan":["ye","np","py","bh","jny","sd","ji","bp"],"shu":["rn"],"wu":["jy","wx","kj","lu","yz","cs"],"lb":["xy","xn","jl","jx","chs","wl","ll","gy"],"lz":["cd","zt","jz","ya","jg"],"zl":["hz","sy"],"md":["ww","ad","ts"],"gsd":["yp"],"sx":["jzh","nh"]},"rulers":{"wei":"cao","yuan":"yuanshao","shu":"liubei","wu":"sunce","lb":"liubiao","lz":"liuzhang","zl":"zhanglu","md":"mateng","gsd":"gongsundu","sx":"shixie"},"picks":[["cao",0],["yuanshao",0],["sunce",0],["liubei",300],["liubiao",900],["mateng",900],["liuzhang",1400],["shixie",2000],["zhanglu",2600],["gongsundu",3200]]},"207":{"y":207,"short":"삼고초려","desc":"조조가 북방을 평정했다. 신야의 유비는 와룡을 찾아가고, 강동의 손권은 때를 기다린다. 적벽의 불길이 가깝다.","own":{"wei":["ye","np","py","bh","jny","sd","ji","bp","xc","cl","pu","qi","xb","xp","ly","hn","ca","wn","sc","rn"],"lb":["xy","jl","jx","chs","wl","ll","gy"],"shu":["xn"],"wu":["jy","wx","kj","lu","yz","cs"],"lz":["cd","zt","jz","ya","jg"],"zl":["hz","sy"],"md":["ww","ad","ts"],"gsd":["yp"],"sx":["jzh","nh"]},"rulers":{"wei":"cao","shu":"liubei","wu":"sunquan","lb":"liubiao","lz":"liuzhang","zl":"zhanglu","md":"mateng","gsd":"gongsunkang","sx":"shixie"},"picks":[["cao",0],["liubei",0],["sunquan",0],["liubiao",900],["mateng",900],["liuzhang",1400],["shixie",2000],["zhanglu",2600],["gongsunkang",3200]]},"219":{"y":219,"short":"형주 쟁탈","desc":"천하는 셋으로 나뉘었다. 유비는 한중을 얻어 왕을 칭하고, 관우는 강릉에서 북쪽 번성을 노린다. 손권은 형주를 노려본다.","own":{"wei":["ye","np","py","bh","jny","sd","ji","bp","xc","cl","pu","qi","xb","xp","ly","hn","ca","wn","sc","rn","xn","xy","ad","ts","ww"],"shu":["cd","zt","jz","ya","jg","hz","sy","jl","wl","ll"],"wu":["jy","wx","kj","lu","yz","cs","jx","chs","gy","jzh","nh"],"gsd":["yp"]},"rulers":{"wei":"cao","shu":"liubei","wu":"sunquan","gsd":"gongsunkang"},"picks":[["cao",0],["liubei",0],["sunquan",0],["gongsunkang",2600]]},"228":{"y":228,"short":"출사표","desc":"제갈량이 출사표를 올리고 북벌에 나선다. 위는 조예가, 오는 손권이 지킨다. 노장들은 떠나고 새 영웅들이 자란다.","own":{"wei":["ye","np","py","bh","jny","sd","ji","bp","xc","cl","pu","qi","xb","xp","ly","hn","ca","wn","sc","rn","xn","xy","ad","ts","ww","sy"],"shu":["cd","zt","jz","ya","jg","hz"],"wu":["jy","wx","kj","lu","yz","cs","jx","chs","gy","jzh","nh","jl","wl","ll"],"gsd":["yp"]},"rulers":{"wei":"caorui","shu":"liushan","wu":"sunquan","gsd":"gongsunyuan"},"picks":[["caorui",0],["liushan",0],["sunquan",0],["gongsunyuan",2600]]}};
 const SCEN_YEARS = Object.keys(SCEN).map(Number);
 // id, 이름, 출생, 사망, 무용, 지략, 용병, 인망(내부 100점 척도 = 1~20 × 5), 특성, 경력, 등장연도
 const PEOPLE_DEF = [
@@ -429,7 +429,7 @@ const PEOPLE_DEF = [
   ["caochun","조순",170,210,60,40,70,50,"기병","184 free qi|190 wei cl|196 wei xc|200 wei xc"],
   ["caoang","조앙",177,197,55,45,50,70,"충의","190 wei cl|196 wei xc"],
   ["caoanmin","조안민",178,197,40,25,30,35,"맹장","190 wei cl|196 wei xc"],
-  ["caopi","조비",187,226,50,70,60,60,"지장","196 wei xc|200 wei xc",203],
+  ["caopi","조비",187,226,50,70,60,60,"지장","196 wei xc|200 wei xc|207 wei ye|219 wei ye",203],
   ["xiahouen","하후은",180,208,45,20,35,25,"맹장","196 wei xc|200 wei xc"],
   ["yuejin","악진",160,218,75,30,70,45,"맹장","184 free pu|190 wei cl|196 wei xc"],
   ["lidian","이전",174,209,55,65,70,65,"지장","184 free pu|190 wei cl|196 wei xc|207 wei sc"],
@@ -470,7 +470,7 @@ const PEOPLE_DEF = [
   ["sunqian","손건",160,215,15,60,20,70,"인덕","184 free bh|196 shu xb|200 shu rn|207 shu xn"],
   ["mizhu","미축",165,221,20,45,25,75,"인덕","184 free xp|196 shu xb|207 shu xn|219 shu cd"],
   ["mifang","미방",170,222,45,25,40,30,"맹장","184 free xp|190 tq xp|196 shu xb|200 shu rn"],
-  ["guanping","관평",178,220,70,45,60,55,"충의","196 free ji|200 shu rn",194],
+  ["guanping","관평",178,220,70,45,60,55,"충의","196 free ji|200 shu rn|207 shu xn|219 shu jl",194],
   ["mishi","미부인",175,208,5,45,5,70,"충의","184 free xp|190 tq xp|196 shu xb|200 shu rn"],
   ["ganshi","감부인",180,209,5,45,5,75,"인덕","184 free xb|196 shu xb|200 shu rn"],
   ["gongsunzan","공손찬",152,199,75,40,80,50,"기병","184 han bp|190 gsz bp|196 gsz ji"],
@@ -524,7 +524,7 @@ const PEOPLE_DEF = [
   ["qiaorui","교유",160,197,55,25,50,25,"맹장","190 ys wn|196 ys sc"],
   ["sunjian","손견",156,191,85,55,85,75,"맹장","184 han xp|190 wu chs"],
   ["sunce","손책",175,200,90,60,85,85,"맹장","190 wu chs|196 wu jy",191],
-  ["sunquan","손권",182,252,45,70,60,85,"인덕","196 wu wx|200 wu wx",196],
+  ["sunquan","손권",182,252,45,70,60,85,"인덕","196 wu wx|200 wu wx|207 wu cs|219 wu jy",196],
   ["sunjing","손정",160,215,45,45,50,55,"인덕","184 free kj|190 wu chs|196 wu kj|200 wu kj"],
   ["sunben","손분",165,210,55,40,60,45,"명장","184 free kj|190 wu chs|196 wu jy|200 wu yz"],
   ["wujing","오경",150,203,50,45,60,55,"명장","184 free kj|190 wu chs|196 wu jy|200 wu jy"],
@@ -546,7 +546,7 @@ const PEOPLE_DEF = [
   ["yufan","우번",164,233,20,75,30,35,"지장","184 free kj|190 free kj|196 wu kj|200 wu kj"],
   ["guyong","고옹",168,243,10,70,25,70,"인덕","184 free wx|190 free wx|196 free wx|200 wu wx"],
   ["lusu","노숙",172,217,35,85,70,75,"지장","184 free xp|200 wu jy|207 wu cs"],
-  ["lumeng","여몽",178,220,70,55,70,50,"맹장","196 wu jy|200 wu jy",194],
+  ["lumeng","여몽",178,220,70,55,70,50,"맹장","196 wu jy|200 wu jy|219 wu lu",194],
   ["daqiao","대교",180,240,5,45,5,80,"인덕","196 free lu|200 wu wx"],
   ["xiaoqiao","소교",182,242,5,55,5,80,"인덕","196 free lu|200 wu wx"],
   ["qiaoguo","교국로",140,205,5,50,10,65,"인덕","184 free lu|196 free lu|200 wu wx"],
@@ -567,35 +567,35 @@ const PEOPLE_DEF = [
   ["huangzu","황조",150,208,50,40,65,35,"명장","184 han jx|190 lb jx"],
   ["wenpin","문빙",165,230,70,50,75,60,"충의","184 free xy|190 lb xy|219 wei xn|228 wei xy"],
   ["wangwei","왕위",160,210,20,65,40,45,"지장","190 lb xy|196 lb xy|200 lb xy"],
-  ["liuqi","유기",180,209,25,40,30,65,"인덕","196 lb xy|200 lb jx",196],
-  ["liucong","유종",190,240,15,35,20,50,"인덕","200 lb xy",205],
+  ["liuqi","유기",180,209,25,40,30,65,"인덕","196 lb xy|200 lb jx|207 lb jx",196],
+  ["liucong","유종",190,240,15,35,20,50,"인덕","200 lb xy|207 lb xy",205],
   ["yiji","이적",165,225,15,65,20,65,"지장","184 free xy|190 lb xy|196 lb xy|200 lb xy"],
-  ["ganning","감녕",175,220,90,50,80,55,"맹장","190 free jz|196 free jx|200 lb jx"],
+  ["ganning","감녕",175,220,90,50,80,55,"맹장","190 free jz|196 free jx|200 lb jx|207 wu cs"],
   ["liuyan","유언",125,194,15,60,35,70,"인덕","184 han ly|190 lz cd"],
   ["liuzhang","유장",162,219,15,35,30,60,"인덕","190 lz cd"],
   ["liufan","유범",160,194,30,35,30,40,"인덕","184 han ly|190 lz cd"],
   ["zhangsong","장송",170,212,10,80,25,35,"지장","184 free cd|196 lz cd"],
   ["zhangren","장임",165,213,75,65,85,60,"충의","184 free cd|190 lz zt"],
   ["yanyan","엄안",150,220,75,50,75,60,"장수","184 free jz|190 lz jz|219 shu jz"],
-  ["fazheng","법정",176,220,15,90,65,45,"지장","196 lz cd|200 lz cd"],
+  ["fazheng","법정",176,220,15,90,65,45,"지장","196 lz cd|200 lz cd|219 shu hz"],
   ["huangquan","황권",170,240,35,75,65,65,"충의","184 free cd|196 lz cd|219 shu cd"],
   ["wanglei","왕루",165,212,10,50,20,45,"충의","184 free cd|190 lz cd|196 lz cd|200 lz cd"],
-  ["lengbao","냉포",175,214,75,35,60,30,"맹장","190 lz cd|196 lz cd|200 lz zt"],
+  ["lengbao","냉포",175,214,75,35,60,30,"맹장","190 lz cd|196 lz cd|200 lz zt|207 lz zt"],
   ["dengxian","등현",170,214,65,30,55,30,"맹장","190 lz cd|196 lz cd|200 lz zt"],
-  ["wuyi","오의",175,237,65,50,70,60,"명장","190 lz cd|196 lz cd|200 lz cd"],
-  ["liyan","이엄",170,234,70,65,75,45,"명장","184 free wn|190 lb xy|196 lb chs|200 lz cd"],
-  ["mengda","맹달",175,228,65,65,65,40,"맹장","196 lz cd|200 lz cd"],
+  ["wuyi","오의",175,237,65,50,70,60,"명장","190 lz cd|196 lz cd|200 lz cd|207 lz jz|219 shu cd|228 shu hz"],
+  ["liyan","이엄",170,234,70,65,75,45,"명장","184 free wn|190 lb xy|196 lb chs|200 lz cd|207 lz cd|219 shu jz|228 shu ya"],
+  ["mengda","맹달",175,228,65,65,65,40,"맹장","196 lz cd|200 lz cd|207 lz cd|219 shu sy|228 wei sy"],
   ["zhanglu","장로",170,216,20,60,40,85,"인덕","184 free hz|190 zl hz"],
   ["zhangwei","장위",170,215,60,30,55,35,"맹장","190 zl hz|196 zl hz|200 zl hz"],
-  ["yanpu","염포",165,230,15,80,30,60,"지장","190 zl hz|196 zl hz|200 zl hz"],
+  ["yanpu","염포",165,230,15,80,30,60,"지장","190 zl hz|196 zl hz|200 zl hz|219 wei ly"],
   ["yangsong","양송",165,215,5,45,10,15,"지장","190 zl hz|196 zl hz|200 zl hz"],
   ["yangang","양앙",165,215,65,30,55,30,"맹장","190 zl hz|196 zl hz|200 zl hz"],
   ["yangren","양임",165,215,65,35,60,30,"맹장","190 zl hz|196 zl hz|200 zl hz"],
   ["mateng","마등",156,212,75,40,75,75,"기병","184 free ww|190 md ww"],
   ["hansui","한수",145,215,55,70,75,65,"기병","184 free ww|190 md ad"],
-  ["machao","마초",176,222,95,35,80,65,"맹장","196 md ww|200 md ww",193],
-  ["madai","마대",180,235,75,40,65,50,"기병","196 md ww|200 md ww"],
-  ["pangde","방덕",170,219,85,40,70,55,"맹장","184 free ww|190 md ww|196 md ww|200 md ww"],
+  ["machao","마초",176,222,95,35,80,65,"맹장","196 md ww|200 md ww|219 shu cd",193],
+  ["madai","마대",180,235,75,40,65,50,"기병","196 md ww|200 md ww|219 shu hz"],
+  ["pangde","방덕",170,219,85,40,70,55,"맹장","184 free ww|190 md ww|196 md ww|200 md ww|207 md ts|219 wei xy"],
   ["maxiu","마휴",180,211,60,30,50,40,"기병","196 md ww|200 md ww"],
   ["matie","마철",182,211,60,25,50,40,"기병","200 md ww"],
   ["yanxing","염행",170,230,80,50,65,50,"기병","184 free ww|190 md ww|196 md ad|200 md ad"],
@@ -617,7 +617,7 @@ const PEOPLE_DEF = [
   ["suigu","수고",160,199,50,30,50,25,"맹장","190 free jny|196 free jny"],
   ["yuanyi","원유",150,195,20,40,35,50,"인덕","184 han ly|190 free pu"],
   ["gongsundu","공손도",150,204,55,50,70,45,"기병","184 han yp|190 gsd yp"],
-  ["gongsunkang","공손강",175,221,55,50,60,45,"기병","196 gsd yp|200 gsd yp",196],
+  ["gongsunkang","공손강",175,221,55,50,60,45,"기병","196 gsd yp|200 gsd yp|207 gsd yp",196],
   ["wangzifu","왕자복",160,200,45,30,40,35,"충의","184 han ly|190 dz ca|196 wei xc|200 wei xc"],
   ["chongji","충집",160,200,40,30,35,35,"충의","184 han ly|190 dz ca|196 wei xc|200 wei xc"],
   ["wuzilan","오자란",160,200,50,25,45,30,"충의","184 han ly|190 dz ca|196 wei xc|200 wei xc"],
@@ -626,35 +626,35 @@ const PEOPLE_DEF = [
   ["xiandi","헌제(유협)",181,234,10,55,15,75,"인덕","190 dz ly|196 wei xc|200 wei xc"],
   ["fushou","복황후",180,214,5,50,5,70,"인덕","190 dz ly|196 wei xc|200 wei xc"],
   ["dongguiren","동귀비",180,200,5,40,5,60,"인덕","196 wei xc|200 wei xc"],
-  ["zhugeliang","제갈량",181,234,20,100,85,90,"지장","196 free xy|200 free xy",201],
+  ["zhugeliang","제갈량",181,234,20,100,85,90,"지장","196 free xy|200 free xy|219 shu cd|228 shu hz",201],
   ["pangtong","방통",179,214,15,95,70,50,"지장","196 free xy|200 free xy",197],
   ["xushu","서서",175,234,55,85,70,65,"지장","184 free xc|196 free xy|207 shu xn|219 wei ly"],
   ["simahui","사마휘",173,208,10,80,20,80,"지장","184 free xc|190 free xy|196 free xy|200 free xy"],
-  ["simayi","사마의",179,251,25,95,90,60,"지장","196 free ly|200 free ly",201],
+  ["simayi","사마의",179,251,25,95,90,60,"지장","196 free ly|200 free ly|207 wei xc|219 wei ye|228 wei wn",201],
   ["simalang","사마랑",171,217,10,65,25,65,"인덕","184 free ly|190 free ly|196 wei xc|200 wei xc"],
-  ["luxun","육손",183,245,35,90,90,70,"지장","196 free wx|200 wu wx"],
-  ["maliang","마량",187,222,10,75,30,75,"인덕","200 free xy"],
-  ["masu","마속",190,228,30,75,50,45,"지장","200 free xy"],
+  ["luxun","육손",183,245,35,90,90,70,"지장","196 free wx|200 wu wx|219 wu jx|228 wu jx"],
+  ["maliang","마량",187,222,10,75,30,75,"인덕","200 free xy|207 lb xy|219 shu jl"],
+  ["masu","마속",190,228,30,75,50,45,"지장","200 free xy|207 lb xy|219 shu cd|228 shu hz"],
   ["huangzhong","황충",148,220,90,45,75,60,"맹장","184 free chs|190 lb jl|196 lb chs|219 shu hz"],
-  ["weiyan","위연",175,234,80,50,80,35,"맹장","190 free xy|196 lb xy|200 lb chs"],
-  ["guanxing","관흥",195,234,70,40,60,50,"맹장","200 shu rn",216],
-  ["zhangbao","장포",195,229,70,30,60,40,"맹장","200 shu rn",216],
-  ["dengai","등애",197,264,65,85,90,50,"명장","200 free xc",226],
+  ["weiyan","위연",175,234,80,50,80,35,"맹장","190 free xy|196 lb xy|200 lb chs|207 lb chs|219 shu hz"],
+  ["guanxing","관흥",195,234,70,40,60,50,"맹장","200 shu rn|219 shu cd|228 shu hz",216],
+  ["zhangbao","장포",195,229,70,30,60,40,"맹장","200 shu rn|219 shu cd|228 shu hz",216],
+  ["dengai","등애",197,264,65,85,90,50,"명장","200 free xc|228 wei wn",226],
   ["xushao","허소",150,195,5,70,5,70,"지장","184 free rn|190 free yz"],
   ["huatuo","화타",145,208,15,75,5,75,"지장","184 free qi|190 free qi|196 free wx|200 free xc"],
   ["yuji","우길",130,200,5,75,5,85,"인덕","184 free wx|190 free wx|196 free wx"],
   ["sunfuren","손부인",190,250,50,45,40,65,"기병","196 wu wx|200 wu wx"],
   ["huangshi_zg","황씨(제갈량의 처)",183,243,10,80,20,60,"지장","196 free xy|200 free xy"],
-  ["zhugejin","제갈근",174,241,20,70,50,75,"인덕","196 free wx|200 wu wx"],
-  ["xusheng","서성",177,225,70,60,75,50,"강철","196 free wx|200 wu wx"],
-  ["panzhang","반장",175,234,70,40,65,30,"맹장","196 free jy|200 wu jy"],
-  ["zhuhuan","주환",177,238,70,60,80,45,"명장","196 free wx|200 wu wx"],
-  ["kanze","감택",170,243,10,75,20,55,"지장","196 free kj|200 wu kj"],
-  ["zhuran","주연",182,249,65,60,75,50,"강철","196 free wx|200 wu wx"],
-  ["lingtong","능통",189,217,75,40,65,60,"맹장","200 wu wx",205],
-  ["dingfeng","정봉",190,271,70,45,65,40,"장수","200 wu wx",210],
-  ["guohuai","곽회",187,255,55,70,80,55,"강철","200 free jny",210],
-  ["caozhen","조진",185,231,65,50,75,60,"기병","200 wei xc",205],
+  ["zhugejin","제갈근",174,241,20,70,50,75,"인덕","196 free wx|200 wu wx|228 wu jx"],
+  ["xusheng","서성",177,225,70,60,75,50,"강철","196 free wx|200 wu wx|207 wu wx|219 wu jy"],
+  ["panzhang","반장",175,234,70,40,65,30,"맹장","196 free jy|200 wu jy|207 wu yz|219 wu jx"],
+  ["zhuhuan","주환",177,238,70,60,80,45,"명장","196 free wx|200 wu wx|207 wu wx|219 wu jy|228 wu lu"],
+  ["kanze","감택",170,243,10,75,20,55,"지장","196 free kj|200 wu kj|207 wu wx|219 wu jy"],
+  ["zhuran","주연",182,249,65,60,75,50,"강철","196 free wx|200 wu wx|207 wu wx|219 wu jy|228 wu jl"],
+  ["lingtong","능통",189,217,75,40,65,60,"맹장","200 wu wx|207 wu cs",205],
+  ["dingfeng","정봉",190,271,70,45,65,40,"장수","200 wu wx|219 wu lu|228 wu jy",210],
+  ["guohuai","곽회",187,255,55,70,80,55,"강철","200 free jny|219 wei ca|228 wei ts",210],
+  ["caozhen","조진",185,231,65,50,75,60,"기병","200 wei xc|219 wei ca|228 wei ca",205],
   ["yushe","유섭",160,190,50,15,35,25,"맹장","190 ys wn"],
   ["panfeng","반봉",155,190,60,15,35,25,"맹장","184 han ye|190 yuan ye"],
   ["mushun","목순",160,190,55,15,35,25,"맹장","184 free jny|190 free jny"],
@@ -687,6 +687,8 @@ const PEOPLE_DEF = [
 const JEONG = {"hejin":30,"zhangrang":40,"lushi":75,"huangfusong":65,"zhujun":60,"wangyun":80,"caiyong":70,"dongcheng":45,"yangbiao":80,"dingyuan":45,"liuyu":85,"zhongyao":85,"diaochan":30,"caiyan":55,"zhangjiao":50,"zhangbao_hj":30,"zhangliang_hj":30,"chengyuanzhi":15,"dengmao":10,"hanzhong":20,"sunzhong":20,"zhaohong":20,"peiyuanshao":10,"zhoucang":15,"liaohua":45,"liubi":30,"gongdu":25,"guanhai":15,"heyi":15,"huangshao":15,"heman":10,"zhangyan":40,"dongzhuo":30,"liru":60,"huaxiong":15,"lijue":20,"guosi":15,"zhangji":35,"fanchou":20,"xurong":35,"huzhen":15,"lisu":30,"niufu":20,"dongmin":30,"jiaxu":75,"lvbu":15,"chengong":70,"gaoshun":35,"zhangliao":55,"zangba":50,"haomeng":15,"caoxing":20,"chenglian":20,"weixu":25,"songxian":20,"houcheng":25,"chenggui":75,"chendeng":80,"yanshi":30,"lvbudaughter":15,"zhangxiu":45,"huchenger":10,"zoushi":25,"yangfeng":25,"hanxian":20,"xuhuang":45,"cao":90,"xiahoudun":60,"xiahouyuan":40,"caoren":50,"caohong":35,"caochun":45,"caoang":45,"caoanmin":25,"caopi":75,"xiahouen":20,"yuejin":30,"lidian":60,"dianwei":15,"xuchu":20,"yujin":45,"xunyu":100,"xunyou":65,"guojia":55,"chengyu":70,"liuye":60,"manchong":80,"maojie":80,"lvqian":65,"xuyou":45,"renjun":85,"zaozhi":80,"dongzhao":70,"huaxin":75,"wanglang":70,"chenqun":85,"kongxiu":25,"mengtan":25,"hanfu_ly":40,"bianxi":25,"wangzhi":40,"qinqi":15,"caiyang":20,"wangzhong":30,"liudai_cao":35,"bianshi":60,"dingshi":50,"liubei":65,"guanyu":50,"zhangfei":20,"zhaoyun":50,"jianyong":55,"sunqian":65,"mizhu":75,"mifang":40,"guanping":35,"mishi":40,"ganshi":40,"gongsunzan":40,"gongsunyue":30,"gongsunxu":25,"yangang_gs":25,"tiankai":40,"tianyu":70,"guanjing":50,"liuyu_son":50,"xianyufu":40,"taoqian":60,"caobao":25,"zhangkai":10,"sunguan":35,"kongrong":60,"yuanshao":65,"yuantan":40,"yuanxi":50,"yuanshang":40,"gaogan":45,"yanliang":15,"wenchou":15,"zhanghe":40,"gaolan":25,"quyi":30,"chunyuqiong":20,"hanmeng":20,"jiangyiqu":25,"jushou":70,"tianfeng":65,"shenpei":70,"fengji":50,"guotu":50,"xinping":60,"xinpi":65,"chenlin":60,"hanfu":55,"geng_wu":40,"zhenshi":55,"yuanshu":45,"jiling":20,"zhangxun":35,"leibo":20,"chenlan":20,"yanghong":50,"yanxiang":55,"hanyin":45,"lifeng":20,"liuxun":35,"qiaorui":20,"sunjian":50,"sunce":60,"sunquan":75,"sunjing":55,"sunben":45,"wujing":55,"wushi":65,"chengpu":50,"huanggai":55,"hantang":35,"zumao":20,"zhoutai":25,"jiangqin":50,"chenwu":25,"dongxi":25,"lingcao":25,"taishici":40,"zhouyu":70,"zhangzhao":90,"zhanghong":80,"lvfan":70,"yufan":65,"guyong":85,"lusu":75,"lumeng":45,"daqiao":40,"xiaoqiao":40,"qiaoguo":55,"liuyao":55,"zerong":20,"xueli":30,"yumi":25,"zhangying":25,"fanneng":20,"yanbaihu":25,"yanyu":20,"xugong":45,"liubiao":75,"kuailiang":70,"kuaiyue":65,"caimao":45,"zhangyun":35,"huangzu":40,"wenpin":55,"wangwei":55,"liuqi":45,"liucong":45,"yiji":65,"ganning":30,"liuyan":70,"liuzhang":55,"liufan":40,"zhangsong":70,"zhangren":40,"yanyan":45,"fazheng":65,"huangquan":65,"wanglei":45,"lengbao":25,"dengxian":25,"wuyi":50,"liyan":70,"mengda":45,"zhanglu":70,"zhangwei":30,"yanpu":70,"yangsong":35,"yangang":25,"yangren":25,"mateng":45,"hansui":55,"machao":30,"madai":30,"pangde":30,"maxiu":25,"matie":20,"yanxing":45,"chengyi":20,"shixie":85,"baoxin":55,"baozhong":20,"wangkuang":50,"fangyue":15,"liudai_yan":50,"qiaomao":55,"kongzhou":50,"zhangmiao":60,"zhangchao":45,"zanghong":60,"zhangyang":45,"mugu":25,"yangchou":25,"suigu":25,"yuanyi":50,"gongsundu":65,"gongsunkang":55,"wangzifu":35,"chongji":35,"wuzilan":30,"wushi_han":35,"jiping":40,"xiandi":60,"fushou":45,"dongguiren":35,"zhugeliang":95,"pangtong":60,"xushu":60,"simahui":50,"simayi":85,"simalang":80,"luxun":75,"maliang":70,"masu":55,"huangzhong":35,"weiyan":30,"guanxing":30,"zhangbao":25,"dengai":70,"xushao":50,"huatuo":40,"yuji":30,"sunfuren":35,"huangshi_zg":65,"zhugejin":75,"xusheng":45,"panzhang":35,"zhuhuan":50,"kanze":65,"zhuran":50,"lingtong":30,"dingfeng":30,"guohuai":70,"caozhen":50,"yushe":15,"panfeng":15,"mushun":15,"wuanguo":15,"lvgong":25,"chensheng":20,"zhanghu":15,"wangfang":15,"limeng":20,"chezhou":45,"yuejiu":20,"lianggang":20,"chenji_ys":20,"tianshi_py":45,"caorui":75,"simashi":70,"simazhao":75,"zhonghui":65,"haozhao":50,"wangshuang":15,"liushan":50,"wangping":45,"feiyi":85,"jiangwan":90,"zhangyi":50,"jiangwei":55,"menghuo":35,"gongsunyuan":45};
 const TRAITS2 = {"hejin":[],"zhangrang":["gangye"],"lushi":["chungjeol","dukmang"],"huangfusong":["hwagye","susung"],"zhujun":["gongsung"],"wangyun":["gangye","chungjeol"],"caiyong":[],"dongcheng":["chungjeol"],"yangbiao":["chise"],"dingyuan":["gima"],"liuyu":["chise","dukmang"],"zhongyao":["chise"],"diaochan":["gangye"],"caiyan":[],"zhangjiao":["dukmang","gangye"],"zhangbao_hj":["gangye"],"zhangliang_hj":[],"chengyuanzhi":["yongmaeng"],"dengmao":[],"hanzhong":[],"sunzhong":[],"zhaohong":[],"peiyuanshao":[],"zhoucang":["chungjeol","sujeon"],"liaohua":["chungjeol","jangsu"],"liubi":[],"gongdu":[],"guanhai":["yongmaeng"],"heyi":[],"huangshao":[],"heman":[],"zhangyan":["sinsok"],"dongzhuo":["gima","yamang"],"liru":["gangye","hwagye"],"huaxiong":["ilgi","yongmaeng"],"lijue":["gima"],"guosi":["gima"],"zhangji":["gima"],"fanchou":["gima"],"xurong":["sinsok"],"huzhen":[],"lisu":[],"niufu":[],"dongmin":[],"jiaxu":["gangye","ganpa","jangsu"],"lvbu":["ilgi","gima","gung","yamang"],"chengong":["ganpa","gangye","chungjeol"],"gaoshun":["chungjeol","gongsung"],"zhangliao":["sinsok","gima","ilgi"],"zangba":[],"haomeng":[],"caoxing":["gung"],"chenglian":["gung"],"weixu":[],"songxian":[],"houcheng":[],"chenggui":["gangye"],"chendeng":["gangye","chise"],"yanshi":[],"lvbudaughter":["gima"],"zhangxiu":["gima"],"huchenger":[],"zoushi":[],"yangfeng":[],"hanxian":[],"xuhuang":["ilgi","susung"],"cao":["gangye","ganpa","hwagye","yamang"],"xiahoudun":["chungjeol","yongmaeng"],"xiahouyuan":["sinsok","gima","gung"],"caoren":["susung"],"caohong":["gima"],"caochun":["gima"],"caoang":["chungjeol"],"caoanmin":[],"caopi":["gung"],"xiahouen":[],"yuejin":["yongmaeng","gongsung"],"lidian":["ganpa"],"dianwei":["ilgi","chungjeol","yongmaeng"],"xuchu":["ilgi","chungjeol"],"yujin":["susung"],"xunyu":["chise","dukmang"],"xunyou":["gangye","ganpa"],"guojia":["ganpa","gangye"],"chengyu":["gangye","susung"],"liuye":["gongsung"],"manchong":["susung","chise"],"maojie":["chise"],"lvqian":["chise"],"xuyou":["gangye"],"renjun":["chise"],"zaozhi":["chise"],"dongzhao":["gangye"],"huaxin":[],"wanglang":[],"chenqun":["chise"],"kongxiu":[],"mengtan":[],"hanfu_ly":["gung"],"bianxi":[],"wangzhi":["hwagye"],"qinqi":[],"caiyang":[],"wangzhong":[],"liudai_cao":[],"bianshi":["dukmang"],"dingshi":[],"liubei":["dukmang"],"guanyu":["ilgi","chungjeol","sujeon"],"zhangfei":["ilgi","yongmaeng"],"zhaoyun":["ilgi","chungjeol","gima"],"jianyong":[],"sunqian":[],"mizhu":["chise","chungjeol"],"mifang":[],"guanping":["chungjeol"],"mishi":["chungjeol"],"ganshi":[],"gongsunzan":["gima","gung"],"gongsunyue":["gima"],"gongsunxu":["gima"],"yangang_gs":["gima"],"tiankai":["gima"],"tianyu":["susung","gima"],"guanjing":[],"liuyu_son":[],"xianyufu":["gima"],"taoqian":[],"caobao":[],"zhangkai":[],"sunguan":[],"kongrong":["dukmang"],"yuanshao":["dukmang","yamang"],"yuantan":[],"yuanxi":[],"yuanshang":["gima"],"gaogan":[],"yanliang":["ilgi","yongmaeng"],"wenchou":["ilgi","yongmaeng"],"zhanghe":["ganpa","gima"],"gaolan":[],"quyi":["gung"],"chunyuqiong":[],"hanmeng":[],"jiangyiqu":[],"jushou":["ganpa","chungjeol"],"tianfeng":["ganpa","chungjeol"],"shenpei":["susung","chungjeol"],"fengji":["gangye"],"guotu":["gangye"],"xinping":[],"xinpi":[],"chenlin":[],"hanfu":[],"geng_wu":["chungjeol"],"zhenshi":[],"yuanshu":["yamang"],"jiling":[],"zhangxun":[],"leibo":[],"chenlan":[],"yanghong":["gangye"],"yanxiang":[],"hanyin":[],"lifeng":[],"liuxun":[],"qiaorui":[],"sunjian":["yongmaeng","sujeon","yamang"],"sunce":["ilgi","sinsok","yamang"],"sunquan":["dukmang"],"sunjing":[],"sunben":[],"wujing":[],"wushi":["dukmang"],"chengpu":["chungjeol","sujeon"],"huanggai":["chungjeol","hwagye","sujeon"],"hantang":["chungjeol","sujeon"],"zumao":["chungjeol"],"zhoutai":["chungjeol","sujeon"],"jiangqin":["sujeon"],"chenwu":["chungjeol"],"dongxi":["sujeon"],"lingcao":["sujeon","gung"],"taishici":["ilgi","gung","chungjeol"],"zhouyu":["hwagye","sujeon","ganpa"],"zhangzhao":["chise"],"zhanghong":["chise"],"lvfan":[],"yufan":["ganpa"],"guyong":["chise"],"lusu":["ganpa","dukmang"],"lumeng":["sujeon"],"daqiao":[],"xiaoqiao":[],"qiaoguo":[],"liuyao":[],"zerong":[],"xueli":[],"yumi":[],"zhangying":["sujeon"],"fanneng":[],"yanbaihu":[],"yanyu":[],"xugong":[],"liubiao":["chise","dukmang"],"kuailiang":["ganpa"],"kuaiyue":["gangye"],"caimao":["sujeon"],"zhangyun":["sujeon"],"huangzu":["sujeon","gung"],"wenpin":["chungjeol","susung","sujeon"],"wangwei":[],"liuqi":[],"liucong":[],"yiji":[],"ganning":["ilgi","sujeon","gung","sinsok"],"liuyan":["yamang"],"liuzhang":[],"liufan":[],"zhangsong":["gangye"],"zhangren":["chungjeol","gung"],"yanyan":["gung","jangsu"],"fazheng":["gangye","ganpa"],"huangquan":["chungjeol","ganpa"],"wanglei":["chungjeol"],"lengbao":[],"dengxian":[],"wuyi":[],"liyan":[],"mengda":["yamang"],"zhanglu":["dukmang"],"zhangwei":[],"yanpu":["ganpa"],"yangsong":[],"yangang":[],"yangren":[],"mateng":["gima","chungjeol"],"hansui":["gima","gangye","yamang"],"machao":["ilgi","gima"],"madai":["gima","chungjeol"],"pangde":["ilgi","gima","chungjeol"],"maxiu":["gima"],"matie":["gima"],"yanxing":["gima"],"chengyi":["gima"],"shixie":["chise","jangsu"],"baoxin":["ganpa"],"baozhong":[],"wangkuang":[],"fangyue":[],"liudai_yan":[],"qiaomao":[],"kongzhou":[],"zhangmiao":["dukmang"],"zhangchao":["chungjeol"],"zanghong":["chungjeol","susung"],"zhangyang":[],"mugu":[],"yangchou":[],"suigu":[],"yuanyi":[],"gongsundu":["yamang","gima"],"gongsunkang":["gima"],"wangzifu":["chungjeol"],"chongji":["chungjeol"],"wuzilan":["chungjeol"],"wushi_han":["chungjeol"],"jiping":["chungjeol"],"xiandi":[],"fushou":[],"dongguiren":[],"zhugeliang":["hwagye","ganpa","chise","chungjeol"],"pangtong":["gangye","hwagye"],"xushu":["ganpa"],"simahui":["ganpa"],"simayi":["ganpa","gangye","jangsu"],"simalang":["chise"],"luxun":["hwagye","ganpa"],"maliang":["dukmang"],"masu":[],"huangzhong":["ilgi","gung","jangsu"],"weiyan":["yongmaeng"],"guanxing":[],"zhangbao":[],"dengai":["sinsok"],"xushao":["ganpa"],"huatuo":[],"yuji":["dukmang"],"sunfuren":["gima"],"huangshi_zg":[],"zhugejin":["dukmang"],"xusheng":["sujeon","susung"],"panzhang":["sujeon"],"zhuhuan":["sujeon"],"kanze":["gangye"],"zhuran":["susung","sujeon"],"lingtong":["sujeon"],"dingfeng":["sujeon","jangsu"],"guohuai":["susung"],"caozhen":["gima"],"yushe":[],"panfeng":[],"mushun":[],"wuanguo":[],"lvgong":["gung"],"chensheng":[],"zhanghu":[],"wangfang":[],"limeng":[],"chezhou":[],"yuejiu":[],"lianggang":[],"chenji_ys":[],"tianshi_py":["gangye"],"caorui":[],"simashi":["ganpa"],"simazhao":["gangye"],"zhonghui":["gangye","yamang"],"haozhao":["susung"],"wangshuang":["ilgi"],"liushan":["jangsu"],"wangping":["susung"],"feiyi":["chise"],"jiangwan":["chise"],"zhangyi":[],"jiangwei":["gima","ganpa","chungjeol"],"menghuo":["yongmaeng"],"gongsunyuan":["yamang"]};
 const EQUIP0 = {"wangyun":{"weapon":"qixing","horse":null,"book":null},"zhangjiao":{"weapon":null,"horse":null,"book":"taiping"},"dongzhuo":{"weapon":null,"horse":"chitu","book":null},"lvbu":{"weapon":"fangtian","horse":null,"book":null},"cao":{"weapon":"yitian","horse":null,"book":null},"xiahouen":{"weapon":"qinggang","horse":null,"book":null},"dianwei":{"weapon":"shuangtieji","horse":null,"book":null},"liubei":{"weapon":"shuanggu","horse":null,"book":null},"guanyu":{"weapon":"qinglong","horse":null,"book":null},"zhangfei":{"weapon":"zhangba","horse":null,"book":null},"sunjian":{"weapon":"guding","horse":null,"book":null},"chengpu":{"weapon":"tieji","horse":null,"book":null},"huanggai":{"weapon":"tiebian","horse":null,"book":null}};
+// 역사 사건(회귀자의 기억): [id, 연, 월, 이름, 성, 원작 결과, 관련 인물]
+const HIST_EV = [["b184_daxing",184,3,"대흥산 전투","ji","장비가 등무를, 관우가 정원지를 베고 황건적 5만을 무너뜨린다.",["liubei","guanyu","zhangfei","chengyuanzhi","dengmao"]],["b184_qingzhou",184,4,"청주 구원전","bh","유비가 관우·장비를 산 양쪽에 숨기고 거짓 퇴각해 황건적을 협공한다.",["liubei","guanyu","zhangfei"]],["b184_yingchuan",184,5,"영천 화공","xc","황건적이 풀숲에 진을 치자 황보숭과 주준이 바람을 타 불을 지른다. 퇴로에서 조조가 처음 등장해 적을 벤다.",["huangfusong","zhujun","cao","zhangliang_hj","zhangbao_hj"]],["b184_guangzong",184,6,"광종 포위","ye","노식이 장각을 포위하지만 환관에게 뇌물을 주지 않아 모함으로 압송된다. 뒤이은 동탁은 패하고 유비 형제가 구한다.",["lushi","zhangjiao"]],["b184_zhangbao_magic",184,8,"장보의 요술","ye","장보가 요술로 바람과 우레를 부르자, 유비가 짐승의 피로 요술을 깨뜨린다.",["liubei","guanyu","zhangfei","zhujun","zhangbao_hj"]],["b184_wancheng",184,10,"완성 탈환","wn","손견이 맨 먼저 성벽에 올라 조홍(趙弘)을 베고, 한충과 손중도 전사한다.",["zhujun","liubei","sunjian","hanzhong","zhaohong","sunzhong"]],["e189_shichangshi",189,8,"십상시의 난","ly","하진이 십상시에게 살해되고, 원소·조조가 궁에 들어가 환관을 몰살한다. 동탁이 황제를 손에 넣는다.",[]],["e189_dingyuan",189,9,"여포의 배신","ly","이숙이 적토마와 황금으로 여포를 꾀어, 여포가 의부 정원을 죽이고 동탁의 수양아들이 된다.",[]],["e190_qixing",190,1,"칠성보도 암살 미수","ly","조조가 왕윤의 칠성보도로 동탁을 찌르려다 들켜 칼을 바치는 척하고 달아난다. 도중에 여백사 일가를 죽인다.",[]],["b190_sishui",190,2,"사수관 전투","ly","화웅이 포충·유섭·반봉을 베고 손견을 패주시켜 조무가 전사한다. 관우가 데운 술이 식기 전에 화웅을 벤다.",["sunjian","baozhong","guanyu","huaxiong","lisu","huzhen"]],["b190_hulao",190,3,"호뢰관 전투","ly","여포가 방열·목순을 베고 무안국의 팔을 자르며 공손찬을 쫓는다. 장비·관우·유비가 셋이서 여포와 싸워 물리친다.",["yuanshao","gongsunzan","liubei","guanyu","zhangfei","lvbu"]],["b190_xingyang",190,4,"형양 추격전","ly","장안으로 떠나는 동탁을 조조가 홀로 쫓다가 서영의 매복에 크게 진다. 조홍이 말을 내주어 조조가 산다.",["cao","xiahoudun","caohong","xurong"]],["e190_yuxi",190,4,"전국옥새","ly","불탄 낙양의 우물에서 손견이 전국옥새를 얻고 몰래 강동으로 돌아간다. 원소와 사이가 틀어진다.",[]],["b191_jieqiao",191,10,"반하 전투","py","문추에게 쫓기던 공손찬을 조운이 구하며 처음 등장한다. 국의가 엄강을 벤다. 유비가 와서 싸움을 멈춘다.",["yuanshao","wenchou","quyi","gongsunzan","yangang_gs","zhaoyun"]],["b191_xianshan",191,11,"현산 전투","xy","손견이 황조를 깨뜨리고 양양을 포위하지만, 괴량의 계책으로 여공이 현산에 매복해 손견이 돌과 화살에 맞아 전사한다.",["sunjian","sunce","chengpu","huanggai","hantang","huangzu","kuailiang","lvgong","chensheng","zhanghu"]],["e192_lianhuan",192,4,"연환계","ca","왕윤이 초선을 이용해 동탁과 여포 사이를 갈라놓고, 여포가 동탁을 죽인다.",[]],["b192_changan",192,6,"장안 함락","ca","가후의 권유로 이각·곽사가 장안을 공격한다. 여포는 패주하고 왕윤은 죽는다.",["lijue","guosi","zhangji","fanchou","lvbu","wangyun"]],["b194_changping",194,3,"장평관 전투","ca","열일곱 살 마초가 왕방을 베고 이몽을 사로잡지만, 장안 내응이 들통나 서량군이 물러난다.",["mateng","hansui","machao","wangfang","limeng"]],["b194_xuzhou",194,4,"서주 침공","xp","도겸의 부하 장개가 조조의 아버지 조숭을 죽이자 조조가 서주를 친다. 유비가 구원 오고, 여포가 연주를 습격해 조조가 물러난다.",["cao","xiahoudun","yujin","dianwei","taoqian","caobao","liubei","guanyu","zhangfei"]],["b194_beihai",194,5,"북해 구원","bh","포위된 공융을 위해 태사자가 홀로 포위를 뚫고 유비에게 구원을 청한다. 관우가 관해를 벤다.",["kongrong","taishici","liubei","guanyu","guanhai"]],["b194_puyang",194,8,"복양 전투","pu","진궁이 복양 부호 전씨를 시켜 거짓 내응을 약속한다. 성에 들어간 조조가 화공에 갇혀 크게 다치고 전위가 구해낸다.",["cao","dianwei","xiahoudun","yuejin","lidian","lvbu","chengong","gaoshun","zhangliao","zangba"]],["b195_dingtao",195,4,"정도 전투","pu","조조가 둑 뒤에 병사를 숨기고 부녀자를 내세워 여포를 꾀어낸 뒤 크게 이긴다. 여포는 연주를 잃고 유비에게 간다.",["cao","dianwei","xuchu","lvbu","chengong"]],["b195_xuchu",195,2,"허저 등용","rn","황건 잔당 하의·황소를 쫓던 중 조홍이 하만을 베고 이전이 황소를 사로잡는다. 하의를 붙잡은 허저와 전위가 겨루어 승부가 나지 않자 조조가 함정으로 허저를 잡아 등용한다.",["cao","dianwei","xuchu"]],["b195_shenting",195,6,"신정 일기토","jy","손책과 태사자가 신정에서 단둘이 맞붙어 서로 투구와 단극을 빼앗는다. 뒤에 손책이 태사자를 사로잡아 마음을 얻는다.",["sunce","chengpu","huanggai","hantang","taishici","liuyao"]],["b195_jiangdong",195,8,"강동 평정","wx","손책이 유요·착융·설례를 차례로 깨고, 엄백호와 왕랑을 몰아내 강동을 차지한다. 주태가 몸에 열두 군데 상처를 입고 손권을 구하고, 화타가 치료한다.",["sunce","zhouyu","zhoutai","jiangqin","chenwu","liuyao","zerong","xueli","yanbaihu","wanglang"]],["e195_xiandi_east",195,7,"헌제 동천","ly","이각·곽사가 서로 싸우는 틈에 양봉·한섬·동승이 헌제를 모시고 낙양으로 간다. 서황이 허저와 겨룬다(14회).",[]],["e196_xudu",196,8,"허도 천도","xc","조조가 헌제를 허도로 모셔 천자를 끼고 제후를 호령한다. 서황이 만총의 설득으로 조조에게 간다.",[]],["b196_xuyi",196,6,"우이 대치와 서주 상실","xp","유비가 원술군과 맞서는 동안, 서주를 지키던 장비가 술에 취해 조표를 때리고 조표가 여포를 끌어들여 서주를 잃는다.",["liubei","guanyu","jiling"]],["e196_yuanmen",196,9,"원문사극","xb","여포가 멀리 세운 극을 활로 맞히고 기령과 유비를 화해시킨다.",[]],["b197_wancheng",197,1,"완성 전투","wn","항복한 장수가, 조조가 숙부의 미망인 추씨를 취한 데 분노한다. 가후의 계책으로 호거아가 전위의 극을 훔치고 야습해 전위·조앙·조안민이 죽는다.",["zhangxiu","jiaxu","huchenger","cao","dianwei","caoang","caoanmin","yujin"]],["b197_sevenroutes",197,5,"원술 칠로군","xp","황제를 칭한 원술이 일곱 갈래로 서주를 친다. 진규·진등 부자가 한섬·양봉을 이간해 배반시키고 여포가 크게 이긴다.",["zhangxun","qiaorui","chenji_ys","leibo","chenlan","hanxian","yangfeng","lvbu","gaoshun","zhangliao","chengong","chendeng"]],["b197_shouchun",197,9,"수춘 토벌","sc","조조가 군량 부족을 감추려 군량관 왕후를 베어 사기를 다잡고 수춘을 함락한다. 원술은 회수를 건너 달아난다.",["cao","liubei","lvbu","sunce","lifeng","yuejiu","lianggang","chenji_ys"]],["b198_rangcheng",198,3,"양성 추격전","wn","가후는 처음엔 추격을 말리고, 장수가 지자 다시 추격하라 한다. 두 번째 추격은 크게 이긴다.",["zhangxiu","jiaxu","cao","xuchu"]],["b198_xiaopei",198,9,"소패 전투","xb","고순과 싸우던 하후돈이 조성의 화살에 왼눈을 맞자, 화살을 뽑아 눈알을 삼키고 조성을 벤다.",["gaoshun","caoxing","xiahoudun","liubei"]],["b198_xiapi",198,12,"하비 수공","xp","곽가·순유의 계책으로 사수와 기수를 터뜨려 하비를 물에 잠근다. 후성·송헌·위속이 여포를 묶어 바치고, 여포·진궁·고순은 백문루에서 처형된다. 장료는 항복한다.",["cao","liubei","guanyu","zhangfei","xiahoudun","guojia","xunyou","lvbu","chengong","gaoshun","zhangliao","houcheng","songxian","weixu"]],["e199_yidai",199,3,"의대조","xc","허전 사냥 뒤, 헌제가 옥대 속 밀서로 동승에게 조조 토벌을 명한다. 유비·마등이 서명한다.",[]],["b199_yijing",199,3,"역경 전투","bp","원소가 땅굴을 파 역경루를 무너뜨리고, 공손찬은 처자를 죽이고 스스로 불에 뛰어든다.",["yuanshao","yanliang","wenchou","zhanghe","gaolan","gongsunzan","gongsunxu","tiankai"]],["b199_yuanshu_end",199,6,"원술 최후","xp","원소에게 가려던 원술을 유비가 막는다. 장비가 기령을 베고, 원술은 꿀물 한 그릇을 찾다 피를 토하고 죽는다.",["liubei","guanyu","zhangfei","yuanshu","jiling"]],["b199_chezhou",199,8,"서주 탈취","xp","조조가 차주에게 유비를 죽이라 하지만 진등이 알리고, 관우가 차주를 벤다. 유비가 서주를 차지한다.",["liubei","guanyu","chendeng","chezhou"]],["b199_liudai",199,10,"유대·왕충 격파","xp","관우가 왕충을, 장비가 꾀를 써서 유대를 사로잡는다. 유비는 둘을 놓아준다.",["guanyu","zhangfei","liudai_cao","wangzhong"]],["b200_xuzhou",200,1,"서주 함락","xp","유비의 야습이 간파되어 크게 지고 삼형제가 흩어진다. 하비를 지키던 관우는 토산에서 세 가지 약속을 받고 조조에게 몸을 맡긴다.",["cao","zhangliao","xuhuang","xiahoudun","liubei","guanyu","zhangfei"]],["b200_baima",200,4,"백마 전투","pu","안량이 송헌·위속을 베고 서황을 물리친다. 관우가 적토마를 달려 만군 속에서 안량을 베고 머리를 가져온다.",["yanliang","cao","songxian","weixu","xuhuang","guanyu","zhangliao"]],["b200_yanjin",200,4,"연진 전투","pu","조조가 군량과 말을 미끼로 버려 문추군을 어지럽힌다. 문추가 장료·서황을 물리치지만 관우에게 베인다.",["wenchou","liubei","cao","zhangliao","xuhuang","guanyu"]],["e200_wuguan",200,6,"오관참육장","ly","유비의 소식을 들은 관우가 두 형수를 모시고 다섯 관문을 지나며 여섯 장수를 벤다.",[]],["e200_gucheng",200,7,"고성 재회","rn","장비가 관우를 의심하자, 관우가 쫓아온 채양을 북이 세 번 울리기 전에 벤다. 주창·관평이 합류하고 조운도 돌아온다.",[]],["e200_sunce_death",200,4,"손책의 죽음","wx","사냥 중 허공의 식객에게 습격당한 손책이 우길을 죽인 뒤 환영에 시달리다 죽고, 손권이 뒤를 잇는다.",[]],["b200_guandu",200,10,"관도대전","cl","원소가 저수·전풍의 간언을 듣지 않는다. 허유가 조조에게 투항해 오소 군량고를 알려주고, 조조가 직접 오소를 불태운다. 순우경이 패하고 장합·고람이 투항해 원소군이 무너진다.",["yuanshao","zhanghe","gaolan","chunyuqiong","jushou","tianfeng","shenpei","xuyou","guotu","cao","xunyou","guojia","xuchu","zhangliao","xuhuang","yuejin","caoren"]]];
 /*@@DATA_END@@*/
 function careerOf(row){ return row[9].split('|').map(s => { const [y,f,c] = s.split(' '); return [+y,f,c]; }); }
 function careerAt(id, sc){ const row = PEOPLE_DEF.find(r => r[0]===id); const cs = careerOf(row); let e = cs[0]; for (const x of cs) if (x[0] <= sc) e = x; return e; }
@@ -733,7 +735,7 @@ const OFFICER_PICKS = [
 ];
 const QUN_PICKS = [['lvbu','qun',0],['huaxiong','qun',300],['gaoshun','qun',600],['chengong','qun',600],['zhangren','qun',900],['menghuo','qun',900],['jiaxu','qun',1200],['tianfeng','qun',1400]];
 const LEADERS = { wei:['cao','caopi','caorui'], shu:['liubei','liushan'], wu:['sunjian','sunce','sunquan'] };
-const KINGDOM = { wei:['위','魏','#2f5d9e'], shu:['촉','蜀','#2f8a57'], wu:['오','吴','#c2412d'], qun:['군웅','群','#6b5a4a'], ruler:['군주','君','#26201c'] };
+const KINGDOM = { reg:['회귀자','回','#7a3b2a'], wei:['위','魏','#2f5d9e'], shu:['촉','蜀','#2f8a57'], wu:['오','吴','#c2412d'], qun:['군웅','群','#6b5a4a'], ruler:['군주','君','#26201c'] };
 function startYearFor(id, sc){ const r = PEOPLE_RAW.find(x => x[0]===id); return Math.max(sc, r[11] || r[4]+16); }
 function picksFor(tab, sc){
   const S = SCEN[sc], rulers = Object.values(S.rulers);
@@ -1249,11 +1251,14 @@ function capitalOf(f){
 }
 
 /* ---------------- 새 게임 ---------------- */
-function newGame(pid, sc, mode){
-  sc = sc || 196; mode = mode || 'real';
-  G = { year:sc, month:1, scen:sc, mode, people:{}, cities:{}, facs:{}, armies:[], bond:{}, sworn:[], chron:[], mnews:[], queue:[], done:{}, recent:[],
+function baseG(sc, mode, pid){
+  return { year:sc, month:1, scen:sc, mode, people:{}, cities:{}, facs:{}, armies:[], bond:{}, sworn:[], chron:[], mnews:[], queue:[], done:{}, recent:[],
         kids:[], spouse:null, spouses:[], heir:null, gen:1, dyn:[], dynScore:0, wins:0, duels:0, flags:{ sieges:0 }, nid:0, firstPid:pid,
         diff:(prefs().diff||'normal'), firstHist:null, toast:null, sel:null, view:'map', phase:'act', maxAge:0, scout:{}, plots:{}, ambush:{}, plotWins:0, inArmy:null, campaign:null, lastEvent:0 };
+}
+function newGame(pid, sc, mode){
+  sc = sc || 196; mode = mode || 'real';
+  G = baseG(sc, mode, pid);
   initWorld(sc);
   const p0 = person(pid), start = Math.max(sc, p0.ap);
   G.protect = pid;
@@ -1288,6 +1293,88 @@ function setupPlayer(pid){
   newMission();
 }
 
+/* ---------------- 회귀자: 삼국지를 즐기던 현대인이 난세로 돌아온다 ---------------- */
+const FOCUS = { mu:['무예','검도와 격투를 오래 익혔다','m'], yong:['병법','전쟁사와 병법서를 파고들었다','l'], ji:['책략','삼국지를 수십 번 읽었다','i'], jeong:['경영','회사를 꾸려 본 적이 있다','g'], in:['언변','사람을 움직이는 법을 안다','c'] };
+const REG_ROLES = { ronin:['무명','이름 없는 재야에서 시작한다. 사관하거나 거병해 스스로 길을 연다.'], officer:['장수','고른 세력의 말단 장수로 시작한다.'], ruler:['군주','주인 없는 성 하나를 쥐고 작은 세력의 군주로 시작한다.'] };
+function regCities(sc, role){ const own = {}; for (const [f, cs] of Object.entries(SCEN[sc].own)) cs.forEach(c => own[c] = f); return CITY_RAW.filter(r => role==='ruler' ? !own[r[0]] : true).map(r => r[0]); }
+function regFacs(sc){ return Object.entries(SCEN[sc].rulers).filter(([f, r]) => { const row = PEOPLE_DEF.find(x => x[0]===r); return row && row[3] > sc; }); }
+function newRegressor(o){
+  const sc = o.sc;
+  G = baseG(sc, o.mode || 'real', 'reg');
+  initWorld(sc);
+  const fk = FOCUS[o.focus] ? o.focus : 'ji', st = { m:50, i:55, l:50, c:50, g:50 };
+  st[FOCUS[fk][2]] += 20;
+  const id = 'reg', b = sc - 21;
+  G.people[id] = { id, n:o.name || '이현', fac:'free', city:o.city || 'ly', b, d:b+72, m:st.m, i:st.i, l:st.l, c:st.c, g:st.g, tr:'지장', tr2:[], ap:sc, alive:true, active:true, loy:100, army:null, reg:1 };
+  if (o.role==='officer' && G.facs[o.fac] && G.facs[o.fac].alive){ G.people[id].fac = o.fac; G.people[id].city = capitalOf(o.fac); }
+  setupPlayer(id);
+  G.firstHist = null; G.protect = id;
+  if (o.role==='ruler'){ const t = city(o.city); if (!t.owner){ createPlayerFaction(); transferCity(t, G.pfac, t.dev*800 + 2500); G.city = t.id; me().city = t.id; G.gold = 800; } }
+  G.reg = { focus:fk, hist:100, low:100, seen:{} };
+  const yName = { 184:'중평 원년', 190:'초평 원년', 196:'건안 원년', 200:'건안 5년', 207:'건안 12년', 219:'건안 24년', 228:'태화 2년' }[sc] || '';
+  G.ev = null;
+  news(`눈을 뜨니 낯선 하늘이었다. ${sc}년(${yName}) ${G.month}월, ${city(G.city).n}. 밤새 펼쳐 두었던 그 이야기 속이다.`, true, true);
+  news(`그대는 앞일을 안다. 다만 역사를 바꿀수록 그 기억은 흐려질 것이다.`, true, true);
+  G.mnews = [];
+  startMonth(true);
+}
+/* 역사 일치도: 지금 천하의 주인들이 원작의 판도와 얼마나 같은가 */
+function histOwnAt(y){ const ys = SCEN_YEARS.filter(v => v<=y); const pick1 = ys.length ? Math.max(...ys) : SCEN_YEARS[0]; const own = {}; for (const [f, cs] of Object.entries(SCEN[pick1].own)) cs.forEach(c => own[c] = f); return own; }
+function histMatch(){
+  const a = histOwnAt(G.year), nx = SCEN_YEARS.filter(v => v>G.year), b = nx.length ? histOwnAt(Math.min(...nx)) : a;
+  let n = 0; const cs = allCities(); for (const c of cs){ const o = c.owner || null; if (o===(a[c.id]||null) || o===(b[c.id]||null)) n++; }
+  return Math.round(n / cs.length * 100);
+}
+function regYear(){
+  if (!G.reg) return;
+  const m = histMatch(); G.reg.low = Math.min(G.reg.low, m);
+  const before = G.reg.hist; G.reg.hist = Math.round(Math.min(G.reg.hist, (G.reg.hist*2 + m)/3));
+  if (before>=70 && G.reg.hist<70) news('기억 속 연도가 흐릿해지기 시작했다. 역사가 조금씩 어긋나고 있다.', true, true);
+  if (before>=45 && G.reg.hist<45) news('이제 기억은 반쯤 엉켜 있다. 아는 역사와 눈앞의 천하가 다르다.', true, true);
+  if (before>=25 && G.reg.hist<25) news('역사는 완전히 그대가 아는 길을 벗어났다. 이제 앞일은 아무도 모른다.', true, true);
+}
+function memories(){
+  const h = G.reg ? G.reg.hist : 0, now = mi();
+  return HIST_EV.filter(e => e[1]*12+e[2] >= now).slice(0, 10).map(([id,y,m,n,at,t,who]) => {
+    const gone = who.filter(w => person(w) && !person(w).alive && person(w).d >= y);
+    const broken = gone.length > 0;
+    let when, text;
+    if (h>=70){ when = `${y}년 ${m}월`; text = t; }
+    else if (h>=45){ when = `${y}년 무렵`; text = t.split('. ')[0] + '…'; }
+    else if (h>=25){ when = '언젠가'; text = '기억이 흐릿하다. 무언가 큰일이 있었던 것 같다.'; }
+    else { when = '?'; text = ''; }
+    return { id, when, n: h>=25 ? n : '???', where: h>=45 ? city(at).n : '', text, broken: broken && h>=25, gone: gone.map(w => person(w).n) };
+  });
+}
+function openMemory(){
+  const h = G.reg.hist, ms = memories();
+  const bar = `<div style="height:8px;border-radius:4px;background:#26201c18;overflow:hidden"><i style="display:block;height:100%;width:${h}%;background:${h>=70?'var(--good)':h>=45?'var(--gold)':'var(--red)'}"></i></div>`;
+  const rows = h < 25 ? `<p class="small">앞일이 보이지 않는다. 그대가 바꾼 천하는 이제 그대도 모르는 길을 간다.</p>` :
+    ms.map(x => `<div class="card" style="padding:8px 10px;${x.broken?'opacity:.55':''}"><div class="row between"><b>${esc(x.n)}</b><span class="tiny muted">${x.when}${x.where?' · '+esc(x.where):''}</span></div>${x.text?`<p class="small" style="margin-top:3px">${esc(x.text)}</p>`:''}${x.broken?`<p class="tiny" style="color:var(--red)">이미 어긋났다: ${x.gone.map(esc).join(', ')}이(가) 세상에 없다.</p>`:''}</div>`).join('') || '<p class="small muted">기억하는 큰일이 더 남아 있지 않다.</p>';
+  sheet(`<h3>회귀자의 기억</h3><p class="small muted">${esc(FOCUS[G.reg.focus][0])}에 밝았던 현대인 · 역사 일치도 <b>${h}</b></p>${bar}<p class="tiny muted" style="margin:4px 0 8px">천하의 판도가 원작과 달라질수록 일치도가 떨어지고, 기억도 흐려진다.</p>${rows}<button class="btn2" data-close>닫기</button>`);
+}
+
+/* ---------------- 역사의 순간: 원작 사건이 그 달에 흘러가고, 회귀자는 기억으로 운명을 바꿀 수 있다 ---------------- */
+const HIST_DEATH = {}; for (const [id, y, m, , , , who] of HIST_EV) for (const w of who){ const r = PEOPLE_DEF.find(x => x[0]===w); if (r && r[3]===y && !HIST_DEATH[w]) HIST_DEATH[w] = [y, m, id]; }
+const HIST_STAT = { b191_xianshan:'i', b190_xingyang:'i', b197_wancheng:'m', b194_puyang:'i', b198_xiapi:'i', b200_guandu:'i', e200_sunce_death:'m', b199_yijing:'l', b200_baima:'m', b200_yanjin:'m', b190_sishui:'m', b190_hulao:'m' };
+function histTick(){
+  G.histDone = G.histDone || {};
+  const now = mi(), match = G.reg ? G.reg.hist : histMatch();
+  for (const e of HIST_EV){
+    const [id, y, m, n, at, t, who] = e;
+    if (y*12+m !== now || G.histDone[id]) continue;
+    G.histDone[id] = 1;
+    const ps = who.map(person).filter(Boolean);
+    if (!ps.length || ps.some(p => !p.alive) || match < 45){ if (G.reg && match>=25) news(`원작에서는 이 무렵 「${n}」이 있었다. 이번 천하에서는 그 일이 일어나지 않았다.`, false, true); continue; }
+    news(`「${n}」 ${t.split('. ')[0]}.`, true, false);
+    const victims = ps.filter(p => p.d===y && p.id!==G.pid && p.id!==G.protect && active(p) && G.mode!=='virtual');
+    const canOffer = G.reg && G.reg.hist >= 45 && !G.histOffer;
+    const near = canOffer ? victims.filter(p => (G.pfac && p.fac===G.pfac) || bond(p.id)>=50 || isSworn(p.id) || p.city===G.city || city(G.city).adj.includes(at)) : [];
+    if (near.length) G.histOffer = { id, n, t, v:near.map(p => p.id), st: HIST_STAT[id] || 'i' };
+    for (const p of victims) if (!near.includes(p)) killNpc(p, '전사');
+  }
+}
+
 /* ---------------- 달력 ---------------- */
 function calendar(ff){
   G.month++;
@@ -1295,6 +1382,7 @@ function calendar(ff){
     G.month = 1; G.year++;
     activate(ff);
     if (G.scen===184 && G.year>=190 && !G.flags.era190) eraShift190();
+    if (!ff) regYear();
     if (!ff){
       const a = ageOf(me());
       G.maxAge = Math.max(G.maxAge, a);
@@ -1317,20 +1405,21 @@ function eraShift190(){
   G.armies = G.armies.filter(a => a.fac==='hj');
   for (const p of Object.values(G.people)) if (p.army && !G.armies.some(a => a.id===p.army)) p.army = null;
   const meP = me(), playerRuled = Object.entries(S.rulers).find(([f, r]) => r===G.pid);
-  for (const F of Object.values(G.facs)) if (F.id!=='hj'){ F.ruler = null; F.alive = false; F.ally = {}; }
+  const pf = G.pfac && G.pfac.startsWith('pf') ? G.pfac : null, pfCities = pf ? citiesOf(pf).map(c => c.id) : [];
+  for (const F of Object.values(G.facs)) if (F.id!=='hj' && F.id!==pf){ F.ruler = null; F.alive = false; F.ally = {}; }
   for (const [f, rid] of Object.entries(S.rulers)){
     const r = person(rid); if (!r || !r.alive) continue;
     G.facs[f].ruler = rid; G.facs[f].alive = true; G.facs[f].gold = 600;
     const sr = SEALS[surnameOf(r.n)]; if (sr) G.facs[f].seal = sr;
   }
   for (const c of allCities()){
-    if (hjKeep.includes(c.id)) continue;
+    if (hjKeep.includes(c.id) || pfCities.includes(c.id)) continue;
     const o = ownerOf[c.id] && G.facs[ownerOf[c.id]].alive ? ownerOf[c.id] : null;
     c.owner = o; c.gov = null; c.morale = 100;
     c.troops = o ? c.dev*1500 + 1500 : c.dev*300 + 700;
   }
   for (const p of Object.values(G.people)){
-    if (p.id===G.pid || p.fam || !p.alive) continue;
+    if (p.id===G.pid || p.fam || !p.alive || (pf && p.fac===pf)) continue;
     if (p.fac==='hj' && hjKeep.length) continue;
     const row = PEOPLE_DEF.find(r => r[0]===p.id); if (!row) continue;
     const e = careerAt(p.id, 190);
@@ -1342,7 +1431,7 @@ function eraShift190(){
   if (playerRuled){
     const [f] = playerRuled; G.facs[f].ruler = G.pid; G.facs[f].alive = true; meP.fac = f; G.pfac = f; G.role = 'ruler';
     if (city(meP.city).owner!==f) meP.city = S.own[f][0]; G.city = meP.city; G.gold = Math.max(G.gold, 1200);
-  } else if (G.pfac==='han' || (G.pfac && !G.facs[G.pfac].alive)){
+  } else if (!pf && (G.pfac==='han' || (G.pfac && !G.facs[G.pfac].alive))){
     const row = PEOPLE_DEF.find(r => r[0]===G.pid), e = row ? careerAt(G.pid, 190) : null;
     if (e && G.facs[e[1]] && G.facs[e[1]].alive){ G.pfac = e[1]; meP.fac = e[1]; G.role = 'officer'; meP.city = city(e[2]).owner===e[1] ? e[2] : capitalOf(e[1]); }
     else { G.pfac = null; meP.fac = 'free'; G.role = 'ronin'; G.rank = 0; }
@@ -1382,7 +1471,7 @@ function monthStep(ff){
     if (!active(p) || p.id===G.pid || p.id===G.protect) continue;
     const a = ageOf(p);
     let q = 0;
-    if (G.mode!=='virtual' && p.d) q = G.year>=p.d ? .07 : 0;
+    if (G.mode!=='virtual' && p.d){ q = G.year>=p.d ? .07 : 0; const hd = HIST_DEATH[p.id]; if (hd && G.year===hd[0] && G.month<=hd[1] && !(G.histDone||{})[hd[2]]) q = 0; }
     else q = a>=68 ? Math.min(.05, (a-67)*.004) : 0;
     if (q && Math.random() < q) killNpc(p, '병사');
   }
@@ -2536,6 +2625,7 @@ function openPolicy(){
 /* ---------------- 한 달의 흐름 ---------------- */
 function startMonth(first){
   G.ap = apMax(); G.toast = null;
+  histTick();
   if (G.over) return endGame();
   if (G.dead){ G.phase = 'succession'; return; }
   const forced = EVENTS.some(e => e.forced && !(G.done[e.id] && !e.rep) && roleOk(e) && e.forced());
@@ -2731,6 +2821,11 @@ const kidById = id => G.kids.find(k => k.id===id);
 const RIVER_CITIES = ['xy','jl','jx','cs','lu','jy','chs','yz','ya','sc'];
 
 const EVENTS = [
+  { id:'histfate', s:'憶', t:'기억 속 그날', rep:true, forced:()=>!!G.histOffer,
+    x:()=>{ const o = G.histOffer; return `기억이 또렷하게 떠오른다. 「${o.n}」. ${o.t} ${o.v.map(i=>person(i).n).join('·')}의 운명이 바로 이 달에 갈린다.`; },
+    c:()=>{ const o = G.histOffer, names = o.v.map(i=>person(i).n).join('·');
+      return [ { t:`역사를 바꾼다: ${names}을(를) 구한다`, chk:[o.st, 65], ok:{ fate:1, mer:20, msg:'그대가 아는 그날과 다른 하루가 지나갔다.' }, no:{ fate:0, hp:-8, msg:'손을 썼지만 역사의 물살은 거셌다.' } },
+        { t:'역사대로 흘러가게 둔다', ok:{ fate:-1, msg:'그대는 알면서도 지켜보았다. 기억은 아직 선명하다.' } } ]; } },
   { id:'quiet', s:'练', t:'고요한 달', x:()=>'모처럼 전선이 조용하다. 이번 달을 어떻게 보낼까.', c:()=>[
     { t:'무예를 닦는다', ok:{ m:1, hp:-3, msg:'손바닥이 터졌지만 창끝이 매서워졌다.' } },
     { t:'병법을 연구한다', ok:{ l:1, train:4, msg:'진법의 이치가 조금 더 보인다.' } },
@@ -2909,6 +3004,12 @@ function applyEff(e){
     let v = e[k];
     switch (k){
       case 'mer': G.merit = Math.max(0, G.merit+v); add('공적', v); break;
+      case 'fate': { const o = G.histOffer; G.histOffer = null; if (!o) break;
+        if (v===1){ const saved = []; for (const id of o.v){ const p = person(id); if (p && p.alive){ p.d = Math.max(p.d, G.year + ri(8,20)); addBond(id, 25); saved.push(p.n); } }
+          G.reg.hist = Math.max(0, G.reg.hist - 8); G.reg.changed = (G.reg.changed||0) + 1; G.flags.fate = (G.flags.fate||0) + 1;
+          extra += ` ${saved.join('·')}의 운명이 바뀌었다.`; chips.push(['역사 일치도 -8', false]); news(`${saved.join('·')}이(가) 원작과 달리 살아남았다.`, true, true); }
+        else { if (v===0) G.reg.hist = Math.max(0, G.reg.hist - 3); for (const id of o.v){ const p = person(id); if (p && p.alive) killNpc(p, '전사'); } }
+        break; }
       case 'tr': add(G.role==='ruler'?'민심':'신뢰', trustAdd(v)); break;
       case 'trSet': G.trust = v; chips.push([`신뢰 ${v}`, true]); break;
       case 'gold': G.gold = Math.max(0, G.gold+v); add('금', v); break;
@@ -2979,7 +3080,7 @@ function afterEvent(){
    UI
    ===================================================================== */
 const $app = SIM ? null : document.getElementById('app');
-let titleTab = 'wei', peopleTab = 'mine', lastToastT = 0;
+let titleTab = 'reg', peopleTab = 'mine', lastToastT = 0;
 const MAP_W = 175, MAP_H = 165;
 const MOUNTS = [[12,50],[22,58],[18,68],[10,78],[30,66],[56,67],[64,72],[68,66],[40,108],[30,108],[16,112],[34,132],[52,122],[60,108],[55,112],[70,108],[66,128],[100,114],[104,128],[120,112],[128,104],[120,124],[108,132],[84,132],[74,140],[80,26],[93,29],[80,46],[95,40],[106,80],[112,79],[22,22],[36,24],[52,40],[64,42],[58,49],[55,142],[28,142],[136,108],[74,84],[62,96],[20,96],[8,104],[130,8],[144,26]];
 const RIVER_PTS = [
@@ -3037,6 +3138,7 @@ function viewTop(){
       <button class="ptwrap" data-person="${p.id}" aria-label="내 정보">${pp(p,44)}<span class="seal">${facSeal(G.pfac)}</span></button>
       <div class="id"><b>${esc(p.n)}</b><span>${G.pfac?esc(facName(G.pfac))+' · ':''}${roleText()} · ${ageOf(p)}세 · ${G.surname}씨 ${G.gen}대</span></div>
       <button class="date" data-tome="1" style="border:0;background:none;padding:0"><b>${dateStr()}</b><span style="color:var(--red);font-weight:800">◉ ${G.inArmy && armyById(G.inArmy) ? esc(city(armyById(G.inArmy).to).n)+' 원정' : esc(city(G.city).n)}</span></button>
+      ${G.reg?`<button class="icon" id="memBtn" aria-label="회귀자의 기억" style="font-family:var(--seal)">憶</button>`:''}
       <button class="icon" id="menuBtn" aria-label="메뉴">≡</button>
     </div>
     <div class="stats">
@@ -3673,18 +3775,49 @@ function openHeir(){
   bg.addEventListener('click', e => { if (e.target.closest('[data-close]') && !G) renderTitle(); });
 }
 function startNew(pid, sc, md, after){
-  const go = slot => { newGame(pid, sc, md); applyHeirStart(); mp('start', 1); G.slot = slot; track('game_start', { pid, scen:sc, mode:md, diff:G.diff }); save(); render(); if (after) after(); };
+  const go = slot => { if (typeof pid==='object') newRegressor(pid); else newGame(pid, sc, md); applyHeirStart(); mp('start', 1); G.slot = slot; track('game_start', { pid: typeof pid==='object' ? 'reg' : pid, scen:sc, mode:md, diff:G.diff }); save(); render(); if (after) after(); };
   const f = freeSlot(); if (f>=0) return go(f);
   const rows = []; for (let i=0;i<SLOTS;i++) rows.push(`<button class="btn2" data-ow="${i}" style="text-align:left">칸 ${i+1} · ${esc(slotLabel(loadSlot(i)))}</button>`);
   const bg = sheet(`<h3>저장 칸이 가득 찼다</h3><p class="small muted">덮어쓸 칸을 고르면 그 칸의 기록은 사라진다.</p>${rows.join('')}<button class="btn2" data-close>취소</button>`);
   bg.querySelectorAll('[data-ow]').forEach(b => b.onclick = () => { bg.remove(); go(+b.dataset.ow); });
 }
+/* ---------- 회귀자 만들기 ---------- */
+let regDraft = { name:'이현', role:'ronin', focus:'ji', fac:null, city:null };
+function regForm(sc){
+  const d = regDraft, facs = regFacs(sc), cities = regCities(sc, d.role);
+  if (d.role==='officer' && !facs.some(([f]) => f===d.fac)) d.fac = facs[0] ? facs[0][0] : null;
+  if (d.role!=='officer' && !cities.includes(d.city)) d.city = d.role==='ruler' ? cities[0] || null : (cities.includes('ji') ? 'ji' : cities[0]);
+  const seg = (k, v, t, sub) => `<button class="segb" aria-pressed="${d[k]===v}" data-rg="${k}" data-rv="${v}"><b>${t}</b>${sub?`<small>${sub}</small>`:''}</button>`;
+  const cityName = id => CITY_RAW.find(r => r[0]===id)[1];
+  const facName0 = ([f, r]) => PEOPLE_DEF.find(x => x[0]===r)[1] + '군';
+  return `<div class="card" style="gap:8px">
+    <span class="lbl">回 · 회귀자로 시작하기</span>
+    <p class="small">삼국지를 수없이 읽고 즐기던 그대가, 어느 날 눈을 뜨니 그 난세 한가운데 서 있다. 앞일을 아는 것이 무기지만, 역사를 바꿀수록 기억은 흐려진다.</p>
+    <label class="small">이름 <input id="rgName" maxlength="6" value="${esc(d.name)}" style="font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--paper2);width:9em"></label>
+    <span class="lbl">신분</span>
+    <div class="three">${Object.entries(REG_ROLES).map(([k,[t]]) => seg('role', k, t)).join('')}</div>
+    <p class="small muted">${REG_ROLES[d.role][1]}${d.role==='ruler' && !cities.length ? ' <b style="color:var(--red)">이 시점에는 주인 없는 성이 없다. 무명으로 시작해 거병하라.</b>' : ''}</p>
+    ${d.role==='officer' ? `<span class="lbl">섬길 세력</span><div class="three">${facs.map(fr => seg('fac', fr[0], facName0(fr))).join('')}</div>` : ''}
+    ${d.role!=='officer' && cities.length ? `<span class="lbl">${d.role==='ruler'?'일어설 성 (주인 없는 성)':'눈을 뜬 곳'}</span><select id="rgCity" style="font:inherit;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--paper2)">${cities.map(c => `<option value="${c}" ${c===d.city?'selected':''}>${cityName(c)}</option>`).join('')}</select>` : ''}
+    <span class="lbl">회귀 전에 잘하던 것</span>
+    <div class="three">${Object.entries(FOCUS).map(([k,[t,sub,st]]) => seg('focus', k, t, ST[st]+' +4')).join('')}</div>
+    <p class="small muted">${FOCUS[d.focus][1]}. 다른 인물들은 역사 속 수명대로 세상을 떠나지만, 그대의 기억으로 그 운명을 바꿀 수 있다.</p>
+    <button class="btn" id="rgGo" ${d.role==='ruler' && !cities.length ? 'disabled' : ''}>난세로 들어간다</button>
+  </div>`;
+}
+function bindRegForm(sc, pr){
+  const nm = document.getElementById('rgName'); if (nm) nm.oninput = () => { regDraft.name = nm.value.trim().slice(0, 6); };
+  $app.querySelectorAll('[data-rg]').forEach(b => b.onclick = () => { regDraft[b.dataset.rg] = b.dataset.rv; renderTitle(); });
+  const cs = document.getElementById('rgCity'); if (cs) cs.onchange = () => { regDraft.city = cs.value; };
+  const go = document.getElementById('rgGo');
+  if (go) go.onclick = () => { const d = regDraft; if (!d.name) d.name = '이현'; startNew({ ...d, sc, mode:'real' }, sc, 'real', () => { if (!META.helpSeen3){ META.helpSeen3 = 1; saveMeta(); openHelp(); } }); };
+}
 function renderTitle(){
   const pr = prefs(), sc = pr.scen;
-  if (!['wei','shu','wu','qun','ruler'].includes(titleTab)) titleTab = 'wei';
+  if (!['reg','wei','shu','wu','qun','ruler'].includes(titleTab)) titleTab = 'reg';
   const col = KINGDOM[titleTab][2];
   document.documentElement.style.setProperty('--fac', col);
-  const list = picksFor(titleTab, sc);
+  const list = titleTab==='reg' ? [] : picksFor(titleTab, sc);
   let cont = '';
   const svs = [];
   for (let i=0;i<SLOTS;i++){ const sv = loadSlot(i); if (sv && sv.pid && sv.people && sv.people[sv.pid]) svs.push([i, sv]); }
@@ -3707,8 +3840,8 @@ function renderTitle(){
     <span class="lbl">수명 규칙</span>
     <div class="two">${[['real','현실 모드','역사 속 사망 연도 즈음에 세상을 떠난다'],['virtual','가상 모드','전사하지 않으면 천수를 누린다']].map(([k,n,d])=>`<button class="segb" aria-pressed="${pr.mode===k}" data-mode="${k}"><b>${n}</b><small>${d}</small></button>`).join('')}</div>
   </div>
-  <div class="tabs">${[['wei','위'],['shu','촉'],['wu','오'],['qun','군웅'],['ruler','군주']].map(([k,n])=>`<button class="tab" aria-selected="${titleTab===k}" data-ttab="${k}">${n}</button>`).join('')}</div>
-  <div class="grid">${list.length ? list.map(o => {
+  <div class="tabs">${[['reg','회귀자'],['wei','위'],['shu','촉'],['wu','오'],['qun','군웅'],['ruler','군주']].map(([k,n])=>`<button class="tab" aria-selected="${titleTab===k}" data-ttab="${k}">${n}</button>`).join('')}</div>
+  ${titleTab==='reg' ? regForm(sc) : ''}<div class="grid" ${titleTab==='reg'?'hidden':''}>${list.length ? list.map(o => {
     const r = PEOPLE_RAW.find(x => x[0]===o.id), locked = META.fame < o.cost, sy = startYearFor(o.id, sc);
     return `<button class="gen${locked?' locked':''}" data-pick="${o.id}"><div class="head">${ptHTML(rowLook(o.id), sy - r[4], false, col, 50)}<div><strong>${r[1]}</strong><span class="sub">${r[4]}–${r[5]} · ${sy}년</span></div></div>
       <span class="sub">무${SV(r[6])} 지${SV(r[7])} 용${SV(r[8])} 인${SV(r[9])}</span><span class="row" style="gap:4px"><span class="chip">${r[10]}</span>${META.best[o.id] ? `<span class="best">최고 ${fmt(META.best[o.id])}</span>` : ''}</span>${locked ? `<span class="lock">명성 ${fmt(o.cost)}</span>` : ''}</button>`;
@@ -3721,6 +3854,7 @@ function renderTitle(){
   $app.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { prefs().diff = b.dataset.diff; saveMeta(); renderTitle(); });
   $app.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { prefs().mode = b.dataset.mode; saveMeta(); renderTitle(); });
   $app.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => openPick(b.dataset.pick));
+  if (titleTab==='reg') bindRegForm(sc, pr);
   document.getElementById('btnAch').onclick = openAch;
   document.getElementById('btnHelp').onclick = openHelp;
   document.getElementById('btnSet').onclick = openSettings;
@@ -3991,6 +4125,7 @@ function bind(){
     else { G.panel = false; endMonth(); render(); }
   });
   on('#menuBtn', () => openMenu());
+  on('#memBtn', () => openMemory());
   on('[data-city]', b => { G.sel = b.dataset.city; G.panel = true; render(); });
   $app.querySelectorAll('[data-city]').forEach(el => el.onkeydown = e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); G.sel = el.dataset.city; G.panel = true; render(); } });
   on('[data-army]', (b, e) => { e.stopPropagation(); openSheet('army', b.dataset.army); });
@@ -4082,7 +4217,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
    BOOT
    ===================================================================== */
 if (SIM){
-  globalThis.T = { joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
 

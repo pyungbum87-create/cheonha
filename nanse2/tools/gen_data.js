@@ -26,8 +26,11 @@ function oldTrait(p) {
 const X = v => v * 5; // 1~20 → 엔진 내부 100점 척도
 const rows = [], jeong = {}, newTraits = {}, equip = {};
 for (const p of people) {
-  let c = careers[p.id] || (legacy[p.id] && legacy[p.id].career);
+  // 새 경력(careers.txt)이 있으면 그것을 쓰고, 그 마지막 연도 뒤의 기존 경력(207·219·228 등)을 이어 붙인다.
+  const lc = legacy[p.id] && legacy[p.id].career;
+  let c = careers[p.id] || lc;
   if (!c) { errs.push('경력 없음: ' + p.id + ' ' + p.name); continue; }
+  if (careers[p.id] && lc) { const last = Math.max(...careers[p.id].split('|').map(x => +x.split(' ')[0])); const tail = lc.split('|').filter(x => +x.split(' ')[0] > last); if (tail.length) c += '|' + tail.join('|'); }
   if (pre[p.id]) c = pre[p.id] + '|' + c;
   const parts = c.split('|').map(x => x.split(' '));
   parts.forEach(([y, f, ci]) => { if (!(+y >= 184)) errs.push(`${p.id} 연도 ${y}`); if (!facIds.has(f)) errs.push(`${p.id} 세력 ${f}`); if (!cityIds.has(ci)) errs.push(`${p.id} 성 ${ci}`); });
@@ -54,6 +57,8 @@ ${rows.map(r => '  ' + JSON.stringify(r)).join(',\n')}
 const JEONG = ${JSON.stringify(jeong)};
 const TRAITS2 = ${JSON.stringify(newTraits)};
 const EQUIP0 = ${JSON.stringify(equip)};
+// 역사 사건(회귀자의 기억): [id, 연, 월, 이름, 성, 원작 결과, 관련 인물]
+const HIST_EV = ${JSON.stringify(rd('battles_184_200.json').battles.map(b => [b.id, b.year, b.month, b.name, b.at, b.history, [...new Set([...(b.a ? b.a.leaders : []), ...(b.b ? b.b.leaders : [])])]]))};
 /*@@DATA_END@@*/
 `;
 const srcF = path.join(root, 'src', 'game_src.html');

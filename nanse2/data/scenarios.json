@@ -582,6 +582,299 @@
      3200
     ]
    ]
+  },
+  "207": {
+   "y": 207,
+   "short": "삼고초려",
+   "desc": "조조가 북방을 평정했다. 신야의 유비는 와룡을 찾아가고, 강동의 손권은 때를 기다린다. 적벽의 불길이 가깝다.",
+   "own": {
+    "wei": [
+     "ye",
+     "np",
+     "py",
+     "bh",
+     "jny",
+     "sd",
+     "ji",
+     "bp",
+     "xc",
+     "cl",
+     "pu",
+     "qi",
+     "xb",
+     "xp",
+     "ly",
+     "hn",
+     "ca",
+     "wn",
+     "sc",
+     "rn"
+    ],
+    "lb": [
+     "xy",
+     "jl",
+     "jx",
+     "chs",
+     "wl",
+     "ll",
+     "gy"
+    ],
+    "shu": [
+     "xn"
+    ],
+    "wu": [
+     "jy",
+     "wx",
+     "kj",
+     "lu",
+     "yz",
+     "cs"
+    ],
+    "lz": [
+     "cd",
+     "zt",
+     "jz",
+     "ya",
+     "jg"
+    ],
+    "zl": [
+     "hz",
+     "sy"
+    ],
+    "md": [
+     "ww",
+     "ad",
+     "ts"
+    ],
+    "gsd": [
+     "yp"
+    ],
+    "sx": [
+     "jzh",
+     "nh"
+    ]
+   },
+   "rulers": {
+    "wei": "cao",
+    "shu": "liubei",
+    "wu": "sunquan",
+    "lb": "liubiao",
+    "lz": "liuzhang",
+    "zl": "zhanglu",
+    "md": "mateng",
+    "gsd": "gongsunkang",
+    "sx": "shixie"
+   },
+   "picks": [
+    [
+     "cao",
+     0
+    ],
+    [
+     "liubei",
+     0
+    ],
+    [
+     "sunquan",
+     0
+    ],
+    [
+     "liubiao",
+     900
+    ],
+    [
+     "mateng",
+     900
+    ],
+    [
+     "liuzhang",
+     1400
+    ],
+    [
+     "shixie",
+     2000
+    ],
+    [
+     "zhanglu",
+     2600
+    ],
+    [
+     "gongsunkang",
+     3200
+    ]
+   ]
+  },
+  "219": {
+   "y": 219,
+   "short": "형주 쟁탈",
+   "desc": "천하는 셋으로 나뉘었다. 유비는 한중을 얻어 왕을 칭하고, 관우는 강릉에서 북쪽 번성을 노린다. 손권은 형주를 노려본다.",
+   "own": {
+    "wei": [
+     "ye",
+     "np",
+     "py",
+     "bh",
+     "jny",
+     "sd",
+     "ji",
+     "bp",
+     "xc",
+     "cl",
+     "pu",
+     "qi",
+     "xb",
+     "xp",
+     "ly",
+     "hn",
+     "ca",
+     "wn",
+     "sc",
+     "rn",
+     "xn",
+     "xy",
+     "ad",
+     "ts",
+     "ww"
+    ],
+    "shu": [
+     "cd",
+     "zt",
+     "jz",
+     "ya",
+     "jg",
+     "hz",
+     "sy",
+     "jl",
+     "wl",
+     "ll"
+    ],
+    "wu": [
+     "jy",
+     "wx",
+     "kj",
+     "lu",
+     "yz",
+     "cs",
+     "jx",
+     "chs",
+     "gy",
+     "jzh",
+     "nh"
+    ],
+    "gsd": [
+     "yp"
+    ]
+   },
+   "rulers": {
+    "wei": "cao",
+    "shu": "liubei",
+    "wu": "sunquan",
+    "gsd": "gongsunkang"
+   },
+   "picks": [
+    [
+     "cao",
+     0
+    ],
+    [
+     "liubei",
+     0
+    ],
+    [
+     "sunquan",
+     0
+    ],
+    [
+     "gongsunkang",
+     2600
+    ]
+   ]
+  },
+  "228": {
+   "y": 228,
+   "short": "출사표",
+   "desc": "제갈량이 출사표를 올리고 북벌에 나선다. 위는 조예가, 오는 손권이 지킨다. 노장들은 떠나고 새 영웅들이 자란다.",
+   "own": {
+    "wei": [
+     "ye",
+     "np",
+     "py",
+     "bh",
+     "jny",
+     "sd",
+     "ji",
+     "bp",
+     "xc",
+     "cl",
+     "pu",
+     "qi",
+     "xb",
+     "xp",
+     "ly",
+     "hn",
+     "ca",
+     "wn",
+     "sc",
+     "rn",
+     "xn",
+     "xy",
+     "ad",
+     "ts",
+     "ww",
+     "sy"
+    ],
+    "shu": [
+     "cd",
+     "zt",
+     "jz",
+     "ya",
+     "jg",
+     "hz"
+    ],
+    "wu": [
+     "jy",
+     "wx",
+     "kj",
+     "lu",
+     "yz",
+     "cs",
+     "jx",
+     "chs",
+     "gy",
+     "jzh",
+     "nh",
+     "jl",
+     "wl",
+     "ll"
+    ],
+    "gsd": [
+     "yp"
+    ]
+   },
+   "rulers": {
+    "wei": "caorui",
+    "shu": "liushan",
+    "wu": "sunquan",
+    "gsd": "gongsunyuan"
+   },
+   "picks": [
+    [
+     "caorui",
+     0
+    ],
+    [
+     "liushan",
+     0
+    ],
+    [
+     "sunquan",
+     0
+    ],
+    [
+     "gongsunyuan",
+     2600
+    ]
+   ]
   }
  }
 }
