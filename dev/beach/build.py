@@ -12,8 +12,8 @@ os.makedirs(os.path.join(OUT, 'art'))
 open(os.path.join(OUT, 'game.js'), 'w', encoding='utf-8').write(js)
 arts = sorted(os.listdir(os.path.join(ROOT, 'art')))
 for a in arts: shutil.copy(os.path.join(ROOT, 'art', a), os.path.join(OUT, 'art', a))
-TITLE = '团团海滩夜市'
-html = f'''<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta http-equiv="Cache-Control" content="no-cache"/>
+TITLE = '해변야시장'   # 홈 화면 아이콘·탭 이름 (출시 전까지 한국어. 중국 출시 때 团团海滩夜市 로 바꾼다)
+html = f'''<!doctype html><html lang="ko"><head><meta charset="utf-8"/><meta http-equiv="Cache-Control" content="no-cache"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/><title>{TITLE}</title>
 <link rel="manifest" href="manifest.webmanifest"/><link rel="apple-touch-icon" href="apple-touch-icon.png"/><link rel="icon" type="image/png" href="icon-192.png"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-title" content="{TITLE}"/><meta name="theme-color" content="#bfe9f5"/>
@@ -29,7 +29,7 @@ for size in (180, 192, 512):
     bg = Image.new('RGBA', (size, size), (143, 214, 240, 255)); sand = Image.new('RGBA', (size, int(size * .3)), (253, 233, 189, 255)); bg.alpha_composite(sand, (0, size - sand.height))
     im = tt.copy(); im.thumbnail((int(size * .84), int(size * .84)), Image.LANCZOS); bg.alpha_composite(im, ((size - im.width) // 2, size - im.height - int(size * .05)))
     bg.convert('RGB').save(os.path.join(OUT, 'apple-touch-icon.png' if size == 180 else f'icon-{size}.png'))
-json.dump({"name": TITLE, "short_name": TITLE, "lang": "zh-CN", "start_url": "./", "scope": "./", "display": "standalone", "orientation": "portrait", "background_color": "#bfe9f5", "theme_color": "#bfe9f5",
+json.dump({"name": TITLE, "short_name": TITLE, "lang": "ko", "start_url": "./", "scope": "./", "display": "standalone", "orientation": "portrait", "background_color": "#bfe9f5", "theme_color": "#bfe9f5",
            "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]},
           open(os.path.join(OUT, 'manifest.webmanifest'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 files = ['./', 'index.html', 'game.js', 'manifest.webmanifest', 'icon-192.png'] + ['art/' + a for a in arts]

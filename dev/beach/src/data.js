@@ -37,6 +37,11 @@ const SAUCE={max:2,first:8,need:16,grow:5,cap:46,od:5,odCd:.4};
 /* 오늘의 특선: 파도 2·5·8·11 을 넘기면 카드 3장 중 하나. only = 그 가게를 가지고 있을 때만 나온다. 같은 카드는 겹쳐서 세진다 */
 const CARDS={bun2:{only:'tt'},frost:{only:'didi'},pop:{only:'peng'},tea:{only:'shan'},skew:{only:'dun'},sticky:{only:'zhuo'},taste:{},reach:{},tip:{},coin:{},life:{},sauce:{},sale:{}};
 const CARD_AT=w=>w%3===2;
+/* 매운맛: 구역 보스를 배불리면 그 구역을 다시 도는 어려운 판이 열린다. 손님이 양념 특식에 대응한다(구역마다 하나씩 늘어남)
+   1구역 양동이 꽃게가 특식을 한 번 막음 · 2구역 문어가 꽉 찬 양념통에 먹물 · 3구역 갈매기가 솟아올라 피함 · 4구역 거북·소라게도 막음 · 5구역 보스도 막음
+   매운맛 보스를 배불리면 새 양념: 1구역 굵은소금(길에 뿌려 손님을 세움), 2구역 먹물 간장(눈을 가려 6초 동안 특기·대응 봉인) */
+const HARD={hp:1.45,lv:4,reward:1.6,jamAfter:7,jam:8,dodge:1.6,seal:6,salt:3.2,saltR:52};
+const SAUCE_AT={salt:0,soy:1};
 
 /* ---------- 스테이지: 5개 구역 × 10판 = 50판을 규칙으로 만든다. 판을 더 늘리려면 AREAS 에 구역을 더하거나 PER_AREA 를 올리면 된다 ----------
    길 모양 10종(LAYOUTS)을 좌우로 뒤집어 20종으로 쓰고, 손님은 판이 갈수록 한 종씩 늘어난다. 5번째 판은 양동이 꽃게 떼, 10번째 판은 구역 보스 */

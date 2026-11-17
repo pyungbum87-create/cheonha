@@ -10,9 +10,10 @@ const C=m.exports;
 const WEIGHT={didi:2,tt:2,peng:2,shan:1.5,dun:1,zhuo:1};
 function owned(si){return C.TOWER_IDS.filter(id=>!C.UNLOCK[id]||C.UNLOCK[id]<=si);}
 
+const HM=!!process.env.HARD;
 function bot(seed,style,si,lvl){
   const ids=owned(si),lv={};ids.forEach(id=>lv[id]=lvl);
-  const s=C.newGame(si,{seed,lv,owned:ids});let a=(seed*7919+17)>>>0;const R=()=>{a=a+0x6D2B79F5|0;let q=Math.imul(a^a>>>15,1|a);q=q+Math.imul(q^q>>>7,61|q)^q;return((q^q>>>14)>>>0)/4294967296;};
+  const s=C.newGame(si,{seed,lv,owned:ids,hard:HM,sauces:HM&&process.env.SOY?{salt:1,soy:1}:{}});let a=(seed*7919+17)>>>0;const R=()=>{a=a+0x6D2B79F5|0;let q=Math.imul(a^a>>>15,1|a);q=q+Math.imul(q^q>>>7,61|q)^q;return((q^q>>>14)>>>0)/4294967296;};
   const order=s.spots.map((sp,i)=>i).sort((a,b)=>C.stageGeo(si).spots[b].cov-C.stageGeo(si).spots[a].cov);
   const every=style==='good'?60:240;let minLives=20;
   for(let tick=0;tick<60*60*25&&!s.ended;tick++){
@@ -34,7 +35,7 @@ function bot(seed,style,si,lvl){
     if(style==='good'){
       s.spots.forEach((sp,i)=>{if(sp.tw&&sp.tw.ink>0)C.cleanInk(s,i);});
       const near=()=>{let bi=-1,bn=0;s.spots.forEach((sp,i)=>{if(!sp.tw)return;const n=s.en.filter(e=>(e.x-sp.x)**2+(e.y-sp.y)**2<130*130).length;if(n>bn){bn=n;bi=i;}});return bn>=3||s.en.some(e=>e.k==='boss')?bi:-1;};
-      if(s.sauce>=1&&s.en.length>=4){const i=near();if(i>=0)C.castSauce(s,i);}
+      if(s.sauce>=1&&s.en.length>=4){const i=near();if(i>=0)C.castSauce(s,i,s.kinds.soy?'soy':undefined);}if(s.lock>0)C.wipeJar(s);
       if(s.ws==='gap'&&s.gapT>180&&s.lives>=18)C.callWave(s);
     }else{if(s.sauce>=1&&s.en.length>3&&R()<.35){const t=s.spots.map((sp,i)=>i).filter(i=>s.spots[i].tw);if(t.length)C.castSauce(s,t[Math.floor(R()*t.length)]);}if(R()<.5)s.spots.forEach((sp,i)=>{if(sp.tw&&sp.tw.ink>0)C.cleanInk(s,i);});}
   }
@@ -42,7 +43,7 @@ function bot(seed,style,si,lvl){
   return {won:s.won,wave:s.wave,sec:s.t/60,stars:s.stars,lives:s.lives,minLives,ended:s.ended,gold:s.gold,tw:s.spots.filter(sp=>sp.tw).map(sp=>sp.tw.id[0]+sp.tw.lv).join('')};
 }
 const N=+process.argv[2]||40,avg=(a,f)=>a.reduce((x,y)=>x+f(y),0)/a.length;let bad=0;
-for(const si of (process.env.ONLY?process.env.ONLY.split(',').map(x=>+x-1):[0,4,9,16,19,27,29,39,45,49])){const rec=C.STAGES[si].rec;
+for(const si of (process.env.ONLY?process.env.ONLY.split(',').map(x=>+x-1):[0,4,9,16,19,27,29,39,45,49])){const rec=Math.min(40,C.STAGES[si].rec+(HM?C.HARD.lv:0));
   for(const [style,lvl] of [['none',rec],['casual',rec],['good',rec],['good',Math.max(1,rec-4)]]){
     if(lvl!==rec&&si===0)continue;const r=[];const runs=style==='none'?2:N;
     for(let i=0;i<runs;i++){try{r.push(bot(500+i*13+si*71,style,si,lvl));}catch(e){bad++;console.log('오류',e.stack);break;}}if(!r.length)continue;

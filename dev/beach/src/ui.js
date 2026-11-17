@@ -24,13 +24,14 @@ function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+
 /* ---------- 매일 보상 ---------- */
 const MIS={run:[2,60,['출전 2번','出战 2 次']],kill:[120,80,['손님 120명 배불리기','喂饱 120 位客人']],skill:[5,60,['비법 양념 5번 쓰기','使用秘制酱料 5 次']],build:[12,60,['가게 12개 차리기','摆 12 个小吃摊']],
   win:[1,100,['한 판 클리어','通关 1 次']],up:[1,60,['가게 숙련 1번 올리기','提升 1 次摊位熟练度']]};
-const CHEST=[],LOGIN=[50,80,120,160,200,260,500],BOX_MAX=3;for(let s=3;s<=STAGES.length*3;s+=3)CHEST.push([s,100+s*12]);
+const CHEST=[],LOGIN=[50,80,120,160,200,260,500],BOX_MAX=3;for(let s=3;s<=STAGES.length*6;s+=3)CHEST.push([s,100+s*12]);
 function dailyInit(){const t=today();if(S.day===t&&S.mis.length===3)return;S.day=t;let seed=0;for(const ch of t)seed=(seed*31+ch.charCodeAt(0))>>>0;
   const r=makeRng(seed),ids=Object.keys(MIS),pick=[];while(pick.length<3)pick.push({id:ids.splice(Math.floor(r()*ids.length),1)[0],p:0,got:0});S.mis=pick;S.box={day:t,n:0};persist();}
 function mission(id,n){for(const m of S.mis)if(m.id===id&&!m.got)m.p=Math.min(MIS[id][0],m.p+n);}
 const idleRate=()=>40+12*S.cleared;
 function idleAmt(){const h=Math.min(8,Math.max(0,(Date.now()-S.idleAt)/3600000));return Math.floor(h*idleRate());}
-const starSum=()=>S.stars.reduce((a,b)=>a+b,0);
+const starSum=()=>S.stars.reduce((a,b)=>a+b,0)+S.hstars.reduce((a,b)=>a+b,0);
+const hardOpen=si=>S.cleared>=(Math.floor(si/PER_AREA)+1)*PER_AREA&&(si%PER_AREA===0||S.hstars[si-1]>0);
 const loginReady=()=>S.login.last!==today();
 const chestReady=()=>S.chest<CHEST.length&&starSum()>=CHEST[S.chest][0];
 function rewardBadge(){return loginReady()||chestReady()||idleAmt()>=idleRate()||S.mis.some(m=>!m.got&&m.p>=MIS[m.id][0]);}
@@ -39,12 +40,13 @@ const avgLv=()=>{const ids=TOWER_IDS.filter(id=>S.lv[id]);let s=0;for(const id o
 
 function goHome(){scr='home';run=null;B=null;paused=false;wantMusic('menu');dailyInit();S.sel=Math.max(0,Math.min(S.sel,S.cleared,STAGES.length-1));persist();}
 function endBattle(){
-  const won=run.won,si=run.si,unlock=[];let first=0;
-  if(won){S.stat.wins++;mission('win',1);if(S.stars[si]===0)first=firstBonus(si);S.stars[si]=Math.max(S.stars[si],run.stars);if(S.cleared<si+1)S.cleared=si+1;
+  const won=run.won,si=run.si,unlock=[],hard=run.hard;let first=0,sauce='';
+  if(won&&hard){S.stat.wins++;mission('win',1);if(S.hstars[si]===0)first=firstBonus(si)*2;S.hstars[si]=Math.max(S.hstars[si],run.stars);if(STAGES[si].boss)for(const k in SAUCE_AT)if(SAUCE_AT[k]===STAGES[si].area&&!S.sauces[k]){S.sauces[k]=1;sauce=k;}}
+  else if(won){S.stat.wins++;mission('win',1);if(S.stars[si]===0){first=firstBonus(si);if(STAGES[si].boss)toast(L('매운맛이 열렸어요! 지도에서 도전해요','麻辣模式开启！去地图挑战吧'));}S.stars[si]=Math.max(S.stars[si],run.stars);if(S.cleared<si+1)S.cleared=si+1;
     for(const id in UNLOCK)if(S.cleared>=UNLOCK[id]&&!S.lv[id]){S.lv[id]=1;unlock.push(id);}}
   mission('kill',run.kills);S.stat.kills+=run.kills;S.coins+=run.reward+first;
-  RES={won,si,stars:run.stars,reward:run.reward,first,unlock,doubled:false,t:0,wave:run.wave,waves:run.S.waves};
-  track(won?'stage_clear':'stage_fail',{stage:si+1,wave:run.wave,stars:run.stars,sec:Math.round(run.t/60)});scr='result';wantMusic('menu');persist();
+  RES={won,si,hard,sauce,stars:run.stars,reward:run.reward,first,unlock,doubled:false,t:0,wave:run.wave,waves:run.S.waves};
+  track(won?'stage_clear':'stage_fail',{stage:si+1,hard:hard?1:0,wave:run.wave,stars:run.stars,sec:Math.round(run.t/60)});scr='result';wantMusic('menu');persist();
 }
 
 /* ---------- 공통 조각 ---------- */
@@ -146,13 +148,14 @@ const GUIDE=[
   [['이야기','故事'],['해변 야시장 축제 날, 만두 찌는 냄새가 바다까지 퍼졌어요.\n\n냄새에 이끌린 배고픈 바다 친구들이 마을 간식을 노리고 몰려와요.\n\n퇀퇀과 친구들은 쫓아내는 대신 간식 가게를 차려 배불리 먹여 돌려보내기로 했어요.\n\n그런데 바다 친구들은 왜 이렇게 배가 고플까요? 다섯 구역을 지나 용궁 문턱까지 가면 알 수 있어요.\n\n이 게임에는 싸움이 없어요. 모두 배부르고 기분 좋게 집에 돌아가요.','海滩夜市开张那天，蒸包子的香味一直飘到了海里。\n\n闻到香味的小海怪们饿着肚子，盯上了小镇的点心。\n\n团团和伙伴们决定不赶走它们，而是摆好小吃摊，让它们吃饱了再回家。\n\n可是，小海怪们为什么这么饿呢？穿过五个区域，走到龙宫门前就知道啦。\n\n这个游戏里没有打斗，大家都吃得饱饱的，开开心心回家。']],
   [['이렇게 해요','怎么玩'],['① 빈 모래 자리를 눌러 간식 가게를 차려요.\n\n② 배고픈 바다 손님이 바다에서 길을 따라 마을로 와요.\n\n③ 가게가 간식을 던져 줘요. 머리 위 막대가 다 차면 배불러서 바다로 돌아가요.\n\n④ 놓친 손님은 마을 간식을 훔쳐 가요. 간식이 0이 되면 끝!\n\n⑤ 파도를 모두 넘기면 클리어. 간식을 18개 이상 지키면 별 3개예요.','① 点空沙堆摆小吃摊。\n\n② 馋嘴的小海怪会从海里沿着路走向小镇。\n\n③ 小吃摊会自动投喂。头顶的条满了，它就吃饱回海里。\n\n④ 没喂饱的客人会偷走小镇的点心，点心为 0 就结束！\n\n⑤ 撑过所有波次就通关，守住 18 份以上点心是 3 星。']],
   [['가게 6종','6 种小吃摊'],null],
+  [['매운맛','麻辣模式'],['구역 보스를 배불리면 그 구역의 매운맛이 지도에서 열려요.\n\n매운맛 손님은 눈치가 빨라서 양념 특식에 대응해요.\n\n· 1구역: 양동이 꽃게가 특식을 한 번 막아요\n· 2구역: 문어가 꽉 찬 양념통에 먹물을 뿌려요\n· 3구역: 갈매기가 솟아올라 특식을 피해요\n· 4구역: 거북·소라게도 등껍질로 막아요\n· 5구역: 꼬마 용왕도 막아요\n\n매운맛 보스를 배불리면 새 양념을 받아요.\n\n· 굵은소금 (1구역): 길에 뿌려 손님을 세워요\n· 먹물 간장 (2구역): 눈을 가려 6초 동안 대응을 못 하게 해요','喂饱区域BOSS后，地图里会开启该区的麻辣模式。\n\n麻辣客人很机灵，会应对酱料大招。\n\n· 1区：水桶蟹挡一次大招\n· 2区：章鱼往装满的酱料罐喷墨\n· 3区：海鸥飞高躲开大招\n· 4区：海龟和寄居蟹也用壳来挡\n· 5区：小龙王也会挡\n\n喂饱麻辣BOSS可以得到新酱料。\n\n· 粗盐（1区）：撒在路上让客人停下\n· 墨鱼酱油（2区）：蒙住眼睛，6 秒内无法应对']],
   [['손님마다 특기가 있어요','每位客人都有绝活'],['해파리: 가끔 투명해져요 → 만두·팝콘·찹쌀떡(범위)으로\n\n날치: 뛰어올라 땅 간식을 넘어가요 → 빙수로 느리게 하면 못 뛰어요\n\n복어: 놀라면 부풀어 편식이 심해져요 → 빙수와 차는 그대로 먹어요\n\n소라게: 껍데기에 숨어요 → 만두·팝콘에 깜짝 놀라 튀어나와요\n\n문어: 가게에 먹물을 뿌려요 → 가게를 눌러 닦아요\n\n갈매기: 길을 무시하고 날아와 간식 2개를 낚아채요 → 만두·찹쌀떡은 하늘에 못 닿아요\n\n거북: 배가 반쯤 차면 달려요 → 미리 느리게\n\n새우: 처음 맞으면 앞으로 톡 튀어요\n\n양동이 꽃게: 투구가 6번 튕겨 내요 → 빠른 빙수로 벗겨요','水母：偶尔变透明 → 用包子、爆米花、年糕（范围）\n\n飞鱼：跳起来越过地面投喂 → 用刨冰减速就跳不起来\n\n河豚：受惊会鼓起来更挑食 → 刨冰和茶照吃\n\n寄居蟹：会躲进壳里 → 包子、爆米花能把它吓出来\n\n章鱼：朝小吃摊喷墨汁 → 点一下摊位擦干净\n\n海鸥：不走路直接飞来，抢走 2 份点心 → 包子和年糕够不着天上\n\n海龟：吃到半饱会冲刺 → 提前减速\n\n小虾：第一次被喂到会往前一蹿\n\n水桶螃蟹：头盔能挡 6 次 → 用出手快的刨冰打掉']],
   [['잘하는 요령','小窍门'],['· 길이 꺾이는 안쪽에 차리면 더 오래 먹일 수 있어요.\n\n· 가게를 누르면 키울 수 있어요. 3단계 다음엔 새 메뉴 두 가지 중 하나를 골라요.\n\n· 다음 파도를 미리 부르면 남은 시간만큼 골드를 더 받아요.\n\n· 손님을 배불리면 비법 양념이 차요. 가게에 뿌리면 그 가게만의 특식이 터져요 (만두 비, 눈보라, 팝콘 불꽃놀이…).\n\n· 파도 2·5·8·11번을 넘기면 「오늘의 특선」 카드 3장 중 하나를 골라요. 같은 카드는 겹칠수록 세져요.\n\n· 막히면 가게 화면에서 동전으로 숙련을 올려요. 모든 판에서 더 맛있어져요.\n\n· 가게를 팔면 쓴 골드의 70%를 돌려받아요.','· 把摊位摆在拐弯内侧，能喂得更久。\n\n· 点一下摊位可以升级，3 级之后从两种新菜单里选一个。\n\n· 提前叫下一波，可按剩余时间多拿金币。\n\n· 喂饱客人能攒秘制酱料，加到小吃摊上会放出招牌大招（包子雨、暴风雪、爆米花烟花…）。\n\n· 过了第 2·5·8·11 波，可以从 3 张“今日特选”里挑一张，同一张越叠越强。\n\n· 卡关时去小吃摊界面用金币提升熟练度，每一关都更美味。\n\n· 出售摊位可返还 70% 金币。']],
 ];
 function drawGuide(){
   backdrop(.75);topBar(L('안내서','玩法指南'),1);const n=GUIDE.length,pg=Math.max(0,Math.min(n-1,APP.page||0)),G=GUIDE[pg];panel(40,140,670,960,CREAM,30);
   txt(LL(G[0]),375,196,36,RED_D);
-  if(G[1])wrap(LL(G[1]),80,258,pg===3?21:24,590,pg===3?30:36,INK,'left');
+  if(G[1])wrap(LL(G[1]),80,258,LL(G[1]).length>230?21:24,590,LL(G[1]).length>230?30:36,INK,'left');
   else TOWER_IDS.forEach((id,i)=>{const y=240+i*140;g.fillStyle=HCOL[id];rr(70,y,110,120,20);g.fill();g.lineWidth=3;g.strokeStyle=INK;g.stroke();stallIcon(id,125,y+96,1);txt(LL(HN[id]),200,y+30,28,INK,'left');wrap(LL(TROLE[id]),200,y+68,21,480,30,'#8a6a4a','left',2);});
   for(let i=0;i<n;i++){g.fillStyle=i===pg?RED:'#d9c8a8';circ(375+(i-(n-1)/2)*34,1070,9);g.fill();}
   btn(60,1124,300,88,L('‹ 앞으로','‹ 上一页'),()=>{sfx('btn');APP.page=pg-1;},{col:CREAM,dk:'#d9c8a8',tc:INK,sz:30,off:pg===0});
@@ -160,12 +163,14 @@ function drawGuide(){
 }
 function drawMap(){
   const a=Math.max(0,Math.min(AREAS.length-1,APP.area||0));backdrop(.7);topBar(L('지도','地图'),1);panel(40,130,670,250,CREAM,30);
-  txt(L('제 ','第 ')+(a+1)+L(' 구역 · ',' 区 · ')+LL(AN[a]),375,176,36,RED_D);wrap(LL(STORY[a].t),76,224,21,598,29,'#7a5a3c','left',5);
-  for(let n=0;n<PER_AREA;n++){const si=a*PER_AREA+n,x=52+(n%5)*132,y=410+Math.floor(n/5)*236,open=si<=S.cleared,st=STAGES[si],cur=si===S.sel;
-    btn(x,y,118,206,'',()=>{sfx('btn');S.sel=si;persist();goHome();},{off:!open,col:cur?'#ffe9a8':CREAM,dk:'#d9c8a8',r:24,offFn:()=>{sfx('nope');toast(L('앞의 판을 먼저 깨요','请先通过前一关'));},icon:(cx,cy)=>{
+  const H=!!APP.hard&&S.cleared>=PER_AREA,SS=H?S.hstars:S.stars;
+  txt(L('제 ','第 ')+(a+1)+L(' 구역 · ',' 区 · ')+LL(AN[a])+(H?L(' · 매운맛',' · 麻辣'):''),375,176,36,RED_D);wrap(H?LL(HT[a])+L('\n권장 숙련 +4 · 보상 1.6배 · 첫 클리어 보너스 2배','\n推荐熟练度 +4 · 奖励 1.6 倍 · 首通奖励 2 倍'):LL(STORY[a].t),76,224,21,598,29,'#7a5a3c','left',5);
+  for(let n=0;n<PER_AREA;n++){const si=a*PER_AREA+n,x=52+(n%5)*132,y=410+Math.floor(n/5)*236,open=H?hardOpen(si):si<=S.cleared,st=STAGES[si],cur=!H&&si===S.sel;
+    btn(x,y,118,206,'',()=>{sfx('btn');if(H){startBattle(si,0,true);return;}S.sel=si;persist();goHome();},{off:!open,col:H?'#ffd9cc':cur?'#ffe9a8':CREAM,dk:'#d9c8a8',r:24,offFn:()=>{sfx('nope');toast(H&&S.cleared<(a+1)*PER_AREA?L('이 구역의 보스를 먼저 배불려요','请先喂饱本区的BOSS'):L('앞의 판을 먼저 깨요','请先通过前一关'));},icon:(cx,cy)=>{
       txt(stageLabel(si),cx,cy-70,26,open?INK:'#a39a8c');if(st.boss)drawSpr(st.boss,cx,cy-2,96,{a:open?1:.4});else if(st.mid)drawSpr('elite',cx,cy-4,70,{a:open?1:.4});else drawSpr(st.kinds[Math.min(2,st.kinds.length-1)],cx,cy-4,58,{a:open?1:.4});
-      for(let k=0;k<3;k++)icoStar(cx-30+k*30,cy+66,12,k<S.stars[si]);}});}
-  const ss=S.stars.slice(a*PER_AREA,(a+1)*PER_AREA).reduce((p,q)=>p+q,0);txt(L('이 구역의 별 ','本区星星 ')+ss+' / '+PER_AREA*3,375,912,24,INK);
+      for(let k=0;k<3;k++)icoStar(cx-30+k*30,cy+66,12,k<SS[si]);}});}
+  if(S.cleared>=PER_AREA)btn(225,1070,300,76,H?L('보통맛으로','回到普通'):L('매운맛 도전','挑战麻辣'),()=>{sfx('btn');APP.hard=!H;},{col:H?MINT:RED,dk:H?MINT_D:RED_D,sz:28});
+  const ss=SS.slice(a*PER_AREA,(a+1)*PER_AREA).reduce((p,q)=>p+q,0);txt(L('이 구역의 별 ','本区星星 ')+ss+' / '+PER_AREA*3,375,912,24,INK);
   btn(60,960,300,88,L('‹ 앞 구역','‹ 上一区'),()=>{sfx('btn');APP.area=a-1;},{col:CREAM,dk:'#d9c8a8',tc:INK,sz:28,off:a===0});
   const nextOpen=a<AREAS.length-1&&S.cleared>=(a+1)*PER_AREA;btn(390,960,300,88,L('다음 구역 ›','下一区 ›'),()=>{sfx('btn');APP.area=a+1;},{col:CREAM,dk:'#d9c8a8',tc:INK,sz:28,off:!nextOpen,offFn:()=>{sfx('nope');toast(a<AREAS.length-1?L('이 구역의 보스를 먼저 배불려요','请先喂饱本区的BOSS'):L('다음 구역은 준비 중이에요','下一区正在准备中'));}});
 }
@@ -186,20 +191,22 @@ function drawResult(){
   backdrop(.55);const r=RES;r.t+=1/60;BT.length=0;panel(60,210,630,900,CREAM,40);
   drawImg(r.won?'tt_cheer':'didi_sick',375,400,r.won?230:150);
   txt(r.won?L('모두 배불렀어요!','全都喂饱啦！'):L('아쉬워요!','差一点点！'),375,470,56,r.won?RED:INK);
-  txt(stageName(r.si)+(r.won?'':'  ·  '+L('파도 ','到第 ')+r.wave+' / '+r.waves+L('',' 波')),375,528,26,'#8a6a4a');
+  txt(stageName(r.si)+(r.hard?L('  ·  매운맛','  ·  麻辣'):'')+(r.won?'':'  ·  '+L('파도 ','到第 ')+r.wave+' / '+r.waves+L('',' 波')),375,528,26,'#8a6a4a');
   for(let i=0;i<3;i++){const on=i<r.stars,pop=on?Math.min(1,Math.max(0,(r.t-.3-i*.25)*5)):1;icoStar(275+i*100,608,(i===1?46:40)*(on?(.6+.4*pop):1),on&&pop>0);}
-  if(r.won&&STAGES[r.si].boss){wrap(LL(STORY[STAGES[r.si].area].e),375,660,19,560,25,'#8a6a4a','center',2);}
+  if(r.won&&STAGES[r.si].boss&&!r.hard){wrap(LL(STORY[STAGES[r.si].area].e),375,660,19,560,25,'#8a6a4a','center',2);}
   else if(r.won&&r.stars<3)txt(L('간식을 18개 이상 지키면 별 3개','守住 18 份以上点心就是 3 星'),375,672,21,'#a07a55');
   if(!r.won)txt(L('가게 숙련을 올리거나, 길이 꺾이는 곳에 차려 봐요','试试提升熟练度，或把摊位摆在拐弯处'),375,672,23,'#a07a55');
   icoCoin(270,740,30);txt('+'+(r.reward*(r.doubled?2:1)+r.first),400,742,54,INK);
   if(r.first)txt(L('첫 클리어 보너스 +','首次通关奖励 +')+r.first,375,796,22,'#3a9478');
   let y=822;
+  if(r.sauce){g.fillStyle='#ffe0d6';rr(110,y,530,96,24);g.fill();g.lineWidth=4;g.strokeStyle=INK;g.stroke();icoSauce(166,y+48,30);txt(L('새 양념 · ','新酱料 · ')+LL(SKN[r.sauce])+'!',400,y+30,30,RED_D);txtFit(LL(SKD[r.sauce]),400,y+68,19,440,'#8a6a4a');y+=110;}
   if(r.unlock.length){const id=r.unlock[0];g.fillStyle=HCOL[id];rr(110,y,530,84,24);g.fill();g.lineWidth=4;g.strokeStyle=INK;g.stroke();drawImg(HERO_IMG[id],170,y+82,84);txt(L('새 가게 ','新摊位 ')+r.unlock.map(q=>LL(HN[q])).join('·')+L(' 개업!',' 开张啦！'),400,y+43,30,INK);y+=98;}
   if(!r.doubled&&r.reward>0)btn(150,y,450,76,L('▶ 광고 보고 동전 2배','▶ 看广告金币翻倍'),()=>showAd('double',o=>{if(o){r.doubled=true;S.coins+=r.reward;sfx('reward');persist();}}),{col:YEL,dk:YEL_D,tc:INK,sz:30});
-  if(r.won){btn(100,1012,270,76,L('한 번 더','再来一次'),()=>{sfx('btn');startBattle(r.si);},{col:MINT,dk:MINT_D,sz:28});
+  if(r.won){btn(100,1012,270,76,L('한 번 더','再来一次'),()=>{sfx('btn');startBattle(r.si,0,r.hard);},{col:MINT,dk:MINT_D,sz:28});
+    if(r.hard)btn(390,1012,260,76,L('지도로','回地图'),()=>{sfx('btn');goHome();APP.area=STAGES[r.si].area;APP.hard=true;scr='map';},{sz:28});else
     btn(390,1012,260,76,r.si<STAGES.length-1?L('다음 판으로','下一关'):L('홈으로','回主页'),()=>{sfx('btn');if(r.si<STAGES.length-1)S.sel=r.si+1;goHome();},{sz:28});
     if(API||(typeof navigator!=='undefined'&&navigator.share))btn(610,226,64,60,'',()=>shareGame(),{col:CREAM,dk:'#d9c8a8',icon:(x,yy)=>{g.strokeStyle=INK;g.lineWidth=5;g.lineCap='round';g.beginPath();g.moveTo(x,yy+12);g.lineTo(x,yy-12);g.moveTo(x-10,yy-3);g.lineTo(x,yy-13);g.lineTo(x+10,yy-3);g.stroke();}});}
-  else{btn(100,1012,270,76,L('가게 숙련 올리기','提升熟练度'),()=>{sfx('btn');goHome();scr='heroes';},{col:MINT,dk:MINT_D,sz:28});btn(390,1012,260,76,L('다시 도전','再挑战'),()=>{sfx('btn');startBattle(r.si);},{sz:28});}
+  else{btn(100,1012,270,76,L('가게 숙련 올리기','提升熟练度'),()=>{sfx('btn');goHome();scr='heroes';},{col:MINT,dk:MINT_D,sz:28});btn(390,1012,260,76,L('다시 도전','再挑战'),()=>{sfx('btn');startBattle(r.si,0,r.hard);},{sz:28});}
 }
 
 /* ---------- 한 프레임 ---------- */
@@ -237,8 +244,8 @@ if(API){API.onHide&&API.onHide(onAppHide);API.onShow&&API.onShow(onAppShow);
 else document.addEventListener('visibilitychange',()=>document.hidden?onAppHide():onAppShow());
 
 mkSprites();mkBg();MUST.forEach(n=>loadImg(n));LATER.forEach(n=>loadImg(n));optQ=OPT.slice();dailyInit();track('app_open',{lang:LANG});
-if(DEBUG)window.__bepaDebug={get S(){return S;},get run(){return run;},get B(){return B;},APP,TRK,go:s=>{if(s==='home')goHome();else scr=s;},start:i=>startBattle(i||0),bot:b=>{APP.bot=!!b;},speed:n=>{speed=n;},
+if(DEBUG)window.__bepaDebug={get S(){return S;},get run(){return run;},get B(){return B;},APP,TRK,go:s=>{if(s==='home')goHome();else scr=s;},start:(i,h)=>startBattle(i||0,0,h),bot:b=>{APP.bot=!!b;},speed:n=>{speed=n;},
   give:n=>{S.coins+=n;},unlockAll:()=>{TOWER_IDS.forEach(id=>{if(!S.lv[id])S.lv[id]=1;});S.cleared=STAGES.length;},win:()=>{if(run)finish(run,true);},lose:()=>{if(run){run.lives=0;finish(run,false);}},
   au:()=>({state:AU.c&&AU.c.state,cur:MUS.cur,step:MUS.step,merr:MUS.err||0,mlast:MUS.last||'',serr:AU.err||0,slast:AU.lastErr||''}),sfx,wantMusic,
-  scr:()=>scr,ad:()=>adOv,lang:l=>{LANG=l;},draw,core:{step,build,upgrade,sell,callWave,castSauce,pickCard,rerollCards,gainSauce,cleanInk,inkTower,spawn,revive}};
+  scr:()=>scr,ad:()=>adOv,lang:l=>{LANG=l;},draw,core:{step,build,upgrade,sell,callWave,castSauce,castSalt,wipeJar,pickCard,rerollCards,gainSauce,cleanInk,inkTower,spawn,revive}};
 requestAnimationFrame(frame);

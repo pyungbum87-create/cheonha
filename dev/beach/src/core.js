@@ -31,7 +31,7 @@ function newGame(si,opt){
   opt=opt||{};const S=STAGES[si],G=stageGeo(si);
   return {si,S,paths:G.paths,spots:G.spots.map(p=>({x:p.x,y:p.y,tw:null})),rand:makeRng(opt.seed||si*977+13),lv:opt.lv||{},owned:opt.owned||TOWER_IDS.slice(0,3),
     t:0,acc:0,phase:'run',gold:S.gold+(opt.gold||0),lives:START_LIVES,wave:0,ws:'prep',gapT:0,queue:[],en:[],pr:[],zones:[],fx:[],uid:1,
-    sauce:0,sp:0,sn:0,buf:{},picks:null,rerolled:false,revives:1,revived:false,kills:0,built:0,ups:0,casts:0,leaked:0,boss:null,bossT:0,surge:0,ended:false,won:false,stars:0,reward:0,next:waveDef(si,1)};
+    sauce:0,sp:0,sn:0,buf:{},picks:null,rerolled:false,hard:!!opt.hard,area:S.area,kinds:opt.sauces||{},lock:0,full:0,casting:false,revives:1,revived:false,kills:0,built:0,ups:0,casts:0,leaked:0,boss:null,bossT:0,surge:0,ended:false,won:false,stars:0,reward:0,next:waveDef(si,1)};
 }
 
 /* ---------- 타워 ---------- */
@@ -66,18 +66,20 @@ function callWave(s){
   s.queue.sort((a,b)=>a.at-b.at);s.fx.push({e:'wave',w:s.wave,boss:s.wave===s.S.waves});return true;
 }
 function spawn(s,k,pi,d0){
-  const b=ENEMIES[k],hp=k==='boss'?s.S.bossHp:b.hp*s.cur.hp,p=s.paths[pi%s.paths.length];
+  const b=ENEMIES[k],hp=(k==='boss'?s.S.bossHp:b.hp*s.cur.hp)*(s.hard?HARD.hp:1),p=s.paths[pi%s.paths.length];
   const e={id:s.uid++,k,bk:k==='boss'?s.S.boss:'',pi:pi%s.paths.length,d:d0||0,x:0,y:0,hp,max:hp,sp:b.sp,r:b.r,armor:b.armor||0,air:!!b.air,gold:b.gold,leak:b.leak||1,
     slow:0,slowT:0,stun:0,kb:0,shred:0,hit:0,rush:false,puffT:0,puffed:false,hideT:0,hideCd:0,fadeT:0,fadeCd:0,leapT:0,leapCd:0,dartT:0,darted:false,shield:0,inkT:(b.ink||0)*TICK*.5,ph:s.rand()*6.28,ox:k==='boss'?0:(s.rand()-.5)*15,oy:k==='boss'?0:(s.rand()-.5)*9,dead:false,len:p.len};
   if(e.air){const a=p.s[0],z=p.s[p.s.length-1];e.ax=a.x+(s.rand()-.5)*120;e.ay=a.y;e.zx=z.x;e.zy=z.y;e.len=Math.hypot(e.zx-e.ax,e.zy-e.ay);}
   if(s.si>=(b.from||0)){if(b.hide)e.hideCd=Math.round((2+s.rand()*2.5)*TICK);if(b.fade)e.fadeCd=Math.round((1.5+s.rand()*3)*TICK);if(b.leap)e.leapCd=Math.round((1.5+s.rand()*2)*TICK);if(b.shield)e.shield=b.shield;e.tr=true;}
+  e.guard=s.hard&&(k==='elite'||s.area>=3&&(k==='turtle'||k==='hermit')||s.area>=4&&k==='boss')?1:0;e.dodge=0;e.seal=0;e.blk=-1;
   place(s,e);s.en.push(e);if(k==='boss'){s.boss=e;s.bossT=0;s.fx.push({e:'boss',bk:e.bk});}return e;
 }
 function place(s,e){if(e.air){const q=Math.min(1,e.d/e.len);e.x=e.ax+(e.zx-e.ax)*q;e.y=e.ay+(e.zy-e.ay)*q;}else{const p=pathPos(s.paths[e.pi],e.d);e.x=p.x+e.ox;e.y=p.y+e.oy;}}
 
 function hurt(s,e,d,cls){
-  if(e.dead)return;
-  if(e.shield>0){e.shield--;e.hit=6;s.fx.push({e:'trait',t:e.shield?'block':'break',x:e.x,y:e.y});return;}                 // 양동이 투구
+  if(e.dead||e.dodge>0)return;
+  if(s.casting&&e.guard>0&&!(e.seal>0)){e.guard--;e.blk=s.t;e.hit=6;s.fx.push({e:'trait',t:'guard',x:e.x,y:e.y});return;}                                  // 매운맛: 특식을 한 번 막는다
+  if(e.shield>0&&!(e.seal>0)){e.shield--;e.hit=6;s.fx.push({e:'trait',t:e.shield?'block':'break',x:e.x,y:e.y});return;}                 // 양동이 투구
   const arm=e.puffT>0?.8:e.armor;let res=cls!=='mag'&&arm>=.5&&!(cls==='exp'&&e.k==='hermit');
   if(e.hideT>0){if(cls==='exp'){d*=2;e.hideT=0;e.stun=Math.max(e.stun,.7*TICK);res=false;s.fx.push({e:'trait',t:'pop',x:e.x,y:e.y});}else{d*=.15;res=true;}}   // 껍데기 속
   else if(cls==='exp')d*=e.k==='hermit'?1.5:1-arm;else if(cls==='phy')d*=1-arm;
@@ -90,13 +92,13 @@ function hurt(s,e,d,cls){
     g+=2*(s.buf.tip||0);gainSauce(s,e.k==='boss'?0:ENEMIES[e.k].cost);s.gold+=g;s.fx.push({e:'die',x:e.x,y:e.y,k:e.k,bk:e.bk,g,air:e.air,pi:e.pi,d:e.d,ox:e.ox,oy:e.oy});}
 }
 function blast(s,x,y,r,d,cls,kind,eff,air){
-  for(const e of s.en){if(e.dead||((e.air||e.leapT>0)&&!air))continue;const q=r+e.r;if((e.x-x)**2+(e.y-y)**2<q*q){hurt(s,e,d,cls);if(eff&&!e.dead){if(eff.slow&&e.k!=='boss'){e.slow=Math.max(e.slow,eff.slow);e.slowT=Math.max(e.slowT,eff.slowT*TICK);}if(eff.stun&&e.k!=='boss')e.stun=Math.max(e.stun,eff.stun*TICK);}}}
+  for(const e of s.en){if(e.dead||((e.air||e.leapT>0)&&!air))continue;const q=r+e.r;if((e.x-x)**2+(e.y-y)**2<q*q){hurt(s,e,d,cls);if(eff&&!e.dead&&e.blk!==s.t){if(eff.slow&&e.k!=='boss'){e.slow=Math.max(e.slow,eff.slow);e.slowT=Math.max(e.slowT,eff.slowT*TICK);}if(eff.stun&&e.k!=='boss')e.stun=Math.max(e.stun,eff.stun*TICK);}}}
   s.fx.push({e:'blast',x,y,r,kind});
 }
 const progress=e=>e.d/e.len;
 function pickTarget(s,sp,st,b,skip,strong){
   let best=null,bv=-1;const r2=st.range*st.range;
-  for(const e of s.en){if(e.dead||e.fadeT>0||((e.air||e.leapT>0)&&!b.air)||(skip&&skip.indexOf(e.id)>=0))continue;if((e.x-sp.x)**2+(e.y-sp.y)**2>r2)continue;const v=strong?e.hp:progress(e);if(v>bv){bv=v;best=e;}}
+  for(const e of s.en){if(e.dead||e.fadeT>0||e.dodge>0||((e.air||e.leapT>0)&&!b.air)||(skip&&skip.indexOf(e.id)>=0))continue;if((e.x-sp.x)**2+(e.y-sp.y)**2>r2)continue;const v=strong?e.hp:progress(e);if(v>bv){bv=v;best=e;}}
   return best;
 }
 function stepTowers(s){
@@ -138,19 +140,21 @@ function stepProjectiles(s){
     else{p.x+=dx/d*p.sp;p.y+=dy/d*p.sp;}
   }
   s.pr=s.pr.filter(p=>!p.done);
-  if(s.zones.length){for(const z of s.zones){z.t--;if(z.t%15===0)for(const e of s.en)if(!e.dead&&(e.x-z.x)**2+(e.y-z.y)**2<(z.r+e.r)**2)hurt(s,e,z.dps*.25,'exp');}s.zones=s.zones.filter(z=>z.t>0);}
+  if(s.zones.length){for(const z of s.zones){z.t--;if(z.salt){for(const e of s.en)if(!e.dead&&!e.air&&(e.x-z.x)**2+(e.y-z.y)**2<(z.r+e.r)**2){e.slow=Math.max(e.slow,e.k==='boss'?.5:.92);e.slowT=Math.max(e.slowT,8);}}
+    else if(z.t%15===0)for(const e of s.en)if(!e.dead&&(e.x-z.x)**2+(e.y-z.y)**2<(z.r+e.r)**2)hurt(s,e,z.dps*.25,'exp');}s.zones=s.zones.filter(z=>z.t>0);}
 }
 function inkTower(s,x,y,n){const c=s.spots.map((sp,i)=>({i,sp,d:(sp.x-x)**2+(sp.y-y)**2})).filter(o=>o.sp.tw&&o.sp.tw.ink<=0&&o.d<150*150).sort((a,b)=>a.d-b.d);for(let k=0;k<n&&k<c.length;k++){c[k].sp.tw.ink=5*TICK;s.fx.push({e:'ink',i:c[k].i,x,y});}return c.length>0;}
 function stepEnemies(s){
   const surge=s.surge>0;if(surge)s.surge--;
   for(const e of s.en){if(e.dead)continue;if(e.hit>0)e.hit--;if(e.shred>0)e.shred--;if(e.slowT>0){if(--e.slowT<=0)e.slow=0;}
     if(e.kb>0){const m=Math.min(e.kb,e.kb>120?9:5);e.d=Math.max(0,e.d-m);e.kb-=m;place(s,e);if(e.stun>0)e.stun--;continue;}   // 파도에 떠밀려 가는 중
-    if(e.stun>0){e.stun--;continue;}
+    if(e.dodge>0)e.dodge--;if(e.stun>0){e.stun--;continue;}
+    if(e.seal>0){e.seal--;e.hideT=0;e.fadeT=0;e.leapT=0;}const sealed=e.seal>0;
     if(e.puffT>0)e.puffT--;if(e.dartT>0)e.dartT--;
     if(e.hideT>0){e.hideT--;continue;}                                                                                   // 껍데기 속에서는 안 움직인다
-    if(e.hideCd>0&&--e.hideCd<=0){e.hideCd=Math.round(ENEMIES.hermit.hide*TICK);e.hideT=Math.round(1.6*TICK);s.fx.push({e:'trait',t:'hide',x:e.x,y:e.y});continue;}
-    if(e.fadeT>0)e.fadeT--;else if(e.fadeCd>0&&--e.fadeCd<=0){e.fadeCd=Math.round(ENEMIES.jelly.fade*TICK);e.fadeT=78;s.fx.push({e:'trait',t:'fade',x:e.x,y:e.y});}
-    if(e.leapT>0)e.leapT--;else if(e.leapCd>0&&--e.leapCd<=0){e.leapCd=Math.round(ENEMIES.fish.leap*TICK);if(e.slow<=0){e.leapT=26;s.fx.push({e:'trait',t:'leap',x:e.x,y:e.y});}}
+    if(!sealed&&e.hideCd>0&&--e.hideCd<=0){e.hideCd=Math.round(ENEMIES.hermit.hide*TICK);e.hideT=Math.round(1.6*TICK);s.fx.push({e:'trait',t:'hide',x:e.x,y:e.y});continue;}
+    if(e.fadeT>0)e.fadeT--;else if(!sealed&&e.fadeCd>0&&--e.fadeCd<=0){e.fadeCd=Math.round(ENEMIES.jelly.fade*TICK);e.fadeT=78;s.fx.push({e:'trait',t:'fade',x:e.x,y:e.y});}
+    if(e.leapT>0)e.leapT--;else if(!sealed&&e.leapCd>0&&--e.leapCd<=0){e.leapCd=Math.round(ENEMIES.fish.leap*TICK);if(e.slow<=0){e.leapT=26;s.fx.push({e:'trait',t:'leap',x:e.x,y:e.y});}}
     if(e.k==='turtle'&&!e.rush&&e.hp<e.max*.5){e.rush=true;s.fx.push({e:'trait',t:'rush',x:e.x,y:e.y});}
     e.d+=e.sp/TICK*(1-e.slow)*(surge&&e.k!=='boss'?1.7:1)*(e.rush?ENEMIES.turtle.rush:1)*(e.leapT>0?2.4:1)*(e.dartT>0?3.5:1)*(e.puffT>0?.6:1);place(s,e);
     if(e.k==='octo'&&--e.inkT<=0){e.inkT=ENEMIES.octo.ink*TICK;if(inkTower(s,e.x,e.y,1))s.fx.push({e:'spit',x:e.x,y:e.y});}
@@ -163,7 +167,7 @@ function stepEnemies(s){
     else if(b.bk==='dragon'){s.surge=2*TICK;inkTower(s,b.x,b.y,2);for(let i=0;i<2;i++){spawn(s,'shrimp',i,0);spawn(s,'crab',b.pi,Math.max(0,b.d-14-i*14));}}
     else if(b.bk==='pirate'){for(let i=0;i<2;i++){spawn(s,'turtle',b.pi,Math.max(0,b.d-14-i*18));spawn(s,'gull',i,0);}}
     else{s.surge=3*TICK;for(let i=0;i<3;i++)spawn(s,'fish',i,0);}
-    s.fx.push({e:'summon',x:b.x,y:b.y,bk:b.bk});}
+    if(s.hard&&s.area>=4)b.guard=1;s.fx.push({e:'summon',x:b.x,y:b.y,bk:b.bk});}
   s.en=s.en.filter(e=>!e.dead);
 }
 function stepWave(s){
@@ -178,11 +182,13 @@ function stepWave(s){
 function finish(s,won){
   if(s.ended)return;s.ended=true;s.won=won;s.phase=won?'win':'lose';
   s.stars=won?(s.revived?Math.min(2,s.lives>=10?2:1):s.lives>=18?3:s.lives>=10?2:1):0;
-  const base=REWARD.base*(1+REWARD.stage*s.si);s.reward=Math.round(won?base*REWARD.star[s.stars]:base*REWARD.lose*Math.max(0,s.wave-1)/s.S.waves+5);
+  const base=REWARD.base*(1+REWARD.stage*s.si)*(s.hard?HARD.reward:1);s.reward=Math.round(won?base*REWARD.star[s.stars]:base*REWARD.lose*Math.max(0,s.wave-1)/s.S.waves+5);
   s.fx.push({e:won?'win':'lose'});
 }
 function step(s){
   if(s.ended||s.phase!=='run')return;s.t++;
+  if(s.lock>0)s.lock--;
+  if(s.hard&&s.area>=1&&s.lock<=0){if(s.sauce>=SAUCE.max&&s.en.some(e=>e.k==='octo'||e.bk==='octoboss')){s.full++;if(s.full===Math.round((HARD.jamAfter-3)*TICK))s.fx.push({e:'jamWarn'});if(s.full>=HARD.jamAfter*TICK){s.full=0;s.lock=HARD.jam*TICK;s.fx.push({e:'jam'});}}else s.full=0;}   // 매운맛: 문어가 꽉 찬 양념통을 노린다
   stepWave(s);if(s.phase!=='run')return;stepTowers(s);stepProjectiles(s);stepEnemies(s);
 }
 /* 프레임 시간을 틱으로 바꾼다 */
@@ -191,17 +197,23 @@ function advance(s,dt){s.acc+=Math.min(dt,.25);let n=0;while(s.acc>=1/TICK-1e-9&
 /* ---------- 비법 양념: 가게마다 다른 특식 ---------- */
 function sauceNeed(s){return s.sn===0?SAUCE.first:Math.min(SAUCE.cap,SAUCE.need+SAUCE.grow*(s.sn-1));}
 function gainSauce(s,v){if(s.sauce>=SAUCE.max||v<=0)return;s.sp+=v*(1+.25*(s.buf.sauce||0));const n=sauceNeed(s);if(s.sp>=n){s.sp-=n;s.sn++;s.sauce++;if(s.sauce>=SAUCE.max)s.sp=0;s.fx.push({e:'sauceUp'});}}
-function castSauce(s,i){
-  const sp=s.spots[i],tw=sp&&sp.tw;if(!tw||s.phase!=='run'||s.sauce<1||s.ws==='prep')return false;
-  s.sauce--;s.casts++;tw.ink=0;tw.od=SAUCE.od*TICK;tw.cd=0;const st=towerStat(s,tw),R=st.range*1.6,id=tw.id,inR=e=>!e.dead&&(e.x-sp.x)**2+(e.y-sp.y)**2<R*R,front=(a,b)=>progress(b)-progress(a);
-  s.fx.push({e:'sauce',i,id,r:R});
+function castSauce(s,i,kind){
+  const sp=s.spots[i],tw=sp&&sp.tw;if(!tw||s.phase!=='run'||s.sauce<1||s.ws==='prep'||s.lock>0||(kind==='soy'&&!s.kinds.soy))return false;
+  s.sauce--;s.full=0;s.casts++;tw.ink=0;tw.od=SAUCE.od*TICK;tw.cd=0;const st=towerStat(s,tw),R=st.range*1.6,id=tw.id,inR=e=>!e.dead&&(e.x-sp.x)**2+(e.y-sp.y)**2<R*R,front=(a,b)=>progress(b)-progress(a);
+  s.fx.push({e:'sauce',i,id,r:R,soy:kind==='soy'});
+  if(kind==='soy'){for(const e of s.en)if(!e.dead&&(e.x-sp.x)**2+(e.y-sp.y)**2<R*R*1.7)e.seal=HARD.seal*TICK;}                  // 먹물 간장: 눈을 가려 특기도 대응도 못 하게
+  else if(s.hard&&s.area>=2)for(const e of s.en)if(e.k==='gull'&&!e.dead&&!(e.seal>0)&&(e.x-sp.x)**2+(e.y-sp.y)**2<R*R*1.7){e.dodge=Math.round(HARD.dodge*TICK);s.fx.push({e:'trait',t:'dodge',x:e.x,y:e.y});}   // 매운맛: 갈매기가 솟아올라 피한다
+  s.casting=true;
   if(id==='tt'){for(const e of s.en.filter(e=>inR(e)&&!e.air).sort(front).slice(0,6))blast(s,e.x,e.y,st.aoe,st.dmg*2.5,'exp','bun',{stun:1},false);}            // 만두 비: 앞선 손님 6명 머리 위로
-  else if(id==='didi'){for(const e of s.en.slice())if(inR(e)){hurt(s,e,st.dmg*8,'mag');if(!e.dead){e.stun=Math.max(e.stun,(e.k==='boss'?1:2.5)*TICK);e.slow=Math.max(e.slow,.5);e.slowT=Math.max(e.slowT,5*TICK);}}s.fx.push({e:'freeze',x:sp.x,y:sp.y,r:R});}   // 눈보라: 둘레를 꽁꽁
+  else if(id==='didi'){for(const e of s.en.slice())if(inR(e)){hurt(s,e,st.dmg*8,'mag');if(!e.dead&&e.blk!==s.t){e.stun=Math.max(e.stun,(e.k==='boss'?1:2.5)*TICK);e.slow=Math.max(e.slow,.5);e.slowT=Math.max(e.slowT,5*TICK);}}s.fx.push({e:'freeze',x:sp.x,y:sp.y,r:R});}   // 눈보라: 둘레를 꽁꽁
   else if(id==='peng'){for(const e of s.en.filter(inR).sort(front).slice(0,6))blast(s,e.x,e.y,st.aoe,st.dmg*2,'exp','fw',null,true);}                       // 팝콘 불꽃놀이: 하늘 손님까지
   else if(id==='shan'){for(const e of s.en.slice()){if(e.dead)continue;e.shred=Math.max(e.shred,6*TICK);e.fadeT=0;if(inR(e))hurt(s,e,st.dmg*12,'mag');}s.fx.push({e:'aroma'});}   // 차 향기: 모든 손님이 6초 동안 뭐든 잘 먹고, 숨은 손님도 드러남
   else if(id==='dun'){for(const e of s.en.filter(e=>!e.dead).sort((a,b)=>b.hp-a.hp).slice(0,3)){s.fx.push({e:'skewer',i,x:e.x,y:e.y});hurt(s,e,st.dmg*5*(st.big&&(e.k==='boss'||e.k==='elite')?st.big:1),'mag');}}   // 왕꼬치: 어디에 있든 가장 배고픈 3명
-  else if(id==='zhuo'){let n=0;for(const e of s.en.slice())if(inR(e)&&!e.air){hurt(s,e,st.dmg*8,'mag');n++;if(!e.dead&&e.k!=='boss'){e.slow=Math.max(e.slow,.8);e.slowT=Math.max(e.slowT,4*TICK);}}if(n){s.gold+=n*3;s.fx.push({e:'bonus',g:n*3});}s.fx.push({e:'goo',x:sp.x,y:sp.y,r:R});}   // 찹쌀떡 잔치: 끈적끈적 + 팁
-  return true;}
+  else if(id==='zhuo'){let n=0;for(const e of s.en.slice())if(inR(e)&&!e.air){hurt(s,e,st.dmg*8,'mag');n++;if(!e.dead&&e.k!=='boss'&&e.blk!==s.t){e.slow=Math.max(e.slow,.8);e.slowT=Math.max(e.slowT,4*TICK);}}if(n){s.gold+=n*3;s.fx.push({e:'bonus',g:n*3});}s.fx.push({e:'goo',x:sp.x,y:sp.y,r:R});}   // 찹쌀떡 잔치: 끈적끈적 + 팁
+  s.casting=false;return true;}
+/* 굵은소금: 길 위에 뿌리면 그 자리의 손님이 목말라 멈춘다. 먹이는 게 아니라서 막거나 피할 수 없다 */
+function castSalt(s,x,y){if(s.phase!=='run'||s.sauce<1||s.ws==='prep'||s.lock>0||!s.kinds.salt)return false;s.sauce--;s.full=0;s.casts++;s.zones.push({salt:true,x,y,r:HARD.saltR,t:Math.round(HARD.salt*TICK)});s.fx.push({e:'salt',x,y,r:HARD.saltR});return true;}
+function wipeJar(s){if(s.lock<=0)return false;s.lock=Math.max(0,s.lock-2.5*TICK);s.fx.push({e:'jamWipe'});return true;}
 /* ---------- 오늘의 특선 ---------- */
 function drawCards(s){const pool=Object.keys(CARDS).filter(k=>(!CARDS[k].only||s.owned.includes(CARDS[k].only))&&!(k==='sale'&&(s.buf.sale||0)>=3)),out=[];while(out.length<3&&pool.length)out.push(pool.splice(Math.floor(s.rand()*pool.length),1)[0]);return out;}
 function pickCard(s,k){if(s.phase!=='pick'||!s.picks||!s.picks[k])return false;const c=s.picks[k];s.buf[c]=(s.buf[c]||0)+1;let g=0;
@@ -211,4 +223,4 @@ function rerollCards(s){if(s.phase!=='pick'||s.rerolled)return false;s.rerolled=
 function revive(s){if(s.phase!=='revive'||s.revives<=0)return false;s.revives--;s.revived=true;s.lives=REVIVE_LIVES;s.phase='run';for(const e of s.en)if(!e.air&&e.k!=='boss')e.kb=200;s.fx.push({e:'revive'});return true;}
 function giveUp(s){if(!s.ended)finish(s,false);}
 
-if(typeof module!=='undefined')module.exports={newGame,step,advance,build,upgrade,sell,callWave,castSauce,pickCard,rerollCards,SAUCE,CARDS,cleanInk,revive,giveUp,towerStat,upCost,towerCost,stageGeo,waveDef,STAGES,TOWERS,TOWER_IDS,BRANCH,UNLOCK};
+if(typeof module!=='undefined')module.exports={newGame,step,advance,build,upgrade,sell,callWave,castSauce,castSalt,wipeJar,pickCard,rerollCards,SAUCE,CARDS,HARD,cleanInk,revive,giveUp,towerStat,upCost,towerCost,stageGeo,waveDef,STAGES,TOWERS,TOWER_IDS,BRANCH,UNLOCK};
