@@ -97,8 +97,8 @@ window.DX = window.DX || {};
   function applyTheme(idx) {
     world.stageIdx = idx;
     const th = C.stages[idx].theme;
-    world.theme = th; world.stageId = C.stages[idx].id;
-    const ca = (C.chapterArt || {})[C.stages[idx].id] || {};
+    world.theme = th; world.stageId = C.stages[idx].art || C.stages[idx].id;   // art = 그림을 빌려 쓰는 장 (2부)
+    const ca = (C.chapterArt || {})[world.stageId] || {};
     E.env.fog = E.col(th.fog).slice(); E.env.fogNear = th.fogNear; E.env.fogFar = th.fogFar;
     E.env.light = th.light; E.env.sky = E.col(th.sky); E.env.ground = E.col(th.ground); E.env.ambient = th.ambient; E.env.spriteTint = th.spriteTint || [1, 1, 1];
     if (DX.UI) DX.UI.setSky(th.skyTop, th.skyBottom, th.skyImg);
@@ -712,7 +712,7 @@ window.DX = window.DX || {};
   function startMini(kind, extra, onDone) {
     const mg = C.minigame, si = G.stageIdx;
     DX.state = 'mini';
-    const ca = (C.chapterArt || {})[G.stg.id] || {};
+    const ca = (C.chapterArt || {})[G.stg.art || G.stg.id] || {};
     const opt = Object.assign({ bg: mg.bg && mg.bg[si], bgNew: ca.side, tint: mg.tint && mg.tint[si], line: mg.lines && mg.lines[kind], stage: si }, extra || {});
     if (onDone) { DX.MINI.start(kind, opt, r => { DX.state = 'play'; onDone(r); }); return; }
     DX.MINI.start(kind, opt, r => {

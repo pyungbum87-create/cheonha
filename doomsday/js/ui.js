@@ -198,14 +198,14 @@ window.DX = window.DX || {};
     $('supplyN').textContent = sl + '/' + C.ads.supplyPerDay;
     $('btnSupply').disabled = sl <= 0;
     const i = DX.save.stage || 0, st = C.stages[i];
-    $('stName').textContent = (i + 1) + '. ' + T(st.name);
+    $('stName').textContent = (st.season === 2 ? '🌙 ' : '') + (i + 1) + '. ' + T(st.name);
     $('stDesc').textContent = T(st.desc);
     const best = DX.save.best[st.id];
     $('stBest').textContent = L('최고 기록 : ', '最高纪录：') + (best ? 'WAVE ' + best + ' / ' + st.waves.length : '-');
     const th = $('stThumb');
     th.onerror = () => { if (st.thumbFallback && th.src.indexOf(st.thumbFallback) < 0) { th.src = st.thumbFallback; return; } th.onerror = null; th.src = C.assets.story[i % 2 === 0 ? 2 : 1]; };
     th.src = st.thumb || C.assets.story[2];
-    { const ca = (C.chapterArt || {})[st.id]; if (ca && ca.thumb && DX.SPR.probe) DX.SPR.probe(ca.thumb).then(ok => { if (ok && (DX.save.stage || 0) === i) th.src = ca.thumb; }); }
+    { const ca = (C.chapterArt || {})[st.art || st.id]; if (ca && ca.thumb && DX.SPR.probe) DX.SPR.probe(ca.thumb).then(ok => { if (ok && (DX.save.stage || 0) === i) th.src = ca.thumb; }); }
     $('stBadge').innerHTML = !stageUnlocked(i) ? T('🔒 잠김') : DX.save.cleared[st.id] ? '<span class="stars">' + starHtml((DX.save.stars || {})[st.id]) + '</span>' : '';
     // 장 안 스테이지 5개
     { const done = DX.subDone(st.id), sel = Math.min((DX.save.subSel || {})[st.id] != null ? DX.save.subSel[st.id] : Math.min(4, done), Math.min(4, done));

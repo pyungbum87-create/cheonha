@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.22',
+    version: 'v0.23',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -843,3 +843,36 @@ DX.CONFIG = {
 };
 // 밸런스 보정: 7장이 벽이라 체력 12% 낮춤 (시뮬레이터 기준 클리어 1/5 → 4/6)
 (function (st) { if (st) st.waves.forEach(function (w) { w.hp *= 0.88; if (w.bossHp) w.bossHp *= 0.88; }); })(DX.CONFIG.stages[6]);
+
+/* ==========================================================================
+   2부 야근편 (9~16장): 1부 그림을 다시 쓰고(왔던 길을 되돌아감) 이야기·보스 이름·난이도만 새로.
+   S2.scale = 8장 대비 좀비 체력 [첫 장 배율, 장마다 추가]. gold = 클리어 골드 [첫 장, 장마다 추가]
+   글을 고치면 i18n.js 의 중국어도 같이 (자동 생성: _dev/season2.py)
+   ========================================================================== */
+(function (C) {
+  var S2 = { scale: [1.02, 0.07], gold: [650, 50], bossNames: {"bujang": "야근 거미 부장님", "taekbae": "새벽 배송 택배 대장", "gwajang": "거대 과장님 (야근 94일째)", "hwisik": "3차 끝판왕 과장님", "isa": "독거미 이사님 (3차 변이)", "sangmu": "야간 스키 상무님", "isa2": "회장님 전용 독거미", "ceo": "좀비 회장님 (진짜 최종 보스)"}, list: [{"base": "tunnel", "name": "돌아가는 암흑 터널", "desc": "백신은 손에 넣었다. 그런데 해가 졌다. 야근 좀비가 깨어난다!", "boss": ["sangmu", "isa2"], "intro": [{"who": 2, "text": "큰일이야. 이 백신은 시제품 한 병뿐이야. 본사 공장에서 찍어 내야 해."}, {"who": 1, "text": "그럼... 왔던 길을 다시 가요? 지금 밤 9시인데요?"}, {"who": 0, "text": "야근이다. 전원 배치."}], "outro": [{"who": 1, "text": "터널을 빠져나왔어요! 근데 밖이 더 깜깜해요..."}, {"who": 2, "text": "백신이 미지근해지고 있어. 차갑게 식혀야 해. 설산으로!"}], "comic": [{"cap": "밤 9시. 백신 한 병을 들고 다시 터널로."}, {"who": "n9", "text": "그건 시제품일세! 본사 공장이 아니면 못 늘려!"}, {"who": 1, "text": "퇴근인 줄 알았는데..."}, {"who": 2, "text": "좀비들 눈이 빨개졌어. 야근 수당 못 받은 눈이야."}, {"who": 0, "text": "2부 시작이다. 야근편!"}], "tease": "다음: 한밤의 설산 (백신을 식혀라)", "radio": "밤이 되니 좀비가 더 빨라졌어요!"}, {"base": "snow", "name": "한밤의 눈보라 설산", "desc": "백신을 차갑게! 얼음을 싣는 동안 열차를 지켜라.", "boss": ["isa", "sangmu"], "intro": [{"who": 2, "text": "연수원 냉동 창고에 얼음이 있어. 백신 칸에 가득 채우자."}, {"who": 1, "text": "상무님 스키 장비가 혼자 내려오고 있어요!!"}, {"who": 0, "text": "얼음 실을 때까지 버틴다!"}], "outro": [{"who": 2, "text": "백신 온도 정상! 이제 안 상해."}, {"who": 0, "text": "다음은 철교다. 다리가 아직 붙어 있길 빌자."}], "comic": [{"cap": "자정. 눈보라 속 연수원."}, {"who": "n6", "text": "냉동 창고 열쇠는 내가 갖고 있지. 청소는 내가 다 했거든."}, {"who": 1, "text": "얼음이 이렇게 반가울 줄이야."}, {"who": 2, "text": "상무님이 또 온다. 이번엔 야간 스키야."}, {"who": 0, "text": "얼음 싣고 바로 출발!"}], "tease": "다음: 끊어져 가는 협곡 철교", "radio": "얼음 다 실을 때까지만 버텨 줘요!"}, {"base": "bridge", "name": "끊어져 가는 협곡 철교", "desc": "다리가 무너지기 전에 건너라! 이사님이 3차 변이로 돌아왔다.", "boss": ["hwisik", "isa"], "intro": [{"who": 1, "text": "다리가... 아까보다 짧아진 것 같은데요?"}, {"who": 2, "text": "좀비들이 볼트를 뽑아 먹고 있어!"}, {"who": 0, "text": "멈추면 떨어진다. 전속력!"}], "outro": [{"who": 2, "text": "건넜다! 뒤에서 다리 무너지는 소리 들려?"}, {"who": 1, "text": "이제 못 돌아가네요. 앞으로만 가요."}], "comic": [{"cap": "새벽 1시. 흔들리는 철교."}, {"who": "n5", "text": "용접은 내가 할게! 5분만 벌어 줘!"}, {"who": 2, "text": "5분이면 좀비 500마리야."}, {"who": 1, "text": "이사님이 또 진화했어요! 다리가 열 개예요!"}, {"who": 0, "text": "결재는 총알로 한다."}], "tease": "다음: 새벽 3차 유흥가", "radio": "다리가 5분밖에 못 버텨요!"}, {"base": "neon", "name": "새벽 3차 유흥가", "desc": "회식은 끝나지 않았다. 3차 좀비 떼를 뚫고 도심으로!", "boss": ["gwajang", "hwisik"], "intro": [{"who": 1, "text": "3차는 안 간다고 했잖아요!!"}, {"who": 2, "text": "노래방 기계가 아직 켜져 있어. 좀비들이 마이크를 안 놔."}, {"who": 0, "text": "막차는 우리 열차다. 뚫는다!"}], "outro": [{"who": 1, "text": "과장님 노래 실력은 좀비가 돼도 그대로네요..."}, {"who": 2, "text": "본사 공장이 보여. 불이 켜져 있어!"}], "comic": [{"cap": "새벽 2시. 간판만 번쩍이는 거리."}, {"who": "n4", "text": "해장 칵테일 줄게요. 대신 저 손님들 좀 내보내 줘요."}, {"who": 1, "text": "저 손님들... 전부 우리 회사 사람인데요."}, {"who": 2, "text": "회식비 영수증이 3미터야."}, {"who": 0, "text": "법인 카드는 없다. 총알로 낸다!"}], "tease": "다음: 본사 공장 (백신을 찍어 내라)", "radio": "3차 가자는 소리가 들려요... 도망쳐요!"}, {"base": "city", "name": "본사 공장 야간 가동", "desc": "백신을 찍어 내는 동안 공장을 지켜라! 좀비도 야근 중이다.", "boss": ["taekbae", "gwajang"], "intro": [{"who": 2, "text": "기계 켰어! 백신 1,000병까지 10분!"}, {"who": 1, "text": "10분이요? 좀비는 1분에 100마리씩 오는데요?"}, {"who": 0, "text": "계산은 나중에 해. 쏴!"}], "outro": [{"who": 2, "text": "백신 1,000병 완성!! 열차에 실어!"}, {"who": 0, "text": "이걸 사람들한테 나눠 줘야 한다. 휴게소가 거점이다."}], "comic": [{"cap": "새벽 3시. 본사 공장에 불이 켜졌다."}, {"who": "n11", "text": "나 여기 20년 다녔어. 기계는 내가 돌릴게!"}, {"who": 2, "text": "드디어 회사가 쓸모 있는 걸 만드네."}, {"who": 1, "text": "과장님이 또 와요. 야근 94일째래요."}, {"who": 0, "text": "생산 라인을 지켜라!"}], "tease": "다음: 새벽 휴게소 (백신 배송 작전)", "radio": "공장 기계 소리에 좀비가 몰려와요!"}, {"base": "rest", "name": "새벽 휴게소 배송 작전", "desc": "백신을 전국으로! 택배 대장이 물건을 노린다.", "boss": ["bujang", "taekbae"], "intro": [{"who": 1, "text": "택배기사 아저씨들이 다 모였어요! 배송해 준대요!"}, {"who": 2, "text": "문제는 택배 대장이야. 백신 상자를 통째로 가져가려고 해."}, {"who": 0, "text": "오배송은 없다. 지켜!"}], "outro": [{"who": 1, "text": "전국 배송 출발했어요! 새벽 배송이에요!"}, {"who": 2, "text": "잠깐. 헬기 소리야. 누가 우리를 쫓아와."}], "comic": [{"cap": "새벽 4시. 휴게소에 트럭이 모였다."}, {"who": "n1", "text": "배송은 우리가 할게. 20년 무사고야!"}, {"who": "n3", "text": "호두과자도 한 봉지씩 넣어 줄게요."}, {"who": 2, "text": "택배 대장이 반품하러 왔어. 우리를."}, {"who": 0, "text": "수취 거부다!"}], "tease": "다음: 동틀 녘 사막 (회장님의 추격)", "radio": "트럭이 다 떠날 때까지 막아 줘요!"}, {"base": "desert", "name": "동틀 녘 사막 추격전", "desc": "회장님이 백신을 독차지하려 한다. 해 뜨기 전에 따돌려라!", "boss": ["bujang", "isa2"], "intro": [{"who": 2, "text": "무전 해독했어. 회장님이야. \"백신은 회사 자산이다. 반납하라.\""}, {"who": 1, "text": "사장님 위에 회장님이 있었어요?!"}, {"who": 0, "text": "퇴사 처리해 드려야겠군."}], "outro": [{"who": 2, "text": "따돌렸어! 근데 회장님이 연구소 맨 아래층으로 들어갔어."}, {"who": 0, "text": "남은 백신 원액이 거기 있다. 마지막 야근이다."}], "comic": [{"cap": "새벽 5시. 하늘이 밝아 온다."}, {"who": "n8", "text": "회장님 일정표예요. 6시에 백신 원액을 전부 가져갈 거예요."}, {"who": 1, "text": "부장님 거미가 또 나왔어요! 이번엔 회장님 전용 거미래요!"}, {"who": 2, "text": "직급이 높을수록 다리가 많아지네."}, {"who": 0, "text": "해 뜨기 전에 끝낸다!"}], "tease": "다음: 연구소 맨 아래층 (회장실)", "radio": "회장님 헬기가 뒤에 붙었어요!"}, {"base": "lab", "name": "연구소 맨 아래층 (회장실)", "desc": "진짜 최종 결재. 좀비 회장님을 퇴사시키고 정시 퇴근하라!", "boss": ["isa2", "ceo"], "intro": [{"who": 2, "text": "회장실이야. 문에 \"노크 3번, 결재 서류 지참\"이라고 써 있어."}, {"who": 1, "text": "서류 없는데요."}, {"who": 0, "text": "사직서로 대신한다. 전원 돌격!"}], "outro": [{"who": 2, "text": "회장님 처치! 백신 원액도 지켰어!"}, {"who": 1, "text": "형... 해 떴어요. 이제 진짜 퇴근이죠?"}, {"who": 0, "text": "...9시다. 출근 시간이군."}], "comic": [{"cap": "아침 6시. 연구소 맨 아래층."}, {"who": "n9", "text": "회장님은 원액을 마시고 영원히 회장으로 남을 생각일세!"}, {"who": 2, "text": "정년퇴직이 없는 회사... 끔찍해."}, {"who": 1, "text": "퇴직금은 주고 가셔야죠!!"}, {"who": 0, "text": "마지막 결재다. 반려한다!!"}], "tease": "2부 야근편 끝! 모두 정시 퇴근(?)했습니다", "radio": "회장님만 막으면 진짜 퇴근이에요!"}] };
+  C.season2 = S2;
+  var byId = {}; C.stages.forEach(function (s) { byId[s.id] = s; });
+  var lab = byId.lab, first = C.stages.length;
+  S2.list.forEach(function (d, n) {
+    var b = byId[d.base], id = d.base + '2', k = S2.scale[0] + S2.scale[1] * n, bi = 0;
+    // 보스: 그림은 1부 것, 체력·공격은 8장 보스(중간 = 이사님 2차, 마지막 = 사장님) 수준으로 맞춤
+    d.boss.forEach(function (key, slot) { var nk = key + (slot ? '_s2f' : '_s2m'), ref = C.bosses[slot ? 'ceo' : 'isa2']; if (!C.bosses[nk]) { C.bosses[nk] = Object.assign({}, C.bosses[key], { name: S2.bossNames[key], hp: ref.hp, dps: ref.dps, xp: ref.xp, gold: ref.gold }); if (key === 'ceo') { C.bosses[nk].quote = '결재 반려다!!'; if (C.bosses[nk].rage) C.bosses[nk].rage = Object.assign({}, C.bosses[nk].rage, { quote: '정년은 없다!!!' }); } } });
+    var waves = lab.waves.map(function (w, j) {
+      var bw = b.waves[Math.min(j, b.waves.length - 1)], o = Object.assign({}, w, { mix: Object.assign({}, bw.mix), hp: +(w.hp * k).toFixed(2) });
+      if (!o.mix.riot) o.mix.riot = 0.08; if (!o.mix.bomber) o.mix.bomber = 0.08;
+      if (w.boss) { var sl = Math.min(bi++, d.boss.length - 1); o.boss = d.boss[sl] + (sl ? '_s2f' : '_s2m'); o.bossHp = +(w.bossHp * k).toFixed(2); }
+      return o;
+    });
+    C.stages.push({ id: id, art: d.base, season: 2, name: d.name, desc: d.desc, thumb: b.thumb, thumbFallback: b.thumbFallback, clearGold: S2.gold[0] + S2.gold[1] * n,
+      intro: d.intro, outro: d.outro, theme: b.theme, waves: waves });
+    var bc = C.comics[d.base] || {};
+    C.comics[id] = { bg: bc.bg, zoom: bc.zoom, pos: bc.pos, panels: d.comic };
+    C.nextTease[id] = d.tease;
+    if (C.radio && C.radio.byStage) C.radio.byStage[id] = [d.radio];
+    if (C.rescueOps && C.rescueOps.byStage[d.base]) C.rescueOps.byStage[id] = C.rescueOps.byStage[d.base];
+    if (C.minigame && C.minigame.byStage) { var bix = C.stages.indexOf(b); C.minigame.byStage[first + n] = C.minigame.byStage[bix]; if (C.minigame.pool) C.minigame.pool[first + n] = C.minigame.pool[bix]; }
+  });
+  C.nextTease.lab = '1부 출근편 끝! 이어서 2부 야근편이 열렸습니다';
+  C.ending = { title: '진짜 THE END', sub: '백신은 전국에 배송됐다. 모두 정시 퇴근했다. ...월요일 아침 9시까지는.', thanks: C.ending.thanks };
+})(DX.CONFIG);
