@@ -1,6 +1,6 @@
-# RECLAIM: 돌아온 땅 — G1 도형 프로토타입 (A트랙 미니게임판)
+# RECLAIM: 돌아온 땅 — 출시 후보판 (A트랙 미니게임판: 웹·토스·위챗·더우인)
 
-빌드 1117-2330
+빌드 1118-0100
 
 ## 들어 있는 것
 - 1막 탈출: 탭해서 이동, 가방 8칸 고르기, 아래에서 올라오는 불길, 감염체 피하기, 비행기 탑승
@@ -9,20 +9,33 @@
 - 위기: 밤의 그림자(불 꺼지면 물건 뺏김), 폭풍(예보·갈매기 사라짐·갑판 파손·수리), 날생선 하룻밤 지나면 상함
 - 음원 출처: 배경음악 6곡 모두 자체 합성 (외부 음원 없음)
 - 섬 상륙: 나무·덤불·바위·개울·오두막(무전기 부품), 소음 막대, 감염체 싸움, 짐 12칸(돛 16칸), 해 지기 전 귀환
-- 3일차가 끝나면 "내일 또 하고 싶다 / 모르겠다 / 재미없다" 피드백(통계 g1_feedback)
+- 3일차가 끝나면 "재밌어요 / 그저 그래요 / 너무 어려워요" 한 번 묻기(통계 feel_d3, 게임에 영향 없음)
 - 공통 틀: 로딩, 버전 표시, 한국어/중국어, 저장, 소리(음원 없으면 합성음), 앱 내리면 일시정지, 보상형 광고(테스트 2초), 공유, 통계, 출석·일일 미션·보급 낙하(하루 3회), 안내서 4쪽, 첫 화면 팁, 설정, 개인정보, 健康游戏忠告, 순화 모드, 디버그(?debug=1)
 
 ## 광고 ID 넣는 곳
 game.js의 `AD_UNIT` (wx / tt / toss). 토스는 G3에서 앱인토스 SDK 광고를 `globalThis.__tossAd(place, onReward, onFail)`로 연결.
 
 ## 통계 이벤트 (관리자 화면에 같은 이름으로 등록)
-act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, g1_feedback, quest, rescue, bottle, ch1_clear, reclaim, barricade, flow_lost, flow_held, ch2_clear, reclaim_river, toll, toll_fail, trade, coffee, ch3_clear, act1_pick, ad_open, ad_reward, share, guide_open, app_hide, draw_error
+act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, quest, rescue, bottle, ch1_clear, reclaim, barricade, flow_lost, flow_held, ch2_clear, reclaim_river, toll, toll_fail, trade, coffee, ch3_clear, reclaim_city, bomb_craft, ch4_clear, game_clear, regrow, feel_d3, toss_ready, act1_pick, ad_open, ad_reward, share, guide_open, app_hide, draw_error
 
 ## 테스트 결과 (이번 빌드)
 - 한국어·중국어 전 화면 캡처, 중국어 화면 한글 누수 0건
 - 그리기 포함 자동 플레이(해역 3종 × 4일) 그리기 오류 0건
 - 위챗 흉내 환경: 오류 0건, 오디오 서브패키지·일시정지 동작
 - 시간대/언어별 첫 언어: 중국 → 중국어, 한국 → 한국어
+
+## 1118-0100 변경 (출시 후보판: 4장 + 엔딩 + 플랫폼 연결)
+- 4장 「회색 심장」: [지도]에 [도시] 탭. 외곽 고속도로 → 시립 병원 → 공항 활주로 → 도심
+  - 정화탄(플라스틱 2·물 3·고철 2): 도심 「근원 심장」의 회색 껍질 3겹을 하나씩 녹임. 껍질이 녹으면 핵(8)을 태움, 태운 만큼 누적
+  - 근원 심장 원정은 동료 전원이 함께 싸움(피해 -30%)
+  - 병원 수복 시 의사 서린 합류(매일 아침 체력 +20) — 동료 5명
+  - 도시 무전 5편, 4장 목표 5개
+- 엔딩 「돌아온 땅」 + 엔딩 뒤 계속 플레이: 6일마다 강·도시의 구역 하나에 작은 둥지가 다시 돋음(「회색 잔당」)
+- 토스(앱인토스) 연결: 저장(SDK 저장소), 안전 영역, 게임 로그인(익명 키), 리더보드(생존 일수), 보상형 광고(load→show→다음 load, userEarnedReward 때만 보상)
+  - 토스에서 광고가 안 되는 환경이면 가짜 광고 대신 안내 문구만 표시
+  - 광고 재생 중 음악 멈춤
+- 3일차 설문 문구를 출시용으로 교체("G1 프로토타입" 표기 제거), 타이틀 버전 표기 정리
+- 아침 보급 알림을 화면 밖으로 넘치지 않게 배너로 변경
 
 ## 1117-2330 변경 (배경음악 + 3장 「강을 거슬러」 + 커피)
 - 배경음악 6곡 추가 (res/bgm_*.mp3, 합계 약 0.8MB): 타이틀·탈출·낮 바다·밤 바다·폭풍·육지. 화면에 맞춰 자동으로 바뀜
