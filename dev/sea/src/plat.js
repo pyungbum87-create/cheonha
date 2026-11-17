@@ -37,6 +37,9 @@ function tone(f,dur,type,vol,slide,delay){if(!AC||!SV.opt.sfx)return;const t0=AC
 function noise(dur,vol,fc){if(!AC||!SV.opt.sfx)return;const n=Math.floor(AC.sampleRate*dur),b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
   const s=AC.createBufferSource(),f=AC.createBiquadFilter(),gn=AC.createGain();s.buffer=b;f.type='lowpass';f.frequency.value=fc||900;gn.gain.value=vol||.2;s.connect(f);f.connect(gn);gn.connect(MG);s.start();}
 const sfxGate={};
+/* 연속 처치: 이어질수록 한 음씩 올라간다(5음계) */
+const PENTA=[0,2,4,7,9];
+function sfxKill(c){if(!AC||!SV.opt.sfx)return;const now=performance.now();if(sfxGate.k&&now-sfxGate.k<40)return;sfxGate.k=now;const n=Math.min(c,19),f=440*Math.pow(2,(PENTA[n%5]+12*Math.floor(n/5))/12);tone(f,.1,'triangle',.07,1.5);tone(f*2,.06,'sine',.03,1.2);}
 function sfx(n){if(!AC||!SV.opt.sfx)return;const now=performance.now();if(sfxGate[n]&&now-sfxGate[n]<45)return;sfxGate[n]=now;
   switch(n){
     case'spine':tone(900,.06,'triangle',.06,1.6);break;
@@ -45,7 +48,10 @@ function sfx(n){if(!AC||!SV.opt.sfx)return;const now=performance.now();if(sfxGat
     case'shell':tone(160,.2,'triangle',.12,.5);break;
     case'boom':noise(.25,.18,700);tone(90,.25,'sine',.18,.5);break;
     case'beam':tone(1200,.04,'sine',.02,1.1);break;
-    case'kill':tone(620+Math.random()*200,.09,'sine',.07,1.8);break;
+    case'kill':break;
+    case'hit':noise(.03,.035,3200);break;
+    case'coin':tone(1500,.05,'sine',.03,1.3);break;
+    case'clear':[659,784,1046].forEach((f,i)=>tone(f,.22,'triangle',.1,1,i*.08));break;
     case'build':tone(330,.1,'triangle',.12,1.5);tone(495,.14,'triangle',.1,1.5,.07);break;
     case'up':[392,523,659].forEach((f,i)=>tone(f,.15,'triangle',.1,1.2,i*.06));break;
     case'sell':tone(500,.12,'triangle',.1,.6);break;

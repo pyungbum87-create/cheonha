@@ -92,10 +92,10 @@ class Game{
     if(this.state!=='run'||this.spawning||this.wave>=this.S.waves)return false;
     if(this.nextT>0)this.gold+=Math.ceil(this.nextT)*EARLY_BONUS;this.requestWave();return true;}
   requestWave(){
-    if(this.wave>0&&this.wave%CARD_EVERY===0&&this.cardedAt!==this.wave){this.cardedAt=this.wave;this.cards=this.genCards();this.pendMut=this.pickMut();this.state='card';this.ev.push({t:'cards'});return;}
+    if(this.wave>0&&this.wave%CARD_EVERY===0&&this.cardedAt!==this.wave){this.cardedAt=this.wave;this.cards=this.genCards();this.pendMut=this.si<3?null:this.pickMut();this.state='card';this.ev.push({t:'cards'});return;}
     this.startWave();
   }
-  pickCard(i){if(this.state!=='card')return;const k=this.cards[i];this.applyBless(k);this.cardsPicked++;this.addMut(this.pendMut);this.cards=null;this.state='run';this.startWave();}
+  pickCard(i){if(this.state!=='card')return;const k=this.cards[i];this.applyBless(k);this.cardsPicked++;if(this.pendMut)this.addMut(this.pendMut);this.cards=null;this.state='run';this.startWave();}
   /* ---- 카드 ---- */
   pickMut(){const cand=MUT_ORDER.filter(k=>!((k==='shadow'||k==='spawn')&&this.mut[k]>=2));return cand[Math.floor(this.rnd()*cand.length)];}
   addMut(k){this.mut[k]++;this.mutList.push(k);this.ev.push({t:'mut',k});}
@@ -133,11 +133,11 @@ class Game{
   /* ---- 피해 ---- */
   hurt(e,d,cls){
     if(e.dead)return;const eff=cls==='phy'?e.armor:cls==='exp'?e.armor*.5:0;d*=(1-eff);if(e.trap>0||e.lift>0)d*=1+VENT.amp;
-    e.lastHit=0;e.hitT=.12;if(e.shield>0){const a=Math.min(e.shield,d);e.shield-=a;d-=a;}
+    e.lastHit=0;e.hitT=.12;e.vd=(e.vd||0)+d;if(e.shield>0){const a=Math.min(e.shield,d);e.shield-=a;d-=a;}
     e.hp-=d;if(e.hp<=0)this.kill(e);
   }
   kill(e){
-    e.dead=true;const E=ENEMIES[e.k],gg=E.gold;this.gold+=gg;this.kills++;this.ev.push({t:'kill',x:e.x,y:e.y,k:e.k,g:gg,f:Math.cos(e.a)<0?-1:1});
+    e.dead=true;const E=ENEMIES[e.k],gg=E.gold;this.gold+=gg;this.kills++;this.ev.push({t:'kill',x:e.x,y:e.y,k:e.k,g:gg,f:Math.cos(e.a)<0?-1:1,vd:e.vd||0});
     const h=this.hero;h.xp+=E.cost||8;while(h.lv<HERO.lvXp.length&&h.xp>=HERO.lvXp[h.lv]){h.lv++;this.ev.push({t:'hlv',x:h.x,y:h.y});}
     const at={seg:e.seg,d:e.d,prog:e.prog};
     if(E.split&&this.si>=(E.from||0))for(let i=0;i<E.split;i++)this.spawn('minnow',0,e.mhp/E.hp*.9,at);

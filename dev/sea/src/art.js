@@ -79,12 +79,13 @@ function drawTemple(x,t,hurt){
 }
 /* ---------- 수호탑 ---------- */
 function drawTower(x,t,time,sel){
-  const X=t.x,Y=t.y,c=TCOL[t.k],lv=t.lv,s=1+(lv-1)*(IMG['tw_'+t.k+'_1']?.05:.09),kick=Math.max(0,t.kick||0);
+  const X=t.x,Y=t.y,c=TCOL[t.k],lv=t.lv,s=1+(lv-1)*(IMG['tw_'+t.k+'_1']?.03:.09),kick=Math.max(0,t.kick||0);
   if(lv>=2)glow(x,X,Y,30,hexA(c,.35),.8);
   let tim=null;for(let l=lv;l>=1&&!tim;l--)tim=IMG['tw_'+t.k+'_'+l];
   if(tim){const aim=t.k==='coral'||t.k==='conch',dir=aim&&Math.cos(t.ang==null?0:t.ang)<0?-1:1,bob=t.spot===undefined?0:islBob(t.spot,time);
     if(t.vF===undefined)t.vF=dir;t.vF+=(dir-t.vF)*Math.min(1,FDT*8);const vf=Math.abs(t.vF)<.2?(t.vF<0?-.2:.2):t.vF,sq=1+kick*.08,sway=t.k==='jelly'?Math.sin(time*1.6+X)*.025:0;
-    x.save();x.translate(X+(aim?-dir*kick*2.5:0),Y+14+bob);x.rotate(sway);x.scale(vf*s/sq,s*sq);drawImg(x,tim,0,0,44);x.restore();}
+    x.save();x.translate(X+(aim?-dir*kick*2.5:0),Y+14+bob);x.rotate(sway);x.scale(vf*s/sq,s*sq);drawImg(x,tim,0,0,Math.min(44,48*tim.width/tim.height));x.restore();
+    if(kick>.55){x.globalCompositeOperation='lighter';glow(x,X+(aim?dir*14:0),Y-22+bob,22,hexA(c,.9),(kick-.55)*2);x.globalCompositeOperation='source-over';}}
   else{
   oct(x,X,Y+2,18*s,'#26313a',lv>=2?'#e8c45a':'#5c6b74',lv>=3?2.5:1.5);
   x.strokeStyle=hexA(c,.8);x.lineWidth=1.5;x.beginPath();x.ellipse(X,Y+2,12*s,7*s,0,0,7);x.stroke();
@@ -130,10 +131,12 @@ function drawEnemy(x,e,time){
     const ph=(e.prog||0)*GT[1]*.35+e.id*1.3+(still?0:time*1.2),hs=1+Math.max(0,e.hitT||0)*1.1,ov=alpha<1?0:.3;e.vh=h/2;
     if(e.vF===undefined){e.vF=face;e.vA=0;}e.vF+=(face-e.vF)*Math.min(1,FDT*10);const vf=Math.abs(e.vF)<.2?(e.vF<0?-.2:.2):e.vF;
     const tilt=Math.max(-.6,Math.min(.6,Math.atan2(Math.sin(e.a),Math.abs(Math.cos(e.a)))))*.75;
-    if(GT[0]==='swim'){e.vA+=(tilt-e.vA)*Math.min(1,FDT*6);x.scale(vf*hs,hs);x.rotate(e.vA);drawSwim(x,eim,w,h,ph,GT[2]*h,e.icon?6:GT[3],ov);}
-    else if(GT[0]==='jet'){const pu=Math.sin(ph*1.4);e.vA+=(tilt-e.vA)*Math.min(1,FDT*6);x.scale(vf*hs*(1+pu*.07),hs*(1-pu*.07));x.rotate(e.vA);drawSwim(x,eim,w,h,ph*1.4,.05*h,6,ov);}
-    else if(GT[0]==='walk'){const st=Math.sin(ph*2);x.scale(vf*hs,hs);x.rotate(st*.05);x.drawImage(eim,-w/2,-h/2-Math.abs(st)*1.5,w,h);}
-    else{x.scale(vf*hs,hs);x.rotate(Math.sin(ph)*.07);x.drawImage(eim,-w/2,-h/2+Math.sin(ph*1.3)*2,w,h);}}
+    let paint;
+    if(GT[0]==='swim'){e.vA+=(tilt-e.vA)*Math.min(1,FDT*6);x.scale(vf*hs,hs);x.rotate(e.vA);paint=()=>drawSwim(x,eim,w,h,ph,GT[2]*h,e.icon?6:GT[3],ov);}
+    else if(GT[0]==='jet'){const pu=Math.sin(ph*1.4);e.vA+=(tilt-e.vA)*Math.min(1,FDT*6);x.scale(vf*hs*(1+pu*.07),hs*(1-pu*.07));x.rotate(e.vA);paint=()=>drawSwim(x,eim,w,h,ph*1.4,.05*h,6,ov);}
+    else if(GT[0]==='walk'){const st=Math.sin(ph*2);x.scale(vf*hs,hs);x.rotate(st*.05);paint=()=>x.drawImage(eim,-w/2,-h/2-Math.abs(st)*1.5,w,h);}
+    else{x.scale(vf*hs,hs);x.rotate(Math.sin(ph)*.07);paint=()=>x.drawImage(eim,-w/2,-h/2+Math.sin(ph*1.3)*2,w,h);}
+    paint();if(e.hitT>0&&alpha>=1){x.globalCompositeOperation='lighter';x.globalAlpha=Math.min(1,e.hitT*9);paint();x.globalCompositeOperation='source-over';x.globalAlpha=alpha;}}
   else{x.scale(face*1.18,1.18);}const bob=Math.sin(time*6+e.id)*1.2;
   if(!eim)switch(E.art||e.k){
     case'minnow':{const w=Math.sin(time*14+e.id)*3;x.fillStyle='#2b2f5a';x.beginPath();x.moveTo(r+2,0);x.quadraticCurveTo(0,-r*.8,-r,0);x.quadraticCurveTo(0,r*.8,r+2,0);x.fill();
@@ -178,7 +181,7 @@ function drawEnemy(x,e,time){
       x.fillStyle='#e8c45a';x.beginPath();x.moveTo(-r*.6,-r*.75);x.lineTo(-r*.55,-r*1.15);x.lineTo(-r*.3,-r*.9);x.lineTo(-r*.1,-r*1.2);x.lineTo(r*.05,-r*.9);x.lineTo(r*.25,-r*1.1);x.lineTo(r*.2,-r*.72);x.closePath();x.fill();
       x.fillStyle='#ff3a6a';x.beginPath();x.arc(r*.42,-r*.35,4.5,0,7);x.fill();x.fillStyle='#fff';x.beginPath();x.arc(r*.46,-r*.38,1.5,0,7);x.fill();break;}
   }
-  if(e.hitT>0)glow(x,0,0,r*1.3,'rgba(255,255,255,.5)');x.restore();x.save();x.translate(EX,EY-e.vL);x.globalAlpha=alpha;
+  if(e.hitT>0&&!eim)glow(x,0,0,r*1.3,'rgba(255,255,255,.5)');x.restore();x.save();x.translate(EX,EY-e.vL);x.globalAlpha=alpha;
   if(e.clampT>0){x.strokeStyle='rgba(220,225,240,.9)';x.lineWidth=3;x.beginPath();x.arc(0,0,r+2,Math.PI*1.1,Math.PI*1.9);x.stroke();}
   if(e.poiT>0){x.fillStyle='rgba(140,255,120,.8)';for(let i=0;i<2;i++){x.beginPath();x.arc(Math.sin(time*5+i*3)*r*.6,-r*.4-((time*20+i*9)%12),1.8,0,7);x.fill();}}
   if(e.schooling){x.strokeStyle='rgba(220,180,255,.6)';x.lineWidth=1;x.beginPath();x.moveTo(-r-2,-3);x.lineTo(-r-9,-3);x.moveTo(-r-2,3);x.lineTo(-r-8,3);x.stroke();}
@@ -231,6 +234,10 @@ function drawFx(x,dt){
       case'line':x.strokeStyle=f.col;x.lineWidth=(f.w||4)*(1-k);x.beginPath();x.moveTo(f.x,f.y);x.lineTo(f.x2,f.y2);x.stroke();break;
       case'ink':x.fillStyle='#1a0f2a';x.beginPath();x.arc(f.x+(f.tx-f.x)*k,f.y+(f.ty-f.y)*k-Math.sin(k*Math.PI)*30,5,0,7);x.fill();break;
       case'die':x.save();x.translate(f.x,f.y-k*16);x.scale(f.face*(1-k*.35),1-k*.35);x.rotate(k*1.1);{const hh=f.w*f.im.height/f.im.width;x.drawImage(f.im,-f.w/2,-hh/2,f.w,hh);}x.restore();break;
+      case'coin':{const u=k*k*(3-2*k),cx=f.x+(f.tx-f.x)*u+Math.sin(k*Math.PI)*f.arc,cy=f.y+(f.ty-f.y)*u-Math.sin(k*Math.PI)*26;x.globalAlpha=1;x.fillStyle='#7ff';x.beginPath();x.moveTo(cx,cy-4.5);x.lineTo(cx+3.5,cy);x.lineTo(cx,cy+4.5);x.lineTo(cx-3.5,cy);x.closePath();x.fill();x.fillStyle='#fff';x.fillRect(cx-1,cy-2,1.4,1.4);if(k>.92&&!f.done){f.done=1;if(f.on)f.on();}}break;
+      case'num':{const pop=k<.15?k/.15:1,sz=f.size*(.6+.4*pop)*(k<.15?1.25:1);x.globalAlpha=k<.6?1:1-(k-.6)/.4;txt(x,f.s,f.x+f.dx*k,f.y-18*k-8*Math.sin(Math.min(1,k*2)*Math.PI/2),sz,f.col,'center','rgba(0,0,0,.75)',900);}break;
+      case'disc':x.fillStyle=f.col;x.globalAlpha=(1-k)*.6;x.beginPath();x.arc(f.x,f.y,f.r*(.4+.6*Math.sqrt(k)),0,7);x.fill();break;
+      case'banner':{const a=k<.15?k/.15:k>.75?(1-k)/.25:1,yy=f.y-(1-Math.min(1,k/.15))*-14;x.globalAlpha=a;x.fillStyle='rgba(4,16,26,.72)';x.fillRect(0,yy-22,W,44);x.fillStyle=f.col;x.fillRect(0,yy-22,W,2);x.fillRect(0,yy+20,W,2);txt(x,f.s,W/2,yy+(f.s2?-5:1),f.size||22,'#fff','center','rgba(0,0,0,.6)',900);if(f.s2)txt(x,f.s2,W/2,yy+13,11,f.col);}break;
       case'flash':x.fillStyle=f.col;x.fillRect(0,0,W,H);break;
     }}
   x.globalAlpha=1;for(let i=FX.length-1;i>=0;i--)if(FX[i].t>=FX[i].life)FX.splice(i,1);
