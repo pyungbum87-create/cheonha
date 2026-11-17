@@ -5,7 +5,7 @@
 import sys, numpy as np
 from PIL import Image
 from scipy import ndimage
-def cutout(im, box=None, thr=26, soft=70, pad=6):
+def cutout(im, box=None, thr=26, soft=70, pad=6, holes=False):
     if box: x, y, w, h = box; im = im.crop((x, y, x + w, y + h))
     a = np.array(im.convert('RGB')).astype(float)
     edge = np.concatenate([a[0], a[-1], a[:, 0], a[:, -1]]); bg = np.median(edge, 0)
@@ -13,6 +13,8 @@ def cutout(im, box=None, thr=26, soft=70, pad=6):
     near = d < thr
     lab, _ = ndimage.label(near); border = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
     bgmask = np.isin(lab, list(border))
+    if holes:  # 안쪽에 갇힌 배경색 구멍도 지움(배경색이 그림에 안 쓰이는 적·소용돌이용)
+        sizes = ndimage.sum(near, lab, range(lab.max() + 1)); big = np.where(sizes > 60)[0]; bgmask |= np.isin(lab, big[big > 0])
     bgmask = ndimage.binary_opening(bgmask, iterations=1)
     alpha = np.ones(d.shape)
     # 배경 근처의 빛 번짐은 거리만큼 반투명
@@ -30,5 +32,5 @@ def cutout(im, box=None, thr=26, soft=70, pad=6):
     if bb: img = img.crop((max(0, bb[0] - pad), max(0, bb[1] - pad), min(img.width, bb[2] + pad), min(img.height, bb[3] + pad)))
     return img
 if __name__ == '__main__':
-    src, dst = sys.argv[1], sys.argv[2]; box = tuple(map(int, sys.argv[3:7])) if len(sys.argv) >= 7 else None
-    cutout(Image.open(src), box).save(dst); print('saved', dst)
+    src, dst = sys.argv[1], sys.argv[2]; holes = '--holes' in sys.argv; sys.argv = [a for a in sys.argv if a != '--holes']; box = tuple(map(int, sys.argv[3:7])) if len(sys.argv) >= 7 else None
+    cutout(Image.open(src), box, holes=holes).save(dst); print('saved', dst)

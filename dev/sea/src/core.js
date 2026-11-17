@@ -31,7 +31,7 @@ function buildMap(si){
   const cands=[];
   for(let y=84;y<=680;y+=6)for(let x=26;x<=424;x+=6){
     let md=1e9;for(const p of pts){const d=(p[0]-x)*(p[0]-x)+(p[1]-y)*(p[1]-y);if(d<md)md=d;}md=Math.sqrt(md);
-    if(md<38||md>60||dist(x,y,TEMPLE.x,TEMPLE.y)<74||caves.some(c=>dist(x,y,c[0],c[1])<50)||Object.values(gates).some(g=>dist(x,y,g.x,g.y)<34))continue;
+    if(md<38||md>60||dist(x,y,TEMPLE.x,TEMPLE.y)<100||(Math.abs(x-TEMPLE.x)<92&&y>TEMPLE.y-118)||caves.some(c=>dist(x,y,c[0],c[1])<50)||Object.values(gates).some(g=>dist(x,y,g.x,g.y)<34))continue;
     const near=[];cov.forEach((p,i)=>{if(dist(x,y,p[0],p[1])<105)near.push(i);});cands.push({x,y,near});
   }
   for(let k=0;k<S.spots;k++){
@@ -55,7 +55,7 @@ class Game{
     this.hasGate=Object.keys(this.M.gates).length>0;this.hasCur=this.M.cur.length>0;this.hasVent=this.M.vents.length>0;
     this.keys=this.hasGate?KEYS.start:0;this.keyMax=KEYS.max;
     for(let i=0;i<S.startMut;i++)this.addMut(this.pickMut());
-    this.hero={x:TEMPLE.x,y:TEMPLE.y-78,tx:null,ty:null,lv:1,xp:0,cd:0,sc:0,face:1,atk:0,moving:false};
+    this.hero={x:TEMPLE.x,y:TEMPLE.y-104,tx:null,ty:null,lv:1,xp:0,cd:0,sc:0,face:1,atk:0,moving:false};
   }
   /* ---- 계산 ---- */
   tier(){return this.S.sTier+this.B.tier;}
