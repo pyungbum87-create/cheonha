@@ -45,18 +45,21 @@ for (const id of Object.keys(careers)) if (!people.some(p => p.id === id)) errs.
 for (const [y, S] of Object.entries(scen.scenarios)) for (const r of Object.values(S.rulers)) if (!people.some(p => p.id === r)) errs.push(`${y} 군주 없음 ${r}`);
 if (errs.length) { console.log('오류 ' + errs.length + '건\n' + errs.join('\n')); process.exit(1); }
 
+const TK = { '맹장':'a', '지장':'b', '명장':'c', '인덕':'d', '강철':'e', '충의':'f', '기병':'g', '장수':'h' };
+const femaleSet = new Set(people.filter(p => p.sex === 'f').map(p => p.id));
+for (const r of rows) if (r[1].includes(';') || r[9].includes(';')) { console.log('세미콜론 금지: ' + r[0]); process.exit(1); }
 const block = `/*@@DATA_START@@*/
 // 아래는 tools/gen_data.js 가 data/ 폴더에서 만든다. 직접 고치지 말 것.
 const FAC_RAW = ${JSON.stringify(scen.factions)};
 const SCEN = ${JSON.stringify(scen.scenarios)};
 const SCEN_YEARS = Object.keys(SCEN).map(Number);
-// id, 이름, 출생, 사망, 무용, 지략, 용병, 인망(내부 100점 척도 = 1~20 × 5), 특성, 경력, 등장연도
-const PEOPLE_DEF = [
-${rows.map(r => '  ' + JSON.stringify(r)).join(',\n')}
-];
-const JEONG = ${JSON.stringify(jeong)};
-const TRAITS2 = ${JSON.stringify(newTraits)};
+// 인물 압축 표기: id;이름;출생;사망;무용;지략;용병;인망;정무(1~20);특성;경력;등장연도;새특성(.구분);여성
+const P_RAW = \`${rows.map(r => [r[0], r[1], r[2], r[3], r[4]/5, r[5]/5, r[6]/5, r[7]/5, jeong[r[0]]/5, TK[r[8]], r[9], r[10] || '', (newTraits[r[0]] || []).join('.'), femaleSet.has(r[0]) ? 1 : ''].join(';').replace(/;+$/, '')).join('\n')}\`;
+const TKR = ${JSON.stringify(Object.fromEntries(Object.entries(TK).map(([k, v]) => [v, k])))};
+const PEOPLE_DEF = [], JEONG = {}, TRAITS2 = {}, FEMALE = [];
+for (const ln of P_RAW.split('\\n')){ const [id, n, b, d, m, i, l, c, g, t, car, ap, t2, fe] = ln.split(';'); const row = [id, n, +b, +d, m*5, i*5, l*5, c*5, TKR[t], car]; if (ap) row.push(+ap); PEOPLE_DEF.push(row); JEONG[id] = g*5; TRAITS2[id] = t2 ? t2.split('.') : []; if (fe) FEMALE.push(id); }
 const EQUIP0 = ${JSON.stringify(equip)};
+const LOOK2 = ${JSON.stringify(Object.fromEntries(Object.entries(rd('looks.json')).filter(([k]) => !k.startsWith('_'))))};
 // 역사 사건(회귀자의 기억): [id, 연, 월, 이름, 성, 원작 결과, 관련 인물]
 const HIST_EV = ${JSON.stringify(rd('battles_184_200.json').battles.map(b => [b.id, b.year, b.month, b.name, b.at, b.history, [...new Set([...(b.a ? b.a.leaders : []), ...(b.b ? b.b.leaders : [])])]]))};
 /*@@DATA_END@@*/
