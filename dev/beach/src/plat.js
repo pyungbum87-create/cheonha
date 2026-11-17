@@ -45,7 +45,7 @@ function track(ev,d){try{if(PLAT==='wx'&&API.reportEvent)API.reportEvent(ev,d||{
 /* ---------- 그림 ---------- */
 const IMG={},IMG_FAIL={};
 const MUST=['tuantuan','tt_cheer','didi','pengpeng','shell','gift'],LATER=['shanshan','dundun','zhuozhuo','didi_sick'];
-const ART=@@ART@@,OPT=ART.filter(n=>/^(tw|en|boss|bg|ic)_/.test(n));   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
+const ART=@@ART@@,OPT=ART.filter(n=>/^(tw|en|boss|bg|ic|st)_/.test(n));   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
 const HERO_IMG={tt:'tuantuan',didi:'didi',peng:'pengpeng',shan:'shanshan',dun:'dundun',zhuo:'zhuozhuo'};
 function loadImg(n,tries){tries=tries||0;const im=API?API.createImage():new Image();
   im.onload=()=>{IMG[n]=im;delete IMG_FAIL[n];onImg(n);};

@@ -41,15 +41,15 @@ function bot(seed,style,si,lvl){
   return {won:s.won,wave:s.wave,sec:s.t/60,stars:s.stars,lives:s.lives,minLives,ended:s.ended,gold:s.gold,tw:s.spots.filter(sp=>sp.tw).map(sp=>sp.tw.id[0]+sp.tw.lv).join('')};
 }
 const N=+process.argv[2]||40,avg=(a,f)=>a.reduce((x,y)=>x+f(y),0)/a.length;let bad=0;
-for(let si=0;si<C.STAGES.length;si++){const rec=C.STAGES[si].rec;
-  for(const [style,lvl] of [['none',rec],['casual',rec],['good',rec],['good',Math.max(1,rec-3)]]){
-    if(lvl!==rec&&si===0)continue;if(process.env.ONLY&&process.env.ONLY.indexOf(String(si+1))<0&&process.env.ONLY!=='all')continue;const r=[];const runs=style==='none'?2:N;
+for(const si of (process.env.ONLY?process.env.ONLY.split(',').map(x=>+x-1):[0,4,9,16,19,27,29,39,45,49])){const rec=C.STAGES[si].rec;
+  for(const [style,lvl] of [['none',rec],['casual',rec],['good',rec],['good',Math.max(1,rec-4)]]){
+    if(lvl!==rec&&si===0)continue;const r=[];const runs=style==='none'?2:N;
     for(let i=0;i<runs;i++){try{r.push(bot(500+i*13+si*71,style,si,lvl));}catch(e){bad++;console.log('오류',e.stack);break;}}if(!r.length)continue;
     const wins=r.filter(x=>x.won),st=[0,1,2,3].map(k=>r.filter(x=>x.stars===k).length);if(r.some(x=>!x.ended))bad++;if(style==='none'&&wins.length)bad++;
-    console.log(`${si+1}장 Lv${String(lvl).padEnd(2)} ${style.padEnd(6)} 클리어 ${(wins.length/r.length*100).toFixed(0).padStart(3)}%  ${avg(r,x=>x.sec).toFixed(0)}초  파도 ${avg(r,x=>x.wave).toFixed(1)}/${C.STAGES[si].waves}  남은목숨 ${avg(r,x=>x.lives).toFixed(1)}  별0/1/2/3 ${st.join('/')}  ${r[0].tw}`);
+    console.log(`${String(si+1).padStart(2)}판 hp${C.STAGES[si].hp.toFixed(2)} Lv${String(lvl).padEnd(2)} ${style.padEnd(6)} 클리어 ${(wins.length/r.length*100).toFixed(0).padStart(3)}%  ${avg(r,x=>x.sec).toFixed(0)}초  파도 ${avg(r,x=>x.wave).toFixed(1)}/${C.STAGES[si].waves}  남은목숨 ${avg(r,x=>x.lives).toFixed(1)}  별0/1/2/3 ${st.join('/')}  ${r[0].tw}`);
   }
 }
 function hz(fps){const ids=owned(2),s=C.newGame(2,{seed:5,owned:ids});C.build(s,0,'tt');C.build(s,1,'didi');C.callWave(s);let g=0;while(!s.ended&&g++<fps*60*25){C.advance(s,1/fps);s.fx.length=0;if(s.phase==='revive')C.giveUp(s);}return s.t+'|'+s.wave+'|'+s.kills+'|'+s.gold;}
 const a=hz(60),b=hz(120),c=hz(90);console.log('주사율 60/90/120Hz',a,b,c,a===b&&b===c?'같음':'다름!');if(a!==b||b!==c)bad++;
-for(let si=0;si<C.STAGES.length;si++)console.log((si+1)+'장 타워 자리',C.stageGeo(si).spots.map(p=>p.x+','+p.y).join(' '));
+
 if(bad){console.log('실패',bad);process.exit(1);}

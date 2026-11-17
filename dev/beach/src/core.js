@@ -155,6 +155,7 @@ function stepEnemies(s){
   if(s.boss&&!s.boss.dead&&s.boss.stun<=0&&++s.bossT>=8*TICK){s.bossT=0;const b=s.boss;
     if(b.bk==='kingcrab'){for(let i=0;i<3;i++){const m=spawn(s,'crab',b.pi,Math.max(0,b.d-12-i*14));m.hp=m.max=m.max*.7;}}
     else if(b.bk==='octoboss'){inkTower(s,b.x,b.y,3);for(let i=0;i<4;i++)spawn(s,'jelly',b.pi,Math.max(0,b.d-10-i*10));}
+    else if(b.bk==='dragon'){s.surge=2*TICK;inkTower(s,b.x,b.y,2);for(let i=0;i<2;i++){spawn(s,'shrimp',i,0);spawn(s,'crab',b.pi,Math.max(0,b.d-14-i*14));}}
     else if(b.bk==='pirate'){for(let i=0;i<2;i++){spawn(s,'turtle',b.pi,Math.max(0,b.d-14-i*18));spawn(s,'gull',i,0);}}
     else{s.surge=3*TICK;for(let i=0;i<3;i++)spawn(s,'fish',i,0);}
     s.fx.push({e:'summon',x:b.x,y:b.y,bk:b.bk});}
