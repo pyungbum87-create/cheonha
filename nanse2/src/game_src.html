@@ -1367,11 +1367,31 @@ function histTick(){
     const ps = who.map(person).filter(Boolean);
     if (!ps.length || ps.some(p => !p.alive) || match < 45){ if (G.reg && match>=25) news(`원작에서는 이 무렵 「${n}」이 있었다. 이번 천하에서는 그 일이 일어나지 않았다.`, false, true); continue; }
     news(`「${n}」 ${t.split('. ')[0]}.`, true, false);
+    histFlow(id, at);
     const victims = ps.filter(p => p.d===y && p.id!==G.pid && p.id!==G.protect && active(p) && G.mode!=='virtual');
     const canOffer = G.reg && G.reg.hist >= 45 && !G.histOffer;
     const near = canOffer ? victims.filter(p => (G.pfac && p.fac===G.pfac) || bond(p.id)>=50 || isSworn(p.id) || p.city===G.city || city(G.city).adj.includes(at)) : [];
     if (near.length) G.histOffer = { id, n, t, v:near.map(p => p.id), st: HIST_STAT[id] || 'i' };
     for (const p of victims) if (!near.includes(p)) killNpc(p, '전사');
+  }
+}
+
+/* 역사의 흐름: 플레이어가 끼지 않은 원작 전투는 원작대로 끝난다 */
+const HIST_FLOW = { b184_yingchuan:['han','hj'], b184_wancheng:['han','hj'], b184_guangzong:['han','hj'], b184_zhangbao_magic:['han','hj'] };
+function histFlow(id, at){
+  const fl = HIST_FLOW[id]; if (!fl) return;
+  const [win, lose] = fl, c = city(at);
+  if (c.owner!==lose || G.pfac===lose || !(G.facs[win] && G.facs[win].alive) || G.armies.some(a => a.fac===G.pfac && a.to===at)) return;
+  for (const p of peopleIn(at, lose)) if (p.id!==G.pid && p.id!==fac(lose).ruler){ if (Math.random()<.4) killNpc(p, '전사'); else p.fac = 'free'; }
+  transferCity(c, win, c.dev*900 + 2000, true);
+}
+function histYearEnd(){
+  // 184년 말: 장각이 죽었으면 황건적은 흩어진다
+  if (G.scen===184 && G.year===184 && G.month===12 && G.facs.hj && G.facs.hj.alive && G.pfac!=='hj'){
+    const zj = person('zhangjiao'); if (zj && zj.alive) return;
+    for (const c of citiesOf('hj')) transferCity(c, 'han', c.dev*900 + 2000, true);
+    for (const p of npcs().filter(p => p.fac==='hj')) p.fac = 'free';
+    news('장각을 잃은 황건적은 흩어졌다. 잔당이 산과 들로 숨어들었다.', true, false);
   }
 }
 
@@ -1465,7 +1485,9 @@ function monthStep(ff){
     f.gold = (f.gold||0) + cs.reduce((a,c)=>a+c.dev*8, 0);
     if (f.gold >= 700 && Math.random()<.25){ const c = pick(cs); if (c.dev<10){ c.dev++; f.gold -= 700; } }
     aiWar(f, ff);
+    aiPlot(f, ff);
   }
+  aiDiplomacy(ff);
   armiesStep(ff);
   for (const p of Object.values(G.people)){
     if (!active(p) || p.id===G.pid || p.id===G.protect) continue;
@@ -1514,19 +1536,52 @@ function monthStep(ff){
     }
   }
   for (const f of Object.values(G.facs)) for (const k of Object.keys(f.ally)){ f.ally[k]--; if (f.ally[k]<=0) delete f.ally[k]; }
-  if (!ff && G.pfac && G.role==='ruler' && citiesOf(G.pfac).length>=Math.round(CITY_RAW.length*.4) && !(G.coalition > mi())){
+  if (!ff && G.pfac && G.role==='ruler' && citiesOf(G.pfac).length>=Math.round(CITY_RAW.length*(.4 - dif().ai*.1)) && !(G.coalition > mi())){
     const rest = aliveFacs().filter(f => f.id!==G.pfac && citiesOf(f.id).length);
     if (rest.length>=2){ for (const a of rest) for (const b of rest) if (a!==b){ a.ally[b.id] = 24; } G.coalition = mi()+30;
       news(`그대의 세력이 커지자 ${rest.map(f=>facName(f.id)).join(', ')}이(가) 손을 잡고 연합을 맺었다!`, true, true); }
   }
 }
 
+/* ---------------- AI 책략: 책사가 있는 세력은 이웃에 계략을 쓰고, 큰 세력이 나타나면 서로 손을 잡는다 ---------------- */
+function aiPlot(f, ff){
+  const ai = dif().ai; if (Math.random() > .03 + ai*.16) return;
+  const sage = npcs().concat(person(f.ruler) ? [person(f.ruler)] : []).filter(p => p && p.fac===f.id && active(p) && !p.army).sort((a,b) => b.i-a.i)[0];
+  if (!sage || sage.i < 60) return;
+  const ts = []; for (const c of citiesOf(f.id)) for (const a of c.adj){ const t = city(a); if (t.owner && t.owner!==f.id && !allied(f.id, t.owner)) ts.push(t); }
+  if (!ts.length) return;
+  const t = ts.sort((a,b) => (b.owner===G.pfac?1:0)*ai - (a.owner===G.pfac?1:0)*ai + (b.troops-a.troops)/20000)[0];
+  const dg = bestGen(t.id, t.owner), di = dg ? dg.i : 40, guard = dg && dg.tr2 && dg.tr2.includes('ganpa') ? .2 : 0;
+  const ok = Math.random() < clamp(.3 + (sage.i - di)/150 + ai*.15 - guard, .08, .85);
+  const kind = pick(['rumor','fire','sow']);
+  const mineT = !ff && t.owner===G.pfac, nm = `${facName(f.id)}의 ${sage.n}`;
+  if (!ok){ if (mineT) news(`${nm}이(가) ${t.n}에 계략을 꾸몄으나 간파당했다.`, false, true); return; }
+  if (kind==='rumor'){ const n = Math.round(t.troops*rnd(.03,.07)); t.troops -= n; t.morale = Math.max(40, (t.morale??100) - ri(10,20)); if (mineT) news(`적의 유언비어! ${nm}이(가) ${t.n}에 소문을 퍼뜨려 병사 ${fmt(n)}이 달아났다.`, true, true); }
+  else if (kind==='fire'){ const n = Math.round(t.troops*rnd(.05,.1)*(TERRAIN[t.id]==='river'?1.2:1)); t.troops -= n; t.wall = Math.max(0, t.wall - ri(8,18)); if (mineT) news(`적의 화계! ${nm}의 계책으로 ${t.n}이(가) 불타 병력 ${fmt(n)}을 잃었다.`, true, true); }
+  else { const v = peopleIn(t.id, t.owner).filter(p => p.id!==fac(t.owner).ruler && !isSworn(p.id) && (p.loy??70) < 75 + ai*10 && !(p.tr2||[]).includes('chungjeol')).sort((a,b) => (a.loy??70)-(b.loy??70))[0];
+    if (!v){ return; }
+    if (Math.random() < .35 + ai*.25){ v.fac = f.id; v.city = capitalOf(f.id) || v.city; if (t.gov===v.id) t.gov = null; if (!ff && (mineT || notable(v))) news(`이간계! ${J(v.n,'이')} ${facName(t.owner)}을(를) 버리고 ${facName(f.id)}(으)로 넘어갔다.`, true, mineT); }
+    else { v.loy = Math.max(10, (v.loy??70) - ri(10,20)); if (mineT) news(`${nm}이(가) ${v.n}을(를) 흔들고 있다. 충성이 떨어졌다.`, false, true); } }
+}
+function aiDiplomacy(ff){
+  const ai = dif().ai; if (ai < .3 || G.month!==1) return;
+  const fs = aliveFacs().filter(f => citiesOf(f.id).length);
+  const power = f => totalTroops(f.id) + citiesOf(f.id).length*3000;
+  const top = fs.slice().sort((a,b) => power(b)-power(a))[0]; if (!top) return;
+  const fear = fs.filter(f => f!==top && f.id!==G.pfac && citiesOf(f.id).some(c => c.adj.some(a => city(a).owner===top.id)));
+  for (const a of fear) for (const b of fear) if (a!==b && !allied(a.id, b.id) && Math.random() < ai*.35 && power(top) > (power(a)+power(b))*.8){
+    a.ally[b.id] = 24; b.ally[a.id] = 24;
+    if (!ff && (top.id===G.pfac || a.id===G.pfac || b.id===G.pfac || Math.random()<.3)) news(`${facName(a.id)}과 ${facName(b.id)}이(가) ${facName(top.id)}에 맞서 손을 잡았다.`, true, top.id===G.pfac);
+  }
+}
+
 /* ---------------- AI 전쟁 ---------------- */
 let AI_SEND = .65, AI_THRESH = 1.0, AI_RATE = .10;
-const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { rate:.55, thr:1.05, grow:.8, inc:1.3, plot:.10 }],
-  normal:['보통','기본 균형', { rate:1, thr:1, grow:1, inc:1, plot:0 }],
-  hard:['어려움','적이 더 자주, 더 크게 쳐들어온다', { rate:1.5, thr:.85, grow:1.2, inc:.85, plot:-.05 }],
-  nanse:['난세','모두가 그대를 노린다. 계략도 잘 안 통한다', { rate:2.2, thr:.7, grow:1.5, inc:.7, plot:-.10 }] };
+const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { rate:.55, thr:1.05, grow:.8, inc:1.3, plot:.10, ai:.1, adMul:1.2, adCap:5 }],
+  normal:['보통','기본 균형. 적도 가끔 계략을 쓴다', { rate:1, thr:1, grow:1, inc:1, plot:0, ai:.35, adMul:1, adCap:4 }],
+  hard:['어려움','적이 약한 곳을 노리고 동맹을 맺는다', { rate:1.5, thr:.85, grow:1.2, inc:.85, plot:-.05, ai:.6, adMul:.85, adCap:3 }],
+  nanse:['난세','모두가 그대를 노린다. 계략도 잘 안 통한다', { rate:2.2, thr:.7, grow:1.5, inc:.7, plot:-.10, ai:.8, adMul:.7, adCap:3 }],
+  tianming:['천명','천하의 영웅들이 명장처럼 싸운다. 계략·동맹·배신이 쉴 새 없다', { rate:2.6, thr:.62, grow:1.7, inc:.6, plot:-.15, ai:1, adMul:.6, adCap:2 }] };
 const dif = () => (DIFF[(G && G.diff) || 'normal'] || DIFF.normal)[2];
 function aiWar(f, ff){
   const cs = citiesOf(f.id);
@@ -1554,14 +1609,17 @@ function aiWar(f, ff){
     const avail = srcs.reduce((a,s)=>a+s.troops*AI_SEND, 0);
     const def = t.troops * (1 + t.wall/400) * 1.1;
     const big = !ff && G.pfac && citiesOf(G.pfac).length>=Math.round(CITY_RAW.length*.35);
-    const score = avail/def * (t.owner ? 1 : 1.4) * (!ff && t.owner===G.pfac ? (big ? 1.3 : .9) : 1) * rnd(.85, 1.15);
+    const ai = dif().ai, mine = totalTroops(f.id), theirs = t.owner ? totalTroops(t.owner) : 0;
+    const weak = t.owner ? clamp(mine/Math.max(1, theirs) - 1, 0, 1.5) : .5;   // 약한 세력일수록
+    const cut = t.adj.filter(a => city(a).owner===t.owner).length <= 1 ? 1 : 0; // 고립된 성일수록 (원군이 못 온다)
+    const score = avail/def * (t.owner ? 1 : 1.4) * (!ff && t.owner===G.pfac ? (big ? 1.3 : .9) : 1) * (1 + ai*(.25*weak + .25*cut)) * rnd(1 - .15*(1-ai*.6), 1 + .15*(1-ai*.6));
     if (score > AI_THRESH*dif().thr && (!best || score > best.score)) best = { t, srcs, score };
   }
   if (!best) return;
   const used = best.srcs;
   let sent = 0;
   for (const s of used){
-    const n = Math.round(s.troops*AI_SEND); if (n<1500) continue;
+    const n = Math.round(s.troops*Math.min(.8, AI_SEND*(1 + dif().ai*.15))); if (n<1500) continue;
     const gs = peopleIn(s.id, f.id).sort((a,b)=>(b.m+b.l)-(a.m+a.l)).slice(0, used.length>1 ? 1 : 2).map(p=>p.id);
     s.troops -= n; sent += n;
     createArmy({ fac:f.id, gens:gs, troops:n, from:s.id, to:best.t.id, kind:'attack', food:6 });
@@ -2625,7 +2683,7 @@ function openPolicy(){
 /* ---------------- 한 달의 흐름 ---------------- */
 function startMonth(first){
   G.ap = apMax(); G.toast = null;
-  histTick();
+  histTick(); histYearEnd();
   if (G.over) return endGame();
   if (G.dead){ G.phase = 'succession'; return; }
   const forced = EVENTS.some(e => e.forced && !(G.done[e.id] && !e.rep) && roleOk(e) && e.forced());
@@ -3670,9 +3728,14 @@ if (!SIM){
   document.addEventListener('visibilitychange', () => { if (document.hidden){ try { if (G && G.phase!=='over') save(); } catch(e) {} Snd.pause(); track('app_hide'); } else Snd.resume(); });
 }
 /* 보상형 광고: 실제 광고는 window.NANSE_AD(자리이름, 보상함수, 실패함수)를 연결하면 그쪽으로 간다. 없으면 2초 시험 광고. */
-const AD_DAILY = 3;
+const AD_DAILY = 3; // (예전 값) 지금은 난이도별 adCap
+const adCapNow = () => (G ? dif() : DIFF.normal[2]).adCap;
+function adGold(){ // 그때 처지에 맞는 군자금: 군주는 한 달 수입, 장수는 계급, 재야는 기본
+  let g = G.role==='ruler' ? Math.max(300, (G.lastIncome||300)*1.2) : G.role==='officer' ? 250 + G.rank*120 : 250;
+  return Math.round(g * dif().adMul / 50) * 50;
+}
 function adDay(){ const d = new Date().toISOString().slice(0,10); if (!META.ad || META.ad.d!==d) META.ad = { d, n:0 }; return META.ad; }
-const adLeft = () => AD_DAILY - adDay().n;
+const adLeft = () => Math.max(0, adCapNow() - adDay().n);
 function showAd(spot, reward){
   track('ad_open', { spot });
   const done = () => { track('ad_reward', { spot }); reward(); };
@@ -3835,7 +3898,7 @@ function renderTitle(){
     <div class="three">${SCEN_YEARS.map(y=>`<button class="segb" aria-pressed="${sc===y}" data-scen="${y}"><b>${y}년</b><small>${SCEN[y].short}</small></button>`).join('')}</div>
     <p class="small muted">${SCEN[sc].desc}</p>
     <span class="lbl">난이도</span>
-    <div class="two" style="grid-template-columns:repeat(4,1fr)">${Object.keys(DIFF).map(k=>`<button class="segb" aria-pressed="${(pr.diff||'normal')===k}" data-diff="${k}"><b>${DIFF[k][0]}</b></button>`).join('')}</div>
+    <div class="two" style="grid-template-columns:repeat(5,1fr)">${Object.keys(DIFF).map(k=>`<button class="segb" aria-pressed="${(pr.diff||'normal')===k}" data-diff="${k}"><b>${DIFF[k][0]}</b></button>`).join('')}</div>
     <p class="small muted">${DIFF[pr.diff||'normal'][1]}</p>
     <span class="lbl">수명 규칙</span>
     <div class="two">${[['real','현실 모드','역사 속 사망 연도 즈음에 세상을 떠난다'],['virtual','가상 모드','전사하지 않으면 천수를 누린다']].map(([k,n,d])=>`<button class="segb" aria-pressed="${pr.mode===k}" data-mode="${k}"><b>${n}</b><small>${d}</small></button>`).join('')}</div>
@@ -3910,12 +3973,12 @@ function openHelp(){
 function openMenu(){
   const bg = sheet(`<h3>메뉴</h3>
     <button class="btn2" id="mChron">연대기</button><button class="btn2" id="mHelp">게임 방법</button><button class="btn2" id="mAch">업적</button>
-    <button class="btn2" id="mSet">설정 (소리·진동)</button><button class="btn2" id="mAd" ${adLeft()>0?'':'disabled'}>▶ 광고 보고 군자금 +300 (오늘 ${adLeft()}/${AD_DAILY})</button><button class="btn2" id="mCopy">💾 저장 칸에 저장하기</button><button class="btn2" id="mTitle">처음 화면으로</button><button class="btn2" data-close>닫기</button>`);
+    <button class="btn2" id="mSet">설정 (소리·진동)</button><button class="btn2" id="mAd" ${adLeft()>0?'':'disabled'}>▶ 광고 보고 군자금 +${fmt(adGold())} (오늘 ${adLeft()}/${adCapNow()})</button><button class="btn2" id="mCopy">💾 저장 칸에 저장하기</button><button class="btn2" id="mTitle">처음 화면으로</button><button class="btn2" data-close>닫기</button>`);
   bg.querySelector('#mChron').onclick = () => { bg.remove(); sheet(`<h3>연대기</h3><div class="news">${G.chron.slice(-80).reverse().map(c=>`<div><b>${c.y}.${c.m||1}</b> ${esc(c.t)}</div>`).join('')}</div><button class="btn2" data-close>닫기</button>`); };
   bg.querySelector('#mHelp').onclick = () => { bg.remove(); openHelp(); };
   bg.querySelector('#mAch').onclick = () => { bg.remove(); openAch(); };
   bg.querySelector('#mSet').onclick = () => { bg.remove(); openSettings(); };
-  bg.querySelector('#mAd').onclick = () => { bg.remove(); showAd('gold', () => { adDay().n++; saveMeta(); G.gold += 300; toast('후원자가 군자금을 보내왔다.', [['금 +300',true]]); save(); render(); }); };
+  bg.querySelector('#mAd').onclick = () => { bg.remove(); showAd('gold', () => { if (adLeft()<=0) return; const g = adGold(); adDay().n++; saveMeta(); G.gold += g; toast('후원자가 군자금을 보내왔다.', [[`금 +${fmt(g)}`,true]]); save(); render(); }); };
   bg.querySelector('#mCopy').onclick = () => { bg.remove(); save();
     const rows = []; for (let i=0;i<SLOTS;i++){ const sv = loadSlot(i); rows.push(`<button class="btn2" data-cp="${i}" style="text-align:left" ${i===G.slot?'disabled':''}>칸 ${i+1} · ${i===G.slot?'지금 플레이 중 · 자동 저장':sv?esc(slotLabel(sv))+' (덮어쓰기)':'비어 있음'}</button>`); }
     const b2 = sheet(`<h3>저장 칸 (${SLOTS}칸)</h3><p class="small muted">고른 칸에 지금 상태를 따로 저장한다. 장수마다 칸을 나눠 쓸 수 있다. 진행 중에는 지금 칸에 자동 저장된다.</p>${rows.join('')}<button class="btn2" data-close>닫기</button>`);

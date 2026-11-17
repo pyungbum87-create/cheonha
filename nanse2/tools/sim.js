@@ -44,7 +44,7 @@ function check() {
 for (let r = 0; r < Math.min(runs, plans.length * 2); r++) {
   const [pid, sc] = plans[r % plans.length];
   stats.runs++;
-  try { if (typeof pid === 'object') T.newRegressor(pid); else T.newGame(pid, sc, 'real'); } catch (e) { bad(`newGame ${pid} ${sc}`, e); continue; }
+  try { if (typeof pid === 'object') T.newRegressor(pid); else T.newGame(pid, sc, 'real'); T.G.diff = ['easy','normal','hard','nanse','tianming'][r % 5]; } catch (e) { bad(`newGame ${pid} ${sc}`, e); continue; }
   for (let m = 0; m < maxMonths; m++) {
     const G = T.G; const ph = G.phase;
     try {
