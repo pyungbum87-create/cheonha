@@ -5,7 +5,8 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.join(ROOT, 'src'); OUT = os.path.join(ROOT, 'site')
 BUILD = time.strftime('%m%d-%H%M', time.gmtime(time.time() + 9 * 3600))
 js = '\n'.join(open(os.path.join(SRC, f), encoding='utf-8').read() for f in ('data.js', 'core.js', 'plat.js', 'art.js', 'battle.js', 'ui.js'))
-js = '(()=>{"use strict";\n' + js.replace('@@BUILD@@', BUILD) + '\n})();\n'
+arts0 = sorted(a[:-5] for a in os.listdir(os.path.join(ROOT, 'art')) if a.endswith('.webp'))
+js = '(()=>{"use strict";\n' + js.replace('@@BUILD@@', BUILD).replace('@@ART@@', json.dumps(arts0)) + '\n})();\n'
 if os.path.exists(OUT): shutil.rmtree(OUT)
 os.makedirs(os.path.join(OUT, 'art'))
 open(os.path.join(OUT, 'game.js'), 'w', encoding='utf-8').write(js)
@@ -42,3 +43,15 @@ self.addEventListener('fetch',e=>{{const r=e.request;if(r.method!=='GET'||!r.url
 '''
 open(os.path.join(OUT, 'sw.js'), 'w', encoding='utf-8').write(sw)
 print('BUILD', BUILD, 'game.js', len(js) // 1024, 'KB', 'site', sum(os.path.getsize(os.path.join(d, f)) for d, _, fs in os.walk(OUT) for f in fs) // 1024, 'KB')
+
+# ---- 위챗(wx)·더우인(tt) 미니게임 포장: 같은 game.js 를 그대로 쓴다. 음원 파일이 없어 서브패키지도 필요 없다 ----
+DIST = os.path.join(ROOT, 'dist')
+if os.path.exists(DIST): shutil.rmtree(DIST)
+for plat in ('wx', 'tt'):
+    d = os.path.join(DIST, plat); os.makedirs(os.path.join(d, 'art'))
+    open(os.path.join(d, 'game.js'), 'w', encoding='utf-8').write(js)
+    for a in arts: shutil.copy(os.path.join(ROOT, 'art', a), os.path.join(d, 'art', a))
+    json.dump({"deviceOrientation": "portrait", "showStatusBar": False, "networkTimeout": {"request": 10000, "downloadFile": 10000}}, open(os.path.join(d, 'game.json'), 'w'), indent=1)
+    json.dump({"appid": "여기에_AppID", "projectname": "ttbeach", "compileType": "game", "setting": {"es6": True, "minified": True, "urlCheck": False}, "description": TITLE},
+              open(os.path.join(d, 'project.config.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(plat, sum(os.path.getsize(os.path.join(x, f)) for x, _, fs in os.walk(d) for f in fs) // 1024, 'KB')

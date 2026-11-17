@@ -42,8 +42,8 @@ function bot(seed,style,si,lvl){
 }
 const N=+process.argv[2]||40,avg=(a,f)=>a.reduce((x,y)=>x+f(y),0)/a.length;let bad=0;
 for(let si=0;si<C.STAGES.length;si++){const rec=C.STAGES[si].rec;
-  for(const [style,lvl] of [['none',rec],['casual',rec],['good',rec],['casual',Math.max(1,rec-2)],['good',Math.max(1,rec-2)]]){
-    if(lvl!==rec&&si===0)continue;const r=[];const runs=style==='none'?2:N;
+  for(const [style,lvl] of [['none',rec],['casual',rec],['good',rec],['good',Math.max(1,rec-3)]]){
+    if(lvl!==rec&&si===0)continue;if(process.env.ONLY&&process.env.ONLY.indexOf(String(si+1))<0&&process.env.ONLY!=='all')continue;const r=[];const runs=style==='none'?2:N;
     for(let i=0;i<runs;i++){try{r.push(bot(500+i*13+si*71,style,si,lvl));}catch(e){bad++;console.log('오류',e.stack);break;}}if(!r.length)continue;
     const wins=r.filter(x=>x.won),st=[0,1,2,3].map(k=>r.filter(x=>x.stars===k).length);if(r.some(x=>!x.ended))bad++;if(style==='none'&&wins.length)bad++;
     console.log(`${si+1}장 Lv${String(lvl).padEnd(2)} ${style.padEnd(6)} 클리어 ${(wins.length/r.length*100).toFixed(0).padStart(3)}%  ${avg(r,x=>x.sec).toFixed(0)}초  파도 ${avg(r,x=>x.wave).toFixed(1)}/${C.STAGES[si].waves}  남은목숨 ${avg(r,x=>x.lives).toFixed(1)}  별0/1/2/3 ${st.join('/')}  ${r[0].tw}`);

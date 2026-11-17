@@ -44,12 +44,13 @@ function track(ev,d){try{if(PLAT==='wx'&&API.reportEvent)API.reportEvent(ev,d||{
 
 /* ---------- 그림 ---------- */
 const IMG={},IMG_FAIL={};
-const MUST=['tuantuan','tt_cheer','didi','pengpeng','shell','gift'],LATER=['shanshan','dundun','zhuozhuo'];
+const MUST=['tuantuan','tt_cheer','didi','pengpeng','shell','gift'],LATER=['shanshan','dundun','zhuozhuo','didi_sick'];
+const ART=@@ART@@,OPT=ART.filter(n=>/^(tw|en|boss|bg|ic)_/.test(n));   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
 const HERO_IMG={tt:'tuantuan',didi:'didi',peng:'pengpeng',shan:'shanshan',dun:'dundun',zhuo:'zhuozhuo'};
 function loadImg(n,tries){tries=tries||0;const im=API?API.createImage():new Image();
-  im.onload=()=>{IMG[n]=im;delete IMG_FAIL[n];};
+  im.onload=()=>{IMG[n]=im;delete IMG_FAIL[n];onImg(n);};
   im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(n,tries+1),500+tries*400);else IMG_FAIL[n]=1;};
-  im.src='art/'+n+'.webp?v='+BUILD+(tries?'&r='+tries:'');}
+  im.src='art/'+n+'.webp'+(API?'':'?v='+BUILD+(tries?'&r='+tries:''));}
 
 /* ---------- 소리: 효과음도 음악도 전부 코드로 합성한다 (음원 파일 없음 = 용량 0, 저작권 걱정 없음) ---------- */
 const AU={c:null,m:null,sfxG:null,bgmG:null,nb:null,last:{},combo:0,comboT:0};
@@ -149,7 +150,7 @@ function showAd(place,cb){track('ad_open',{place});const id=API?AD_UNIT[PLAT]:''
       adInst.onClose(done);adInst.show().catch(()=>adInst.load().then(()=>adInst.show()).catch(()=>{adInst.offClose(done);toast(L('광고를 불러오지 못했어요','广告加载失败'));cb(false);}));return;}catch(e){}}
   adOv={t:2,place,cb};}
 function adTick(dt){if(!adOv)return;adOv.t-=dt;if(adOv.t<=0){const a=adOv;adOv=null;track('ad_reward',{place:a.place});a.cb(true);}}
-function shareGame(){track('share');const title=L('퇀퇀 해변 수비대: 같이 해변을 지켜요!','团团守海滩：一起守护沙滩吧！');
+function shareGame(){track('share');const title=L('퇀퇀 해변 수비대: 배고픈 바다 손님을 배불려 돌려보내요!','团团守海滩：把馋嘴小海怪喂饱送回家！');
   try{if(API&&API.shareAppMessage)API.shareAppMessage({title});else if(navigator.share)navigator.share({title,url:location.href.split('?')[0]}).catch(()=>{});else toast(L('주소를 복사해 친구에게 보내 주세요','复制网址发给朋友吧'));}catch(e){}}
 if(API){try{API.showShareMenu&&API.showShareMenu({});API.onShareAppMessage&&API.onShareAppMessage(()=>({title:L('퇀퇀 해변 수비대','团团守海滩')}));}catch(e){}}
 

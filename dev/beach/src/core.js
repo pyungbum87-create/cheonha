@@ -63,7 +63,7 @@ function callWave(s){
 function spawn(s,k,pi,d0){
   const b=ENEMIES[k],hp=k==='boss'?s.S.bossHp:b.hp*s.cur.hp,p=s.paths[pi%s.paths.length];
   const e={id:s.uid++,k,bk:k==='boss'?s.S.boss:'',pi:pi%s.paths.length,d:d0||0,x:0,y:0,hp,max:hp,sp:b.sp,r:b.r,armor:b.armor||0,air:!!b.air,gold:b.gold,leak:b.leak||1,
-    slow:0,slowT:0,stun:0,shred:0,hit:0,inkT:(b.ink||0)*TICK*.5,ph:s.rand()*6.28,ox:k==='boss'?0:(s.rand()-.5)*15,oy:k==='boss'?0:(s.rand()-.5)*9,dead:false,len:p.len};
+    slow:0,slowT:0,stun:0,shred:0,hit:0,rush:false,inkT:(b.ink||0)*TICK*.5,ph:s.rand()*6.28,ox:k==='boss'?0:(s.rand()-.5)*15,oy:k==='boss'?0:(s.rand()-.5)*9,dead:false,len:p.len};
   if(e.air){const a=p.s[0],z=p.s[p.s.length-1];e.ax=a.x+(s.rand()-.5)*120;e.ay=a.y;e.zx=z.x;e.zy=z.y;e.len=Math.hypot(e.zx-e.ax,e.zy-e.ay);}
   place(s,e);s.en.push(e);if(k==='boss'){s.boss=e;s.bossT=0;s.fx.push({e:'boss',bk:e.bk});}return e;
 }
@@ -134,7 +134,8 @@ function stepEnemies(s){
   const surge=s.surge>0;if(surge)s.surge--;
   for(const e of s.en){if(e.dead)continue;if(e.hit>0)e.hit--;if(e.shred>0)e.shred--;if(e.slowT>0){if(--e.slowT<=0)e.slow=0;}
     if(e.stun>0){e.stun--;continue;}
-    e.d+=e.sp/TICK*(1-e.slow)*(surge&&e.k!=='boss'?1.7:1);place(s,e);
+    if(e.k==='turtle'&&!e.rush&&e.hp<e.max*.5){e.rush=true;s.fx.push({e:'rush',x:e.x,y:e.y});}
+    e.d+=e.sp/TICK*(1-e.slow)*(surge&&e.k!=='boss'?1.7:1)*(e.rush?ENEMIES.turtle.rush:1);place(s,e);
     if(e.k==='octo'&&--e.inkT<=0){e.inkT=ENEMIES.octo.ink*TICK;if(inkTower(s,e.x,e.y,1))s.fx.push({e:'spit',x:e.x,y:e.y});}
     if(e.d>=e.len){e.dead=true;s.lives=Math.max(0,s.lives-e.leak);s.leaked+=e.leak;s.fx.push({e:'leak',x:e.x,y:e.y,n:e.leak,k:e.k});
       if(s.lives<=0&&s.phase==='run'){if(s.revives>0)s.phase='revive';else finish(s,false);s.fx.push({e:'down'});}}
@@ -142,6 +143,7 @@ function stepEnemies(s){
   if(s.boss&&!s.boss.dead&&s.boss.stun<=0&&++s.bossT>=8*TICK){s.bossT=0;const b=s.boss;
     if(b.bk==='kingcrab'){for(let i=0;i<3;i++){const m=spawn(s,'crab',b.pi,Math.max(0,b.d-12-i*14));m.hp=m.max=m.max*.7;}}
     else if(b.bk==='octoboss'){inkTower(s,b.x,b.y,3);for(let i=0;i<4;i++)spawn(s,'jelly',b.pi,Math.max(0,b.d-10-i*10));}
+    else if(b.bk==='pirate'){for(let i=0;i<2;i++){spawn(s,'turtle',b.pi,Math.max(0,b.d-14-i*18));spawn(s,'gull',i,0);}}
     else{s.surge=3*TICK;for(let i=0;i<3;i++)spawn(s,'fish',i,0);}
     s.fx.push({e:'summon',x:b.x,y:b.y,bk:b.bk});}
   s.en=s.en.filter(e=>!e.dead);

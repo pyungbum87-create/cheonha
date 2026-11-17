@@ -25,24 +25,35 @@ const ENEMIES={
   hermit:{hp:150, sp:20,r:14,gold:20,cost:4,  armor:.7},
   octo:  {hp:105, sp:28,r:14,gold:16,cost:3.2,ink:6},
   gull:  {hp:42,  sp:58,r:12,gold:9, cost:1.7,air:true},
+  turtle:{hp:240, sp:19,r:14,gold:26,cost:5.2,armor:.4,rush:1.9},   // 반쯤 배가 차면 신나서 달린다
   elite: {hp:430, sp:22,r:19,gold:50,cost:11, armor:.3,leak:3},
   boss:  {hp:2400,sp:13,r:30,gold:120,cost:0, armor:.2,leak:20},
 };
-const START_LIVES=20,WAVE_GAP=7,BONUS_PER_SEC=3,REVIVE_LIVES=10;
+const START_LIVES=20,WAVE_GAP=6,BONUS_PER_SEC=3,REVIVE_LIVES=10;
 const SKILL={tide:{cd:38,push:95,dmg:28},bomb:{cd:24,r:62,dmg:110}};
 
 /* 장: 길(바다 → 마을 대문)과 파도 수. spots 는 길 모양에서 자동으로 고른다 */
 const STAGES=[
-  {waves:8, hp:1.1, budget:10, gold:230,spots:8, kinds:['crab','jelly','fish'],boss:'kingcrab',bossHp:1500,rec:1,theme:0,
+  {waves:8, hp:1.1, budget:10,gold:230,spots:8, kinds:['crab','jelly','fish'],boss:'kingcrab',bossHp:1500,rec:1,theme:0,
    paths:[[[225,66],[225,150],[110,215],[110,335],[340,395],[340,515],[150,575],[150,655],[225,GATE_Y]]]},
-  {waves:10,hp:1.55,budget:12,gold:250,spots:9, kinds:['crab','fish','puffer','jelly'],boss:'kingcrab',bossHp:3200,rec:2,theme:1,
+  {waves:9, hp:1.6, budget:13,gold:250,spots:9, kinds:['crab','fish','puffer','jelly'],boss:'kingcrab',bossHp:3200,rec:2,theme:1,
    paths:[[[90,66],[90,200],[360,265],[360,400],[90,465],[90,600],[225,650],[225,GATE_Y]]]},
-  {waves:12,hp:1.75,budget:13,gold:280,spots:10,kinds:['crab','jelly','hermit','fish','gull'],boss:'octoboss',bossHp:5200,rec:4,theme:2,
+  {waves:10,hp:1.85,budget:15,gold:280,spots:10,kinds:['crab','jelly','hermit','fish','gull'],boss:'octoboss',bossHp:5200,rec:4,theme:2,
    paths:[[[110,66],[110,215],[225,325],[225,430],[100,500],[100,615],[225,665],[225,GATE_Y]],[[340,66],[340,215],[225,325],[225,430],[100,500],[100,615],[225,665],[225,GATE_Y]]]},
-  {waves:12,hp:1.85,budget:14,gold:300,spots:10,kinds:['crab','puffer','octo','gull','fish','hermit'],boss:'octoboss',bossHp:7000,rec:6,theme:3,
+  {waves:10,hp:1.6, budget:15,gold:320,spots:10,kinds:['crab','puffer','octo','gull','fish','hermit'],boss:'octoboss',bossHp:7000,rec:6,theme:3,
    paths:[[[225,66],[70,135],[70,300],[385,300],[385,470],[160,470],[160,600],[330,640],[225,GATE_Y]]]},
-  {waves:14,hp:2.25,budget:15,gold:330,spots:11,kinds:['fish','octo','hermit','gull','puffer','jelly','crab'],boss:'whale',bossHp:10000,rec:8,theme:4,
+  {waves:11,hp:1.9, budget:16,gold:360,spots:11,kinds:['fish','octo','hermit','gull','puffer','jelly','crab'],boss:'whale',bossHp:8500,rec:8,theme:4,
    paths:[[[80,66],[80,250],[370,350],[370,560],[225,640],[225,GATE_Y]],[[370,66],[370,200],[80,400],[80,580],[225,640],[225,GATE_Y]]]},
+  {waves:11,hp:2.9, budget:18,gold:380,spots:11,kinds:['crab','turtle','fish','puffer','gull','jelly'],boss:'whale',bossHp:12500,rec:10,theme:0,
+   paths:[[[360,66],[360,180],[90,180],[90,330],[360,330],[360,480],[90,480],[90,620],[225,660],[225,GATE_Y]]]},
+  {waves:12,hp:2.5, budget:17,gold:420,spots:11,kinds:['fish','turtle','octo','hermit','gull','crab'],boss:'pirate',bossHp:12000,rec:12,theme:1,
+   paths:[[[60,66],[60,300],[200,380],[200,520],[225,620],[225,GATE_Y]],[[390,66],[390,300],[250,380],[250,520],[225,620],[225,GATE_Y]]]},
+  {waves:12,hp:2.9, budget:18,gold:440,spots:12,kinds:['puffer','gull','turtle','octo','fish','hermit','jelly'],boss:'pirate',bossHp:15000,rec:14,theme:2,
+   paths:[[[100,66],[100,170],[380,170],[380,290],[70,290],[70,410],[380,410],[380,540],[150,560],[150,650],[225,GATE_Y]]]},
+  {waves:12,hp:2.9, budget:17,gold:480,spots:12,kinds:['turtle','fish','octo','gull','hermit','puffer','crab'],boss:'octoboss',bossHp:17000,rec:16,theme:3,
+   paths:[[[70,66],[70,260],[225,360],[225,470],[110,540],[110,640],[225,675],[225,GATE_Y]],[[225,66],[225,360],[225,470],[110,540],[110,640],[225,675],[225,GATE_Y]],[[380,66],[380,260],[225,360],[225,470],[110,540],[110,640],[225,675],[225,GATE_Y]]]},
+  {waves:13,hp:3.0, budget:18,gold:520,spots:12,kinds:['octo','turtle','gull','hermit','fish','puffer','jelly','crab'],boss:'whale',bossHp:21000,rec:18,theme:4,
+   paths:[[[90,66],[90,180],[360,260],[360,380],[90,460],[90,580],[225,650],[225,GATE_Y]],[[360,66],[360,180],[90,260],[90,380],[360,460],[360,580],[225,650],[225,GATE_Y]]]},
 ];
 /* 파도 내용: 장마다 정해진 규칙으로 만든다(무작위 아님). 뒤로 갈수록 예산이 늘고 새 적이 섞인다 */
 function waveDef(si,w){
@@ -54,4 +65,4 @@ function waveDef(si,w){
   if(last)groups.push({k:'boss',n:1,gap:1,delay:4,path:0});
   return {w,groups,hp:S.hp*(1+.13*(w-1)),bonus:18+3*w};
 }
-const REWARD={base:90,stage:.45,star:[0,.7,.85,1],first:[100,150,220,300,400],lose:.25};
+const REWARD={base:90,stage:.45,star:[0,.7,.85,1],first:[100,150,220,300,400,500,600,700,850,1000],lose:.25};
