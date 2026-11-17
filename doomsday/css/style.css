@@ -160,7 +160,7 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 .banner.boss { background: repeating-linear-gradient(-45deg, rgba(120,0,0,.85) 0 18px, rgba(20,0,0,.85) 18px 36px); }
 .banner.ghost .b-title { color: var(--cyan); }
 .banner.win .b-title, .banner.wave .b-title { color: var(--gold); }
-.banner.ult .b-title { color: #9bff7a; }
+.banner.bult .b-title { color: #9bff7a; }
 
 /* ---------- 모달 ---------- */
 .modal { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px; background: rgba(5,8,14,.72); }
@@ -489,3 +489,9 @@ button { font-family: inherit; color: inherit; border: 0; background: none; curs
 /* 카드 조합 안내 */
 .card .c-combo { margin-top: 4px; font-size: 12px; font-weight: 900; color: #9fb4d8; }
 .card .c-combo.hot { color: #201000; background: linear-gradient(90deg, #ffd23d, #ff9a3d); padding: 3px 6px; border-radius: 6px; display: inline-block; }
+
+/* 전투 중 작은 띠 배너 (전투를 가리지 않게) */
+.banner.mini { top: 13.5%; left: 18%; right: 18%; padding: 4px 8px; border-radius: 999px; background: rgba(8,10,16,.62); }
+.banner.mini .b-title { font-size: 20px !important; animation: none !important; }
+.banner.mini .b-sub { font-size: 11px !important; margin-top: 0 !important; }
+#btnNext { margin-bottom: 8px; }

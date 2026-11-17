@@ -10,7 +10,7 @@ window.DX = window.DX || {};
   const API = DX.API, PF = DX.PLATFORM;
 
   // ★ 빌드 번호 (월일-시분). 화면 아래에 표시 → 휴대폰에서 최신판인지 확인용
-  DX.BUILD = '1117-1303';
+  DX.BUILD = '1118-0013';
 
   /* ---------------- 저장소 (위챗·더우인은 플랫폼 저장소, 웹은 localStorage) ---------------- */
   DX.store = {
@@ -193,7 +193,7 @@ window.DX = window.DX || {};
     for (const m of s.daily.m) {
       const M = DX.MISSIONS[m.i]; if (M.k !== k || m.c || m.p >= M.goal) continue;
       m.p = Math.min(M.goal, setMax ? Math.max(m.p, n) : m.p + (n || 1));
-      if (m.p >= M.goal && DX.UI) DX.UI.toast(L('일일 미션 완료! ', '每日任务完成！') + (DX.lang() === 'zh' ? M.name[1] : M.name[0]));
+      if (m.p >= M.goal && DX.UI) { const msg = L('일일 미션 완료! ', '每日任务完成！') + (DX.lang() === 'zh' ? M.name[1] : M.name[0]); if (DX.state === 'play' || DX.state === 'levelup') (DX._later = DX._later || []).push(msg); else DX.UI.toast(msg); }
     }
   };
   DX.attCan = () => !DX.save.att || DX.save.att.last !== DX.today();

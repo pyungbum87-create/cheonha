@@ -41,7 +41,15 @@ window.DX = window.DX || {};
   };
 
   /* ---------------- 알림 ---------------- */
-  UI.toast = function (msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; $('app').appendChild(t); setTimeout(() => t.remove(), 1600); };
+  let toastQ = [], toastBusy = 0, toastLast = '';
+  UI.toast = function (msg) {
+    const fight = DX.state === 'play' || DX.state === 'levelup';
+    if (fight && (msg === toastLast || toastQ.indexOf(msg) >= 0)) return;
+    if (fight && toastBusy > Date.now()) { if (toastQ.length < 3) toastQ.push(msg); return; }
+    toastLast = msg; toastBusy = Date.now() + 3200;
+    const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; $('app').appendChild(t);
+    setTimeout(() => { t.remove(); if (toastQ.length) setTimeout(() => UI.toast(toastQ.shift()), 1000); else setTimeout(() => { if (toastLast === msg) toastLast = ''; }, 6000); }, 1800);
+  };
   const toast = UI.toast;
   UI.error = function (e) { const el = $('err'); el.textContent = L('오류: ', '错误：') + (e && e.message || e); show(el, true); setTimeout(() => show(el, false), 5000); };
 
@@ -466,11 +474,13 @@ window.DX = window.DX || {};
   let bannerTimer = 0;
   UI.banner = function (title, sub, type) {
     const b = $('banner');
-    b.className = 'banner ' + (type || '');
-    $('bTitle').textContent = T(title); $('bSub').textContent = T(sub || '');
+    // 전투를 가리지 않게: 보스·결과(win)·부활(ghost) 말고는 위쪽 작은 띠로 짧게
+    const mini = DX.state === 'play' && type !== 'boss' && type !== 'win' && type !== 'ghost';
+    b.className = 'banner ' + (type === 'ult' ? 'bult' : type || '') + (mini ? ' mini' : '');   // ult 는 대파 버튼(.ult) 스타일과 겹쳐서 bult
+    $('bTitle').textContent = T(title); $('bSub').textContent = mini && type === 'wave' ? '' : T(sub || '');
     void b.offsetWidth;
     clearTimeout(bannerTimer);
-    bannerTimer = setTimeout(() => show(b, false), (type === 'boss' ? 2600 : type === 'wave' ? 1300 : 1600) * (C.game.textLife || 1));
+    bannerTimer = setTimeout(() => show(b, false), (type === 'boss' ? 2200 : mini ? 1100 : 1500) * (C.game.textLife || 1));
   };
   UI.bossBar = function (on, name) { show($('bossRow'), on); if (name) $('bossName').textContent = T(name); };
   UI.comboPop = function (n) { if (n >= 100) UI.banner(n + ' COMBO!!', n >= 300 ? '미쳤다 이건...' : '골드 보너스 증가!', 'win'); };
@@ -516,7 +526,7 @@ window.DX = window.DX || {};
     if (o.win && !o._story) {
       o._story = true;
       const go = () => { if (o.final) showEnding(() => UI.result(o)); else UI.result(o); };
-      if (st.outro && st.outro.length) { UI.dialogue(st.outro, '', go); return; }
+      if (st.outro && st.outro.length && o.firstClear) { UI.dialogue(st.outro, '', go); return; }
       go(); return;
     }
     lastResult = o;
@@ -537,7 +547,17 @@ window.DX = window.DX || {};
       el.classList.toggle('up', up); }
     show($('btnRevive'), o.canRevive);
     show($('btnDouble'), C.ads.doubleGold);
+    { const nx = nextTarget(o); $('btnNext').textContent = o.win ? (nx.i !== o.stageIdx ? L('다음 장으로 ▶', '前往下一章 ▶') : L('다음 스테이지 ▶', '下一关 ▶')) : L('다시 도전 ↻', '再次挑战 ↻'); }
+    if (DX._later && DX._later.length) { DX._later.forEach((m, k) => setTimeout(() => toast(m), 600 + k * 2200)); DX._later = []; }
   };
+  // 결과에서 바로 이어 하기: 이기면 다음 스테이지(장 보스를 깼으면 다음 장), 지면 같은 판
+  function nextTarget(o) {
+    const st = C.stages[o.stageIdx];
+    if (!o.win) return { i: o.stageIdx };
+    const done = DX.subDone ? DX.subDone(st.id) : 5;
+    if (done >= 5 && o.stageIdx + 1 < C.stages.length) return { i: o.stageIdx + 1 };
+    return { i: o.stageIdx };
+  }
 
   /* ---------------- 떠다니는 글자 (데미지/퍽!) ---------------- */
   const fx = $('fx'), fctx = fx.getContext('2d');
@@ -892,6 +912,13 @@ window.DX = window.DX || {};
     $('btnRevive').addEventListener('click', () => { show($('result'), false); DX.showAd('revive', () => DX.revive()); });
     $('btnDouble').addEventListener('click', () => { const dd = new Date().toDateString(); const ad = DX.save.adDbl = DX.save.adDbl && DX.save.adDbl.d === dd ? DX.save.adDbl : { d: dd, n: 0 }; if (ad.n >= C.econ.adDoubleDay) { toast(L('오늘 광고 2배는 다 썼어요', '今日双倍次数已用完')); return; } ad.n++; show($('result'), false); DX.showAd('double', () => { toast(L('골드 2배 지급!', '金币翻倍到账！')); DX.finishRun(true); backToLobby(); }); });
     $('btnLobby').addEventListener('click', () => { show($('result'), false); DX.finishRun(false); backToLobby(); });
+    $('btnNext').addEventListener('click', () => {
+      const o = lastResult; show($('result'), false); DX.finishRun(false);
+      // 보여 줄 이야기(첫 판 스토리·장 클리어 컷)가 있으면 로비를 거침
+      if (!o || (DX.save.fastStart && !DX.save.seenIntro) || DX._clearCut) { backToLobby(); return; }
+      const nx = nextTarget(o); DX.save.stage = nx.i; DX.persist(); DX.S.click && DX.S.click();
+      show($('hud'), true); startStage(nx.i);
+    });
     window.addEventListener('keydown', e => { if (e.key === ' ') DX.useUltimate(); if (e.key === 'g') DX.useHorn(); });
     // 앱을 내리면 자동 일시정지·음악 정지·저장 / 돌아오면 일시정지 메뉴에서 재개
     document.addEventListener('visibilitychange', () => { if (document.hidden) DX.onAppHide(); else DX.onAppShow(); });

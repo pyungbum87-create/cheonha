@@ -11,14 +11,14 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.23',
+    version: 'v0.24',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
     trainSpeed: 16,             // 열차 속도 (배경이 흘러가는 속도)
     artVersion: 'a2',           // 그림을 바꾸면 이 값을 올리고 _dev/bake.js 다시 실행 (안 맞으면 느린 방식으로 자동 전환)
-    timeScale: 0.82,            // 게임 전체 속도 (1 = 원래, 낮을수록 느리고 글을 읽을 여유)
-    textLife: 1.5,              // 화면 글자·알림이 떠 있는 시간 배율
+    timeScale: 1,               // 게임 전체 속도 (1 = 원래). v0.24: 느리게 하지 않고 대신 화면 글을 줄임
+    textLife: 1.15,             // 화면 글자·알림이 떠 있는 시간 배율
     startGold: 100,             // 처음 시작할 때 주는 골드
   },
 
@@ -37,9 +37,10 @@ DX.CONFIG = {
      noMini = 판 중간 미니게임 끄기 (흐름 안 끊기게). 구조 작전 스테이지의 미니게임은 그대로 */
   core: {
     on: !/[?&]old=1/.test(typeof location !== 'undefined' ? location.search : ''),
-    horde: { count: 1.8, hp: 0.72, dps: 0.9, xp: 0.5, gold: 0.4 },
+    horde: { count: 1.8, hp: 0.72, dps: 0.9, xp: 0.6, gold: 0.4 },
     aim: { rate: 0.55, dmg: 1.6, splash: 2.4, splashMul: 0.5 },
     noMini: true,
+    killRush: 0.035,   // 좀비 1마리 잡을 때마다 웨이브 시간이 이만큼(초) 빨리 지나감 → 잘하는 사람은 빨리 끝남
   },
   /* 오늘의 변수: 판마다 하나 뽑힘 (after 판째부터) → 매번 조금씩 다른 판.
      greed 골드, haste 속도(작을수록 빠름), crit 치명타 +, dmg 피해, hp 열차 체력, spawn 좀비 수, xp 경험치 */

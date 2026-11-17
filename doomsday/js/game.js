@@ -555,7 +555,7 @@ window.DX = window.DX || {};
         const l = RM.list.filter(m => m.id !== DX.save.lastMod); G.mod = pick(l); DX.save.lastMod = G.mod.id; recalc();
         later(1.2, () => DX.UI && G && DX.UI.banner(G.mod.icon + ' ' + DX.T(G.mod.name), DX.L('오늘의 변수: ', '今日变数：') + DX.T(G.mod.desc), 'ult')); } }
     // 아직 한 번도 직접 안 쏴 본 사람: 끌어서 쏘라고 알려 줌
-    if (CO() && !DX.save.aimed) { const nag = () => { if (!G || DX.save.aimed || G.endT >= 0) return; if (DX.UI) DX.UI.toast(DX.L('👆 화면을 꾹 누르고 끌면 직접 쏜다! (더 세고, 터진다)', '👆 按住屏幕拖动即可亲自射击！（更强，还会爆炸）')); later(9, nag); }; later(4, nag); }
+    if (CO() && !DX.save.aimed) { const nag = () => { if (!G || DX.save.aimed || G.endT >= 0 || (G.nagN = (G.nagN || 0) + 1) > 2) return; if (DX.UI) DX.UI.toast(DX.L('👆 화면을 꾹 누르고 끌면 직접 쏜다! (더 세고, 터진다)', '👆 按住屏幕拖动即可亲自射击！（更强，还会爆炸）')); later(14, nag); }; later(5, nag); }
     nextWave();
     if (DX.UI) DX.UI.onRunStart(G);
   };
@@ -571,6 +571,7 @@ window.DX = window.DX || {};
   const CO = () => (C.core && C.core.on && G && !G.prologue) ? C.core : null;
   const hordeK = k => { const c = CO(); return c ? c.horde[k] : 1; };
   const modK = (k, d) => (G && G.mod && G.mod[k] != null) ? G.mod[k] : (d == null ? 1 : d);
+  function aliveN() { let n = 0; for (const z of G.zs) if (!z.dead) n++; return n; }
   function flashCar(kind, v) { if (G) G.carFlash[kind] = Math.max(G.carFlash[kind] || 0, v || 0.25); }
   // 칸 배치 보너스: 기관차 바로 뒤 칸은 쿨타임 감소
   function ph(kind) { return G && G.cars[0] === kind && G.placed ? C.placement.frontHaste : 1; }
@@ -804,7 +805,7 @@ window.DX = window.DX || {};
     if (w.boss === 'taekbae' && DX.save.flags && DX.save.flags.park) later(4, () => { if (G && G.boss === b) { b.stun = 2.5; FX.text(b.x, 8, b.z, '박씨...? 형님?!', '#ffd23d', 26, 1.8, true); } });
     S.roar(); G.shake = Math.max(G.shake, 0.8);
     if (DX.UI) DX.UI.bossBar(true, DX.T(cfg.name), 1);
-    if (DX.UI && DX.UI.bossIntro) { DX.UI.bossIntro(cfg); G.slowmo = 0.15; G.slowmoT = 1.6; }
+    if (DX.UI && DX.UI.bossIntro) { DX.UI.bossIntro(cfg); G.slowmo = 0.3; G.slowmoT = 0.9; }
     else if (DX.UI && cfg.quote) DX.UI.banner(cfg.name, '“' + DX.T(cfg.quote) + '”', 'boss');
   }
   function updWave(dt) {
@@ -821,6 +822,7 @@ window.DX = window.DX || {};
     if (G.hordeDone < w.hordes && G.waveT > hordeEvery * (G.hordeDone + 0.8)) { G.hordeDone++; spawnHorde(Math.round(w.hordeSize * hordeK('count') * modK('spawn') * (G.prologue ? 1 : Math.min(1, C.growth.rampMin + (1 - C.growth.rampMin) * G.t / C.growth.rampSec)))); }
     if (w.boss) { if (!G.bossSpawned && G.waveT > 3) spawnBoss(); }
     else if (G.waveT >= w.time) nextWave();
+    else if (C.core && C.core.on && G.hordeDone >= w.hordes && G.waveT > w.time * 0.4 && aliveN() <= 6) { FX.text(0, 6, G.layout.end / 2, DX.L('싹쓸이!', '清场！'), '#7dffb0', 30, 0.9, true); nextWave(); }
   }
 
   function later(t, fn) { G.timers.push({ t, fn }); }
@@ -1157,6 +1159,7 @@ window.DX = window.DX || {};
   function kill(z, kind, dx, dz, force) {
     z.dead = true;
     G.kills++; G.mKill = (G.mKill || 0) + 1;
+    if (G.wave && !G.wave.boss && !z.boss && C.core && C.core.on) G.waveT += C.core.killRush || 0;   // 빨리 잡을수록 웨이브가 빨리 지나감
     G.combo++; G.comboT = 2.2; if (G.combo > G.maxCombo) G.maxCombo = G.combo;
     if ([100, 250, 500, 1000, 2000, 3000].indexOf(G.combo) >= 0 && DX.UI) DX.UI.comboPop(G.combo);
     G.gold += z.cfg.gold * G.greed * (1 + Math.min(0.5, G.combo / 400)) * (z.boss ? 1 : hordeK('gold'));
@@ -1212,7 +1215,7 @@ window.DX = window.DX || {};
     FX.text(b.x, 5, b.z, DX.L('+' + b.cfg.gold + ' 골드', '+' + b.cfg.gold + ' 金币'), '#ffe680', 20, 1.6);
     for (let i = 0; i < 5; i++) later(i * 0.16, () => { if (G.endT < 0) FX.explode(b.x + rand(-3, 3), b.z + rand(-3, 3), rand(4, 7), 'fire'); });
     FX.goo(b.x, b.z, true);
-    G.slowmo = 0.25; G.slowmoT = 1.3; G.shake = 1.4;
+    G.slowmo = 0.3; G.slowmoT = 0.8; G.shake = 1.4;
     if (DX.UI) DX.UI.bossBar(false);
     vib([60, 40, 120]);
     // 보스 시체: 크게 날아감
@@ -1337,7 +1340,7 @@ window.DX = window.DX || {};
         G.comboOn[cb.id] = true; DX.mission('combo2');
         later(0.3, () => {
           if (!G) return;
-          if (DX.UI && DX.UI.comboCut) DX.UI.comboCut(cb); S.combo(); G.slowmo = 0.25; G.slowmoT = 1.2;
+          if (DX.UI && DX.UI.comboCut) DX.UI.comboCut(cb); S.combo(); G.slowmo = 0.4; G.slowmoT = 0.45;
           // 두 칸 사이에 번개 연결 + 두 칸 번쩍
           const ca = G.layout.cars.find(k => k.kind === C.weapons[cb.a].car), cbb = G.layout.cars.find(k => k.kind === C.weapons[cb.b].car);
           const za = ca ? ca.cz : 2, zb = cbb ? cbb.cz : G.layout.end;
@@ -1378,7 +1381,7 @@ window.DX = window.DX || {};
     shockRing(0, cz, 6, '#ffd23d');
     for (let i = 0; i < 16; i++) part({ mesh: 'ico', x: rand(-1.5, 1.5), y: rand(3, 9), z: cz + rand(-2, 2), vx: 0, vy: -rand(4, 9), vz: 0, s: 0.3, s1: 0.05, max: 0.8, col: '#ffe680', emi: 2, pass: 2, alpha: 0.9, drift: 0 });
     FX.text(0, 6, cz, (c.evo ? '★ ' : '') + DX.T(c.name) + (c.lv > 1 ? ' Lv' + c.lv : ''), c.evo ? '#ffd23d' : '#ffffff', c.evo ? 26 : 18, 1.2, true);
-    if (c.evo) { S.evo(); G.slowmo = 0.2; G.slowmoT = 1.0; G.shake = 0.8; if (DX.UI && DX.UI.evoCut) DX.UI.evoCut(c); }
+    if (c.evo) { S.evo(); G.slowmo = 0.35; G.slowmoT = 0.5; G.shake = 0.8; if (DX.UI && DX.UI.evoCut) DX.UI.evoCut(c); }
   }
 
   /* ================= 필살기 / 고스트 싱크 ================= */
@@ -1911,7 +1914,7 @@ window.DX = window.DX || {};
         FX.explode(L.x, L.z, r, 'leek'); FX.explode(L.x, L.z, r * 0.6, 'fire');
         SRC = 'ult'; aoe(L.x, L.z, r, C.ultimate.dmg * G.pMul, 'leek', 16);
         if (L.first) FX.text(L.x, 4, L.z, '파-아-아!!', '#c8ff8a', 34, 1.2, true);
-        G.hitstop = 0.05; G.slowmo = 0.45; G.slowmoT = 0.35;
+        if (L.first) G.hitstop = 0.04;
         vib(50);
       }
     }
@@ -2316,6 +2319,7 @@ window.DX = window.DX || {};
       out.stars = null; out.citizens = G.citizens.length;
     } else if (win) {
       out.gold += stg.clearGold;
+      if (!DX.save.cleared[stg.id]) out.firstClear = true;
       if (!DX.save.cleared[stg.id]) DX._clearCut = { id: stg.id, n: G.citizens.length, last: G.citizens[G.citizens.length - 1] };
       DX.save.cleared[stg.id] = true;
       // 별 3개: 클리어 / 구조 작전 성공(지나치지 않음) / 열차 체력 50% 이상
