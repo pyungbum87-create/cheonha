@@ -47,7 +47,7 @@ function buildMap(si){
 class Game{
   constructor(si,meta){
     this.lv={};for(const k of [...TOWER_IDS,'hero'])this.lv[k]=meta&&meta.lv&&meta.lv[k]||(meta&&meta.lv?1:recLv(si));
-    this.cmdCd={slam:0,torpedo:0,tide:0};this.hasteT=0;this.hasteMul=0;this.cmdUsed=0;this.awakened=0;this.cardsPicked=0;
+    this.cmdCd={slam:0};this.crewCd={};this.allies=[];this.ampT=0;this.purified=0;this.hasteT=0;this.hasteMul=0;this.cmdUsed=0;this.awakened=0;this.cardsPicked=0;
     const S=this.S=stageInfo(si);this.si=si;this.M=buildMap(si);
     for(const g in this.M.gates)this.M.gates[g].st=0;for(const v of this.M.vents)v.cd=0;
     this.t=0;this.gold=S.gold;this.lives=START_LIVES;this.lost=0;this.wave=0;this.nextT=0;this.spawning=false;this.spawnQ=[];
@@ -68,7 +68,7 @@ class Game{
   sellVal(t){return Math.round(t.spent*SELL);}
   unlocked(k){return UNLOCK[k]<=this.si;}
   range(t){return TOWERS[t.k].range*LV_RANGE[t.lv-1]*(t.ink>0?.6:1);}
-  dmg(t){return TOWERS[t.k].dmg*LV_DMG[t.lv-1]*this.tw(t.k)*(t.br==='giant'?1.25:t.br==='purge'?1.8:1)*(1+this.B.dmg)*(1+t.aura);}
+  dmg(t){return TOWERS[t.k].dmg*LV_DMG[t.lv-1]*this.tw(t.k)*(t.br==='giant'?1.25:t.br==='purge'?1.8:1)*(1+this.B.dmg)*(1+t.aura)*(this.ampT>0?1+CREW.rune.amp:1);}
   rate(t){return TOWERS[t.k].cd/(1+t.haste+(t.k==='coral'?this.B.coral:0)+(t.br==='storm'?.5:0))*(t.ink>0?1.5:1);}
   heroDmg(){return HERO.dmg*this.tw('hero')*(1+.22*(this.hero.lv-1))*(1+this.B.hero);}
   visible(e){return !e.inv||e.rev;}
@@ -88,6 +88,30 @@ class Game{
     else if(k==='torpedo'){for(const e of this.enemies)if(!e.dead&&dist(e.x,e.y,x,y)<C.r+e.r)this.hurt(e,C.dmg*m*(dist(e.x,e.y,x,y)<C.r*.5?1:.7),'exp');this.ev.push({t:'torp',x,y,r:C.r});}
     else{for(const e of this.enemies){if(e.dead)continue;this.hurt(e,C.dmg*m,'mag');if(e.dead||isBoss(e.k))continue;e.kb=C.push*(e.k==='elite'?.5:1);e.slow=Math.max(e.slow,C.slow);e.slowT=Math.max(e.slowT,C.slowT);}this.ev.push({t:'tide'});}
     this.cmdCd[k]=C.cd*this.B.heroCd;this.cmdUsed++;return true;}
+  crewPw(k){let p=0;for(const t of this.towers)if(t.k===k)p+=LV_DMG[t.lv-1];return p;}
+  crewReady(k){return CREW[k]&&CREW[k].sk&&this.state==='run'&&!(this.crewCd[k]>0)&&this.towers.some(t=>t.k===k);}
+  crewSkill(k){if(!this.crewReady(k))return false;const C=CREW[k],pw=Math.min(6,this.crewPw(k)),m=this.tw(k)*(1+this.B.dmg);
+    if(k==='coral'){for(const t of this.towers)if(t.k==='coral'){t.haste=Math.max(t.haste,1);t.hasteT=C.dur;}}
+    else if(k==='bubble'){for(const e of this.enemies){if(e.dead)continue;this.hurt(e,C.dmg*pw*m,'mag');if(!e.dead&&!isBoss(e.k)){e.slow=Math.max(e.slow,C.slow);e.slowT=Math.max(e.slowT,C.dur);}}}
+    else if(k==='jelly'){for(const e of this.enemies){if(e.dead||e.spawnT>.45)continue;this.hurt(e,C.dmg*pw*m,'mag');if(!e.dead)e.stun=Math.max(e.stun,isBoss(e.k)?.2:C.stun);}}
+    else if(k==='conch'){const tg=this.enemies.filter(e=>!e.dead).sort((a,b)=>b.prog-a.prog)[0];if(!tg)return false;for(const t of this.towers)if(t.k==='conch')this.projs.push({kind:'shell',x:t.x,y:t.y-16,tx:tg.x,ty:tg.y,tid:tg.id,sp:420,dmg:this.dmg(t)*1.6,cls:'exp',from:'conch',lv:t.lv,a:0,br:t.br});}
+    else if(k==='rune'){this.ampT=C.dur;}
+    this.crewCd[k]=C.cd;this.cmdUsed++;this.ev.push({t:'crew',k});return true;}
+  /* 정화된 생물이 잠깐 우리 편이 된다 */
+  purify(e){const P=PURE[e.k];this.purified++;if(!P||(this.allies.length>40&&P.act!=='gift'))return;
+    const a={id:this.uid++,k:e.k,act:P.act,x:e.x,y:e.y,a:e.a,seg:e.seg,d:e.d,prog:e.prog,r:e.r,t:P.t||1.1,T:P.t||1.1,hit:new Set(),pure:1};
+    if(P.act==='gift'){this.gold+=P.gold;a.t=a.T=.9;}
+    else if(P.act==='shock'){const near=this.enemies.filter(o=>!o.dead&&o!==e&&dist(o.x,o.y,e.x,e.y)<P.r).sort((p,q)=>dist(p.x,p.y,e.x,e.y)-dist(q.x,q.y,e.x,e.y)).slice(0,P.n),pts=[[e.x,e.y]];
+      for(const o of near){pts.push([o.x,o.y]);this.hurt(o,P.dmg*this.S.hp,'mag');if(!o.dead&&!isBoss(o.k))o.stun=Math.max(o.stun,P.stun);}if(near.length)this.ev.push({t:'zap',pts,pure:1});a.t=a.T=1.2;}
+    else if(P.act==='sweep'){a.left=P.len;a.t=a.T=P.len/P.sp+.4;}
+    else if(P.act==='block'&&P.stun){for(const o of this.enemies)if(!o.dead&&o!==e&&!isBoss(o.k)&&dist(o.x,o.y,e.x,e.y)<60)o.stun=Math.max(o.stun,P.stun);}
+    this.allies.push(a);this.ev.push({t:'pure',x:e.x,y:e.y,k:e.k,act:P.act});}
+  allyTick(dt){for(const a of this.allies){a.t-=dt;
+      if(a.act==='sweep'&&a.left>0){const P=PURE[a.k],st=Math.min(a.left,P.sp*dt,a.d);a.left=st<=0?0:a.left-st;a.d-=st;a.prog-=st;const Q=segPos(this.M.segs[a.seg],a.d);a.x=Q.x;a.y=Q.y;a.a=Q.a+Math.PI;
+        for(const o of this.enemies)if(!o.dead&&!a.hit.has(o.id)&&dist(o.x,o.y,a.x,a.y)<o.r+14){a.hit.add(o.id);this.hurt(o,P.dmg*this.S.hp,'mag');if(!o.dead&&!isBoss(o.k)){o.kb=Math.max(o.kb||0,18);}this.ev.push({t:'hit',x:o.x,y:o.y,k:'bolt'});}}
+      else if(a.act==='gift'){a.y-=40*dt;a.x+=Math.cos(a.a)*30*dt;}
+      else if(a.act==='shock'||a.left===0){a.y-=18*dt;}}
+    this.allies=this.allies.filter(a=>a.t>0);}
   callWave(){if(this.state==='prep'){this.requestWave();return true;}
     if(this.state!=='run'||this.spawning||this.wave>=this.S.waves)return false;
     if(this.nextT>0)this.gold+=Math.ceil(this.nextT)*EARLY_BONUS;this.requestWave();return true;}
@@ -139,7 +163,7 @@ class Game{
   kill(e){
     e.dead=true;const E=ENEMIES[e.k],gg=E.gold;this.gold+=gg;this.kills++;this.ev.push({t:'kill',x:e.x,y:e.y,k:e.k,g:gg,f:Math.cos(e.a)<0?-1:1,vd:e.vd||0});
     const h=this.hero;h.xp+=E.cost||8;while(h.lv<HERO.lvXp.length&&h.xp>=HERO.lvXp[h.lv]){h.lv++;this.ev.push({t:'hlv',x:h.x,y:h.y});}
-    const at={seg:e.seg,d:e.d,prog:e.prog};
+    this.purify(e);const at={seg:e.seg,d:e.d,prog:e.prog};
     if(E.split&&this.si>=(E.from||0))for(let i=0;i<E.split;i++)this.spawn('minnow',0,e.mhp/E.hp*.9,at);
     else if(this.mut.spawn&&e.k!=='minnow'&&this.rnd()<.15+.15*this.mut.spawn)this.spawn('minnow',0,e.mhp/E.hp*.9,at);
   }
@@ -152,7 +176,8 @@ class Game{
     for(const v of M.vents)if(v.cd>0)v.cd-=dt;
     for(const g in M.gates)if(M.gates[g].flash>0)M.gates[g].flash-=dt;
     /* 적 */
-    if(this.hasteT>0)this.hasteT-=dt;for(const k in this.cmdCd)if(this.cmdCd[k]>0)this.cmdCd[k]-=dt;
+    if(this.hasteT>0)this.hasteT-=dt;if(this.ampT>0)this.ampT-=dt;for(const k in this.crewCd)if(this.crewCd[k]>0)this.crewCd[k]-=dt;
+    const blocks=this.allies.filter(a=>a.act==='block');for(const k in this.cmdCd)if(this.cmdCd[k]>0)this.cmdCd[k]-=dt;
     const cmdrs=this.enemies.filter(e=>!e.dead&&ENEMIES[e.k].command),minn=this.enemies.filter(e=>!e.dead&&e.k==='minnow');
     for(const e of this.enemies){
       if(e.dead)continue;const E=ENEMIES[e.k],on=this.si>=(E.from||0);e.ox=e.x;e.oy=e.y;
@@ -179,6 +204,7 @@ class Game{
       for(const c of M.cur)if(c.seg===e.seg&&e.d>=c.d0&&e.d<=c.d1){v*=(B.rev&&c.mul>1)?.62:c.mul;break;}
       if(e.spawnT>0)v*=.5;
       const d0=e.d;e.d+=v*dt;e.prog+=v*dt;
+      for(const b of blocks)if(b.seg===e.seg&&b.d>=d0-1&&e.d>b.d-12){if(isBoss(e.k)){b.t=0;}else{const back=e.d-(b.d-12);e.d-=back;e.prog-=back;e.blocked=.2;}}
       if(!isBoss(e.k))for(const vt of M.vents)if(vt.seg===e.seg&&d0<vt.d&&e.d>=vt.d&&vt.cd<=0){e.lift=(VENT.lift+B.ventLift)*(e.k==='elite'?.5:1);vt.cd=VENT.cd*B.ventCd;this.ev.push({t:'vent',x:vt.x,y:vt.y});}
       let S=M.segs[e.seg];
       while(e.d>=S.len){const nx=M.next[e.seg];
@@ -202,7 +228,7 @@ class Game{
     for(const z of this.zones){z.t-=dt;for(const e of this.enemies)if(!e.dead&&dist(e.x,e.y,z.x,z.y)<z.r+e.r){this.hurt(e,z.dps*dt,'mag');if(!isBoss(e.k)){e.slow=Math.max(e.slow,z.slow);e.slowT=Math.max(e.slowT,.2);}}}
     this.zones=this.zones.filter(z=>z.t>0);
     /* 영웅 */
-    this.heroTick(dt);
+    this.heroTick(dt);this.allyTick(dt);
     this.enemies=this.enemies.filter(e=>!e.dead);
     if(this.lives<=0){this.lives=0;this.state='lose';this.ev.push({t:'lose'});return;}
     if(this.wave>=this.S.waves&&!this.spawning&&!this.spawnQ.length&&!this.enemies.length){this.state='win';this.ev.push({t:'win'});}

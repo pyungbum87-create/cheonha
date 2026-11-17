@@ -6,6 +6,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.join(ROOT, 'src
 BUILD = time.strftime('%m%d-%H%M', time.gmtime(time.time() + 9 * 3600))
 js = '\n'.join(open(os.path.join(SRC, f), encoding='utf-8').read() for f in ('data.js', 'core.js', 'plat.js', 'art.js', 'ui.js'))
 ARTDIR = os.path.join(ROOT, 'art'); arts = sorted(os.path.splitext(a)[0] for a in os.listdir(ARTDIR) if a.lower().endswith(('.png', '.webp'))) if os.path.isdir(ARTDIR) else []
+arts += [a + '_p' for a in arts if a.startswith('en_')]
 js = '(()=>{"use strict";\n' + js.replace('@@BUILD@@', BUILD).replace('@@ART@@', json.dumps(arts)) + '\n})();\n'
 if os.path.exists(OUT): shutil.rmtree(OUT)
 os.makedirs(os.path.join(OUT, 'art'))
@@ -15,6 +16,10 @@ for a in sorted(os.listdir(ARTDIR)) if os.path.isdir(ARTDIR) else []:
     lim = 1080 if n.startswith('bg_') else 360
     if max(im.size) > lim: im.thumbnail((lim, lim), Image.LANCZOS)
     im.save(os.path.join(OUT, 'art', n + '.webp'), 'WEBP', quality=88, method=6)
+    if n.startswith('en_'):   # 정화된 모습: 보랏빛을 맑은 청록빛으로(외곽선은 그대로)
+        import numpy as np
+        hsv = np.array(im.convert('RGB').convert('HSV')).astype(int); hsv[..., 0] = (hsv[..., 0] - 84) % 256; hsv[..., 1] = np.clip(hsv[..., 1] * .85, 0, 255); hsv[..., 2] = np.clip(hsv[..., 2] * 1.25 + 14 * (hsv[..., 2] > 60), 0, 255)
+        pu = Image.fromarray(hsv.astype('uint8'), 'HSV').convert('RGB').convert('RGBA'); pu.putalpha(im.getchannel('A')); pu.save(os.path.join(OUT, 'art', n + '_p.webp'), 'WEBP', quality=88, method=6)
 open(os.path.join(OUT, 'game.js'), 'w', encoding='utf-8').write(js)
 TITLE = '심해 신전 수비대'; BG = '#0d3a48'
 html = f'''<!doctype html><html lang="ko"><head><meta charset="utf-8"/><meta http-equiv="Cache-Control" content="no-cache"/>

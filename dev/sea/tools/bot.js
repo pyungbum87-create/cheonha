@@ -20,8 +20,8 @@ function play(si,skill){
       // 먹물 닦기(잘하는 봇)
       if(good)for(const t of g.towers)if(t.ink>0)g.clean(t);
       // 영웅 스킬
-      if(good){const n=g.enemies.filter(e=>ctx.dist(e.x,e.y,g.hero.x,g.hero.y)<80).length;if(n>=3)g.cmd('slam');let b=null,bn=2;for(const e of g.enemies){const c=g.enemies.filter(o=>ctx.dist(o.x,o.y,e.x,e.y)<55).length;if(c>bn){bn=c;b=e;}}if(b)g.cmd('torpedo',b.x,b.y);if(g.enemies.some(e=>e.prog>0&&ctx.dist(e.x,e.y,225,704)<140))g.cmd('tide');}
-      else if(steps%600===0){g.cmd('slam');const e=g.enemies[0];if(e&&!weak)g.cmd('torpedo',e.x,e.y);if(!weak&&g.lives<12)g.cmd('tide');}
+      if(good){const n=g.enemies.filter(e=>ctx.dist(e.x,e.y,g.hero.x,g.hero.y)<80).length;if(n>=3)g.cmd('slam');if(g.enemies.length>=5)for(const k of ['jelly','bubble','coral','conch','rune'])g.crewSkill(k);}
+      else if(steps%600===0){g.cmd('slam');if(!weak)for(const k of ['jelly','bubble','coral'])g.crewSkill(k);}
       // 수문: 긴 길로
       if(good&&!process.env.NOGATE&&g.keys>0)for(const k in M.gates){const G=M.gates[k],L=G.to.map(id=>M.segs[id].len);const want=L[0]>=L[1]?0:1;if(G.st!==want&&g.spawning)g.flipGate(k);}
       if(g.nextT>0&&g.nextT<WAVE_GAP_EARLY)g.callWave();
