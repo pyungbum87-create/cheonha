@@ -16,7 +16,7 @@ if(API){const dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2}}
 else{c.width=W;c.height=H}
 function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('canvas');cv.width=w;cv.height=h;return cv}
-const BUILD='1117-1400';
+const BUILD='1117-1640';
 // 안전장치: 음수 반지름이면 그리기 전체가 멈추므로 보정
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
  if(oa)P.arc=function(x,y,r,a0,a1,ccw){return oa.call(this,x,y,r>0&&isFinite(r)?r:0,a0,a1,ccw)};
@@ -39,7 +39,7 @@ function icon(k,x,y,size){const im=imgs.icons,I=ART.icons;if(!im||I.idx[k]===und
 function wsp(k,x,y,w,anchor){const im=imgs.world,r=ART.world[k];if(!im||!r)return false;const h=w*r[3]/r[2];g.drawImage(im,r[0],r[1],r[2],r[3],x-w/2,anchor==='bottom'?y-h:y-h/2,w,h);return true}
 function wspPart(k,sx,sy,sw,sh,dx,dy,dw,dh){const im=imgs.world,r=ART.world[k];if(!im||!r)return false;g.drawImage(im,r[0]+sx*r[2],r[1]+sy*r[3],sw*r[2],sh*r[3],dx,dy,dw,dh);return true}
 const ICON_OF={deck:'deck',rod:'rod',lash:'lash',flint:'flint',plank:'plank',plastic:'plastic',cloth:'cloth',scrap:'scrap',rope:'rope',water:'water',can:'can',fish:'fish',cooked:'cooked',med:'med',berry:'berry',crate:'crate',supply:'crate',
- rain:'rain',fire:'fire',still:'still',bed:'bed',radio:'radio',sail:'sail',bag_water:'water',bag_can:'can',bag_med:'med',bag_rope:'rope',bag_tarp:'cloth',bag_radio:'radio'};
+ rain:'rain',fire:'fire',still:'still',bed:'bed',radio:'radio',sail:'sail',bag_line:'rod',bag_water:'water',bag_can:'can',bag_med:'med',bag_rope:'rope',bag_tarp:'cloth',bag_radio:'radio'};
 // ================================================================ 소리 (음원이 없으면 합성음으로 대체)
 const Music={el:null,cur:'',on:true,vol:.5,src:null,gain:null,bufs:{},nat:null,hidden:false,
  play(key){if(this.cur===key)return;this.cur=key;if(!this.on||this.hidden)return;this._start(key)},
@@ -223,28 +223,29 @@ function give(r,why){for(const k in r){if(R)R.res[k]=(R.res[k]||0)+r[k];else sav
 
 // ================================================================ 1막: 몰락 (탈출)
 const ACT1_H=3400,AY=y=>Math.round(y*1.42);
-function startAct1(){const items=[['water',150,2180],['can',600,2080],['med',120,1900],['knife',640,1760],['lighter',330,1640],['rope',110,1460],['filter',620,1350],['line',200,1180],['tarp',560,1060],['radio',90,880],['flash',660,760],['tools',380,560],['water',540,1500],['can',240,980]];
- items.push(['med',600,2300],['rope',420,1300]);
- A={p:{x:375,y:ACT1_H-120,tx:375,ty:ACT1_H-120,hp:100,hit:0},bag:[],items:items.map(([k,x,y])=>({k,x,y:AY(y),got:false})),zs:[],front:ACT1_H+120,t:0,board:0,target:null,pick:0};
- const zp=[[300,2100,0],[520,1950,0],[200,1800,1],[450,1650,0],[600,1500,0],[300,1420,0],[160,1300,1],[520,1150,0],[420,1000,0],[620,800,1],[250,820,0],[500,560,0],[180,560,0],[600,380,1]];
+function startAct1(){const items=[['water',375,2290],['can',260,2200],['knife',490,2120],['lighter',300,1990],['med',470,1880],['rope',250,1760],['filter',500,1640],['line',300,1520],['tarp',480,1400],['water',260,1290],['radio',430,1170],['flash',280,1040],['can',500,930],['tools',380,800],['med',270,680],['rope',480,560]];
+ A={p:{x:375,y:ACT1_H-120,tx:375,ty:ACT1_H-120,hp:100,hit:0},bag:[],items:items.map(([k,x,y])=>({k,x,y:AY(y),got:false})),zs:[],front:ACT1_H+160,t:0,board:0,target:null,pick:0,fullCd:0};
+ const zp=[[520,1930,0],[230,1690,0],[520,1460,1],[240,1230,0],[520,1100,0],[230,880,1],[500,740,0],[250,500,0],[520,400,0]];
  A.zs=zp.map(([x,y,run],i)=>({x,y:AY(y),hx:x,hy:AY(y),run,a:0,hit:0,w:i*1.7}));
  sc='act1';camY=ACT1_H-H;tutStep=0;track('act1_start',{});
- tip('act1',[['회색병이 도시를 삼킨 지 사흘째. 구조용 전용기에 아직 연료가 남아 있다. 지금이 아니면 못 나간다.','灰病吞没城市的第三天。救援专机里还有燃油。现在不走，就走不了了。'],['화면을 누른 채 끌면 그 방향으로 달려요. 탭하면 그곳으로 걸어가요.','按住屏幕拖动即可朝该方向奔跑，点击则走到该处。'],['반짝이는 물건을 탭해 가방에 담고, 위쪽 비행기까지 달리세요.','点击发光的物品放进背包，然后跑向上方的飞机。'],['가방은 8칸뿐이에요. 무엇을 챙길지가 바다에서의 첫 3일을 정해요.','背包只有8格，带什么决定了海上的头三天。']])}
+ tip('act1',[['회색병이 도시를 삼킨 지 사흘째. 구조용 전용기에 아직 연료가 남아 있다. 지금이 아니면 못 나간다.','灰病吞没城市的第三天。救援专机里还有燃油。现在不走，就走不了了。'],['화면을 누른 채 끌면 그 방향으로 달려요. 탭하면 그곳으로 걸어가요.','按住屏幕拖动即可朝该方向奔跑，点击则走到该处。'],['빛나는 물건 위를 지나가기만 하면 자동으로 주워요. 위쪽 비행기까지 달리세요.','从发光的物品上走过就会自动捡起。跑向上方的飞机。'],['가방은 8칸뿐이에요. 무엇을 챙길지가 바다에서의 첫 3일을 정해요.','背包只有8格，带什么决定了海上的头三天。']])}
 function act1Tick(dt){const p=A.p;A.t+=dt;
- A.front-=15*dt;if(p.y>A.front-30){p.hp-=22*dt;if(frame%0.5<dt)message(L('불길이 다가온다! 위로 달려!','火势逼近！快往上跑！'),.8)}
+ if(A.t>8)A.front-=13*dt;if(p.y>A.front-30){p.hp-=18*dt;if(frame%0.5<dt)message(L('불길이 다가온다! 위로 달려!','火势逼近！快往上跑！'),.8)}
  if(A.board>0){A.board+=dt;if(A.board>2.6){track('act1_clear',{bag:A.bag.length,t:Math.round(A.t)});sc='zone';zoneT=0}return}
- moveTo(p,dt,185);
- if(A.target){const it=A.target;if(!it.got&&Math.hypot(p.x-it.x,p.y-it.y)<46){A.pick+=dt;if(A.pick>.35){A.pick=0;A.target=null;if(A.bag.length>=8){message(L('가방이 가득 찼어요. 아래 가방 칸을 탭하면 버릴 수 있어요','背包满了，点下方的背包格可以丢弃'),2.2)}else{it.got=true;A.bag.push(it.k);AudioFx.cue('pick');vib('light');fxText(it.x,it.y-30,LL(BAG[it.k].n),'#fff3c0')}}}}
- for(const z of A.zs){const d=Math.hypot(p.x-z.x,p.y-z.y),sp=z.run?150:105;if(d<240&&p.y<A.front){z.a=1}else if(d>420)z.a=0;
+ moveTo(p,dt,195);A.fullCd-=dt;
+ // 가까이 지나가면 자동으로 줍는다 (조이스틱·탭 공통)
+ for(const it of A.items){if(it.got)continue;const d=Math.hypot(p.x-it.x,p.y-it.y);if(it.wait){if(d>95)it.wait=false;continue}if(d<66){if(A.bag.length<8){it.got=true;A.bag.push(it.k);AudioFx.cue('pick');vib('light');tutStep=Math.max(tutStep,2);fxText(it.x,it.y-44,LL(BAG[it.k].n)+' · '+LL(BAG[it.k].d),'#fff3c0');track('act1_pick',{k:it.k})}else if(A.fullCd<=0){A.fullCd=3;message(L('가방이 가득 찼어요. 바꾸려면 아래 가방 칸을 탭해 내려놓으세요','背包满了。想换的话，点下方的背包格放下'),2.2)}}}
+ if(0&&A.target){const it=A.target;if(!it.got&&Math.hypot(p.x-it.x,p.y-it.y)<46){A.pick+=dt;if(A.pick>.35){A.pick=0;A.target=null;if(A.bag.length>=8){message(L('가방이 가득 찼어요. 아래 가방 칸을 탭하면 버릴 수 있어요','背包满了，点下方的背包格可以丢弃'),2.2)}else{it.got=true;A.bag.push(it.k);AudioFx.cue('pick');vib('light');fxText(it.x,it.y-30,LL(BAG[it.k].n),'#fff3c0')}}}}
+ for(const z of A.zs){const d=Math.hypot(p.x-z.x,p.y-z.y),sp=z.run?140:95;if(d<200&&p.y<A.front){z.a=1}else if(d>420)z.a=0;
   if(z.a){const k=sp*dt/Math.max(1,d);z.x+=(p.x-z.x)*k;z.y+=(p.y-z.y)*k}else{z.w+=dt;z.x=z.hx+Math.sin(z.w*.8)*40;z.y=z.hy+Math.cos(z.w*.6)*20}
-  z.hit-=dt;z.atkT=Math.max(0,(z.atkT||0)-dt);if(d<38&&z.hit<=0){z.hit=1;z.atkT=.5;p.hp-=16;AudioFx.cue('hurt');vib('medium');shake(10,.25);const k=50/Math.max(1,d);p.x+=(p.x-z.x)*k;p.y+=(p.y-z.y)*k;p.tx=p.x;p.ty=p.y}}
- p.x=Math.max(30,Math.min(W-30,p.x));p.y=Math.max(120,Math.min(ACT1_H-40,p.y));
+  z.hit-=dt;z.atkT=Math.max(0,(z.atkT||0)-dt);if(d<38&&z.hit<=0){z.hit=1;z.atkT=.5;p.hp-=10;AudioFx.cue('hurt');vib('medium');shake(10,.25);const k=50/Math.max(1,d);p.x+=(p.x-z.x)*k;p.y+=(p.y-z.y)*k;p.tx=p.x;p.ty=p.y}}
+ p.x=Math.max(p.y<340?140:195,Math.min(p.y<340?610:555,p.x));p.y=Math.max(120,Math.min(ACT1_H-40,p.y));
  if(p.y<300&&Math.hypot(p.x-375,p.y-210)<130){A.board=.01;AudioFx.cue('win');vib('long')}
  if(p.hp<=0){p.hp=0;fail('act1')}
  camY+=((p.y-H*.62)-camY)*Math.min(1,dt*5);camY=Math.max(0,Math.min(ACT1_H-H+180,camY))}
 function moveTo(p,dt,sp){const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);if(d>2){const k=Math.min(1,sp*dt/d);p.x+=dx*k;p.y+=dy*k}}
 function act1Tap(x,y){const wx=x,wy=y+camY;
- if(y>1150){for(let i=0;i<8;i++){const bx=24+i*89;if(x>bx&&x<bx+82&&A.bag[i]){const k=A.bag.splice(i,1)[0];A.items.push({k,x:A.p.x+(Math.random()*60-30),y:A.p.y+50,got:false});AudioFx.cue('ui');message(L('내려놓았어요: ','放下了：')+LL(BAG[k].n),1);return}}return}
+ if(y>1150){for(let i=0;i<8;i++){const bx=24+i*89;if(x>bx&&x<bx+82&&A.bag[i]){const k=A.bag.splice(i,1)[0];A.items.push({k,x:A.p.x+(Math.random()*60-30),y:A.p.y+50,got:false,wait:true});AudioFx.cue('ui');message(L('내려놓았어요: ','放下了：')+LL(BAG[k].n),1);return}}return}
  let best=null,bd=70;for(const it of A.items)if(!it.got){const d=Math.hypot(wx-it.x,wy-it.y);if(d<bd){bd=d;best=it}}
  if(best){A.target=best;A.p.tx=best.x;A.p.ty=best.y+8}else{A.target=null;A.p.tx=wx;A.p.ty=wy}tutStep=1}
 function drawAct1(){const p=A.p;g.fillStyle='#1b1d22';g.fillRect(0,0,W,H);g.save();g.translate(0,-camY);
@@ -259,7 +260,7 @@ function drawAct1(){const p=A.p;g.fillStyle='#1b1d22';g.fillRect(0,0,W,H);g.save
  if(!wsp('plane',375,210,300)){g.save();g.translate(375,210);g.fillStyle='#d8dde4';g.beginPath();g.ellipse(0,0,30,95,0,0,TAU);g.fill();g.fillRect(-120,-10,240,26);g.fillRect(-50,70,100,16);g.restore()}drawGlow(375,210,150,'y',.25+.1*Math.sin(frame*3));
  if(A.board>0)txt(L('탑승!','登机！'),375,330,34,'#ffe7a0','center');
  // 물건
- for(const it of A.items)if(!it.got){const B=BAG[it.k];drawGlow(it.x,it.y,40,'y',.35+.15*Math.sin(frame*4+it.x));if(!icon(ICON_OF['bag_'+it.k],it.x,it.y,52))rr(it.x-18,it.y-18,36,36,8,B.col,'#fff',2);txt(LL(B.n),it.x,it.y-34,15,'#fff3c0','center')}
+ for(const it of A.items)if(!it.got){const B=BAG[it.k];drawGlow(it.x,it.y,40,'y',.35+.15*Math.sin(frame*4+it.x));g.save();g.globalAlpha=.9;circ(it.x,it.y,34,'rgba(20,24,32,.55)','rgba(255,226,150,.9)',2.5);g.restore();bagIcon(it.k,it.x,it.y+Math.sin(frame*3+it.x)*2,56);txt(LL(B.n),it.x,it.y-48,17,'#fff3c0','center');txt(LL(B.d),it.x,it.y+48,13,'#dfe6ee','center')}
  // 감염체 (어두운 실루엣)
  for(const z of A.zs)drawInfected(z)
  drawHero(p,A.board?'idle':null,96);drawFx(0);
@@ -271,8 +272,8 @@ function drawAct1(){const p=A.p;g.fillStyle='#1b1d22';g.fillRect(0,0,W,H);g.save
  rr(24,120,300,22,11,'#20242c');rr(26,122,296*Math.max(0,p.hp)/100,18,9,p.hp>40?'#7fe0a0':'#ff7a7a');txt(L('체력','体力'),340,131,18,'#dfe6ee','left',false);
  // 가방
  rr(0,1140,W,194,0,'#11141aee');txt(L('가방 ','背包 ')+A.bag.length+'/8',24,1166,20,'#ffe2a0','left',false);txt(L('칸을 탭하면 내려놓기','点格子可以丢下'),726,1166,16,'#8a94a4','right',false);
- for(let i=0;i<8;i++){const bx=24+i*89,k=A.bag[i];rr(bx,1190,82,82,10,k?'#232a36':'#181c24',k?BAG[k].col:'#333a46',2);if(k){if(!icon(ICON_OF['bag_'+k],bx+41,1222,48))rr(bx+23,1203,36,36,6,BAG[k].col);txt(LL(BAG[k].n),bx+41,1256,13,'#e6ecf2','center',false)}}
- if(tutStep===0&&!guideTip){const it=A.items[0];drawFinger(it.x,it.y-camY+20)}}
+ for(let i=0;i<8;i++){const bx=24+i*89,k=A.bag[i];rr(bx,1190,82,82,10,k?'#232a36':'#181c24',k?BAG[k].col:'#333a46',2);if(k){bagIcon(k,bx+41,1222,50);txt(LL(BAG[k].n),bx+41,1256,13,'#e6ecf2','center',false)}}
+ if(tutStep===0&&!guideTip){const it=A.items[0];drawFinger(it.x,it.y-camY+30)}}
 let heroBusy=0,heroAct=null;function heroDo(a,t){heroAct={a,t:t||1.1}}
 function drawHero(p,force,h){const dx=p.x-(p.lx===undefined?p.x:p.lx),dy=p.y-(p.ly===undefined?p.y:p.ly);const mv=Math.hypot(dx,dy)>.4;if(Math.abs(dx)>.3)p.face=dx>0?1:-1;p.lx=p.x;p.ly=p.y;
  if(mv)p.mt=(p.mt||0)+1/60;const anim=force||(mv?(sc==='act1'?'run':'walk'):'idle');const fps=anim==='run'?14:anim==='walk'?11:anim==='idle'?6:anim==='sleep'?1.5:anim==='fish'?3:8;
@@ -283,6 +284,15 @@ function drawInfected(z){const dx=z.x-(z.lx===undefined?z.x:z.lx);if(Math.abs(dx
  const nm=z.run?'inf_runner':'inf_walker',hh=z.run?92:100;let ok2;if(z.hp<=0)ok2=sprite(nm,'down',z.dead||0,z.x,z.y+22,hh,z.face||-1,-6,Math.max(0,Math.min(1,(1.6-(z.dead||0))/.5)));else if(z.atkT>0)ok2=sprite(nm,'attack',.5-z.atkT,z.x,z.y+22,hh,z.face||-1,-8);else ok2=sprite(nm,'walk',z.wt,z.x,z.y+22,hh,z.face||-1,9);if(z.hp<=0&&!ok2)return;
  if(!ok2){circ(z.x,z.y,z.run?17:20,'#0b0c0f',z.a?'#7a5a5a':'#3a3c42',3);circ(z.x-6,z.y-5,2.5,'#c8b070');circ(z.x+6,z.y-5,2.5,'#c8b070')}
  if(z.a&&z.hp>0){txt('!',z.x,z.y-80,22,'#ffb08a','center')}}
+// 아직 그림이 없는 가방 물건은 같은 굵은 외곽선으로 직접 그린다
+function bagIcon(k,x,y,size){if(icon(ICON_OF['bag_'+k],x,y,size))return;const u=size/52,ol='#1c1410';g.save();g.translate(x,y);g.scale(u,u);g.lineJoin='round';g.lineWidth=3.2;g.strokeStyle=ol;
+ const P=(pts,fill)=>{g.beginPath();pts.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.closePath();g.fillStyle=fill;g.fill();g.stroke()};
+ if(k==='knife'){g.rotate(-.7);P([[-2,-24],[7,-16],[7,6],[-5,6],[-5,-14]],'#d9e0e6');P([[-7,6],[9,6],[9,10],[-7,10]],'#8a6a3a');P([[-4,10],[6,10],[6,24],[-4,24]],'#7a4a26')}
+ else if(k==='lighter'){P([[-10,-4],[10,-4],[10,22],[-10,22]],'#d86a2a');P([[-10,-12],[6,-12],[6,-4],[-10,-4]],'#b9c0c8');g.beginPath();g.moveTo(0,-13);g.quadraticCurveTo(-9,-22,0,-30);g.quadraticCurveTo(9,-22,0,-13);g.fillStyle='#ffc93a';g.fill();g.stroke()}
+ else if(k==='filter'){P([[-10,-22],[10,-22],[10,-14],[-10,-14]],'#3a7ab8');P([[-13,-14],[13,-14],[13,16],[-13,16]],'#bfe9ff');P([[-13,-2],[13,-2],[13,6],[-13,6]],'#5fb4e8');P([[-5,16],[5,16],[3,25],[-3,25]],'#8a9098')}
+ else if(k==='flash'){g.rotate(-.6);P([[-7,-4],[7,-4],[7,24],[-7,24]],'#5a626c');P([[-13,-18],[13,-18],[8,-4],[-8,-4]],'#8a929c');P([[-13,-22],[13,-22],[13,-18],[-13,-18]],'#fff3a0');g.fillStyle='#ffd24a';g.fillRect(-3,4,6,7)}
+ else if(k==='tools'){g.beginPath();g.moveTo(-9,-10);g.lineTo(-9,-19);g.lineTo(9,-19);g.lineTo(9,-10);g.lineWidth=5;g.stroke();g.lineWidth=3.2;P([[-22,-10],[22,-10],[22,18],[-22,18]],'#c0452e');P([[-22,-10],[22,-10],[22,-2],[-22,-2]],'#8f2f1e');P([[-4,-5],[4,-5],[4,3],[-4,3]],'#e8c84a')}
+ else{P([[-16,-16],[16,-16],[16,16],[-16,16]],BAG[k]?BAG[k].col:'#888')}g.restore()}
 function drawPlayer(x,y,face){g.save();circ(x,y+18,16,'rgba(0,0,0,.35)');circ(x,y,17,'#e9e2d2','#1a1a1a',3);circ(x,y-4,6,'#3a3a3a');drawGlow(x,y-8,22,'y',.35);g.restore()}
 function hudBar(a,b){rr(0,0,W,104,0,'#0d1016e6');txt(a,24,40,26,'#ffe2a0','left',false);txt(b,24,78,19,'#c9d2de','left',false);button(646,22,82,60,'II','dark',26,()=>{paused=true})}
 function fxText(x,y,s,col){const n=fx.filter(f=>f.t<.6&&Math.abs(f.x-x)<120&&Math.abs(f.y-y)<80).length;fx.push({x,y:y-n*28,s,col,t:0})}
