@@ -1,5 +1,7 @@
 /* ============================== 플랫폼 층: 화면·터치·저장·소리·광고·통계는 여기에만 둔다 ==============================
    위챗(wx)·더우인(tt)으로 옮길 때 이 파일만 손보면 된다. */
+/* 게임 이름: 출시 전까지 한국어 하나로 쓴다. 중국 출시 때 GAME_NAME 의 둘째 값만 团团海滩夜市 로 바꾸면 된다 */
+const GAME_NAME=['해변야시장','해변야시장'];
 const BUILD='@@BUILD@@';
 const PLAT=typeof wx!=='undefined'?'wx':typeof tt!=='undefined'?'tt':'web';
 const API=PLAT==='wx'?wx:PLAT==='tt'?tt:null;
@@ -162,9 +164,9 @@ function showAd(place,cb){track('ad_open',{place});const id=API?AD_UNIT[PLAT]:''
       adInst.onClose(done);adInst.show().catch(()=>adInst.load().then(()=>adInst.show()).catch(()=>{adInst.offClose(done);toast(L('광고를 불러오지 못했어요','广告加载失败'));cb(false);}));return;}catch(e){}}
   adOv={t:2,place,cb};}
 function adTick(dt){if(!adOv)return;adOv.t-=dt;if(adOv.t<=0){const a=adOv;adOv=null;track('ad_reward',{place:a.place});a.cb(true);}}
-function shareGame(){track('share');const title=L('퇀퇀 해변 야시장: 배고픈 바다 손님을 배불려 돌려보내요!','团团海滩夜市：把馋嘴小海怪喂饱送回家！');
+function shareGame(){track('share');const title=LL(GAME_NAME)+L(': 배고픈 바다 손님을 배불려 돌려보내요!','：把馋嘴小海怪喂饱送回家！');
   try{if(API&&API.shareAppMessage)API.shareAppMessage({title});else if(navigator.share)navigator.share({title,url:location.href.split('?')[0]}).catch(()=>{});else toast(L('주소를 복사해 친구에게 보내 주세요','复制网址发给朋友吧'));}catch(e){}}
-if(API){try{API.showShareMenu&&API.showShareMenu({});API.onShareAppMessage&&API.onShareAppMessage(()=>({title:L('퇀퇀 해변 야시장','团团海滩夜市')}));}catch(e){}}
+if(API){try{API.showShareMenu&&API.showShareMenu({});API.onShareAppMessage&&API.onShareAppMessage(()=>({title:LL(GAME_NAME)}));}catch(e){}}
 
 /* ---------- 터치 ---------- */
 const PTR={x:0,y:0,sx:0,sy:0,down:false,moved:false};
