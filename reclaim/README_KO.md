@@ -1,6 +1,6 @@
 # RECLAIM: 돌아온 땅 — G1 도형 프로토타입 (A트랙 미니게임판)
 
-빌드 1117-1700 (가방 아이콘 5종을 ChatGPT 그림으로 교체) · 웹 테스트판 (토스 앱인토스·위챗·더우인 공통 game.js)
+빌드 1117-2000
 
 ## 들어 있는 것
 - 1막 탈출: 탭해서 이동, 가방 8칸 고르기, 아래에서 올라오는 불길, 감염체 피하기, 비행기 탑승
@@ -15,13 +15,23 @@
 game.js의 `AD_UNIT` (wx / tt / toss). 토스는 G3에서 앱인토스 SDK 광고를 `globalThis.__tossAd(place, onReward, onFail)`로 연결.
 
 ## 통계 이벤트 (관리자 화면에 같은 이름으로 등록)
-act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, g1_feedback, quest, rescue, bottle, ch1_clear, ad_open, ad_reward, share, guide_open, app_hide, draw_error
+act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, g1_feedback, quest, rescue, bottle, ch1_clear, reclaim, barricade, flow_lost, flow_held, ch2_clear, act1_pick, ad_open, ad_reward, share, guide_open, app_hide, draw_error
 
 ## 테스트 결과 (이번 빌드)
 - 한국어·중국어 전 화면 캡처, 중국어 화면 한글 누수 0건
 - 그리기 포함 자동 플레이(해역 3종 × 4일) 그리기 오류 0건
 - 위챗 흉내 환경: 오류 0건, 오디오 서브패키지·일시정지 동작
 - 시간대/언어별 첫 언어: 중국 → 중국어, 한국 → 한국어
+
+## 1117-2000 변경 (2장 「항구 수복」 + 조작 안내 + 바다 배경)
+- 2장: [항구 지도]에서 부두 → 시장 → 발전소 → 중앙 광장 순서로 원정. 구역의 감염 둥지를 모두 태우고 배로 돌아오면 수복
+  - 수복한 구역은 매일 아침 보급을 줌 / 며칠마다 감염 역류 → 방벽(판자 6·고철 3·밧줄 2) 없는 구역은 다시 감염
+  - 부두 수복 시 등대지기 마루 합류(밤 도둑질 방지) / 2장 목표 7개, 항구 무전 5편, 2장 엔딩
+  - 수복한 구역만큼 수평선 항구에 불빛이 켜짐
+- 조작 안내: 불 붙이기·굽기·먹기·마시기·몸 녹이기·수리·치료를 처음 필요한 순간에 한 번씩 알려 줌. 먹고 마실 수 있을 때 위쪽 칸에 "▸먹기/▸마시기" 표시
+- 바다 배경: 무늬를 옅게 깔고 잔물결·배 둘레 물거품·가장자리 음영으로 다시 구성
+- 안내창이 겹치지 않고 차례로 뜸
+- 새 통계 이벤트: reclaim, barricade, flow_lost, flow_held, ch2_clear
 
 ## 1117-1640 변경 (1막 탈출 쉽게)
 - 물건 위를 지나가면 자동으로 줍기 (이전: 조이스틱으로 움직이면 줍기가 아예 안 됐음)
