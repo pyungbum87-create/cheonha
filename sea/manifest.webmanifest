@@ -1,7 +1,7 @@
 {
- "name": "深海神殿守卫",
- "short_name": "深海神殿守卫",
- "lang": "zh-CN",
+ "name": "심해 신전 수비대",
+ "short_name": "심해 신전 수비대",
+ "lang": "ko",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",

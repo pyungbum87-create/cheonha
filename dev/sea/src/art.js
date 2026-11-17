@@ -53,8 +53,8 @@ function renderBg(M){
   for(const cvp of M.caves){const X=cvp[0],Y=cvp[1];if(IMG.abyss_rift){const w=118,h=w*IMG.abyss_rift.height/IMG.abyss_rift.width;x.drawImage(IMG.abyss_rift,X-w/2,Y-h/2,w,h);continue;}gr=x.createRadialGradient(X,Y,2,X,Y,44);gr.addColorStop(0,'#05000c');gr.addColorStop(.55,'rgba(30,0,50,.85)');gr.addColorStop(1,'rgba(30,0,50,0)');
     x.fillStyle=gr;x.beginPath();x.ellipse(X,Y,46,30,0,0,7);x.fill();x.strokeStyle='rgba(199,125,255,.5)';x.lineWidth=2;for(let k=0;k<2;k++){x.beginPath();x.ellipse(X,Y,22+k*10,12+k*7,0,0,7);x.stroke();}}
   // 떠 있는 바위섬(수호탑 자리): 아래 멀리 그림자, 뾰족한 밑바닥, 이끼·산호 윗면
-  for(const s of M.spots){const r2=rng(s.x*7+s.y*13);if(IMG.islet){x.fillStyle='rgba(0,15,25,.28)';x.beginPath();x.ellipse(s.x+6,s.y+36,24,8,0,0,7);x.fill();continue;}
-    x.fillStyle='rgba(0,15,25,.28)';x.beginPath();x.ellipse(s.x+6,s.y+36,24,8,0,0,7);x.fill();
+  for(const s of M.spots){const r2=rng(s.x*7+s.y*13);if(IMG.islet){x.fillStyle='rgba(0,15,25,.28)';x.beginPath();x.ellipse(s.x+5,s.y+32,20,7,0,0,7);x.fill();continue;}
+    x.fillStyle='rgba(0,15,25,.28)';x.beginPath();x.ellipse(s.x+5,s.y+32,20,7,0,0,7);x.fill();
     x.fillStyle='#26404a';x.beginPath();x.moveTo(s.x-27,s.y+2);x.lineTo(s.x-14,s.y+16);x.lineTo(s.x-6,s.y+28+r2()*6);x.lineTo(s.x+3,s.y+18);x.lineTo(s.x+10,s.y+24+r2()*6);x.lineTo(s.x+20,s.y+12);x.lineTo(s.x+27,s.y+2);x.closePath();x.fill();
     x.fillStyle='#1a2e36';x.beginPath();x.moveTo(s.x,s.y+6);x.lineTo(s.x-6,s.y+28);x.lineTo(s.x+3,s.y+18);x.closePath();x.fill();
     gr=x.createLinearGradient(0,s.y-16,0,s.y+10);gr.addColorStop(0,'#5a9a78');gr.addColorStop(1,'#2e5c52');x.fillStyle=gr;x.beginPath();x.ellipse(s.x,s.y,28,16,0,0,7);x.fill();
@@ -84,7 +84,7 @@ function drawTower(x,t,time,sel){
   let tim=null;for(let l=lv;l>=1&&!tim;l--)tim=IMG['tw_'+t.k+'_'+l];
   if(tim){const aim=t.k==='coral'||t.k==='conch',dir=aim&&Math.cos(t.ang==null?0:t.ang)<0?-1:1,bob=t.spot===undefined?0:islBob(t.spot,time);
     if(t.vF===undefined)t.vF=dir;t.vF+=(dir-t.vF)*Math.min(1,FDT*8);const vf=Math.abs(t.vF)<.2?(t.vF<0?-.2:.2):t.vF,sq=1+kick*.08,sway=t.k==='jelly'?Math.sin(time*1.6+X)*.025:0;
-    x.save();x.translate(X+(aim?-dir*kick*2.5:0),Y+14+bob);x.rotate(sway);x.scale(vf*s/sq,s*sq);drawImg(x,tim,0,0,Math.min(46,52*tim.width/tim.height));x.restore();
+    x.save();x.translate(X+(aim?-dir*kick*2.5:0),Y+11+bob);x.rotate(sway);x.scale(vf*s/sq,s*sq);drawImg(x,tim,0,0,Math.min(38,44*tim.width/tim.height));x.restore();
     if(kick>.55){x.globalCompositeOperation='lighter';glow(x,X+(aim?dir*14:0),Y-22+bob,22,hexA(c,.9),(kick-.55)*2);x.globalCompositeOperation='source-over';}}
   else{
   oct(x,X,Y+2,18*s,'#26313a',lv>=2?'#e8c45a':'#5c6b74',lv>=3?2.5:1.5);
@@ -111,7 +111,7 @@ function drawTower(x,t,time,sel){
     const p=.6+.4*Math.sin(time*4);glow(x,0,-14,18,'rgba(199,125,255,.7)',p);x.fillStyle=`rgba(220,170,255,${.5+.3*p})`;x.beginPath();x.ellipse(0,-13,6,10,0,0,7);x.fill();
     x.save();x.translate(0,-40+Math.sin(time*2)*2);x.rotate(time);x.strokeStyle='#e6c8ff';x.lineWidth=1.5;x.beginPath();x.moveTo(0,-5);x.lineTo(5,0);x.lineTo(0,5);x.lineTo(-5,0);x.closePath();x.stroke();x.restore();}
   x.restore();}
-  if(lv>=3){x.fillStyle='#ffd76a';x.beginPath();const cy=Y-(tim?40:48)+Math.sin(time*3)*1.5;x.moveTo(X-6,cy+4);x.lineTo(X-6,cy-2);x.lineTo(X-3,cy+1);x.lineTo(X,cy-4);x.lineTo(X+3,cy+1);x.lineTo(X+6,cy-2);x.lineTo(X+6,cy+4);x.closePath();x.fill();}
+  if(lv>=3){x.fillStyle='#ffd76a';x.beginPath();const cy=Y-(tim?38:48)+Math.sin(time*3)*1.5;x.moveTo(X-6,cy+4);x.lineTo(X-6,cy-2);x.lineTo(X-3,cy+1);x.lineTo(X,cy-4);x.lineTo(X+3,cy+1);x.lineTo(X+6,cy-2);x.lineTo(X+6,cy+4);x.closePath();x.fill();}
   if(lv>=4){x.save();x.translate(X,Y+2);x.rotate(time*.8);x.strokeStyle='rgba(255,215,106,.85)';x.lineWidth=2;x.setLineDash([5,5]);x.beginPath();x.ellipse(0,0,26,15,0,0,7);x.stroke();x.setLineDash([]);x.restore();glow(x,X,Y-20,34,hexA(c,.35),.6+.3*Math.sin(time*3));}
   if(t.hasteT>0){x.strokeStyle=`rgba(255,230,120,${.5+.3*Math.sin(time*12)})`;x.lineWidth=2;x.beginPath();x.ellipse(X,Y+2,22,12,0,0,7);x.stroke();}
   if(t.ink>0){x.fillStyle='rgba(10,5,20,.85)';for(const q of[[-8,-14,9],[6,-20,8],[2,-6,10],[-3,-26,6]]){x.beginPath();x.arc(X+q[0],Y+q[1],q[2],0,7);x.fill();}

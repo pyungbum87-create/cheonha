@@ -20,7 +20,7 @@ const cleared=()=>{let n=0;while(n<SV.stars.length&&SV.stars[n]>0)n++;return n;}
 let LANG=(()=>{const q=QS.get('lang');if(q==='zh'||q==='ko')return q;if(SV.lang==='zh'||SV.lang==='ko')return SV.lang;
   const l=navigator.language||'';return /^ko/i.test(l)?'ko':'zh';})();
 const LL=a=>a[LANG==='zh'?1:0],L=(ko,zh)=>LANG==='zh'?zh:ko;
-const FONT='"PingFang SC","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic","Microsoft YaHei",sans-serif';
+const FONT='"DS","PingFang SC","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic","Microsoft YaHei",sans-serif';
 /* ---------- 터치 ---------- */
 const INPUT={down:null,taps:[]};
 function toLogic(ev){const r=cv.getBoundingClientRect();return {x:(ev.clientX-r.left)/r.width*W,y:(ev.clientY-r.top)/r.height*H};}
@@ -83,3 +83,5 @@ function startMusic(){setInterval(()=>{if(!AC||!BG)return;BG.gain.value=SV.opt.b
 function pluck(f,t0,v){const o=AC.createOscillator(),gn=AC.createGain();o.type='triangle';o.frequency.value=f;gn.gain.setValueAtTime(0,t0);gn.gain.linearRampToValueAtTime(v,t0+.01);gn.gain.exponentialRampToValueAtTime(.001,t0+.9);o.connect(gn);gn.connect(BG);o.start(t0);o.stop(t0+1);}
 function pad(f,dur){const t0=mNext;[1,1.5,2.01].forEach(m=>{const o=AC.createOscillator(),gn=AC.createGain();o.type='sine';o.frequency.value=f*m;gn.gain.setValueAtTime(0,t0);gn.gain.linearRampToValueAtTime(.05,t0+dur*.4);gn.gain.linearRampToValueAtTime(0,t0+dur);o.connect(gn);gn.connect(BG);o.start(t0);o.stop(t0+dur+.05);});}
 function vib(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}}
+
+try{if(document.fonts){document.fonts.load('900 16px DS');document.fonts.load('700 16px DS');}}catch(e){}

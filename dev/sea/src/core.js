@@ -32,12 +32,12 @@ function buildMap(si){
   const cands=[];
   for(let y=84;y<=680;y+=6)for(let x=26;x<=424;x+=6){
     let md=1e9;for(const p of pts){const d=(p[0]-x)*(p[0]-x)+(p[1]-y)*(p[1]-y);if(d<md)md=d;}md=Math.sqrt(md);
-    if(md<38||md>60||dist(x,y,TEMPLE.x,TEMPLE.y)<100||(Math.abs(x-TEMPLE.x)<92&&y>TEMPLE.y-118)||caves.some(c=>dist(x,y,c[0],c[1])<50)||Object.values(gates).some(g=>dist(x,y,g.x,g.y)<34))continue;
+    if(md<45||md>66||dist(x,y,TEMPLE.x,TEMPLE.y)<100||(Math.abs(x-TEMPLE.x)<92&&y>TEMPLE.y-118)||caves.some(c=>dist(x,y,c[0],c[1])<50)||Object.values(gates).some(g=>dist(x,y,g.x,g.y)<34))continue;
     const near=[];cov.forEach((p,i)=>{if(dist(x,y,p[0],p[1])<105)near.push(i);});cands.push({x,y,near});
   }
   for(let k=0;k<S.spots;k++){
     let best=null,bs=-1;
-    for(const c of cands){if(spots.some(s=>dist(s.x,s.y,c.x,c.y)<58))continue;let sc=0;for(const i of c.near)sc+=1/(1+cnt[i]*1.6);if(sc>bs){bs=sc;best=c;}}
+    for(const c of cands){if(spots.some(s=>dist(s.x,s.y,c.x,c.y)<52))continue;let sc=0;for(const i of c.near)sc+=1/(1+cnt[i]*1.6);if(sc>bs){bs=sc;best=c;}}
     if(!best)break;spots.push({x:best.x,y:best.y});for(const i of best.near)cnt[i]++;
   }
   return MAPS[si]={si,name:Ldef.name,segs,start:Ldef.start,next:Ldef.next,gates,cur,vents,spots,caves};
