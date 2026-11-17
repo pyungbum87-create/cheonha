@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""퇀퇀 해변 수비대 빌드: src/*.js 를 game.js 한 장으로 묶고 site/ 를 만든다.  python3 build.py"""
+"""퇀퇀 해변 야시장 빌드: src/*.js 를 game.js 한 장으로 묶고 site/ 를 만든다.  python3 build.py"""
 import os, shutil, json, time
 from PIL import Image
 ROOT = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.join(ROOT, 'src'); OUT = os.path.join(ROOT, 'site')
@@ -12,7 +12,7 @@ os.makedirs(os.path.join(OUT, 'art'))
 open(os.path.join(OUT, 'game.js'), 'w', encoding='utf-8').write(js)
 arts = sorted(os.listdir(os.path.join(ROOT, 'art')))
 for a in arts: shutil.copy(os.path.join(ROOT, 'art', a), os.path.join(OUT, 'art', a))
-TITLE = '团团守海滩'
+TITLE = '团团海滩夜市'
 html = f'''<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta http-equiv="Cache-Control" content="no-cache"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/><title>{TITLE}</title>
 <link rel="manifest" href="manifest.webmanifest"/><link rel="apple-touch-icon" href="apple-touch-icon.png"/><link rel="icon" type="image/png" href="icon-192.png"/>

@@ -1,4 +1,4 @@
-# 团团守海滩 (퇀퇀 해변 수비대) — 개발용 원본
+# 团团海滩夜市 (퇀퇀 해변 야시장) — 개발용 원본
 
 - 테스트 주소: https://pyungbum87-create.github.io/cheonha/beach/  (한국어로 보기: 끝에 `?lang=ko`, 설정에서도 바꿀 수 있음)
 - 기획서: https://claude.ai/artifact/K5x7BMHFzr7cv9X7QRKJ6G · 시리즈 설계서: https://claude.ai/artifact/4iYUuvcCRffqksrTfJ2C4Q

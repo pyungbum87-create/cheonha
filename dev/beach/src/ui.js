@@ -57,7 +57,7 @@ function backdrop(dim){g.drawImage(BG,0,0);g.fillStyle='rgba(255,246,228,'+(dim|
 
 function drawLoad(){
   g.fillStyle='#bfe9f5';g.fillRect(0,0,VW,VH);const n=MUST.filter(k=>IMG[k]).length,p=n/MUST.length;
-  txt(L('퇀퇀 해변 수비대','团团守海滩'),375,520,64,'#fff','center',INK,16);bar(175,640,400,40,p,MINT);
+  txt(L('퇀퇀 해변 야시장','团团海滩夜市'),375,520,64,'#fff','center',INK,16);bar(175,640,400,40,p,MINT);
   txt(APP.loadT>6?L('인터넷이 느려 시간이 걸리고 있어요','网络较慢，请稍等一下'):L('해변으로 가는 중…','正在前往海滩…'),375,720,26,INK);
   if(p>=1||APP.loadT>25){if(p<1)toast(L('그림을 다 받지 못했어요. 새로고침해 주세요','部分图片未加载，请刷新重试'));track('load_done',{sec:Math.round(APP.loadT),ok:p>=1?1:0});goHome();}
 }
@@ -67,7 +67,7 @@ function drawHome(){
   panel(20,30,210,70,CREAM,22);icoCoin(54,65,19);txtFit(S.coins,132,66,30,130,INK);
   btn(646,26,84,78,'',()=>{sfx('btn');scr='settings';},{col:CREAM,dk:'#d9c8a8',icon:(x,y)=>{g.fillStyle=INK;for(let i=-1;i<2;i++){rr(x-20,y+i*15-4,40,8,4);g.fill();}}});
   btn(552,26,84,78,'?',()=>{sfx('btn');APP.page=0;scr='guide';track('guide_open');},{col:CREAM,dk:'#d9c8a8',tc:INK,sz:44});
-  txt(L('퇀퇀 해변 수비대','团团守海滩'),375,196,LANG==='zh'?92:74,'#fff','center',INK,20);
+  txt(L('퇀퇀 해변 야시장','团团海滩夜市'),375,196,LANG==='zh'?92:74,'#fff','center',INK,20);
   txt(L('간식 가게를 차려 배고픈 바다 손님을 배불려 돌려보내요','摆好小吃摊，把馋嘴的小海怪喂饱送回家'),375,268,25,INK,'center','#fff',6);
   own.forEach((id,i)=>{const n=own.length,x=375+(i-(n-1)/2)*(n>4?112:128),b=Math.sin(t*3+i)*.03;drawImg(id==='tt'?'tt_cheer':HERO_IMG[id],x,520,id==='tt'?180:150,{sx:1+b,sy:1-b});});
   panel(60,560,630,330,CREAM,36);

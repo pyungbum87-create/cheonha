@@ -156,9 +156,9 @@ function showAd(place,cb){track('ad_open',{place});const id=API?AD_UNIT[PLAT]:''
       adInst.onClose(done);adInst.show().catch(()=>adInst.load().then(()=>adInst.show()).catch(()=>{adInst.offClose(done);toast(L('광고를 불러오지 못했어요','广告加载失败'));cb(false);}));return;}catch(e){}}
   adOv={t:2,place,cb};}
 function adTick(dt){if(!adOv)return;adOv.t-=dt;if(adOv.t<=0){const a=adOv;adOv=null;track('ad_reward',{place:a.place});a.cb(true);}}
-function shareGame(){track('share');const title=L('퇀퇀 해변 수비대: 배고픈 바다 손님을 배불려 돌려보내요!','团团守海滩：把馋嘴小海怪喂饱送回家！');
+function shareGame(){track('share');const title=L('퇀퇀 해변 야시장: 배고픈 바다 손님을 배불려 돌려보내요!','团团海滩夜市：把馋嘴小海怪喂饱送回家！');
   try{if(API&&API.shareAppMessage)API.shareAppMessage({title});else if(navigator.share)navigator.share({title,url:location.href.split('?')[0]}).catch(()=>{});else toast(L('주소를 복사해 친구에게 보내 주세요','复制网址发给朋友吧'));}catch(e){}}
-if(API){try{API.showShareMenu&&API.showShareMenu({});API.onShareAppMessage&&API.onShareAppMessage(()=>({title:L('퇀퇀 해변 수비대','团团守海滩')}));}catch(e){}}
+if(API){try{API.showShareMenu&&API.showShareMenu({});API.onShareAppMessage&&API.onShareAppMessage(()=>({title:L('퇀퇀 해변 야시장','团团海滩夜市')}));}catch(e){}}
 
 /* ---------- 터치 ---------- */
 const PTR={x:0,y:0,sx:0,sy:0,down:false,moved:false};
