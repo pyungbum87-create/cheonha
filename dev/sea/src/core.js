@@ -86,8 +86,7 @@ class Game{
   cmd(k,x,y){if(!this.cmdReady(k))return false;const C=CMD[k],h=this.hero,m=this.tw('hero')*(1+.22*(h.lv-1))*(1+this.B.hero);
     if(k==='slam'){for(const e of this.enemies)if(!e.dead&&dist(e.x,e.y,h.x,h.y)<C.r+e.r){this.hurt(e,C.dmg*m,'exp');e.stun=Math.max(e.stun,isBoss(e.k)?.3:C.stun);}this.ev.push({t:'slam',x:h.x,y:h.y,r:C.r});}
     else if(k==='torpedo'){for(const e of this.enemies)if(!e.dead&&dist(e.x,e.y,x,y)<C.r+e.r)this.hurt(e,C.dmg*m*(dist(e.x,e.y,x,y)<C.r*.5?1:.7),'exp');this.ev.push({t:'torp',x,y,r:C.r});}
-    else{for(const e of this.enemies){if(e.dead)continue;this.hurt(e,C.dmg*m,'mag');if(e.dead||isBoss(e.k))continue;const pu=Math.min(e.d,C.push*(e.k==='elite'?.5:1));e.d-=pu;e.prog-=pu;e.slow=Math.max(e.slow,C.slow);e.slowT=Math.max(e.slowT,C.slowT);
-        const P=segPos(this.M.segs[e.seg],e.d);e.x=P.x;e.y=P.y;}this.ev.push({t:'tide'});}
+    else{for(const e of this.enemies){if(e.dead)continue;this.hurt(e,C.dmg*m,'mag');if(e.dead||isBoss(e.k))continue;e.kb=C.push*(e.k==='elite'?.5:1);e.slow=Math.max(e.slow,C.slow);e.slowT=Math.max(e.slowT,C.slowT);}this.ev.push({t:'tide'});}
     this.cmdCd[k]=C.cd*this.B.heroCd;this.cmdUsed++;return true;}
   callWave(){if(this.state==='prep'){this.requestWave();return true;}
     if(this.state!=='run'||this.spawning||this.wave>=this.S.waves)return false;
@@ -138,7 +137,7 @@ class Game{
     e.hp-=d;if(e.hp<=0)this.kill(e);
   }
   kill(e){
-    e.dead=true;const E=ENEMIES[e.k],gg=E.gold;this.gold+=gg;this.kills++;this.ev.push({t:'kill',x:e.x,y:e.y,k:e.k,g:gg});
+    e.dead=true;const E=ENEMIES[e.k],gg=E.gold;this.gold+=gg;this.kills++;this.ev.push({t:'kill',x:e.x,y:e.y,k:e.k,g:gg,f:Math.cos(e.a)<0?-1:1});
     const h=this.hero;h.xp+=E.cost||8;while(h.lv<HERO.lvXp.length&&h.xp>=HERO.lvXp[h.lv]){h.lv++;this.ev.push({t:'hlv',x:h.x,y:h.y});}
     const at={seg:e.seg,d:e.d,prog:e.prog};
     if(E.split&&this.si>=(E.from||0))for(let i=0;i<E.split;i++)this.spawn('minnow',0,e.mhp/E.hp*.9,at);
@@ -156,7 +155,7 @@ class Game{
     if(this.hasteT>0)this.hasteT-=dt;for(const k in this.cmdCd)if(this.cmdCd[k]>0)this.cmdCd[k]-=dt;
     const cmdrs=this.enemies.filter(e=>!e.dead&&ENEMIES[e.k].command),minn=this.enemies.filter(e=>!e.dead&&e.k==='minnow');
     for(const e of this.enemies){
-      if(e.dead)continue;const E=ENEMIES[e.k],on=this.si>=(E.from||0);
+      if(e.dead)continue;const E=ENEMIES[e.k],on=this.si>=(E.from||0);e.ox=e.x;e.oy=e.y;
       if(e.spawnT>0)e.spawnT-=dt;if(e.hitT>0)e.hitT-=dt;e.lastHit+=dt;
       if(e.slowT>0){e.slowT-=dt;if(e.slowT<=0)e.slow=0;}
       if(e.stun>0)e.stun-=dt;if(e.trap>0)e.trap-=dt;if(e.lift>0)e.lift-=dt;if(e.dashT>0)e.dashT-=dt;
@@ -172,6 +171,7 @@ class Game{
       if(E.ink&&on){e.iT-=dt;if(e.iT<=0){let bt=null,bd=E.ink[1];for(const t of this.towers){const d=dist(t.x,t.y,e.x,e.y);if(d<bd&&t.ink<=0){bd=d;bt=t;}}
         if(bt){bt.ink=E.ink[2];e.iT=E.ink[0];this.ev.push({t:'ink',x:e.x,y:e.y,tx:bt.x,ty:bt.y});}else e.iT=1;}}
       if(E.ph){const P=E.ph[e.bossPh];if(P&&e.hp/e.mhp<P[0]){e.bossPh++;this.bossAct(e,P);}}
+      if(e.kb>0){const st=Math.min(e.kb,240*dt,e.d);e.kb=st<=0?0:e.kb-st;e.d-=st;e.prog-=st;const P=segPos(M.segs[e.seg],e.d);e.x=P.x;e.y=P.y;continue;}
       if(e.stun>0||e.trap>0||e.lift>0)continue;
       let v=e.sp*(1-e.slow)*(e.dashT>0?E.dash:1)*(this.hasteT>0?1+this.hasteMul:1);
       if(E.school&&on){let c=0;for(const o of minn)if(o!==e&&Math.abs(o.x-e.x)<40&&Math.abs(o.y-e.y)<40&&++c>=4)break;if(c>=4){v*=1+E.school;e.schooling=true;}else e.schooling=false;}
@@ -263,7 +263,7 @@ class Game{
     this.hurt(tg,p.dmg,p.cls);if(p.br==='venom'&&!tg.dead){tg.poiT=3;tg.poiD=p.dmg*.45;if(!tg.shred){tg.shred=1;tg.armor=Math.max(0,tg.armor-.15);}}this.ev.push({t:'hit',x:tg.x,y:tg.y,k:p.kind});
   }
   heroTick(dt){
-    const h=this.hero;if(h.atk>0)h.atk-=dt*4;h.moving=false;
+    const h=this.hero;h.ox=h.x;h.oy=h.y;if(h.atk>0)h.atk-=dt*4;h.moving=false;
     if(h.tx!==null){const dx=h.tx-h.x,dy=h.ty-h.y,d=Math.hypot(dx,dy),st=HERO.sp*dt;if(d<=st){h.x=h.tx;h.y=h.ty;h.tx=null;}else{h.x+=dx/d*st;h.y+=dy/d*st;h.face=dx>=0?1:-1;h.moving=true;}}
     h.cd-=dt;if(h.cd>0)return;
     let best=null,bd=HERO.range;for(const e of this.enemies){if(e.dead||e.spawnT>.45)continue;const d=dist(e.x,e.y,h.x,h.y);if(d<bd+e.r*.5&&(!best||e.prog>best.prog)){best=e;}}
