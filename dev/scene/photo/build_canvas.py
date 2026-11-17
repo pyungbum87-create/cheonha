@@ -15,6 +15,8 @@ def pics(dst):
     for f in os.listdir(S+'/music'):shutil.copy(S+'/music/'+f,dst+'/audio/'+f)
 # ---- web
 W=O+'/web';pics(W);open(W+'/game.js','w',encoding='utf-8').write(js)
+# the older page at this address registered an offline helper; this one removes it and its saved copies
+open(W+'/sw.js','w').write("self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('tttown-')).map(k=>caches.delete(k)))).then(()=>self.registration.unregister())));\n")
 for f in ('icon-192.png','icon-512.png','apple-touch-icon.png','manifest.webmanifest'):shutil.copy(S+'/'+f,W+'/'+f)
 open(W+'/index.html','w',encoding='utf-8').write(f'''<!doctype html>
 <html lang="zh-CN">
