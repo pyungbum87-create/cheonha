@@ -4,7 +4,7 @@ const ART=@@ART@@,IMG={};let artVer=0;
 for(const n of ART){const im=new Image();im.onload=()=>{IMG[n]=im;artVer++;};im.src='art/'+n+'.webp?v='+BUILD;}
 /* 그림 속 생물이 보는 방향(1=오른쪽)과 화면 폭(논리 px) */
 const EFACE={};   // 받은 그림은 모두 오른쪽을 봄(왼쪽을 보는 그림이면 -1)
-const EW={minnow:30,crab:50,eel:62,ray:60,angler:54,squid:56,horseshoe:54,turtle:66,elite:44,boss:120};
+const EW={minnow:27,crab:46,eel:62,ray:60,angler:54,squid:56,horseshoe:54,turtle:66,elite:44,boss:120};
 /* 움직임: 그림은 한 장, 동작은 코드가 만든다. AL = 틱 사이 보간(0~1), FDT = 이번 장면 시간
    GAIT = [걸음새, 간 거리당 박자, 꼬리 흔들림(몸 높이 비율), 조각 수]. 박자는 '간 거리'에 맞춰 돌아서 느려지면 헤엄도 느려지고 멈추면 멈춘다 */
 let AL=1,FDT=.016;
@@ -84,7 +84,7 @@ function drawTower(x,t,time,sel){
   let tim=null;for(let l=lv;l>=1&&!tim;l--)tim=IMG['tw_'+t.k+'_'+l];
   if(tim){const aim=t.k==='coral'||t.k==='conch',dir=aim&&Math.cos(t.ang==null?0:t.ang)<0?-1:1,bob=t.spot===undefined?0:islBob(t.spot,time);
     if(t.vF===undefined)t.vF=dir;t.vF+=(dir-t.vF)*Math.min(1,FDT*8);const vf=Math.abs(t.vF)<.2?(t.vF<0?-.2:.2):t.vF,sq=1+kick*.08,sway=t.k==='jelly'?Math.sin(time*1.6+X)*.025:0;
-    x.save();x.translate(X+(aim?-dir*kick*2.5:0),Y+14+bob);x.rotate(sway);x.scale(vf*s/sq,s*sq);drawImg(x,tim,0,0,Math.min(44,48*tim.width/tim.height));x.restore();
+    x.save();x.translate(X+(aim?-dir*kick*2.5:0),Y+14+bob);x.rotate(sway);x.scale(vf*s/sq,s*sq);drawImg(x,tim,0,0,Math.min(46,52*tim.width/tim.height));x.restore();
     if(kick>.55){x.globalCompositeOperation='lighter';glow(x,X+(aim?dir*14:0),Y-22+bob,22,hexA(c,.9),(kick-.55)*2);x.globalCompositeOperation='source-over';}}
   else{
   oct(x,X,Y+2,18*s,'#26313a',lv>=2?'#e8c45a':'#5c6b74',lv>=3?2.5:1.5);
@@ -204,7 +204,7 @@ function drawHero(x,h,time,sel){
   if(sel){x.strokeStyle=`rgba(120,255,220,${.6+.3*Math.sin(time*8)})`;x.lineWidth=2;x.beginPath();x.ellipse(HX,HY+14,20,8,0,0,7);x.stroke();x.strokeStyle='rgba(120,255,220,.25)';x.beginPath();x.arc(HX,HY,HERO.range,0,7);x.stroke();}
   if(IMG.hero_guard){
     if(walk&&Math.random()<.3)fx({k:'bub',x:HX-h.face*10+(Math.random()-.5)*6,y:HY+4,v:22+Math.random()*20,s:1+Math.random()*1.6,ph:Math.random()*6,life:.7});
-    x.save();x.translate(X+h.face*sw*5,Y+14);x.scale(vf*(1+sl*.2),(1-sl*.26)*(1+(walk?0:Math.sin(time*2)*.012)));x.rotate((walk?.07:0)+sw*.2);drawImg(x,IMG.hero_guard,0,0,46);x.restore();
+    x.save();x.translate(X+h.face*sw*5,Y+14);x.scale(vf*(1+sl*.2),(1-sl*.26)*(1+(walk?0:Math.sin(time*2)*.012)));x.rotate((walk?.07:0)+sw*.2);drawImg(x,IMG.hero_guard,0,0,50);x.restore();
     if(at>0){x.strokeStyle=`rgba(170,245,255,${at})`;x.lineWidth=3*at+1;x.lineCap='round';x.beginPath();const c0=h.face>0?0:Math.PI;x.arc(X+h.face*6,Y-4,20+(1-at)*8,c0-1.1,c0+1.1);x.stroke();}
     x.fillStyle='#e8c45a';x.beginPath();x.arc(X-13,Y-26,6,0,7);x.fill();txt(x,''+h.lv,X-13,Y-26,8,'#3a2a00');return;}
   x.save();x.translate(X,Y);x.scale(h.face,1);

@@ -13,7 +13,8 @@ const TOWERS={
   rune:  {cost:90, range:92, cd:.22,dmg:2.6,cls:'mag',beam:true,aura:.15,reveal:true},
 };
 const LV_DMG=[1,1.75,2.7,4.1],LV_RANGE=[1,1.08,1.16,1.24],UP_COST=[.85,1.35,2.4],SELL=.7,MAX_TLV=4;   // 4단계 = 각성(두 갈래 중 하나)
-const UNLOCK={coral:0,bubble:0,jelly:0,conch:2,rune:5};      // 몇 번째 판(0부터)부터 쓸 수 있는가
+const OPEN_N=6;   // 지금 열어 둔 판 수(새 그림체 그림이 있는 범위). 그림이 다 오면 STAGE_N 으로
+const UNLOCK={coral:0,bubble:0,jelly:0,conch:6,rune:8};   // 그림이 오기 전까지 뒤로 미룸(원래 2, 5)      // 몇 번째 판(0부터)부터 쓸 수 있는가
 /* 각성 갈래: 3단계에서 4단계로 올릴 때 하나를 고른다 */
 const BRANCH={
   coral: [{id:'storm',n:['산호 폭풍','珊瑚风暴'],d:['연사 +50%, 관통이 더 자주','射速 +50%，更频繁贯穿']},{id:'venom',n:['독가시','毒刺'],d:['맞은 적에 독(3초)과 갑옷 깎기','命中附带中毒(3秒)并削弱护甲']}],
@@ -54,7 +55,7 @@ const ENEMIES={
   squid:    {hp:72, sp:38,r:12,gold:9, cost:2,  ink:[7,100,4],from:11},       // 먹물: 수호탑 시야를 가림(눌러서 닦기)
   horseshoe:{hp:125,sp:26,r:14,gold:12,cost:2.8,armor:.3,split:3,from:15},    // 분열: 쓰러지면 치어 3마리
   turtle:   {hp:300,sp:18,r:17,gold:25,cost:6,  armor:.3,shell:.3,from:21},   // 바위 껍질: 3초 안 맞으면 보호막 재생
-  elite:    {hp:520,sp:23,r:18,gold:45,cost:11, armor:.3,leak:3,command:[80,.18]}, // 지휘: 주변 적 속도 +18%
+  elite:    {hp:520,sp:23,r:18,gold:45,cost:11, armor:.3,leak:3,command:[80,.18],art:'crab',ew:66,tint:'#ffb040'}, // 지휘: 주변 적 속도 +18%
   /* 구역 보스: art = 쓸 그림, ph = 체력 비율에 따른 패턴 */
   boss: {hp:6000,sp:12,r:30,gold:150,cost:0,armor:.2,leak:12,ew:110,ph:[[.7,'summon','minnow',7],[.45,'ink',3.5],[.22,'summon','elite',2]]},
   boss2:{hp:6600,sp:11,r:30,gold:180,cost:0,armor:.45,leak:12,art:'turtle',ew:120,tint:'#7fa0c0',ph:[[.75,'shield',.25],[.5,'jam',3,4],[.25,'shield',.3]]},

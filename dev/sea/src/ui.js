@@ -16,7 +16,7 @@ const EN_TXT={
   squid:[['먹물오징어','墨汁乌贼'],['먹물: 수호탑을 가려 사거리·속도를 낮춰요. 탑을 눌러 닦으세요','喷墨：遮蔽守护塔降低射程和攻速，点击该塔擦掉']],
   horseshoe:[['투구게','鲎'],['분열: 쓰러지면 치어 3마리. 소라 대포로 한꺼번에','分裂：倒下生出3条小鱼，用海螺炮一网打尽']],
   turtle:[['바위거북','岩石龟'],['바위 껍질: 3초 안 맞으면 보호막 재생. 쉬지 말고 공격하거나 정화 룬으로','岩壳：3秒不挨打就恢复护盾。持续攻击或用净化符文']],
-  elite:[['심연 해마 기사','深渊海马骑士'],['지휘: 주변 적 속도 +18%. 지나가면 생명 -3','指挥：周围敌人移速+18%。漏过扣3生命']],
+  elite:[['심연 대장게','深渊蟹将'],['지휘: 주변 적 속도 +18%. 지나가면 생명 -3','指挥：周围敌人移速+18%。漏过扣3生命']],
   boss:[['심연 아귀왕','深渊鮟鱇王'],['1구역 보스. 치어 떼 소환 → 모든 탑에 먹물 → 정예 소환','第1区域首领。召唤鱼群→全塔喷墨→召唤精英']],
   boss2:[['강철 거북','钢铁龟'],['2구역 보스. 두꺼운 장갑, 보호막을 두르고 가까운 탑 3개를 마비시켜요','第2区域首领。厚重装甲，生成护盾并瘫痪最近的3座塔']],
   boss3:[['용암 투구게 여왕','熔岩鲎女王'],['3구역 보스. 투구게를 낳고, 모든 적을 6초간 +35% 빠르게 해요','第3区域首领。产下鲎，并让全体敌人6秒内加速35%']],
@@ -151,7 +151,7 @@ function overlayBtns(){
   if(o==='cards')return G.cards.map((c,i)=>({id:'card'+i,x:40,y:330+i*112,w:370,h:96}));
   if(o==='pause')return [{id:'resume',x:W/2-110,y:250,w:220,h:46},{id:'retry',x:W/2-110,y:306,w:220,h:46},{id:'map',x:W/2-110,y:362,w:220,h:46},
     {id:'sfx',x:W/2-110,y:430,w:106,h:40},{id:'bgm',x:W/2+4,y:430,w:106,h:40},{id:'lang',x:W/2-110,y:478,w:220,h:40}];
-  if(o==='result'){const b=[{id:'retry',x:W/2-150,y:520,w:140,h:48},{id:'map',x:W/2+10,y:520,w:140,h:48}];if(G.state==='win'&&G.si<STAGE_N-1)b.push({id:'next',x:W/2-110,y:580,w:220,h:52});return b;}
+  if(o==='result'){const b=[{id:'retry',x:W/2-150,y:520,w:140,h:48},{id:'map',x:W/2+10,y:520,w:140,h:48}];if(G.state==='win'&&G.si<OPEN_N-1)b.push({id:'next',x:W/2-110,y:580,w:220,h:52});return b;}
   return [];
 }
 function tapOverlay(p){
@@ -239,9 +239,9 @@ function drawBattle(dt){
   if(ui.tip){x.globalAlpha=Math.min(1,ui.tip.t*2);rr(x,24,92,W-48,46,12);x.fillStyle='rgba(8,24,36,.88)';x.fill();x.strokeStyle='rgba(120,240,255,.5)';x.lineWidth=1.5;x.stroke();wrap(x,ui.tip.s,W/2,108,W-70,12,'#e8fbff',16);x.globalAlpha=1;}
   if(ui.overlay)drawOverlay(x);
 }
-function chip(x,X,Y,ic,col){x.fillStyle=col;x.beginPath();x.arc(X,Y,10,0,7);x.fill();txt(x,ic,X,Y+1,11,'#fff');}
+function chip(x,X,Y,ic,col){x.fillStyle=col;x.beginPath();x.arc(X,Y,10,0,7);x.fill();x.strokeStyle='#06090d';x.lineWidth=2;x.stroke();txt(x,ic,X,Y+1,11,'#fff');}
 function drawHud(x){
-  let gr=x.createLinearGradient(0,0,0,48);gr.addColorStop(0,'rgba(4,16,26,.92)');gr.addColorStop(1,'rgba(4,16,26,.55)');x.fillStyle=gr;x.fillRect(0,0,W,46);
+  let gr;x.fillStyle='#0d222c';x.fillRect(0,0,W,44);x.fillStyle='#06090d';x.fillRect(0,44,W,3);
   glow(x,22,23,14,'rgba(255,120,170,.6)');txt(x,'♥',22,23,18,'#ff7aa8');txt(x,''+G.lives,48,23,16,'#fff','left','rgba(0,0,0,.6)');
   x.fillStyle='#7ff';x.beginPath();x.moveTo(98,15);x.lineTo(105,23);x.lineTo(98,31);x.lineTo(91,23);x.closePath();x.fill();txt(x,''+G.gold,112,23,16+Math.max(0,ui.goldB)*5,ui.goldB>0?'#fff':'#e6ffff','left','rgba(0,0,0,.6)');
   if(ui.combo>=3){const cp=Math.min(1,ui.comboT/.4);x.globalAlpha=cp;txt(x,'×'+ui.combo,W-34,84,18+Math.min(10,ui.combo*.3),ui.combo>=20?'#ff9ad8':ui.combo>=10?'#ffd76a':'#bff','center','rgba(0,0,0,.7)',900);txt(x,L('연속','连击'),W-34,104,9,'#cde');x.globalAlpha=1;}
@@ -250,7 +250,7 @@ function drawHud(x){
   let cx=16;for(const m of G.mutList){chip(x,cx,58,MUTS[m].ic,'rgba(110,40,150,.85)');cx+=22;}
   if(G.mutList.length)cx+=6;for(const b of G.blessList){chip(x,cx,58,BLESS[b].ic,'rgba(150,110,20,.85)');cx+=22;}
   /* 아래 막대 */
-  gr=x.createLinearGradient(0,740,0,H);gr.addColorStop(0,'rgba(4,16,26,.6)');gr.addColorStop(1,'rgba(4,16,26,.95)');x.fillStyle=gr;x.fillRect(0,740,W,60);
+  x.fillStyle='#0d222c';x.fillRect(0,742,W,58);x.fillStyle='#06090d';x.fillRect(0,739,W,3);
   const h=G.hero;
   for(const k in CMD){const B=BAR[k],C=CMD[k],lock=G.si<C.from,cd=G.cmdCd[k],cdF=cd>0?cd/(C.cd*G.B.heroCd):0,rdy=!lock&&cdF<=0,aim=ui.aim===k;
     x.fillStyle=lock?'#1a2228':rdy?(aim?'#a06a10':'#1d5a6a'):'#24343e';x.beginPath();x.arc(B.x,B.y,B.r,0,7);x.fill();x.strokeStyle=lock?'#345':rdy?(aim?'#ffd76a':'#8ff'):'#567';x.lineWidth=2.5;x.stroke();
@@ -270,7 +270,7 @@ function drawHud(x){
   if(act&&G.state!=='prep'&&G.nextT>0){x.fillStyle='rgba(255,255,255,.35)';x.fillRect(WB.x+10,WB.y+WB.h-5,(WB.w-20)*(G.nextT/WAVE_GAP),2);}
   const SB=BAR.speed;x.fillStyle=ui.speed===2?'#a06a10':'#22404a';x.beginPath();x.arc(SB.x,SB.y,SB.r,0,7);x.fill();x.strokeStyle='#e8c45a';x.lineWidth=2;x.stroke();txt(x,ui.speed===2?'▶▶':'▶',SB.x,SB.y,ui.speed===2?11:13,'#fff');
 }
-function infoPanel(x,lines,anchorY){const h=18+lines.length*17,y=anchorY>520?60:H-66-h;rr(x,16,y,W-32,h,12);x.fillStyle='rgba(6,20,30,.93)';x.fill();x.strokeStyle='rgba(120,240,255,.45)';x.lineWidth=1.5;x.stroke();
+function infoPanel(x,lines,anchorY){const h=18+lines.length*17,y=anchorY>520?60:H-66-h;rr(x,16,y,W-32,h,10);x.fillStyle='rgba(16,42,54,.97)';x.fill();x.strokeStyle='#06090d';x.lineWidth=3;x.stroke();
   lines.forEach((l,i)=>txt(x,l[0],28,y+17+i*17,l[2]||11,l[1]||'#e8fbff','left',null,i===0?900:700));}
 function drawBuildMenu(x,i){
   const s=G.M.spots[i];
@@ -299,8 +299,11 @@ function drawHints(x){
   else if(G.state==='prep'&&G.towers.length&&!ui.sel)arrowHint(x,BAR.wave.x+BAR.wave.w/2,BAR.wave.y-2,L('준비되면 시작!','准备好就开始！'));
 }
 /* ---------- 겹쳐 뜨는 창 ---------- */
-function panel(x,X,Y,w,h){rr(x,X,Y,w,h,18);const gr=x.createLinearGradient(0,Y,0,Y+h);gr.addColorStop(0,'rgba(14,44,60,.97)');gr.addColorStop(1,'rgba(6,20,30,.97)');x.fillStyle=gr;x.fill();x.strokeStyle='rgba(120,240,255,.55)';x.lineWidth=2;x.stroke();}
-function btn(x,b,label,col,size){rr(x,b.x,b.y,b.w,b.h,14);const gr=x.createLinearGradient(0,b.y,0,b.y+b.h);gr.addColorStop(0,col||'#3fd0c0');gr.addColorStop(1,'#14606e');x.fillStyle=gr;x.fill();x.strokeStyle='rgba(255,255,255,.5)';x.lineWidth=1.5;x.stroke();txt(x,label,b.x+b.w/2,b.y+b.h/2+1,size||15,'#fff','center','rgba(0,0,0,.35)');}
+function panel(x,X,Y,w,h){rr(x,X,Y+5,w,h,14);x.fillStyle='rgba(0,0,0,.45)';x.fill();rr(x,X,Y,w,h,14);x.fillStyle='#14323f';x.fill();x.strokeStyle='#06090d';x.lineWidth=3.5;x.stroke();rr(x,X+4,Y+4,w-8,h-8,10);x.strokeStyle='rgba(120,220,230,.22)';x.lineWidth=1.5;x.stroke();}
+const BTN_MAP={'#3fd0c0':'#25c2ae','#3a8a9a':'#2f7f96','#2a6a7a':'#2a6478','#6a8a9a':'#55788c','#d0a030':'#f0b429','#555':'#4a5560','#345':'#33424e','#444':'#3c4650','#a06a10':'#c98a1a'};
+function shade(c,f){const n=parseInt(c.slice(1),16);return `rgb(${Math.round((n>>16)*f)},${Math.round(((n>>8)&255)*f)},${Math.round((n&255)*f)})`;}
+function btn(x,b,label,col,size){const c=BTN_MAP[col||'#3fd0c0']||'#25c2ae';rr(x,b.x,b.y+4,b.w,b.h,11);x.fillStyle='#06090d';x.fill();rr(x,b.x,b.y+3,b.w,b.h,11);x.fillStyle=shade(c,.6);x.fill();rr(x,b.x,b.y,b.w,b.h-2,11);x.fillStyle=c;x.fill();
+  x.save();rr(x,b.x,b.y,b.w,b.h-2,11);x.clip();x.fillStyle='rgba(255,255,255,.16)';x.fillRect(b.x,b.y,b.w,(b.h-2)*.45);x.restore();rr(x,b.x,b.y,b.w,b.h+1,11);x.strokeStyle='#06090d';x.lineWidth=3;x.stroke();txt(x,label,b.x+b.w/2,b.y+b.h/2,size||15,'#fff','center','#06090d',900);}
 function drawOverlay(x){
   x.fillStyle='rgba(0,8,16,.6)';x.fillRect(0,0,W,H);const o=ui.overlay,B=overlayBtns();
   if(o==='intro'){const S=G.S;panel(x,24,90,W-48,610);
@@ -352,12 +355,12 @@ function dailyInit(){const t=today();if(SV.day===t&&SV.mis.length===3)return;SV.
 function mission(id,n){for(const m of SV.mis)if(m.id===id&&!m.got)m.p=Math.min(MIS[id][0],m.p+n);}
 const loginReady=()=>SV.login.last!==today();
 const rewardBadge=()=>loginReady()||SV.mis.some(m=>!m.got&&m.p>=MIS[m.id][0]);
-const metaOpen=k=>k==='hero'||UNLOCK[k]<=cleared();
+const metaOpen=k=>k==='hero'||UNLOCK[k]<=Math.min(cleared(),OPEN_N-1);
 const canUp=()=>[...TOWER_IDS,'hero'].some(k=>metaOpen(k)&&SV.lv[k]<MAX_LV&&SV.coins>=lvCost(SV.lv[k]));
 const avgLv=()=>{const ks=[...TOWER_IDS,'hero'].filter(metaOpen);return ks.reduce((a,k)=>a+SV.lv[k],0)/ks.length;};
 dailyInit();
 /* ---------- 공통 머리띠 ---------- */
-function coinChip(x,X,Y){rr(x,X-44,Y-13,88,26,13);x.fillStyle='rgba(0,0,0,.45)';x.fill();x.fillStyle='#ffd76a';x.beginPath();x.arc(X-30,Y,8,0,7);x.fill();txt(x,'◆',X-30,Y+.5,9,'#8a5a00');txt(x,''+SV.coins,X+8,Y+1,13,'#ffe9a8');}
+function coinChip(x,X,Y){rr(x,X-44,Y-13,88,26,13);x.fillStyle='#0d222c';x.fill();x.strokeStyle='#06090d';x.lineWidth=2.5;x.stroke();x.fillStyle='#f0b429';x.beginPath();x.arc(X-30,Y,8,0,7);x.fill();x.lineWidth=2;x.stroke();txt(x,'◆',X-30,Y+.5,9,'#6a4200');txt(x,''+SV.coins,X+8,Y+1,13,'#ffe9a8','center','#06090d',900);}
 function header(x,title,sub){let gr=x.createLinearGradient(0,0,0,100);gr.addColorStop(0,'rgba(2,14,22,.95)');gr.addColorStop(1,'rgba(2,14,22,0)');x.fillStyle=gr;x.fillRect(0,0,W,100);
   x.fillStyle='rgba(255,255,255,.15)';x.beginPath();x.arc(30,36,18,0,7);x.fill();txt(x,'‹',30,34,26,'#fff');txt(x,title,W/2,36,20,'#fff','center','rgba(0,0,0,.5)');if(sub)txt(x,sub,W/2,60,11,'#9fd');coinChip(x,W-58,36);}
 const hitBack=p=>Math.hypot(p.x-30,p.y-36)<26;
@@ -383,10 +386,10 @@ const NODE=[[118,170],[300,222],[196,282],[338,338],[124,396],[262,452],[364,510
 let mapArea=-1;
 const MAPB={prev:{x:20,y:734,w:120,h:44},next:{x:W-140,y:734,w:120,h:44}};
 function drawMap(dt){
-  if(mapArea<0)mapArea=Math.min(AREAS.length-1,Math.floor(Math.min(cleared(),STAGE_N-1)/PER_AREA));
+  if(mapArea<0)mapArea=0;
   const x=g,a=mapArea,A=AREAS[a],cl=cleared();x.setTransform(K,0,0,K,0,0);seaBg(x,dt,A.tint);
   x.strokeStyle='rgba(180,140,255,.35)';x.lineWidth=3;x.setLineDash([6,8]);x.lineDashOffset=-time*20;x.beginPath();NODE.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();x.setLineDash([]);
-  NODE.forEach((p,j)=>{const i=a*PER_AREA+j,open=i<=cl,boss=j===PER_AREA-1,cur=i===Math.min(cl,STAGE_N-1),r=boss?30:24;
+  NODE.forEach((p,j)=>{const i=a*PER_AREA+j,open=i<=cl&&i<OPEN_N,boss=j===PER_AREA-1,cur=i===Math.min(cl,STAGE_N-1),r=boss?30:24;
     if(cur)glow(x,p[0],p[1],r*2,'rgba(255,215,106,.5)',.6+.4*Math.sin(time*4));
     x.fillStyle=open?(boss?'#4a1f5e':j===4?'#5a4a1a':'#14505e'):'#1a2a32';x.beginPath();x.arc(p[0],p[1],r,0,7);x.fill();x.strokeStyle=cur?'#ffd76a':open?'#7ff':'#3a4a52';x.lineWidth=3;x.stroke();
     txt(x,open?(boss?'👑':''+(i+1)):'🔒',p[0],p[1]+1,boss?20:16,'#fff');
@@ -394,6 +397,7 @@ function drawMap(dt){
     txt(x,depthOf(i)+'m',p[0]+(p[0]<W/2?r+22:-r-22),p[1],10,'rgba(200,240,255,.6)');});
   const tot=SV.stars.reduce((p,q)=>p+q,0);header(x,LL(A.n),L(`${a+1}구역 · ★ ${tot}/${STAGE_N*3}`,`第${a+1}区域 · ★ ${tot}/${STAGE_N*3}`));
   txt(x,L(`권장 숙련 Lv${recLv(a*PER_AREA)}~${recLv(a*PER_AREA+9)} · 내 평균 Lv${avgLv().toFixed(1)}`,`推荐熟练 Lv${recLv(a*PER_AREA)}~${recLv(a*PER_AREA+9)} · 我的平均 Lv${avgLv().toFixed(1)}`),W/2,88,11,'#bfe');
+  if(a===0)txt(x,L(`지금은 ${OPEN_N}판까지 (새 그림체로 다듬는 중)`,`目前开放到第${OPEN_N}关（新画风打磨中）`),W/2,716,11,'#ffe9a8','center','#06090d');
   if(a>0)btn(x,MAPB.prev,L('◀ 이전 구역','◀ 上一区域'),'#3a8a9a',12);
   if(a<AREAS.length-1){const ok=cl>=(a+1)*PER_AREA;btn(x,MAPB.next,ok?L('다음 구역 ▶','下一区域 ▶'):L('🔒 보스를 이기면','🔒 击败首领后'),ok?'#3a8a9a':'#444',12);}
 }
@@ -401,7 +405,7 @@ function tapMap(p){if(hitBack(p)){scr='home';sfx('tap');return;}
   const cl=cleared(),a=mapArea;
   if(a>0&&hitR(p,MAPB.prev)){mapArea--;sfx('tap');return;}
   if(a<AREAS.length-1&&hitR(p,MAPB.next)&&cl>=(a+1)*PER_AREA){mapArea++;sfx('tap');return;}
-  NODE.forEach((q,j)=>{const i=a*PER_AREA+j;if(Math.hypot(p.x-q[0],p.y-q[1])<30&&i<=cl){sfx('tap');tryEnter(i);}});}
+  NODE.forEach((q,j)=>{const i=a*PER_AREA+j;if(Math.hypot(p.x-q[0],p.y-q[1])<30&&i<=cl&&i<OPEN_N){sfx('tap');tryEnter(i);}});}
 /* ---------- 수호대 강화(판 밖 성장) ---------- */
 const upRow=i=>({x:24,y:104+i*104,w:W-48,h:94});
 function drawUpgrade(dt){const x=g;x.setTransform(K,0,0,K,0,0);seaBg(x,dt,'rgba(0,10,20,.45)');header(x,L('수호대 강화','守卫队强化'),L('숙련 1마다 공격력 +7%','每级熟练 攻击 +7%'));
@@ -465,7 +469,7 @@ function drawHome(dt){
   txt(x,LL(TITLE),W/2,150,LANG==='zh'?40:36,'#eaffff','center','rgba(20,60,90,.9)',900);
   txt(x,L('잿빛 육지를 떠나, 바다에서 다시 살아가기','离开灰烬的陆地，在海中重新生活'),W/2,194,13,'#bfe9ff');
   coinChip(x,W-58,36);
-  const cl=cleared();btn(x,HOME_BTN.start,cl>=STAGE_N?L('다시 도전','再次挑战'):cl?L(`출격 · ${cl+1}판`,`出击 · 第${cl+1}关`):L('출격','出击'),'#3fd0c0',20);
+  const cl=Math.min(cleared(),OPEN_N);btn(x,HOME_BTN.start,cl>=OPEN_N?L('다시 도전','再次挑战'):cl?L(`출격 · ${cl+1}판`,`出击 · 第${cl+1}关`):L('출격','出击'),'#3fd0c0',20);
   btn(x,HOME_BTN.up,L('수호대 강화','强化'),'#3a8a9a',13);if(canUp())dot(x,HOME_BTN.up);
   btn(x,HOME_BTN.dex,L('도감','图鉴'),'#3a8a9a',13);
   btn(x,HOME_BTN.rw,L('보상','奖励'),'#3a8a9a',13);if(rewardBadge())dot(x,HOME_BTN.rw);
