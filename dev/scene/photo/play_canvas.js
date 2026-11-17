@@ -7,7 +7,7 @@ const srv=http.createServer((q,r)=>{let p=q.url.split('?')[0];if(p==='/')p='/ind
 await pg.addInitScript(()=>{window.__ko=[];const f=CanvasRenderingContext2D.prototype.fillText;CanvasRenderingContext2D.prototype.fillText=function(s){if(/[가-힣]/.test(s)&&window.__ko.length<20)window.__ko.push(s);return f.apply(this,arguments);};});
 await pg.goto('http://localhost:'+port+'/?all=1&lang=zh');await pg.waitForTimeout(1200);
 const tap=async id=>{const p=await pg.evaluate(i=>__t.btn(i),id);if(!p)return false;await pg.mouse.click(p.x,p.y);await pg.waitForTimeout(120);return true;};
-for(let i=0;i<4;i++)await tap('inNext');
+await pg.waitForTimeout(2500);if(!await pg.evaluate(()=>__t.S&&__t.L.id===1))console.log('FIRST LAUNCH did not open stage 1');await pg.evaluate(()=>__t.goHome());await pg.waitForTimeout(200);
 const only=process.argv[3]?process.argv[3].split(',').map(Number):null;let fails=0;
 for(let si=0;si<20;si++){if(only&&!only.includes(si+1))continue;
  let opened=false;for(let n=0;n<14&&!opened;n++){opened=await tap('lv'+si);if(!opened){await pg.mouse.move(195,520);await pg.mouse.down();await pg.mouse.move(195,400,{steps:5});await pg.mouse.up();await pg.waitForTimeout(80);}}

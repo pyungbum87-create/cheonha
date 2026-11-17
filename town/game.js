@@ -45,7 +45,7 @@ function vFrom(st,l){const v=blank(st);st.probs.forEach((p,i)=>{v[p.id]=l.mask[i
 function start(i){M=[];const st=STAGES[i];let ks=stageKeys(st);if(st.wall)for(const id of Object.keys(SAVE.last||{}))ks=ks.concat(stageKeys(STAGES.find(q=>q.id===+id)||st));return new Promise(res=>ensure(ks,()=>{begin(i);res();setTimeout(()=>{if(STAGES[i+1])stageKeys(STAGES[i+1]).forEach(n=>loadImg(n));},2500);}));}
 function begin(i){track('stage_start',{stage:STAGES[i].id});if(STAGES[i].wall)buildWall();L=STAGES[i];S={i,v:blank(L),found:false,phase:'playing',t:L.time||120,tmp:{},fx:{},rub:{},rot:{},q:[],qw:0,parts:[],fly:[],bubble:null,drag:null,g:null,flash:0,mood:'worry',idle:0,hint:0,hintR:null,zone:null,comp:false,hints:L.diff.hints,used:{},paused:false,timeAd:false,hintAd:false,adRound:false,cardT:1.5};
  if(AD.missStage!==L.id){AD.miss=0;AD.missStage=L.id;AD.next={time:0,detail:0,free:0};}S.t+=AD.next.time;S.hints+=AD.next.free;S.detailReady=AD.next.detail;AD.next={time:0,detail:0,free:0};AD.played++;
- M=[];UI='play';music('play');refreshPV();S.q.push(['wait',1.4]);enqueue(L.open||[]);}
+ M=[];UI='play';music('play');if(L.id===2&&!SAVE.tipI){SAVE.tipI=1;persist();setTimeout(()=>toast(T('下面的道具会帮你：手电筒照出大概位置，加时钟多20秒','아래 아이템이 도와줘요: 손전등은 대략적인 위치, 시계는 20초 추가'),4200),1700);}refreshPV();S.q.push(['wait',1.4]);enqueue(L.open||[]);}
 function goHome(){music('menu');S=null;L=null;M=[];UI='home';maybeSign();}
 function enqueue(ops){S.q.push(...ops);}
 const at=p=>{if(Array.isArray(p))return{x:p[0],y:p[1]};if(p==='tray')return{x:.5,y:1.08};if(p==='lili')return{x:L.lili[0],y:L.lili[1]-L.lili[2]*.5};const o=obj(p);const w=view(o,S.v,S.tmp);return{x:w.x,y:w.y};};
@@ -175,6 +175,7 @@ function capture(reason){if(!S||S.phase!=='playing')return;S.phase='capturing';S
   AD.sinceI++;AD.launchFirst=false;AD.miss=doneN<tot?AD.miss+1:0;let offer=false;if(AD.miss>=3){AD.next.free=1;tag+=T(' · 下次拍照送1个提示',' · 다음 촬영에 무료 힌트 1개 추가');if(!AD.offered[L.id]&&adOK()){AD.offered[L.id]=1;offer=true;}}
   RES={t0:now(),title:t,tag,tier:dn0===5?3:dn0>=3?2:dn0>=1?1:0,gold:dn0===5,doneN,tot,offer,stage:L};S.phase='result';openM('result');
   if(dn0===5){tone('good');setTimeout(()=>tone('good'),260);confetti();if(!SAVE.seen||!SAVE.seen[L.id]){SAVE.seen=SAVE.seen||{};SAVE.seen[L.id]=1;setTimeout(()=>{if(L===stg&&topM()==='result')openStory(stg);},2100);}}
+  const md=[prog('photo',1),prog('solve',doneN),first&&prog('newp',1),dn0===5&&prog('gold',1),found&&prog('found',1),prog('stages',1,L.id)].some(Boolean);if(md)setTimeout(()=>toast(T('每日任务完成！回首页领取奖励','오늘의 미션 완료! 홈에서 보상을 받으세요'),2600),dn0===5?400:1200);
   persist();LAST={stage:L.id,mask,title:t,reason,n:(LAST?LAST.n:0)+1};},750);}
 /* ---------- story ---------- */
 let STX=null,STC=null;
@@ -189,7 +190,7 @@ function closeIntro(){track('guide_done');closeM('intro');SAVE.intro=1;persist()
 /* ---------- items: earned by playing, never by a draw ---------- */
 const ITEMS=[['light','flashlight','手电筒','손전등'],['clock','clock','加时钟','시계'],['fu','fu','福气贴','복 스티커']];
 function bag(){SAVE.items=SAVE.items||{light:2,clock:1,fu:0,v:2};if(SAVE.items.v!==2){SAVE.items.fu=0;SAVE.items.v=2;}return SAVE.items;}
-function useItem(k){if(!S||S.phase!=='playing'||S.paused)return;const b=bag();if(b[k]<=0||S.used[k]){tone('nope');return;}if(k==='light'&&!nextRule().length){tone('nope');return;}if(k==='fu'&&probsDone(S.v)===allP(L).length){tone('nope');return;}b[k]--;S.used[k]=1;persist();tone('good');
+function useItem(k){if(!S||S.phase!=='playing'||S.paused)return;const b=bag();if(b[k]<=0||S.used[k]){tone('nope');return;}if(k==='light'&&!nextRule().length){tone('nope');return;}if(k==='fu'&&probsDone(S.v)===allP(L).length){tone('nope');return;}b[k]--;S.used[k]=1;if(prog('item',1))toast(T('每日任务完成！','오늘의 미션 완료!'));persist();tone('good');
  if(k==='light'){const rs=nextRule(),r=rs[Math.floor(Math.random()*rs.length)],w=view(obj(r.t),S.v,S.tmp);S.area={x:w.x<.5?.27:.73,y:w.y<.5?.27:.73,t:2.2};S.bubble={t:['好像在这附近……','이 근처인 것 같아…'],x:VW/2,y:SS*.5,life:1.4};}
  else if(k==='clock'){S.t+=20;S.bubble={t:['时间多了20秒！','시간이 20초 늘었어!'],x:VW/2,y:SS*.2,life:1.3};}
  else{const p=allP(L).find(q=>!S.v[q.id]);runOp(['set',p.id]);S.bubble={t:['福气到，麻烦解决！','복이 왔다, 문제 해결!'],x:VW/2,y:SS*.2,life:1.4};}}
@@ -199,6 +200,41 @@ const SIGN=[['light',1],['clock',1],['light',1],['clock',1],['light',2],['clock'
 const dayStr=d=>d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
 function maybeSign(){if(!Object.keys(SAVE.alb).length||M.length)return;const d=new Date(),sg=SAVE.sign=SAVE.sign||{day:0,last:''};if(sg.last===dayStr(d))return;SIGNDAY=sg.last===dayStr(new Date(d-864e5))?sg.day%7+1:1;openM('sign');}
 function signGet(){const q=SIGN[SIGNDAY-1];bag()[q[0]]+=q[1];SAVE.sign={day:SIGNDAY,last:dayStr(new Date())};persist();closeM('sign');tone('good');track('signin',{day:SIGNDAY});toast(T('领取成功！明天再来哦','받았어요! 내일 또 만나요'));}
+
+/* ---------- missions: 3 a day (same 3 for everyone that day) + long-term goals. Rewards are flashlight / clock only. ---------- */
+const MPOOL={photo:[3,'拍3张照片','사진 3장 찍기'],solve:[15,'解决15个小麻烦','소동 15개 해결하기'],newp:[2,'拍到2张新照片','새로운 사진 2장 찍기'],gold:[1,'拍1张金色照片','황금 사진 1장 찍기'],found:[1,'找到隐藏贴纸并拍下来','숨은 스티커 찾아서 찍기'],stages:[2,'在2个不同的关卡拍照','서로 다른 2개 단계에서 찍기'],item:[1,'使用1次道具','아이템 1번 쓰기']};
+const MREW=['light','clock','light'];
+function hashS(t){let h=7;for(const c of t)h=(h*31+c.charCodeAt(0))>>>0;return h;}
+function daily(){const d=dayStr(new Date());let m=SAVE.dm;if(!m||m.day!==d){const rest=Object.keys(MPOOL).filter(k=>k!=='photo');let h=hashS(d);const pick=['photo'];let guard=0;while(pick.length<3&&guard++<50){const k=rest[h%rest.length];h=(Math.imul(h,1103515245)+12345)>>>0;if(!pick.includes(k))pick.push(k);}m=SAVE.dm={day:d,list:pick.map((k,i)=>({k,n:0,c:0,r:MREW[i]})),bonus:0,st:[]};}return m;}
+function prog(k,v,id){const m=daily();let done=false;for(const q of m.list){if(q.k!==k||q.n>=MPOOL[k][0])continue;if(k==='stages'){if(!m.st.includes(id))m.st.push(id);q.n=Math.min(MPOOL[k][0],m.st.length);}else q.n=Math.min(MPOOL[k][0],q.n+v);if(q.n>=MPOOL[k][0]){done=true;track('mission_done',{k});}}return done;}
+const goldN=()=>Object.values(SAVE.best||{}).filter(x=>x===5).length,foundN=()=>Object.keys(SAVE.found).length,stageN=()=>Object.keys(SAVE.alb).filter(k=>Object.keys(SAVE.alb[k]).length).length;
+function photoN(){let t=0;for(const k in SAVE.alb)t+=Object.keys(SAVE.alb[k]).length;return t;}
+const ACH=[['g5',goldN,5,'集齐5张金色照片','황금 사진 5장 모으기','light',2],['g10',goldN,10,'集齐10张金色照片','황금 사진 10장 모으기','clock',2],['g15',goldN,15,'集齐15张金色照片','황금 사진 15장 모으기','light',3],['g20',goldN,20,'集齐全部20张金色照片','황금 사진 20장 모두 모으기','clock',3],
+ ['f5',foundN,5,'找到5个隐藏贴纸','숨은 스티커 5개 찾기','clock',1],['f10',foundN,10,'找到10个隐藏贴纸','숨은 스티커 10개 찾기','light',2],['f20',foundN,20,'找到全部20个隐藏贴纸','숨은 스티커 20개 모두 찾기','clock',2],
+ ['p30',photoN,30,'相册里有30张照片','사진첩에 사진 30장','light',1],['p100',photoN,100,'相册里有100张照片','사진첩에 사진 100장','clock',2],['p200',photoN,200,'相册里有200张照片','사진첩에 사진 200장','light',3],
+ ['s10',stageN,10,'在10个关卡拍过照','10개 단계에서 사진 찍기','clock',1],['s20',stageN,20,'走遍全镇20个地方','동네 20곳 모두 찍기','light',2]];
+const IN=r=>r==='light'?T('手电筒','손전등'):T('加时钟','시계');
+function give(list,x2){const b=bag();const t=list.map(([r,n])=>{n*=x2?2:1;b[r]+=n;return IN(r)+' +'+n;}).join('  ');persist();tone('good');toast(T('获得 ','받았어요: ')+t);}
+function claimD(i,x2){const q=daily().list[i];if(q.c||q.n<MPOOL[q.k][0])return;const go=()=>{if(q.c)return;q.c=1;give([[q.r,1]],x2);track('mission_claim',{k:q.k,x2:x2?1:0});};if(x2)requestRewarded('mission',go);else go();}
+function claimB(x2){const m=daily();if(m.bonus||m.list.some(q=>!q.c))return;const go=()=>{if(m.bonus)return;m.bonus=1;give([['light',1],['clock',1]],x2);track('mission_bonus',{x2:x2?1:0});};if(x2)requestRewarded('mission',go);else go();}
+function claimA(a){SAVE.ach=SAVE.ach||{};if(SAVE.ach[a[0]]||a[1]()<a[2])return;SAVE.ach[a[0]]=1;give([[a[5],a[6]]]);track('ach_claim',{id:a[0]});}
+function misDot(){const m=daily();if(m.list.some(q=>!q.c&&q.n>=MPOOL[q.k][0]))return true;if(!m.bonus&&m.list.every(q=>q.c))return true;const A=SAVE.ach||{};return ACH.some(a=>!A[a[0]]&&a[1]()>=a[2]);}
+const MS={y:0};
+function misRow(id,x,y,w,label,n,goal,rews,state,onClaim,onAd){g.fillStyle=state==='claim'?'#fff1c9':C.paper;rr(g,x,y,w,54,10);g.fill();const lw=w-136;tx(label,x+12,y+17,14,C.ink,'left',lw);
+ const bw=lw-44;g.fillStyle=C.line;rr(g,x+12,y+35,bw,6,3);g.fill();g.fillStyle=n>=goal?C.gold:'#e8a64a';if(n>0){rr(g,x+12,y+35,Math.max(6,bw*Math.min(1,n/goal)),6,3);g.fill();}tx(Math.min(n,goal)+'/'+goal,x+18+bw,y+38,11,C.soft,'left',0,FB);
+ let rx=x+w-128;rews.forEach(([r,c],i)=>{pic(r==='light'?'flashlight':'clock',rx+12,y+20,22);tx('×'+c,rx+12,y+42,11,C.ink);rx+=26;});
+ const bx=x+w-74;if(state==='go')btn(id,bx,y+11,64,30,T('去完成','하러 가기'),'paper',()=>{closeM('mis');},13);else if(state==='done')btn(id,bx,y+11,64,30,T('已领取','받음'),'off',null,13);
+ else if(onAd){btn(id,bx,y+4,64,22,T('领取','받기'),'gold',onClaim,13);const d=btn(id+'x2',bx,y+28,64,22,'','paper',onAd);g.fillStyle=C.red;g.beginPath();g.moveTo(bx+14,y+33+d);g.lineTo(bx+22,y+39+d);g.lineTo(bx+14,y+45+d);g.closePath();g.fill();tx(T('双倍','2배'),bx+40,y+39+d,12,C.ink);}
+ else btn(id,bx,y+11,64,30,T('领取','받기'),'gold',onClaim,14);}
+function drawMis(){dim();const m=daily(),A=SAVE.ach||{},bw=Math.min(350,W-30),bh=Math.min(H*.74,620),x=(W-bw)/2,y=(H-bh-60)/2,rw=bw-24;box(x,y,bw,bh);
+ scrollBegin(MS,x+6,y+8,bw-12,bh-16,40+4*60+44+ACH.length*60+8);let yy=y+8;
+ tx(T('每日任务','오늘의 미션'),x+14,yy+18,21,C.red,'left');tx(T('每天0点刷新','매일 0시에 바뀌어요'),x+bw-16,yy+20,11,C.soft,'right',0,FB);yy+=40;
+ m.list.forEach((q,i)=>{const P=MPOOL[q.k],st=q.c?'done':q.n>=P[0]?'claim':'go';misRow('md'+i,x+12,yy,rw,T(P[1],P[2]),q.n,P[0],[[q.r,1]],st,()=>claimD(i,false),()=>claimD(i,true));yy+=60;});
+ const cn=m.list.filter(q=>q.c).length;misRow('mb',x+12,yy,rw,T('领完3个任务的奖励','미션 3개 보상 모두 받기'),cn,3,[['light',1],['clock',1]],m.bonus?'done':cn>=3?'claim':'go',()=>claimB(false),()=>claimB(true));yy+=64;
+ tx(T('成就','도전 과제'),x+14,yy+16,19,C.red,'left');yy+=36;
+ const order=ACH.slice().sort((a,b)=>{const s=q=>A[q[0]]?2:q[1]()>=q[2]?0:1;return s(a)-s(b);});
+ order.forEach(a=>{const v=a[1](),st=A[a[0]]?'done':v>=a[2]?'claim':'go';misRow('ac'+a[0],x+12,yy,rw,T(a[3],a[4]),v,a[2],[[a[5],a[6]]],st,()=>claimA(a));yy+=60;});
+ scrollEnd();btn('misBack',(W-200)/2,y+bh+12,200,44,T('返回','돌아가기'),'gold',()=>closeM('mis'),17);}
 /* ---------- ads: rewarded first. Swap nothing here: fill AD_UNIT and the platform ad is used. ---------- */
 const AD={state:'IDLE',lastI:0,lastR:0,played:0,sinceI:0,launchFirst:true,paid:{},seq:0,offered:{},miss:0,missStage:0,next:{time:0,detail:0,free:0}};
 let ADM=null,RV=null;
@@ -241,7 +277,7 @@ function drawHome(){const x0=16;loadImg('lili_joy');const bobY=Math.sin(now()/42
   tx(T(st.title,st.ko),x+8,y+ih+19+dn,15,open?C.ink:'#a8977c','left',cw-16);const yy=y+ih+38+dn;tx('★★★',x+8,yy,12,C.line,'left');if(sc)tx('★★★'.slice(0,sc),x+8,yy,12,C.gold,'left');tx(n+'/32'+(SAVE.found[st.id]?T(' · 贴纸',' · 스티커'):''),x+50,yy,11,C.soft,'left',cw-58,FB);
   g.fillStyle=C.line;rr(g,x+8,y+chh-12+dn,cw-16,5,3);g.fill();if(n){g.fillStyle=C.gold;rr(g,x+8,y+chh-12+dn,Math.max(5,(cw-16)*n/32),5,3);g.fill();}
   hit('lv'+i,x,y,cw,chh,()=>{if(open)start(i);else toast(T('先拍完上一关的照片吧','앞 단계 사진을 먼저 찍어 주세요'));});});scrollEnd();
- const by=H-108,bw=W-x0*2;btn('toHall',x0,by,bw-170,44,T('纪念馆','기념관'),'gold',openHall,18);btn('howto',x0+bw-162,by,74,44,T('玩法','게임 방법'),'gold',()=>showIntro(0),18);btn('toSet',x0+bw-80,by,80,44,T('设置','설정'),'gold',()=>{RESETARM=0;openM('set');},18);
+ const by=H-108,bw=W-x0*2;const b3=(bw-16)/3;btn('toHall',x0,by,b3,44,T('纪念馆','기념관'),'gold',openHall,18);btn('toMis',x0+b3+8,by,b3,44,T('任务','미션'),'gold',()=>{MS.y=0;openM('mis');},18);if(misDot()){g.fillStyle='#e8402f';g.beginPath();g.arc(x0+b3*2+2,by+4,7,0,7);g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();}btn('toSet',x0+b3*2+16,by,b3,44,T('设置','설정'),'gold',()=>{RESETARM=0;openM('set');},18);
  tx(T('抵制不良游戏，拒绝盗版游戏。注意自我保护，谨防受骗上当。','나쁜 게임은 멀리하고 불법 복제 게임은 거절해요. 스스로를 지키고 사기에 조심해요.'),W/2,H-46,9,C.soft,'center',W-20,FB);tx(T('适度游戏益脑，沉迷游戏伤身。合理安排时间，享受健康生活。','적당한 게임은 머리에 좋고, 지나치면 몸에 해로워요. 시간을 잘 나눠 건강하게 즐겨요.'),W/2,H-33,9,C.soft,'center',W-20,FB);tx('v'+BUILD,W/2,H-19,8.5,'#b9a585','center',0,FB);}
 function drawPlay(){const x0=PX,tot=allP(L).length,n=probsDone(S.v);
  btn('back',x0,TOP,40,42,'','',goHome);g.strokeStyle=C.ink;g.lineWidth=3;g.lineCap='round';g.lineJoin='round';{const d=PRESS==='back'?3:0;g.beginPath();g.moveTo(x0+23,TOP+12+d);g.lineTo(x0+15,TOP+21+d);g.lineTo(x0+23,TOP+30+d);g.stroke();}
@@ -302,7 +338,7 @@ function drawIntro(){dim(.88);const q=INTRO[INI],ko=LANG==='ko',bw=Math.min(340,
 function drawAsk(){dim();const bw=Math.min(320,W-44),ko=LANG==='ko',bh=130,x=(W-bw)/2,y=(H-bh)/2;box(x,y,bw,bh);tx(ko?ASK.ko:ASK.zh,W/2,y+36,ko?17:20,C.red,'center',bw-20);const hw=(bw-40)/2,by=y+bh-62;adBtn('askYes',x+14,by,hw,44,askYes);btn('askNo',x+26+hw,by,hw,44,T('不用了','괜찮아요'),'paper',askNo,17);}
 function drawAd(){dim(.9);const bw=280,bh=190,x=(W-bw)/2,y=(H-bh)/2,left=Math.max(0,ADM.n-Math.floor((now()-ADM.t0)/1000));if(left<=0){ADM.res(true);return;}box(x,y,bw,bh);tx(T('广告','광고'),W/2,y+30,22,C.red);tx(T('测试广告，不会播放真实广告','테스트 광고예요. 실제 광고는 나오지 않아요'),W/2,y+58,12,C.soft,'center',bw-20);tx(String(left),W/2,y+96,34,C.ink);btn('adClose',x+40,y+126,bw-80,42,T('中途关闭','중간에 닫기'),'paper',()=>ADM&&ADM.res(false),16);}
 function drawLoad(){const Ld=LOADING,el=(now()-Ld.t0)/1000;if(el>25){Ld.fin();return;}if(el<.2)return;g.fillStyle=C.paper;g.fillRect(-OX/K-2,-2,W+2*OX/K+4,H+4);BT=[];SCR=null;hit('_',-999,-999,9999,9999,null);pic('lili_joy',W/2,H/2-50+Math.sin(now()/250)*4,84);tx(el>6?T('网络有点慢，请稍等一下','인터넷이 느려 시간이 걸리고 있어요'):T('加载中……','불러오는 중…'),W/2,H/2+18,16,C.ink);g.fillStyle=C.line;rr(g,W/2-100,H/2+40,200,10,5);g.fill();g.fillStyle=C.gold;rr(g,W/2-100,H/2+40,Math.max(10,200*Ld.ok/Ld.n),10,5);g.fill();}
-const MD={result:drawResult,story:drawStory,pv:drawPV,album:drawAlbum,hall:drawHall,set:drawSet,priv:drawPriv,pause:drawPause,sign:drawSign,intro:drawIntro,ask:drawAsk,ad:drawAd};
+const MD={mis:drawMis,result:drawResult,story:drawStory,pv:drawPV,album:drawAlbum,hall:drawHall,set:drawSet,priv:drawPriv,pause:drawPause,sign:drawSign,intro:drawIntro,ask:drawAsk,ad:drawAd};
 function draw(){BT=[];SCR=null;bg();if(UI==='play'&&S)drawPlay();else drawHome();for(const m of M.slice()){if(m==='result'&&!RES)continue;if(m==='story'&&!STX)continue;if(m==='ask'&&!ASK)continue;if(m==='ad'&&!ADM)continue;if(m==='album'&&!ALB)continue;const a=Math.min(1,(now()-(MT[m]||0))/170),z=.93+.07*(1-(1-a)*(1-a));g.save();if(a<1&&m!=='result'){g.translate(W/2,H/2);g.scale(z,z);g.translate(-W/2,-H/2);}MD[m]();g.restore();}
  if(LOADING)drawLoad();
  for(const c of CONF){g.fillStyle=c.c;g.save();g.translate(c.x,c.y);g.rotate(c.r);g.fillRect(-4,-6,8,12);g.restore();}
@@ -335,8 +371,8 @@ if(PF){PF.onTouchStart(e=>{const t=e.touches[0];if(t)pDown(t.clientX,t.clientY);
  try{const um=PF.getUpdateManager&&PF.getUpdateManager();if(um)um.onUpdateReady(()=>um.applyUpdate());}catch(e){}}
 else{cv.addEventListener('pointerdown',e=>{try{cv.setPointerCapture(e.pointerId);}catch(_){}pDown(e.clientX,e.clientY);e.preventDefault();});cv.addEventListener('pointermove',e=>pMove(e.clientX,e.clientY));cv.addEventListener('pointerup',e=>pUp(e.clientX,e.clientY));cv.addEventListener('pointercancel',e=>pUp(e.clientX,e.clientY));
  addEventListener('resize',fit);document.addEventListener('visibilitychange',()=>document.hidden?onHide():onShow());
- window.__t={get S(){return S;},get L(){return L;},get M(){return M;},get SAVE(){return SAVE;},get LAST(){return LAST;},get LANG(){return LANG;},TR,AD,ART,STAGES,start,capture,goHome,runOp,view,cond,titleOf,SS:()=>SS,slots,
+ window.__t={get S(){return S;},get L(){return L;},get M(){return M;},get SAVE(){return SAVE;},get LAST(){return LAST;},get LANG(){return LANG;},daily,MPOOL,ACH,bag,TR,AD,ART,STAGES,start,capture,goHome,runOp,view,cond,titleOf,SS:()=>SS,slots,
   client:(x,y)=>({x:OX+(PX+x)*K,y:(PY+y)*K}),btn:id=>{const b=BT.slice().reverse().find(q=>q.id===id);return b?{x:OX+(b.x+b.w/2)*K,y:(b.y+Math.min(b.h,40)/2)*K}:null;},ids:()=>BT.map(b=>b.id),pv:()=>pvC.toDataURL('image/jpeg',.82)};}
-if(!SAVE.intro)showIntro(0);else maybeSign();
+if(!SAVE.intro){SAVE.intro=1;persist();track('first_open');start(0);}else maybeSign();
 requestAnimationFrame(frame);
 if(!PF&&document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',()=>{for(const k in WR)delete WR[k];});
