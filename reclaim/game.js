@@ -16,7 +16,7 @@ if(API){const dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2}}
 else{c.width=W;c.height=H}
 function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('canvas');cv.width=w;cv.height=h;return cv}
-const BUILD='1118-0100';
+const BUILD='1118-0200';
 // 안전장치: 음수 반지름이면 그리기 전체가 멈추므로 보정
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
  if(oa)P.arc=function(x,y,r,a0,a1,ccw){return oa.call(this,x,y,r>0&&isFinite(r)?r:0,a0,a1,ccw)};
@@ -75,7 +75,7 @@ const LL=p=>Array.isArray(p)?(LANG==='zh'?p[1]:p[0]):(p||'');
 
 // ================================================================ 저장
 const SAVE_KEY='bepa_reclaim_g1';
-const save={tips:{},daily:null,att:{last:'',streak:0},adBox:null,bank:{},run:null,stats:{days:0,debris:0,lands:0,best:0,runs:0},lang:null,qualityLow:false,qualityManual:false,shake:true,vib:true,music:true,sfx:true,g1fb:null,statc:{}};
+const save={docs:[],prolog:0,tips:{},daily:null,att:{last:'',streak:0},adBox:null,bank:{},run:null,stats:{days:0,debris:0,lands:0,best:0,runs:0},lang:null,qualityLow:false,qualityManual:false,shake:true,vib:true,music:true,sfx:true,g1fb:null,statc:{}};
 let qualityLow=false,qualityManual=false,shakeReduced=false;
 function applySave(raw){try{const v=raw?JSON.parse(raw):null;if(v&&typeof v==='object'){for(const k in save)if(v[k]!==undefined)save[k]=v[k];for(const k of ['ch1','ch2','ch3','ch4','cleared','toss'])if(v[k]!==undefined)save[k]=v[k];save.stats=Object.assign({days:0,debris:0,lands:0,best:0,runs:0},v.stats||{});return true}}catch(e){}return false}
 // 토스(앱인토스)는 SDK 저장소를 쓴다: 브리지가 읽어 둔 값을 로딩 화면에서 받아 적용
@@ -164,7 +164,7 @@ const SURV=[{n:['도하','道河'],job:['어부','渔夫'],tint:'rgba(50,110,230
  {n:['마루','玛鲁'],job:['등대지기','守塔人'],tint:'rgba(170,90,220,.36)',d:['밤새 망을 봐서, 불이 꺼져도 어둠 속의 그것이 물건을 훔치지 못한다','整夜放哨，就算火灭了，黑暗中的东西也偷不走物资']},
  {n:['한수','韩洙'],job:['목수','木匠'],tint:'rgba(200,140,50,.36)',d:['유나의 아버지. 짓는 데 드는 판자가 1개 줄어든다','柔娜的父亲。建造所需木板减少1块']},
  {n:['서린','书林'],job:['의사','医生'],tint:'rgba(235,235,245,.42)',d:['매일 아침 모두의 체력을 20 회복시킨다','每天早上为大家恢复20点体力']}];
-const RADIO=[['…치직… 여기는 동쪽 항구 등대. 내 이름은 마루. 듣는 사람 있습니까?','……滋滋……这里是东港灯塔。我叫玛鲁。有人在听吗？'],
+const RADIO=[['…치직… 여기는 동쪽 항구 등대. 내 이름은 마루. 사흘 전 바다에 떨어진 비행기… 거기 누가 살아 있습니까?','……滋滋……这里是东港灯塔。我叫玛鲁。有人在听吗？'],
  ['마루: 바다에 구명보트가 떠 있는 걸 봤어요. 근처라면 건져 주세요.','玛鲁：我看到海上漂着一艘救生艇。如果在附近，请把人救上来。'],
  ['마루: 그것들은 물을 못 건너요. 그래서 난 등대에 갇혔고, 당신은 바다에서 자유롭죠.','玛鲁：它们过不了水。所以我被困在灯塔，而你在海上是自由的。'],
  ['마루: 남쪽 섬 오두막에 정비공이 숨어 있대요. 손재주가 좋다고 들었어요.','玛鲁：听说南边岛上的小屋里躲着一位机修工，手很巧。'],
@@ -227,7 +227,7 @@ function drinkCoffee(){const r=R.res,v=R.vit;if(!(r.coffee>0)){message(L('커피
  r.coffee--;R.buff=90;R.cnt.coffee++;R.today.cf=(R.today.cf||0)+1;v.temp=Math.min(100,v.temp+8);v.thirst=Math.min(100,v.thirst+5);sleeping=false;heroDo('drink');AudioFx.cue('win');vib('light');track('coffee',{day:R.day,n:R.cnt.coffee});
  if(R.today.cf>=3){v.hp=Math.max(5,v.hp-4);message(L('오늘 세 잔째. 심장이 감염체보다 빨리 뛴다. (체력 -4)','今天第三杯了。心跳得比丧尸还快。（体力-4）'),2.6)}
  else message(LL(COFFEE_L[(R.cnt.coffee-1)%COFFEE_L.length])+L(' (90초 동안 빨라져요)','（90秒内动作变快）'),2.6)}
-function reclaimR(di){const d=R.rv.d[di],h=RV[di];d.s=2;d.left=0;R.rv.max=Math.max(R.rv.max,di);track('reclaim_river',{di,day:R.day});AudioFx.cue('win');vib('long');
+function reclaimR(di){const d=R.rv.d[di],h=RV[di];d.s=2;d.left=0;R.rv.max=Math.max(R.rv.max,di);track('reclaim_river',{di,day:R.day});setTimeout(()=>gotDoc(5+di),600);AudioFx.cue('win');vib('long');
  const ls=h.toll?[['다리 밑 사람들이 길을 터 주었다. 이제 상류로 올라갈 수 있어요.','桥下的人让开了水路。现在可以往上游去了。'],['[지도]의 강 화면에서 떠돌이 선단과 물건을 바꿀 수 있어요. (하루 3번)','在[地图]的河流页面可以和流浪船队交换物资。（每天3次）']]:[['「'+h.n[0]+'」을 되찾았다! 강물이 조금 맑아졌다.','「'+h.n[1]+'」夺回来了！河水清了一些。'],['매일 아침 보급: '+costStr(h.prod,1),'每天早上补给：'+costStr(h.prod,1)]];
  popTip({head:h.toll?L('다리 통과','通过断桥'):L('구역 수복','夺回区域'),lines:ls,t:0});if(di===2)addSurvivor(3);persist()}
 function startRiverD(di){const h=RV[di],d=R.rv.d[di];R.landed=R.day;R.cnt.lands++;save.stats.lands++;mission('land');track('land_start',{day:R.day,river:true,di,comp:compId()});let s=R.day*419+di*89+11;const rnd=()=>{s=(s*16807)%2147483647;return (s%10000)/10000};
@@ -270,18 +270,18 @@ function tollScreen(){g.fillStyle='rgba(5,8,14,.95)';g.fillRect(0,0,W,H);txt(L('
 const CT=[{n:['외곽 고속도로','城郊高速'],nests:3,z:8,prod:{scrap:3}},{n:['시립 병원','市立医院'],nests:4,z:9,prod:{med:1,cloth:2}},{n:['공항 활주로','机场跑道'],nests:4,z:10,prod:{plastic:3,rope:1}},{n:['도심','市中心'],heart:true,z:9,prod:{can:2,plank:2}}];
 const BOMB_COST={plastic:2,water:3,scrap:2},HEART_SHELL=3,HEART_CORE=8;
 const RADIO4=[['도시 무전: …여기는 시립 병원 지하. 의사 서린입니다. 아직 숨 쉬는 사람이 열둘이에요.','城市电台：……这里是市立医院地下。我是医生书林。还有十二个人在喘气。'],
- ['도시 무전: 회색 껍질은 불로는 안 탑니다. 정수장 물을 졸여 만든 정화탄을 던지면 녹아요.','城市电台：灰色的外壳烧不掉。用净水厂的水熬成净化弹扔过去，就能融化。'],
+ ['도시 무전: 회색 껍질은 불로는 안 탑니다. 바닷물을 졸인 소금으로 정화탄을 만들어 던지면 녹아요.','城市电台：灰色的外壳烧不掉。把海水熬成盐做成净化弹扔过去，就能融化。'],
  ['도시 무전: 고속도로는 차가 막혀서 감염체가 갇혀 있어요. 소리만 조심하면 됩니다.','城市电台：高速公路被车堵死了，丧尸被困在里面。小心别弄出声音就行。'],
  ['도시 무전: 공항에 작은 비행기 한 대가 남아 있어요. 당신이 타고 떠났던 그 비행기요.','城市电台：机场还剩一架小飞机。就是你当初坐着逃走的那架。'],
  ['도시 무전: 근원 심장은 도심 한가운데, 당신이 처음 도망쳤던 그 거리에 있습니다.','城市电台：源心在市中心，就在你当初逃离的那条街上。']];
 const CH4=[{t:['외곽 고속도로 되찾기','夺回城郊高速'],p:()=>[R.ct.d[0].s?1:0,1],r:{scrap:3,plastic:2},s:['멈춰 선 차들 사이로 바람이 지나갔다. 도시가 가까워질수록 모두 말이 없어졌다.','风从停滞的车流间穿过。离城市越近，大家越沉默。']},
- {t:['정화탄 3개 만들기','制作3枚净化弹'],p:()=>[R.cnt.bomb,3],r:{water:3},s:['유나: "물로 만든 폭탄이라니." 도하: "커피보단 덜 이상하지."','柔娜："用水做的炸弹。" 道河："总比咖啡正常。"']},
+ {t:['정화탄 3개 만들기','制作3枚净化弹'],p:()=>[R.cnt.bomb,3],r:{water:3},s:['유나: "소금으로 만든 폭탄이라니." 도하: "어부한텐 제일 익숙한 무기지."','柔娜："用盐做的炸弹。" 道河："对渔夫来说，这是最顺手的武器。"']},
  {t:['시립 병원 되찾기','夺回市立医院'],p:()=>[R.ct.d[1].s?1:0,1],r:{med:2,can:2},s:['지하에서 열두 명이 올라왔다. 맨 앞의 의사가 햇빛에 눈을 찡그렸다.','十二个人从地下走了上来。走在最前面的医生在阳光下眯起了眼。']},
  {t:['공항 활주로 되찾기','夺回机场跑道'],p:()=>[R.ct.d[2].s?1:0,1],r:{rope:3,plank:4},s:['그 비행기가 그대로 있었다. 조종석에는 출발 전에 두고 간 물병이 아직 있었다.','那架飞机还在原地。驾驶座上，出发前留下的水瓶还在。']},
  {t:['도심의 근원 심장 태우기','烧掉市中心的源心'],p:()=>[R.ct.d[3].s?1:0,1],r:{},s:['','']}];
 let endFx=0;
 function ch4On(){return ch3On()&&R.q3>=CH3.length}
-function reclaimC(di){const d=R.ct.d[di],h=CT[di];d.s=2;d.left=0;R.ct.max=Math.max(R.ct.max,di);track('reclaim_city',{di,day:R.day});AudioFx.cue('win');vib('long');
+function reclaimC(di){const d=R.ct.d[di],h=CT[di];d.s=2;d.left=0;R.ct.max=Math.max(R.ct.max,di);track('reclaim_city',{di,day:R.day});setTimeout(()=>gotDoc(9+di),600);AudioFx.cue('win');vib('long');
  popTip({head:L('구역 수복','夺回区域'),lines:[['「'+h.n[0]+'」을 되찾았다! 도시에 색이 하나 돌아왔다.','「'+h.n[1]+'」夺回来了！城市恢复了一抹颜色。'],['매일 아침 보급: '+costStr(h.prod,1),'每天早上补给：'+costStr(h.prod,1)]],t:0});if(di===1)addSurvivor(4);persist()}
 function cityMorning(){if(!ch4On())return;const v=R.vit;if(R.surv.some(s2=>s2.id===4&&s2.fed)&&v.hp<100){v.hp=Math.min(100,v.hp+20);fxText(RAFT_X,RAFT_Y-60,L('서린: 체력 +20','书林：体力 +20'),'#c8ffc8')}
  if(R.ended&&R.day>=(R.regrow||0)){R.regrow=R.day+6;const cand=[];['rv','ct'].forEach(rg=>R[rg].d.forEach((d,i)=>{const h=(rg==='rv'?RV:CT)[i];if(d.s&&!h.toll&&!h.boss&&!h.heart)cand.push([rg,i])}));if(cand.length&&R.day>(R.endDay||0)+2){const [rg,i]=cand[(R.day*7)%cand.length],d=R[rg].d[i];d.s=0;d.left=1;track('regrow',{rg,i});AudioFx.cue('thunder');popTip({head:L('회색 잔당','灰色残党'),lines:[['심장은 멎었지만, 「'+(rg==='rv'?RV:CT)[i].n[0]+'」에 작은 둥지가 다시 돋았다.','源心停跳了，但「'+(rg==='rv'?RV:CT)[i].n[1]+'」又冒出了一个小巢。'],['[지도]에서 원정을 가 태우세요. 되찾은 땅은 지켜야 남아요.','去[地图]出发烧掉它。夺回的土地要守住才算数。']],t:0})}}}
@@ -306,23 +306,89 @@ function cmapScreen(){g.fillStyle='rgba(5,8,14,.95)';g.fillRect(0,0,W,H);txt(L('
   txt(L('매일 아침: ','每天早上：')+costStr(h.prod,1),56,y+108,16,'#9fb0c4','left',false);
   if(!d.s&&open)button(520,y+26,180,82,L('원정','远征'),go?'red':'gray',26,()=>{if(go)startCityD(i);else why()},{id:'ct_go'+i})});
  compPicker(722);
- const y=856;rr(30,y,690,150,14,'#10202a','#5ad0c0',2);if(!icon('bomb',80,y+56,56)){circ(80,y+56,22,'#7fe0d0','#123',3);circ(80,y+56,8,'#e8fffa')}txt(L('정화탄','净化弹')+' '+(R.res.bomb||0),126,y+40,24,'#e8fffa','left',false);txt(L('근원 심장의 회색 껍질을 녹인다','融化源心的灰色外壳'),126,y+78,16,'#9fd8d0','left',false);txt(costStr(BOMB_COST),126,y+112,16,'#ffe2a0','left',false);
+ const y=856;rr(30,y,690,150,14,'#10202a','#5ad0c0',2);if(!icon('bomb',80,y+56,56)){circ(80,y+56,22,'#7fe0d0','#123',3);circ(80,y+56,8,'#e8fffa')}txt(L('정화탄','净化弹')+' '+(R.res.bomb||0),126,y+40,24,'#e8fffa','left',false);txt(L('바닷소금으로 근원 심장의 회색 껍질을 녹인다','用海盐融化源心的灰色外壳'),126,y+78,16,'#9fd8d0','left',false);txt(costStr(BOMB_COST),126,y+112,16,'#ffe2a0','left',false);
  button(470,y+34,230,84,L('만들기','制作'),canPayC(BOMB_COST)?'green':'gray',26,bombMake,{id:'bomb_make'});
  mapTabs('cmap');button(150,1200,450,84,L('◀ 닫기','◀ 关闭'),'gold',26,()=>{sc='sea'},{id:'ct_close'})}
-function endingScreen(){endFx+=1/60;g.fillStyle='#071016';g.fillRect(0,0,W,H);if(imgs.title){g.drawImage(imgs.title,0,0,W,H);g.fillStyle='rgba(4,8,14,'+Math.max(.62,.95-endFx*.05)+')';g.fillRect(0,0,W,H)}drawGlow(375,300,240+Math.sin(frame*2)*16,'y',.55);
- txt(L('엔딩','结局'),375,150,28,'#c9d2de','center');txt(L('돌아온 땅','重归之地'),375,226,70,'#ffcf6a','center');
- para(L('근원 심장이 멎던 날, 도시의 회색이 한꺼번에 무너져 내렸다.\n바다에서 버틴 날들과 강을 거슬러 오른 날들이\n한 줄로 이어졌다.\n\n처음 도망쳤던 그 거리에서,\n이번에는 아무도 도망치지 않았다.','源心停跳的那天，城市的灰色一下子全部崩塌。\n在海上撑过的日子、溯河而上的日子，\n连成了一条线。\n\n在当初逃离的那条街上，\n这一次，没有人再逃。'),375,380,23,'#f0eee4',620,38,'center');
+function endingScreen(){endFx+=1/60;g.fillStyle='#071016';g.fillRect(0,0,W,H);if(imgs.title){g.drawImage(imgs.title,0,0,W,H);g.fillStyle='rgba(4,8,14,'+Math.max(.66,.95-endFx*.05)+')';g.fillRect(0,0,W,H)}drawGlow(375,300,240+Math.sin(frame*2)*16,'y',.55);
+ if(endPage===0){txt(L('엔딩','结局'),375,150,28,'#c9d2de','center');txt(L('돌아온 땅','重归之地'),375,226,70,'#ffcf6a','center');
+  para(L('근원 심장이 멎던 날, 도시의 회색이 한꺼번에 무너져 내렸다.\n바다에서 버틴 날들과 강을 거슬러 오른 날들이\n한 줄로 이어졌다.\n\n처음 도망쳤던 그 거리에서,\n이번에는 아무도 도망치지 않았다.','源心停跳的那天，城市的灰色一下子全部崩塌。\n在海上撑过的日子、溯河而上的日子，\n连成了一条线。\n\n在当初逃离的那条街上，\n这一次，没有人再逃。'),375,380,23,'#f0eee4',620,38,'center');
+  button(200,990,350,90,L('그 후 ▶','后来 ▶'),'gold',26,()=>{endPage=1;endFx=0;AudioFx.cue('ui')},{id:'btn_ch1'});return}
+ txt(L('그 후','后来'),375,150,40,'#ffcf6a','center');EPILOGUE.forEach((e,k)=>{if(endFx>k*.5){g.save();g.globalAlpha=Math.min(1,(endFx-k*.5)*2);para(LL(e),375,236+k*92,20,'#f0eee4',620,30,'center');g.restore()}});
  const rec=['hb','rv','ct'].reduce((a,k)=>a+R[k].d.filter(d=>d.s).length,0);
- rr(110,740,530,150,16,'rgba(10,16,24,.8)','#8a7a4a',2);txt(L('생존 '+R.day+'일 · 동료 '+R.surv.length+'명','生存'+R.day+'天 · 伙伴'+R.surv.length+'人'),375,790,24,'#ffe7a0','center');txt(L('되찾은 땅 '+rec+'/12 · 커피 '+R.cnt.coffee+'잔','夺回土地 '+rec+'/12 · 咖啡'+R.cnt.coffee+'杯'),375,840,21,'#dfe6ee','center',false);
- txt(L('이야기는 끝났지만 삶은 계속돼요. 땅을 지키며 계속 플레이할 수 있어요.','故事结束了，生活还在继续。可以守护土地继续游玩。'),375,940,17,'#9fb0c4','center',false);
- button(110,990,250,90,L('공유','分享'),'blue',26,shareGame,{id:'end_share'});button(390,990,250,90,L('계속 살아가기','继续生活'),'gold',24,()=>{sc='sea'},{id:'btn_ch1'});
+ rr(110,800,530,120,16,'rgba(10,16,24,.8)','#8a7a4a',2);txt(L('생존 '+R.day+'일 · 동료 '+R.surv.length+'명','生存'+R.day+'天 · 伙伴'+R.surv.length+'人'),375,842,23,'#ffe7a0','center');txt(L('되찾은 땅 '+rec+'/12 · 기록 '+(save.docs||[]).length+'/'+DOCS.length+' · 커피 '+R.cnt.coffee+'잔','夺回土地 '+rec+'/12 · 档案'+(save.docs||[]).length+'/'+DOCS.length+' · 咖啡'+R.cnt.coffee+'杯'),375,886,18,'#dfe6ee','center',false);
+ txt(L('이야기는 끝났지만 삶은 계속돼요. 땅을 지키며 계속 플레이할 수 있어요.','故事结束了，生活还在继续。可以守护土地继续游玩。'),375,958,17,'#9fb0c4','center',false);
+ button(110,1000,250,90,L('공유','分享'),'blue',26,shareGame,{id:'end_share'});button(390,1000,250,90,L('계속 살아가기','继续生活'),'gold',24,()=>{sc='sea';setTimeout(()=>gotDoc(14),400)},{id:'btn_end2'});
  txt(L('RECLAIM · 플레이해 주셔서 고맙습니다','RECLAIM · 感谢游玩'),375,1150,16,'#6a7484','center',false)}
+// ---- 이야기: 프롤로그 · 동료 대화 · 기록 보관함 · 후일담
+const PROLOGUE=[
+ ['한빛시. 강이 바다로 흘러드는 도시.','청명바이오는 강을 깨끗하게 만들겠다고 약속했다. 물속의 더러운 것을 먹어 치우는 균, G-7.','韩光市。一座河流汇入大海的城市。','清明生物许诺要让河水变干净。一种会吃掉水中污物的菌——G-7。'],
+ ['석 달 뒤, 사람들 피부에 회색 반점이 피기 시작했다.','반점은 이끼가 되었고, 이끼는 사람을 걷게 했다. 감염된 사람들은 떼를 지어 물가로 걸어갔다.','三个月后，人们的皮肤上开始长出灰色斑点。','斑点变成了苔藓，苔藓让人行走。被感染的人成群结队地走向水边。'],
+ ['나는 청명바이오 회장 전용기의 부기장이었다.','그날 밤 명령은 하나였다. “회장님이 오실 때까지 대기.”','我是清明生物会长专机的副驾驶。','那天夜里的命令只有一条：“原地待命，等会长到达。”'],
+ ['회장은 오지 않았다. 활주로 너머로 회색이 밀려왔다.','그리고 나는 배웠다. 그것들은 물을 건너지 못한다는 걸.','会长没有来。灰色从跑道那头涌了过来。','然后我学到了一件事——它们过不了水。']];
+const ME=-1;
+const TALKS=[
+ {id:'d1',who:0,need:()=>true,t:['구명보트','救生艇'],l:[[0,'구명보트에서 사흘. 갈매기를 잡아먹을까 진지하게 고민했지.','在救生艇上漂了三天。我认真考虑过要不要抓海鸥吃。'],[ME,'어쩌다 바다에 나왔어요?','你怎么会漂到海上？'],[0,'북쪽 항구가 무너지던 날, 아들놈을 먼저 큰 배에 태웠어. 나는 다음 배를 타기로 했는데… 다음 배는 없더군.','北港沦陷那天，我先把儿子送上了大船。我说我坐下一班……可再也没有下一班了。'],[0,'도윤이. 스무 살. 나보다 그물을 잘 던져.','道允。二十岁。撒网比我还准。']]},
+ {id:'d2',who:0,need:()=>ch2On()&&R.q2>=1,t:['돛대만 한 키','比桅杆还高'],l:[[0,'항구에 배가 들어올 때마다 혹시 그 배인가 자꾸 보게 돼.','每次有船进港，我都忍不住看是不是那艘。'],[ME,'찾으면 바로 알려 줄게요.','找到了我马上告诉你。'],[0,'알려 줄 필요 없어. 그 녀석이면 멀리서도 알아봐. 키가 돛대만 하거든.','不用告诉我。那小子我隔老远就认得出来，个子跟桅杆一样高。']]},
+ {id:'d3',who:0,need:()=>ch3On()&&R.rv.trades>=2,t:['북쪽 소식','北边的消息'],l:[[0,'선단 사람들한테 들었어. 북쪽 섬에 그물 잘 던지는 키 큰 청년이 있대.','听船队的人说，北边的岛上有个撒网很准的高个子年轻人。'],[0,'이름은 모른다더군. …몰라도 돼.','名字他们不知道。……不知道也没关系。'],[ME,'가 봐야죠.','那得去一趟。'],[0,'땅을 다 되찾고 나서. 그 녀석한테 돌아올 땅이 있다고 말해 주고 싶어.','等把地都夺回来再说。我想告诉那小子，他有地方可以回来了。']]},
+ {id:'y1',who:1,need:()=>true,t:['빈 오두막','空小屋'],l:[[1,'섬 오두막엔 아빠를 찾으러 갔었어요. 병에 쪽지가 떠 왔거든요. “딸에게. 아빠는 섬에 있다.”','我去岛上小屋是为了找爸爸。有个漂流瓶里写着：“女儿，爸爸在岛上。”'],[1,'근데 도착해 보니 빈집이었어요. 벽에 톱 자국만 잔뜩.','可到了才发现是空屋子，墙上只有一道道锯痕。'],[ME,'살아 계실 거예요.','他一定还活着。'],[1,'알아요. 그 사람, 톱만 있으면 어디서든 살아요.','我知道。那个人只要有把锯子，在哪都能活。']]},
+ {id:'y2',who:1,need:()=>ch3On(),t:['톱밥','锯末'],l:[[1,'…방금 강 무전 들었죠? 제재소. 톱밥.','……刚才的河上电台你听到了吧？锯木厂。锯末。'],[1,'그거 아빠예요. 확실해요.','那是我爸。肯定是。'],[ME,'그럼 강을 올라가죠.','那我们就溯河而上。'],[1,'커피부터 끓일게요. 손이 떨려서 아무것도 못 고치겠어요.','我先去煮杯咖啡。手抖得什么都修不了。']]},
+ {id:'y3',who:1,need:()=>R.surv.some(s2=>s2.id===3),t:['이음새','接缝'],l:[[1,'아빠가 저한테 처음 한 말이 뭔지 알아요? “갑판 이음새가 왜 이 모양이냐.”','你知道我爸见到我说的第一句话是什么吗？“甲板的接缝怎么弄成这样？”'],[3,'사실이잖아.','本来就是。'],[1,'…네, 사실이에요.','……嗯，确实是。'],[1,'고마워요. 바다에서 건져 줘서. 우리 둘 다.','谢谢你。把我们俩都从海里捞了起来。']]},
+ {id:'m1',who:2,need:()=>true,t:['불빛 하나','一点火光'],l:[[2,'그날 밤, 서쪽 바다로 작은 비행기가 떨어지는 걸 봤어요.','那天夜里，我看到一架小飞机掉进了西边的海里。'],[2,'다들 끝났다고 했지만, 바다에 불빛 하나가 떠 있었죠. 당신 모닥불이었어요.','大家都说完了，可海面上漂着一点火光。那是你的篝火。'],[2,'그래서 매일 밤 무전을 켰어요. 대답할 때까지.','所以我每天夜里都打开电台，直到你回应。'],[ME,'덕분에 살았어요.','多亏了你，我才活下来。'],[2,'아뇨. 당신이 대답해서 내가 산 거예요.','不。是你回应了，我才活下来的。']]},
+ {id:'m2',who:2,need:()=>ch2On()&&R.q2>=4,t:['등대 일지','灯塔日志'],l:[[2,'등대 일지에 지나간 배를 전부 적어 뒀어요. 그날 이후 서른일곱 척.','灯塔日志里记下了每一艘经过的船。那天以后，一共三十七艘。'],[2,'돌아온 건 아직 여섯 척. 나머지 서른한 척의 이름을 매일 밤 읽어요.','回来的只有六艘。剩下三十一艘的名字，我每天夜里都念一遍。'],[ME,'왜요?','为什么？'],[2,'누군가 기억하고 있다는 걸, 배가 알았으면 해서요.','我希望那些船知道，还有人记得它们。']]},
+ {id:'m3',who:2,need:()=>ch4On(),t:['두고 온 사람들','留下的人'],l:[[2,'도시로 간다니… 거기엔 우리가 두고 온 사람들이 있겠죠.','要回城里了啊……那里有我们当初丢下的人。'],[ME,'이번엔 아무도 두고 오지 않아요.','这次谁也不丢下。'],[2,'그 말, 일지에 적어 둘게요.','这句话，我记进日志里。']]},
+ {id:'h1',who:3,need:()=>true,t:['톱밥 끓인 물','锯末水'],l:[[3,'제재소에서 석 달. 톱밥 끓인 물이 얼마나 맛없는지 아나?','在锯木厂待了三个月。你知道锯末煮的水有多难喝吗？'],[ME,'커피보다요?','比咖啡还难喝？'],[3,'…그 검은 물 말인가. 그건 판단을 보류하지.','……你说那个黑水？那个我暂不评价。'],[3,'유나를 데려와 줘서 고맙네. 빚은 판자로 갚지.','谢谢你把柔娜带来。这份情，我用木板还。']]},
+ {id:'h2',who:3,need:()=>ch3On()&&R.q3>=7,t:['G-7 탱크','G-7罐'],l:[[3,'정수장 증축 공사, 내가 했네. 청명바이오 일이었지.','净水厂的扩建工程是我做的。清明生物的活儿。'],[3,'지하에 커다란 탱크들이 있었어. “G-7”이라고 쓰여 있었고, 냄새가… 비 온 뒤 숲 냄새 같았지.','地下有好几个大罐子，上面写着“G-7”。气味……像雨后的树林。'],[3,'그땐 좋은 거라고 생각했어. 강을 깨끗하게 한다니까.','那时候我以为是好东西。说是能让河水变干净。'],[ME,'아무도 몰랐어요.','谁都不知道。'],[3,'아니. 누군가는 알았을 거야.','不。总有人是知道的。']]},
+ {id:'h3',who:3,need:()=>ch4On()&&R.q4>=2,t:['자네 배','你的船'],l:[[3,'끝나면 뭘 할 건가?','结束以后你打算做什么？'],[ME,'모르겠어요. 비행기는 이제 안 탈래요.','不知道。飞机是不想再坐了。'],[3,'그럼 배를 만들지. 자네 배. 이름은 자네가 짓게.','那我给你造条船。你的船。名字你来起。']]},
+ {id:'s1',who:4,need:()=>true,t:['환자 0번','零号病人'],l:[[4,'첫 환자는 정수장 직원이었어요. 피부에 회색 반점. 체온이 떨어지고, 자꾸 물가로 가려고 했죠.','第一个病人是净水厂的员工。皮肤上有灰色斑点，体温下降，总想往水边走。'],[4,'보고서를 세 번 올렸어요. 세 번 다 “검토 중”이 돌아왔고요.','我交了三次报告。三次都回复“审核中”。'],[ME,'그 보고서, 이제 누가 읽어요.','那份报告，现在还有谁看。'],[4,'당신이 읽었잖아요. 그걸로 충분해요.','你看了啊。这就够了。']]},
+ {id:'s2',who:4,need:()=>ch4On()&&R.q4>=3,t:['소금','盐'],l:[[4,'식염수로 씻은 자리만 반점이 사라졌어요. 바닷물에 닿은 시료는 30분 만에 죽었고요.','只有用盐水洗过的地方，斑点才会消失。碰到海水的样本，三十分钟就死了。'],[4,'그래서 감염체가 바다를 못 건너는 거예요. 무서워서가 아니라, 바다가 그걸 죽이니까.','所以丧尸过不了海。不是因为害怕，是因为海会杀死它。'],[ME,'바다가 우릴 지켜 준 거네요.','原来是大海一直在保护我们。'],[4,'그리고 이제 바다를 들고 도시로 가는 거죠. 정화탄은 결국 소금이니까.','现在，轮到我们把大海带进城里了。净化弹说到底就是盐。']]},
+ {id:'s3',who:4,need:()=>!!R.ended,t:['첫 수업','第一堂课'],l:[[4,'항구에 학교를 열 거예요. 첫 수업은 소금 만들기.','我要在港口开一所学校。第一堂课：制盐。'],[4,'두 번째는 불 피우기. 세 번째는… 커피 내리기?','第二堂课：生火。第三堂课……冲咖啡？'],[ME,'그건 필수 과목으로 하죠.','那必须是必修课。'],[4,'반대하는 사람은 한 명도 없을 거예요.','我想不会有一个人反对。']]}];
+const DOCS=[
+ {t:['탑승 대기 지시서','待机指令'],b:['청명바이오 항공팀. 부기장은 회장님 도착 시까지 엔진 예열 상태로 대기. 화물칸의 냉장 상자 4개는 어떤 경우에도 열지 말 것.','清明生物航空组。副驾驶保持引擎预热，待会长到达。货舱里的四个冷藏箱，任何情况下都不得打开。']},
+ {t:['항구 검역소 공문','港口检疫所公文'],b:['G-7 노출 의심 선박 입항 금지. 참고: 바닷물에 닿은 시료는 30분 안에 활성을 잃음. 원인 조사 중.','禁止疑似接触G-7的船只入港。备注：接触海水的样本在三十分钟内失去活性，原因调查中。']},
+ {t:['시장 상인의 장부','集市商贩的账本'],b:['외상 갚을 사람들이 다 사라졌다. 그래도 장부는 덮지 않는다. 돌아오면 받을 거다. 돌아오기만 하면.','欠账的人都不见了。但账本我不合上。回来了再收。只要能回来。']},
+ {t:['발전소 교대 일지','发电站交接日志'],b:['정수장 쪽 송전 요청이 세 배로 늘었다. 청명바이오가 배양조 온도를 올리고 있다고 한다. 밤마다 강에서 비 온 뒤 숲 냄새가 난다.','净水厂方向的供电申请涨了三倍。听说清明生物在调高培养罐的温度。每天夜里，河边都飘着雨后树林的气味。']},
+ {t:['광장의 전단지','广场的传单'],b:['“물이 살아납니다 — 청명바이오 G-7 한빛강 시범사업.” 그 위에 누군가 매직으로 적었다. “살아난 건 물이 아니었다.”','“让河水重获新生——清明生物G-7韩光河试点工程。”上面有人用马克笔写着：“活过来的不是水。”']},
+ {t:['어촌 아이의 그림일기','渔村孩子的绘画日记'],b:['아빠가 강에 들어가지 말래. 강물이 회색이래. 바다는 괜찮대. 짜니까. (그림: 바다에 떠 있는 집)','爸爸说别进河里。河水是灰色的。他说海没事，因为是咸的。（画：漂在海上的房子）']},
+ {t:['다리 밑 사람들의 규칙','桥下人的规矩'],b:['하나, 강물은 끓여 마신다. 둘, 소금은 금보다 귀하다. 셋, 지나가는 배에게 먹을 것은 받되 목숨은 받지 않는다.','一、河水煮开再喝。二、盐比金子金贵。三、向过往的船收吃的，不收命。']},
+ {t:['제재소 벽의 낙서','锯木厂墙上的字'],b:['유나야, 아빠는 강 위로 간다. 섬은 둥지가 가까워 오래 못 있겠더라. 이 글을 보면 톱밥 냄새를 따라와라.','柔娜，爸爸往上游去了。岛上离巢太近，待不久。看到这行字，就顺着锯末的味道来找我。']},
+ {t:['정수장 배양조 점검표','净水厂培养罐检查表'],b:['G-7 3호조: 생체 조직 흡착 반응 발생. 대표 지시로 보고 보류. 본사 지하 원조(元槽)는 계속 가동할 것. — 서명 윤태석','G-7三号罐：出现生物组织吸附反应。按会长指示暂缓上报。总部地下原罐继续运转。——签名 尹泰锡']},
+ {t:['고속도로 위의 쪽지','高速公路上的纸条'],b:['차 유리에 붙은 쪽지: “우린 바다로 간다. 바다는 안전하대. 엄마, 아빠, 지호.”','贴在车窗上的纸条：“我们去海边了。听说海上安全。爸爸、妈妈、智浩。”']},
+ {t:['서린의 진료 기록','书林的诊疗记录'],b:['환자 0번. 정수장 직원. 피부 회색 반점, 체온 저하, 물가로 향하는 행동. 생리식염수로 세척한 부위만 반점 소실. → 소금. 세 번째 보고서 제출.','零号病人。净水厂员工。皮肤灰斑，体温下降，有走向水边的行为。仅用生理盐水清洗的部位斑点消失。→盐。提交第三份报告。']},
+ {t:['항공팀 화물 목록','航空组货物清单'],b:['냉장 상자 4개: G-7 원조 배양체. 목적지: 해외 연구소. 승인: 윤태석. — 그 상자들은 비행기와 함께 바다에 가라앉았다. 소금물 속에서.','冷藏箱四个：G-7原罐培养体。目的地：海外研究所。批准：尹泰锡。——那些箱子随飞机沉入了海里。沉在盐水里。']},
+ {t:['윤태석 회장의 녹음','尹泰锡会长的录音'],b:['“부기장. 이걸 듣는다면 자네는 살아 있겠지. 상자를 싣게 한 건 나야. 하지만 나는 타지 않았네. 원조를 내 손으로 끄려고 남았어. 소금이야. 처음부터 바다가 답이었어. …미안하네.”','“副驾驶。如果你听到这段录音，说明你还活着。是我让人装上那些箱子的。但我没有上飞机。我留下来，想亲手关掉原罐。是盐。从一开始，答案就是大海。……对不起。”']},
+ {t:['등대 일지','灯塔日志'],b:['23일 밤. 서쪽 바다로 작은 비행기 한 대가 떨어짐. 새벽에 보니 불빛 하나가 떠 있다. 누군가 살아 있다. 발전기를 고쳐야 한다. — 마루','第23夜。一架小飞机坠入西边的海里。天亮时看见海上漂着一点火光。有人还活着。得修好发电机。——玛鲁']},
+ {t:['항구 학교 첫 공지','港口学校第一份通知'],b:['오늘 배울 것: 소금 만드는 법, 불 피우는 법, 그리고 글자. 준비물: 없음. 커피는 선생님이 준비함. — 교사 서린','今日课程：制盐、生火，还有识字。需要准备：无。咖啡由老师准备。——教师 书林']}];
+const EPILOGUE=[['도하는 배를 고쳐 북쪽으로 떠났다. 키가 돛대만 한 아들을 데리러.','道河修好船去了北方，去接那个比桅杆还高的儿子。'],['유나와 한수는 제재소에서 배를 만든다. 이음새 문제로 매일 싸운다.','柔娜和韩洙在锯木厂造船，每天都为接缝吵架。'],['마루는 등대를 다시 켰다. 이제 그 불은 경고가 아니라 초대다.','玛鲁重新点亮了灯塔。如今那束光不再是警告，而是邀请。'],['서린은 항구에 학교를 열었다. 첫 수업은 소금 만들기.','书林在港口开了学校，第一堂课是制盐。'],['다리 밑 사람들은 나룻배를 몬다. 통행료는 이제 커피 한 잔.','桥下的人撑起了渡船。过路费如今是一杯咖啡。'],['그리고 당신은, 처음으로 비행기가 아닌 배의 키를 잡았다.','而你，第一次握住的不是飞机的操纵杆，是船舵。']];
+let talk=null,pro=null,endPage=0;
+function gotDoc(i){save.docs=save.docs||[];if(save.docs.indexOf(i)>=0)return;save.docs.push(i);track('doc',{i});persist();const D=DOCS[i];popTip({head:L('기록 발견 · ','发现档案 · ')+LL(D.t),lines:[D.b,[L('[보급·일지] → [기록 보관함]에서 다시 볼 수 있어요','可在[补给·日志]→[档案馆]中重温'),L('[보급·일지] → [기록 보관함]에서 다시 볼 수 있어요','可在[补给·日志]→[档案馆]中重温')]],t:0})}
+function talkNext(){if(!R||!R.surv)return null;R.talks=R.talks||{};for(const k of TALKS){if(R.talks[k.id])continue;if(!R.surv.some(s2=>s2.id===k.who))continue;try{if(k.need())return k}catch(e){}}return null}
+function talkScreen(){const k=talk.k,ln=k.l[talk.i],sp=ln[0];g.fillStyle='rgba(4,6,12,.82)';g.fillRect(0,0,W,H);drawGlow(375,760,260,'o',.25+.05*Math.sin(frame*5));
+ txt(L('모닥불 이야기','篝火夜话'),375,80,20,'#c9a87a','center',false);txt(LL(k.t),375,128,34,'#ffe2a0','center');
+ const lx=190,rx=560,me=sp===ME;g.save();g.globalAlpha=me?.45:1;if(!sprite('surv'+k.who,'idle',frame,lx,900,300,-1,6))circ(lx,760,60,'#6c6','#111',4);g.restore();
+ g.save();g.globalAlpha=me?1:.45;if(!sprite('hero','idle',frame,rx,900,300,1,6))circ(rx,760,60,'#e9e2d2','#111',4);g.restore();
+ rr(30,930,690,290,18,'#141a28f4','#c9a87a',3);txt(me?L('나','我'):LL(SURV[sp].n),60,972,24,me?'#bfe0ff':'#ffe2a0','left');
+ para(LANG==='zh'?ln[2]:ln[1],60,1022,22,'#f0eee4',630,36,'left');
+ txt((talk.i+1)+' / '+k.l.length+'   '+L('탭해서 계속','点击继续'),690,1196,15,'#8a94a4','right',false);
+ hotspot(0,160,W,H-160,()=>{talk.i++;AudioFx.cue('ui');if(talk.i>=k.l.length){R.talks[k.id]=1;track('talk',{id:k.id,day:R.day});persist();talk=null;sc='sea'}},'talk_next');
+ button(560,28,170,62,L('건너뛰기','跳过'),'dark',18,()=>{R.talks[k.id]=1;track('talk_skip',{id:k.id});persist();talk=null;sc='sea'},{id:'talk_skip'})}
+function prologueScreen(){pro.t+=1/60;const i=pro.i,c=PROLOGUE[i];g.fillStyle='#03060a';g.fillRect(0,0,W,H);if(imgs.title){g.save();g.globalAlpha=.08+.03*i;g.drawImage(imgs.title,0,0,W,H);g.restore()}
+ const a=Math.min(1,pro.t*1.5);g.save();g.globalAlpha=a;txt((i+1)+' / '+PROLOGUE.length,375,380,18,'#6a7484','center',false);
+ para(LANG==='zh'?c[2]:c[0],375,520,30,'#ffe2a0',620,48,'center');para(LANG==='zh'?c[3]:c[1],375,680,24,'#e6ecf2',600,42,'center');g.restore();
+ if(pro.t>.6)txt(i<PROLOGUE.length-1?L('탭해서 계속','点击继续'):L('탭해서 탈출 시작','点击开始逃离'),375,1060,20,'#ffcf6a','center',false);
+ const done=()=>{save.prolog=1;persist();pro=null;track('prologue_done',{});startAct1()};
+ hotspot(0,0,W,1150,()=>{if(pro.t<.4)return;pro.i++;pro.t=0;AudioFx.cue('ui');if(pro.i>=PROLOGUE.length)done()},'pro_next');
+ button(560,1220,170,64,L('건너뛰기','跳过'),'dark',18,done,{id:'pro_skip'})}
+let docSel=-1;
+function docsScreen(){g.fillStyle='#0d111b';g.fillRect(0,0,W,H);save.docs=save.docs||[];txt(L('기록 보관함','档案馆'),375,70,36,'#ffe2a0','center');txt(L('모은 기록 ','已收集 ')+save.docs.length+' / '+DOCS.length,375,114,19,'#c9d2de','center',false);
+ DOCS.forEach((D,i)=>{const got=save.docs.indexOf(i)>=0,y=144+i*66;rr(30,y,690,58,12,got?'#161d28':'#11151d',got?'#5a6a7a':'#232a36',2);txt((i+1<10?'0':'')+(i+1),56,y+30,18,got?'#ffcf6a':'#4a5462','left',false);txt(got?LL(D.t):'? ? ?',110,y+30,20,got?'#f0eff7':'#4a5462','left',false);
+  if(got)hotspot(30,y,690,58,()=>{AudioFx.cue('ui');popTip({head:LL(D.t),lines:[D.b],t:0})},'doc'+i)});
+ button(150,1180,450,80,L('◀ 돌아가기','◀ 返回'),'gold',26,()=>{sc='reward'},{id:'docs_back'})}
 let questCd=0,radioShow=null,endCh=1;
 function canPayC(c2){for(const r in c2)if((R.res[r]||0)<c2[r])return false;return true}
 function payC(c2){for(const r in c2)R.res[r]-=c2[r]}
 function costStr(o,plus){return Object.keys(o).map(k=>LL(RES_N[k])+' '+(plus?'+':'')+o[k]).join(' · ')}
 function ch2On(){return R.ch>=CH.length}
-function reclaim(di){const d=R.hb.d[di],h=HB[di];d.s=2;d.left=0;R.hb.max=Math.max(R.hb.max,di);if(!R.hb.flow)R.hb.flow=R.day+3;track('reclaim',{di,day:R.day});AudioFx.cue('win');vib('long');
+function reclaim(di){const d=R.hb.d[di],h=HB[di];d.s=2;d.left=0;R.hb.max=Math.max(R.hb.max,di);if(!R.hb.flow)R.hb.flow=R.day+3;track('reclaim',{di,day:R.day});setTimeout(()=>gotDoc(1+di),600);AudioFx.cue('win');vib('long');
  popTip({head:L('구역 수복','夺回区域'),lines:[['「'+h.n[0]+'」 구역을 되찾았다! 회색이 걷히고 색이 돌아왔다.','「'+h.n[1]+'」夺回来了！灰色褪去，颜色回来了。'],['매일 아침 보급: '+costStr(h.prod,1),'每天早上补给：'+costStr(h.prod,1)],['며칠마다 감염이 되밀려와요. [항구 지도]에서 방벽을 세우면 지킬 수 있어요.','每隔几天感染会反扑。在[港口地图]建起路障就能守住。']],t:0});if(di===0)addSurvivor(2);persist()}
 function harborMorning(){if(!ch2On())return;const hb=R.hb,sum={};hb.d.forEach((d,i)=>{if(d.s)for(const k in HB[i].prod)sum[k]=(sum[k]||0)+HB[i].prod[k]});R.rv.d.forEach((d,i)=>{if(d.s)for(const k in RV[i].prod)sum[k]=(sum[k]||0)+RV[i].prod[k]});if(R.ct)R.ct.d.forEach((d,i)=>{if(d.s)for(const k in CT[i].prod)sum[k]=(sum[k]||0)+CT[i].prod[k]});
  if(Object.keys(sum).length){for(const k in sum)R.res[k]=(R.res[k]||0)+sum[k];message((ch4On()?L('땅의 보급: ','土地补给：'):ch3On()?L('항구·강 보급: ','港口·河流补给：'):L('항구 보급: ','港口补给：'))+costStr(sum,1),2.6)}
@@ -370,10 +436,10 @@ function teach(){if(guideTip||buildPick)return;const r=R.res,v=R.vit,ft=fireTile
  if(ch3On()&&!ch4On()&&tip('ch3',[['3장 「강을 거슬러」가 시작됐어요. 아래 [지도]에서 [강]을 눌러 상류로 올라가요.','第三章「溯河而上」开始了。在下方[地图]里点[河流]，向上游进发。'],['원정에 동료 한 명을 데려갈 수 있고, 다리를 지나면 물건을 교환할 수 있어요.','远征可以带一名伙伴；通过断桥后还能交换物资。']]))return;
  if(ch2On())tip('ch2',[['2장 「항구 수복」이 시작됐어요. 아래 [항구 지도]에서 구역을 골라 원정을 떠나요.','第二章「夺回港口」开始了。在下方[港口地图]选择区域出发远征。'],['구역의 감염 둥지를 모두 태우면 그 땅을 되찾고, 매일 아침 보급을 받아요.','烧光区域里的感染巢就能夺回那片土地，每天早上获得补给。']])}
 function vitCan(k){const r=R.res,v=R.vit;return k==='thirst'?r.water>0&&v.thirst<95:k==='hunger'?(r.cooked+r.can+r.berry+r.fish)>0&&v.hunger<95:k==='hp'?r.med>0&&v.hp<90:false}
-function migrate(){R.cnt=Object.assign({debris:0,cooked:0,lands:0,held:0,coffee:0},R.cnt||{});R.rv=R.rv||{d:RV.map(h=>({s:0,left:h.boss?1:(h.nests||0)})),max:-1,trades:0};R.q3=R.q3||0;R.ct=R.ct||{d:CT.map(h=>({s:0,left:h.heart?1:h.nests})),max:-1};R.q4=R.q4||0;R.cnt.bomb=R.cnt.bomb||0;if(R.comp===undefined)R.comp=-1;R.buff=R.buff||0;R.hb=R.hb||{d:HB.map(h=>({s:0,left:h.boss?1:h.nests,bar:0})),flow:0,max:-1};R.q2=R.q2||0;R.surv=R.surv||[];if(R.ch===undefined)R.ch=0;R.radioIdx=R.radioIdx||0;R.bottleIdx=R.bottleIdx||0;if(R.pend){for(const k in R.pend.c)R.res[k]=(R.res[k]||0)+R.pend.c[k];if(R.pend.lit)R.lit=true;if(R.pend.rc>=0){const rc=R.pend.rc,rg=R.pend.reg||(R.pend.rv?'rv':'hb');R.pend=null;if(!R[rg].d[rc].s)(rg==='rv'?reclaimR:rg==='ct'?reclaimC:reclaim)(rc)}R.pend=null}}
+function migrate(){R.cnt=Object.assign({debris:0,cooked:0,lands:0,held:0,coffee:0},R.cnt||{});R.rv=R.rv||{d:RV.map(h=>({s:0,left:h.boss?1:(h.nests||0)})),max:-1,trades:0};R.q3=R.q3||0;R.ct=R.ct||{d:CT.map(h=>({s:0,left:h.heart?1:h.nests})),max:-1};R.q4=R.q4||0;R.talks=R.talks||{};R.cnt.bomb=R.cnt.bomb||0;if(R.comp===undefined)R.comp=-1;R.buff=R.buff||0;R.hb=R.hb||{d:HB.map(h=>({s:0,left:h.boss?1:h.nests,bar:0})),flow:0,max:-1};R.q2=R.q2||0;R.surv=R.surv||[];if(R.ch===undefined)R.ch=0;R.radioIdx=R.radioIdx||0;R.bottleIdx=R.bottleIdx||0;if(R.pend){for(const k in R.pend.c)R.res[k]=(R.res[k]||0)+R.pend.c[k];if(R.pend.lit)R.lit=true;if(R.pend.rc>=0){const rc=R.pend.rc,rg=R.pend.reg||(R.pend.rv?'rv':'hb');R.pend=null;if(!R[rg].d[rc].s)(rg==='rv'?reclaimR:rg==='ct'?reclaimC:reclaim)(rc)}R.pend=null}}
 function questTick(dt){questCd-=dt;if(questCd>0||sc!=='sea')return;const c4=ch4On(),c3=ch3On()&&!c4,c2=ch2On(),list=c4?CH4:c3?CH3:c2?CH2:CH,i=c4?R.q4:c3?R.q3:c2?R.q2:R.ch;if(i>=list.length)return;const q=list[i],pr=q.p();if(pr[0]<pr[1])return;questCd=1.5;for(const k in q.r)R.res[k]=(R.res[k]||0)+q.r[k];if(c4)R.q4++;else if(c3)R.q3++;else if(c2)R.q2++;else R.ch++;track('quest',{c:c4?4:c3?3:c2?2:1,i:i+1,day:R.day});AudioFx.cue('win');vib('medium');persist();
  if(!c2&&R.ch>=CH.length){save.ch1=true;persist();track('ch1_clear',{day:R.day});bannerT=0;endCh=1;sc='ch1end';return}
- if(c4&&R.q4>=CH4.length){save.ch4=true;save.cleared=(save.cleared||0)+1;R.ended=true;R.endDay=R.day;R.regrow=R.day+6;persist();track('ch4_clear',{day:R.day});track('game_clear',{day:R.day,surv:R.surv.length,coffee:R.cnt.coffee});if(TOSS&&globalThis.__tossScore)try{globalThis.__tossScore(R.day)}catch(e){}bannerT=0;endCh=4;endFx=0;sc='ch1end';return}
+ if(c4&&R.q4>=CH4.length){save.ch4=true;save.cleared=(save.cleared||0)+1;R.ended=true;R.endDay=R.day;R.regrow=R.day+6;persist();track('ch4_clear',{day:R.day});track('game_clear',{day:R.day,surv:R.surv.length,coffee:R.cnt.coffee});if(TOSS&&globalThis.__tossScore)try{globalThis.__tossScore(R.day)}catch(e){}bannerT=0;endCh=4;endFx=0;endPage=0;sc='ch1end';return}
  if(c3&&R.q3>=CH3.length){save.ch3=true;persist();track('ch3_clear',{day:R.day});bannerT=0;endCh=3;sc='ch1end';return}
  if(!c3&&!c4&&c2&&R.q2>=CH2.length){save.ch2=true;persist();track('ch2_clear',{day:R.day});bannerT=0;endCh=2;sc='ch1end';return}
  const rw=Object.keys(q.r).map(k=>LL(RES_N[k])+' +'+q.r[k]).join('  ');popTip({head:(c4?L('4장 ','第四章 '):c3?L('3장 ','第三章 '):c2?L('2장 ','第二章 '):'')+L('목표 달성 ','目标达成 ')+(i+1)+'/'+list.length,lines:[[LL(q.t),LL(q.t)],q.s].concat(rw?[[L('보상: ','奖励：')+rw,L('보상: ','奖励：')+rw]]:[]),t:0})}
@@ -387,7 +453,7 @@ function survTick(dtt){const r=R.res;for(const s2 of R.surv){if(!s2.fed)continue
 function survEat(){let fed=0;for(const s2 of R.surv){const k=['cooked','can','berry'].find(k2=>R.res[k2]>0);if(k){R.res[k]--;s2.fed=true;fed++}else s2.fed=false}R.today.fedN=fed;R.today.hungryN=R.surv.length-fed}
 function drawSurv(){for(const s2 of R.surv){const ps=survPos(s2.id),S=SURV[s2.id];g.save();g.globalAlpha=.3;g.fillStyle='#000';g.beginPath();g.ellipse(ps.x,ps.y+2,16,5,0,0,TAU);g.fill();g.restore();
   const an=!s2.fed?'idle':s2.id===0&&hasM('rod')?'fish':s2.ct<1?'craft':'idle';if(!sprite('surv'+s2.id,an,frame+s2.id,ps.x,ps.y+4,78,s2.id===0?-1:1,an==='fish'?3:6))circ(ps.x,ps.y-14,14,s2.id?'#6c6':'#69f','#111',3);
-  txt(LL(S.n)+(s2.fed?'':L(' (배고픔)','（饿）')),ps.x,ps.y-78,14,s2.fed?'#fff':'#ffb0a0','center')}}
+  txt(LL(S.n)+(s2.fed?'':L(' (배고픔)','（饿）')),ps.x,ps.y-78,14,s2.fed?'#fff':'#ffb0a0','center');{const tk=talkNext();if(tk&&tk.who===s2.id){const b=Math.sin(frame*5)*4;rr(ps.x-22,ps.y-128+b,44,32,10,'#fff3d6','#5a3a1e',2);txt('…',ps.x,ps.y-113+b,20,'#5a3a1e','center',false)}}}}
 function bottle(){const b=BOTTLES[R.bottleIdx%BOTTLES.length];R.bottleIdx++;R.res.rope=(R.res.rope||0)+1;track('bottle',{i:R.bottleIdx});AudioFx.cue('pick');popTip({head:L('병 속의 쪽지','漂流瓶'),lines:[b,[L('(병을 묶은 밧줄 +1)','（绑瓶子的绳子 +1）'),L('(병을 묶은 밧줄 +1)','（绑瓶子的绳子 +1）')]],t:0})}
 function radioMorning(){if(!R.radioBuilt)return;const i2=R.radioIdx-RADIO.length;if(R.radioIdx<RADIO.length){radioShow={l:RADIO[R.radioIdx],t:9};R.radioIdx++;AudioFx.cue('warn')}else if(ch2On()&&i2<RADIO2.length){radioShow={l:RADIO2[i2],t:9};R.radioIdx++;AudioFx.cue('warn')}else if(ch3On()&&i2-RADIO2.length<RADIO3.length){radioShow={l:RADIO3[i2-RADIO2.length],t:9};R.radioIdx++;AudioFx.cue('warn')}else if(ch4On()&&i2-RADIO2.length-RADIO3.length<RADIO4.length){radioShow={l:RADIO4[i2-RADIO2.length-RADIO3.length],t:9};R.radioIdx++;AudioFx.cue('warn')}}
 function ch3End(){g.fillStyle='#071016';g.fillRect(0,0,W,H);if(imgs.title){g.drawImage(imgs.title,0,0,W,H);g.fillStyle='rgba(4,8,14,.8)';g.fillRect(0,0,W,H)}drawGlow(375,330,220+Math.sin(frame*2)*14,'b',.5);
@@ -431,7 +497,7 @@ function startAct1(){const items=[['water',375,2290],['can',260,2200],['knife',4
  tip('act1',[['회색병이 도시를 삼킨 지 사흘째. 구조용 전용기에 아직 연료가 남아 있다. 지금이 아니면 못 나간다.','灰病吞没城市的第三天。救援专机里还有燃油。现在不走，就走不了了。'],['화면을 누른 채 끌면 그 방향으로 달려요. 탭하면 그곳으로 걸어가요.','按住屏幕拖动即可朝该方向奔跑，点击则走到该处。'],['빛나는 물건 위를 지나가기만 하면 자동으로 주워요. 위쪽 비행기까지 달리세요.','从发光的物品上走过就会自动捡起。跑向上方的飞机。'],['가방은 8칸뿐이에요. 무엇을 챙길지가 바다에서의 첫 3일을 정해요.','背包只有8格，带什么决定了海上的头三天。']])}
 function act1Tick(dt){const p=A.p;A.t+=dt;
  if(A.t>8)A.front-=13*dt;if(p.y>A.front-30){p.hp-=18*dt;if(frame%0.5<dt)message(L('불길이 다가온다! 위로 달려!','火势逼近！快往上跑！'),.8)}
- if(A.board>0){A.board+=dt;if(A.board>2.6){track('act1_clear',{bag:A.bag.length,t:Math.round(A.t)});sc='zone';zoneT=0}return}
+ if(A.board>0){A.board+=dt;if(A.board>2.6){gotDoc(0);track('act1_clear',{bag:A.bag.length,t:Math.round(A.t)});sc='zone';zoneT=0}return}
  moveTo(p,dt,195);A.fullCd-=dt;
  // 가까이 지나가면 자동으로 줍는다 (조이스틱·탭 공통)
  for(const it of A.items){if(it.got)continue;const d=Math.hypot(p.x-it.x,p.y-it.y);if(it.wait){if(d>95)it.wait=false;continue}if(d<66){if(A.bag.length<8){it.got=true;A.bag.push(it.k);AudioFx.cue('pick');vib('light');tutStep=Math.max(tutStep,2);fxText(it.x,it.y-44,LL(BAG[it.k].n)+' · '+LL(BAG[it.k].d),'#fff3c0');track('act1_pick',{k:it.k})}else if(A.fullCd<=0){A.fullCd=3;message(L('가방이 가득 찼어요. 바꾸려면 아래 가방 칸을 탭해 내려놓으세요','背包满了。想换的话，点下方的背包格放下'),2.2)}}}
@@ -670,7 +736,7 @@ function seaHud(){const v=R.vit,r=R.res;if(ch2On()&&(isNight()||R.t>DUSK))drawCo
  keys.forEach((k,i)=>{const x=20+i*180,y=62;const can=vitCan(k);rr(x,y,168,70,12,'#151b26',can?'#8a7a4a':'#2c3646',2);if(can&&v[k]<45){g.save();g.globalAlpha=.45+.45*Math.sin(frame*6);rr(x,y,168,70,12,null,'#ffe27a',4);g.restore()}txt(LL(vitIcon(k))+(can?(k==='thirst'?L(' ▸마시기',' ▸喝'):k==='hunger'?L(' ▸먹기',' ▸吃'):L(' ▸치료',' ▸治疗')):''),x+12,y+22,can?15:17,can?'#ffe27a':'#dfe6ee','left',false);txt(Math.round(v[k])+'',x+156,y+22,18,v[k]<25?'#ff8a7a':'#fff','right',false);rr(x+12,y+42,144,14,7,'#0c1018');rr(x+12,y+42,144*v[k]/100,14,7,v[k]<25?'#ff6a5a':cols[k]);
   hotspot(x,y,168,70,()=>useVital(k),'vit_'+k)});
  // 다음 목표
- txt('▶ '+nextGoal(),24,172,18,'#ffe7a0','left');if(buffOn()){rr(600,958,134,40,12,'#2a1c12e8','#c89a6a',2);drawMug(626,979,34);txt(Math.ceil(R.buff)+L('초','秒'),690,979,18,'#ffe2c0','center',false)}
+ txt('▶ '+nextGoal(),24,172,18,'#ffe7a0','left');{const tk=!inStorm()&&!buildPick&&talkNext();if(tk)button(16,994,400,56,'💬 '+LL(SURV[tk.who].n)+' · '+LL(tk.t),'blue',19,()=>{talk={k:tk,i:0};sc='talk';AudioFx.cue('ui')},{id:'btn_talk'})}if(buffOn()){rr(600,958,134,40,12,'#2a1c12e8','#c89a6a',2);drawMug(626,979,34);txt(Math.ceil(R.buff)+L('초','秒'),690,979,18,'#ffe2c0','center',false)}
  if(radioShow){const ls=wrap(LL(radioShow.l),18,640);g.save();g.globalAlpha=Math.min(1,radioShow.t);rr(20,194,710,22+ls.length*26,12,'#1a1430e8','#b08aff',2);ls.forEach((l,i)=>txt((i?'':'📻 ')+l,36,216+i*26,18,'#e8dcff','left',false));g.restore()}
  // 자원 줄
  rr(0,1060,W,274,0,'#0b0f16ee');const show=['plank','plastic','cloth','scrap','rope','water','can','fish','cooked','berry','med','coffee'];
@@ -772,7 +838,7 @@ function artLand(o){if(o.k==='tree'){wsp(o.hp<3?'tree_chop':'tree',o.x,o.y+30,15
  if(o.k==='bush')return wsp('bush',o.x,o.y+20,100,'bottom');if(o.k==='rock')return wsp('rock',o.x,o.y+24,110,'bottom');
  if(o.k==='hut'){wsp('hut',o.x,o.y+70,280,'bottom');return true}if(o.k==='crate'){drawGlow(o.x,o.y,34,'y',.35);return icon('crate',o.x,o.y,50)}
  if(o.k==='stream'){for(let x=0;x<W;x+=148)wspPart('stream',0,0,1,1,x,o.y-74,150,150);txt(L('개울 (물 뜨기)','小溪（打水）'),o.x,o.y,18,'#e8f4ff','center');return true}return false}
-function backToSea(ok){const Ld=Land;const rc=ok&&Ld.clear?Ld.di:-1;const rg=Ld.reg||'hb';if(rc>=0)setTimeout(()=>{if(!R)return;if(!R[rg].d[rc].s)(rg==='rv'?reclaimR:rg==='ct'?reclaimC:reclaim)(rc)},300);R.pend=null;if(ok&&Ld.lit)R.lit=true;const npc=ok&&Ld.npcGot;if(npc)setTimeout(()=>{if(R)addSurvivor(1)},400);if(ok){for(const k in Ld.carry)R.res[k]=(R.res[k]||0)+Ld.carry[k];track('land_back',{n:Ld.n,t:Math.round(R.t)});message(L('배로 돌아왔다. 짐 ','回到船上。带回 ')+Ld.n+L('개를 실었다',' 件物资'),1.8)}Land=null;if(sc==='land'){enterSea()}}
+function backToSea(ok){const Ld=Land;const rc=ok&&Ld.clear?Ld.di:-1;const rg=Ld.reg||'hb';if(rc>=0)setTimeout(()=>{if(!R)return;if(!R[rg].d[rc].s)(rg==='rv'?reclaimR:rg==='ct'?reclaimC:reclaim)(rc)},300);R.pend=null;if(ok&&Ld.lit){R.lit=true;setTimeout(()=>gotDoc(13),900)}const npc=ok&&Ld.npcGot;if(npc)setTimeout(()=>{if(R)addSurvivor(1)},400);if(ok){for(const k in Ld.carry)R.res[k]=(R.res[k]||0)+Ld.carry[k];track('land_back',{n:Ld.n,t:Math.round(R.t)});message(L('배로 돌아왔다. 짐 ','回到船上。带回 ')+Ld.n+L('개를 실었다',' 件物资'),1.8)}Land=null;if(sc==='land'){enterSea()}}
 function drawLand(){const Ld=Land,p=Ld.p,night=isNight();g.fillStyle='#24301f';g.fillRect(0,0,W,H);g.save();g.translate(0,-camY);
  g.fillStyle='#1e6a78';g.fillRect(0,LAND_H-120,W,300);g.fillStyle='#8a7a5a';g.fillRect(0,LAND_H-200,W,90);
  if(Ld.type==='harbor'||Ld.type==='city'){g.fillStyle=Ld.type==='city'?'#33302c':'#3a3a3a';g.fillRect(0,0,W,LAND_H-200);if(imgs.world){const y0=Math.max(0,Math.floor(camY/158)*158),y1=Math.min(LAND_H-200,camY+H);for(let y=y0;y<y1;y+=158){wspPart('asphalt',0,0,1,1,215,y,160,160);wspPart('asphalt',0,0,1,1,375,y,160,160)}
@@ -820,7 +886,7 @@ function title(){g.fillStyle='#071016';g.fillRect(0,0,W,H);if(imgs.title){g.draw
  g.fillStyle='#14181c';g.fillRect(0,520,W,40);for(let i=0;i<12;i++)rr(20+i*62,450-((i*37)%60),48,80+((i*37)%60),2,'#101418');// 불 꺼진 해안 도시
  drawGlow(560,700,60,'o',.6+.1*Math.sin(frame*6));rr(530,690,60,26,6,'#5a4030')}// 배의 불빛
  txt('RECLAIM',375,120,92,'#ffcf6a','center');txt(L('돌아온 땅','重归之地'),375,196,38,'#fff','center');txt(L('탈출하고, 버티고, 돌아가 되찾아라','逃离，坚持，然后夺回'),375,242,21,'#e6ecf2','center');
- const cont=!!save.run;button(150,820,450,96,cont?L('이어서 버티기 ('+save.run.day+'일째)','继续（第'+save.run.day+'天）'):L('탈출 시작','开始逃离'),'gold',30,()=>{AudioFx.init();if(save.run){R=save.run;Land=null;enterSea()}else startAct1()},{id:'btn_start'});
+ const cont=!!save.run;button(150,820,450,96,cont?L('이어서 버티기 ('+save.run.day+'일째)','继续（第'+save.run.day+'天）'):L('탈출 시작','开始逃离'),'gold',30,()=>{AudioFx.init();if(save.run){R=save.run;Land=null;enterSea()}else if(!save.prolog){pro={i:0,t:0};sc='prologue'}else startAct1()},{id:'btn_start'});
  if(cont)button(150,930,450,70,L('새로 시작 (1막부터)','重新开始（从第一幕）'),'gray',20,()=>{if(resetArm>0){save.run=null;R=null;persist();resetArm=0;startAct1()}else{resetArm=2.5;message(L('한 번 더 누르면 지금 배를 버리고 새로 시작해요','再按一次将放弃当前的船重新开始'),2)}});
  button(150,1020,140,70,L('설정','设置'),'dark',20,()=>{sc='settings';guideRet='title'});button(305,1020,140,70,L('안내서','指南'),'dark',20,()=>{sc='guide';guidePage=0;guideRet='title'});button(460,1020,140,70,L('보상','奖励'),'dark',20,()=>{sc='reward';guideRet='title'});if(rewardBadge())circ(596,1024,10,'#ff4a4a');
  if(LANG==='zh'){const hl=['抵制不良游戏，拒绝盗版游戏。','注意自我保护，谨防受骗上当。','适度游戏益脑，沉迷游戏伤身。','合理安排时间，享受健康生活。'];txt('健康游戏忠告',375,1150,18,'#c9d2de','center',false);hl.forEach((s,i)=>txt(s,375,1180+i*26,16,'#8a94a4','center',false))}
@@ -861,7 +927,7 @@ function rewardScreen(){dailyInit();g.fillStyle='#0d111b';g.fillRect(0,0,W,H);tx
   if(m.c)txt(L('완료','已领'),650,y+24,17,'#7a8698','center');else button(590,y+8,110,40,L('받기','领取'),done?'green':'gray',17,()=>{if(m.p>=M.goal&&!m.c){m.c=true;give(M.r,L('미션','任务'))}})});
  rr(24,642,702,230,16,'#161c2a','#2e3646',2);txt(L('보급 낙하 (하루 3번)','空投补给（每天3次）'),44,670,22,'#ffe2a0');para(L('광고를 보면 보급 상자가 떨어져요: 판자 3 · 플라스틱 2 · 통조림 1','看广告获得空投：木板3·塑料2·罐头1'),44,712,18,'#c9d2de',650);
  const left=adBoxLeft();button(44,770,662,80,left>0?L('보급 받기 (광고) · 남은 횟수 ','领取空投（广告）· 剩余 ')+left:L('오늘은 끝났어요','今天已领完'),left>0?'green':'gray',22,()=>{if(adBoxLeft()<=0)return;showAd('supply',()=>{save.adBox.n++;give({plank:3,plastic:2,can:1},L('보급 낙하','空投'))})},{id:'btn_supply'});
- rr(24,888,702,250,16,'#161c2a','#2e3646',2);txt(L('기록','记录'),44,916,22,'#ffe2a0');const s=save.stats;[[L('가장 오래 버틴 날','最长坚持'),s.best+L('일','天')],[L('누적 생존 일수','累计天数'),s.days],[L('건진 물건','打捞物品'),s.debris],[L('섬 상륙','登岛次数'),s.lands]].forEach(([a,b],i)=>{txt(a,60,960+i*40,19,'#c9d2de','left',false);txt(''+b,690,960+i*40,19,'#fff','right',false)});
+ rr(24,888,702,250,16,'#161c2a','#2e3646',2);txt(L('통계','统计'),44,916,22,'#ffe2a0');button(436,896,270,50,'📜 '+L('기록 보관함 ','档案馆 ')+(save.docs||[]).length+'/'+DOCS.length,'blue',18,()=>{sc='docs';AudioFx.cue('ui')},{id:'btn_docs'});const s=save.stats;[[L('가장 오래 버틴 날','最长坚持'),s.best+L('일','天')],[L('누적 생존 일수','累计天数'),s.days],[L('건진 물건','打捞物品'),s.debris],[L('섬 상륙','登岛次数'),s.lands]].forEach(([a,b],i)=>{txt(a,60,960+i*40,19,'#c9d2de','left',false);txt(''+b,690,960+i*40,19,'#fff','right',false)});
  button(150,1180,450,80,L('◀ 돌아가기','◀ 返回'),'gold',26,()=>{sc=guideRet==='sea'&&R?'sea':'title'})}
 function toggleLang(){LANG=LANG==='zh'?'ko':'zh';persist();AudioFx.cue('ui')}
 function drawGuideTip(){guideTip.t+=1/60;const ls=guideTip.lines.map(l=>LL(l));let tot=0;const wr=ls.map(l=>{const w=wrap(l,21,560);tot+=w.length;return w});g.fillStyle='rgba(4,6,12,.72)';g.fillRect(0,0,W,H);const h=150+tot*34+(ls.length-1)*14,y0=600-h/2;
@@ -902,7 +968,7 @@ else{c.addEventListener('pointerdown',e=>{const [x,y]=coords(e.clientX,e.clientY
 // ================================================================ 화면 갱신
 let perfAcc=0,perfFrames=0,perfBad=0;
 function perf(dt){if(qualityManual||!isPlay()||paused)return;perfAcc+=dt;perfFrames++;if(perfAcc>=2){const fps=perfFrames/perfAcc;perfAcc=0;perfFrames=0;if(fps<45){perfBad++;if(perfBad>=2&&!qualityLow){qualityLow=true;message(L('저사양 모드로 바꿨어요','已切换省电模式'),1.4)}}else perfBad=0}}
-function wantMusic(){if(sc==='loading')return;let k='menu';if(sc==='act1')k='escape';else if(sc==='sea'||sc==='build'||sc==='dayend'||sc==='hmap'||sc==='rmap'||sc==='cmap'||sc==='toll')k=R&&isNight()?'night':R&&inStorm()?'storm':'sea';else if(sc==='land')k='land';Music.play(k)}
+function wantMusic(){if(sc==='loading')return;let k='menu';if(sc==='act1')k='escape';else if(sc==='sea'||sc==='build'||sc==='dayend'||sc==='hmap'||sc==='rmap'||sc==='cmap'||sc==='toll'||sc==='talk')k=R&&isNight()?'night':R&&inStorm()?'storm':'sea';else if(sc==='land')k='land';Music.play(k)}
 let dbgFreeze=false,autoBot=false;
 function tick(dt){if(paused||guideTip||adShow||dbgFreeze)return;if(autoBot)botStep(dt);joyTick(dt);if(sc==='act1')act1Tick(dt);else if(sc==='sea')seaTick(dt);else if(sc==='land')landTick(dt)}
 function draw(dt){if(API){g.setTransform(1,0,0,1,0,0);g.fillStyle='#03060a';g.fillRect(0,0,c.width,c.height);g.setTransform(view.s,0,0,view.s,view.ox,view.oy)}else g.setTransform(1,0,0,1,0,0);
@@ -910,7 +976,7 @@ function draw(dt){if(API){g.setTransform(1,0,0,1,0,0);g.fillStyle='#03060a';g.fi
  let sx=0,sy=0;if(shakeT>0){shakeT-=dt;sx=(Math.random()-.5)*shakeA;sy=(Math.random()-.5)*shakeA;if(shakeT<=0)shakeA=0}
  g.save();g.translate(sx,sy);
  if(sc==='loading')loadingScreen();else if(sc==='title')title();else if(sc==='act1')drawAct1();else if(sc==='zone')zoneScreen();else if(sc==='sea')drawSea();else if(sc==='build'){drawSea();btnsNext=[];buildScreen()}
- else if(sc==='land')drawLand();else if(sc==='dayend')dayendScreen();else if(sc==='g1done')g1Screen();else if(sc==='ch1end')ch1Screen();else if(sc==='hmap'){drawSea();btnsNext=[];hmapScreen()}else if(sc==='rmap'){drawSea();btnsNext=[];rmapScreen()}else if(sc==='cmap'){drawSea();btnsNext=[];cmapScreen()}else if(sc==='toll'){drawSea();btnsNext=[];tollScreen()}else if(sc==='fail')failScreen();else if(sc==='settings')settingsScreen();else if(sc==='privacy')privacyScreen();else if(sc==='guide')guideScreen();else if(sc==='reward')rewardScreen();
+ else if(sc==='land')drawLand();else if(sc==='dayend')dayendScreen();else if(sc==='g1done')g1Screen();else if(sc==='ch1end')ch1Screen();else if(sc==='hmap'){drawSea();btnsNext=[];hmapScreen()}else if(sc==='rmap'){drawSea();btnsNext=[];rmapScreen()}else if(sc==='cmap'){drawSea();btnsNext=[];cmapScreen()}else if(sc==='talk'){drawSea();btnsNext=[];talkScreen()}else if(sc==='prologue')prologueScreen();else if(sc==='docs')docsScreen();else if(sc==='toll'){drawSea();btnsNext=[];tollScreen()}else if(sc==='fail')failScreen();else if(sc==='settings')settingsScreen();else if(sc==='privacy')privacyScreen();else if(sc==='guide')guideScreen();else if(sc==='reward')rewardScreen();
  g.restore();
  if(paused&&isPlay()){btnsNext=[];pauseOverlay()}
  drawJoy();if(guideTip)drawGuideTip();if(adShow)drawAd();drawBanner();btns=btnsNext;wantMusic()}
@@ -921,7 +987,7 @@ function botStep(dt){botT-=dt;if(botT>0)return;botT=.25;
   if(A.bag.length<8){const it=A.items.filter(i=>!i.got&&i.y<p.y+60&&i.y>p.y-700).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];if(it&&!A.zs.some(z=>Math.hypot(z.x-it.x,z.y-it.y)<110)){A.target=it;p.tx=it.x;p.ty=it.y+8;return}}
   A.target=null;p.tx=375;p.ty=210;return}
  if(sc==='zone'){startSea(botZone);return}
- if(sc==='ch1end'||sc==='cmap'||sc==='rmap'||sc==='toll'||sc==='hmap'){sc='sea';return}
+ if(sc==='prologue'){save.prolog=1;startAct1();return}if(sc==='talk'){R.talks[talk.k.id]=1;talk=null;sc='sea';return}if(sc==='ch1end'||sc==='cmap'||sc==='rmap'||sc==='toll'||sc==='hmap'){sc='sea';return}
  if(sc==='dayend'){nextDay();return}if(sc==='g1done'){save.g1fb='bot';sc='sea';morningEvents(false);return}
  if(sc==='fail'){revive();return}if(sc==='build'){sc='sea';return}
  if(sc==='sea'){const r=R.res,v=R.vit;
@@ -954,7 +1020,7 @@ function botStep(dt){botT-=dt;if(botT>0)return;botT=.25;
 let botT=0,botZone=0,botBuilt=null;
 function botCell(k){if(k==='deck'){for(let r=1;r<5;r++)for(let gy=-r;gy<=r;gy++)for(let gx=-r;gx<=r;gx++)if(!tileAt(gx,gy)&&adjacentEmpty(gx,gy)&&gx>=-3&&gx<=3&&gy>=-3&&gy<=4)return {x:gx,y:gy};return null}const t=R.deck.find(d=>!d.m);return t?{x:t.x,y:t.y}:null}
 if(!API&&typeof location!=='undefined'&&location.search.indexOf('debug=1')>=0){globalThis.__bepaDebug={get sc(){return sc},set sc(v){sc=v},get R(){return R},get A(){return A},get Land(){return Land},save,persist,touch,startAct1,startSea,startLand,enterSea,nextDay,fail,revive,showAd,
- get btns(){return btns},get debrisList(){return debris},startHarborD,reclaim,harborMorning,startRiverD,reclaimR,startCityD,reclaimC,bombMake,tollPay,tradeDo,drinkCoffee,useTile,chooseBuild,get Music(){return Music},toCh(n){R.ch=CH.length;R.lit=true;migrate();if(n>=4){R.q3=CH3.length;R.rv.d.forEach(d=>{d.s=2;d.left=0});R.rv.max=3;if(!R.surv.some(s2=>s2.id===3))R.surv.push({id:3,fed:true,ct:0})}if(n>=3){R.q2=CH2.length;R.hb.d.forEach(d=>{d.s=2;d.bar=1;d.left=0});R.hb.max=3;[0,1,2].forEach(i=>{if(!R.surv.some(s2=>s2.id===i))R.surv.push({id:i,fed:true,ct:0})})}},set bot(v){autoBot=v},set botZone(v){botZone=v},set freeze(v){dbgFreeze=v},spawnDebris,stormDamage,shadowBump,
+ get btns(){return btns},get debrisList(){return debris},startHarborD,reclaim,harborMorning,startRiverD,reclaimR,startCityD,reclaimC,bombMake,gotDoc,talkNext,get talk(){return talk},set talk(v){talk=v},tollPay,tradeDo,drinkCoffee,useTile,chooseBuild,get Music(){return Music},toCh(n){R.ch=CH.length;R.lit=true;migrate();if(n>=4){R.q3=CH3.length;R.rv.d.forEach(d=>{d.s=2;d.left=0});R.rv.max=3;if(!R.surv.some(s2=>s2.id===3))R.surv.push({id:3,fed:true,ct:0})}if(n>=3){R.q2=CH2.length;R.hb.d.forEach(d=>{d.s=2;d.bar=1;d.left=0});R.hb.max=3;[0,1,2].forEach(i=>{if(!R.surv.some(s2=>s2.id===i))R.surv.push({id:i,fed:true,ct:0})})}},set bot(v){autoBot=v},set botZone(v){botZone=v},set freeze(v){dbgFreeze=v},spawnDebris,stormDamage,shadowBump,
  setT(t){if(R)R.t=t},setRes(o){Object.assign(R.res,o)},setVit(o){Object.assign(R.vit,o)},get guideTip(){return guideTip},set guideTip(v){guideTip=v},set guidePage(v){guidePage=v},get paused(){return paused},set paused(v){paused=v},
  step(n,dt=1/60){dbgFreeze=false;for(let i=0;i<n;i++){guideTip=null;tipQ.length=0;btnsNext=[];tick(dt)}dbgFreeze=true},drawNow(){draw(0)},get drawErr(){return drawErr},get stats(){return STAT_LOG},forceStorm(){if(R){R.zone=0;R.day=Z().storm;R.t=61}},joyStart,joyMove,joyEnd,get joy(){return joy},get seaP(){return seaP}}}
 let drawErr=0;function loop(now){let dt=last?(now-last)/1000:0;last=now;perf(Math.min(dt,.25));try{draw(Math.min(dt,.1))}catch(e){drawErr++;try{g.restore();g.restore();g.restore()}catch(e2){}if(drawErr<5&&typeof console!=='undefined')console.error('draw error',e);if(drawErr===1)track('draw_error',{m:String(e&&e.message||e).slice(0,80),sc})}
