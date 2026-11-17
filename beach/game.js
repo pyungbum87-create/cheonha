@@ -274,7 +274,7 @@ if(typeof module!=='undefined')module.exports={newGame,step,advance,build,upgrad
 
 /* ============================== 플랫폼 층: 화면·터치·저장·소리·광고·통계는 여기에만 둔다 ==============================
    위챗(wx)·더우인(tt)으로 옮길 때 이 파일만 손보면 된다. */
-const BUILD='1117-1443';
+const BUILD='1117-1453';
 const PLAT=typeof wx!=='undefined'?'wx':typeof tt!=='undefined'?'tt':'web';
 const API=PLAT==='wx'?wx:PLAT==='tt'?tt:null;
 const VW=750,VH=1334,K=VW/W;
@@ -319,7 +319,7 @@ function track(ev,d){try{if(PLAT==='wx'&&API.reportEvent)API.reportEvent(ev,d||{
 /* ---------- 그림 ---------- */
 const IMG={},IMG_FAIL={};
 const MUST=['tuantuan','tt_cheer','didi','pengpeng','shell','gift'],LATER=['shanshan','dundun','zhuozhuo','didi_sick'];
-const ART=["boss_dragon", "boss_kingcrab", "boss_octoboss", "boss_pirate", "boss_whale", "didi", "didi_sick", "dundun", "en_crab", "en_crab_full", "en_elite", "en_elite_full", "en_fish", "en_fish_full", "en_gull", "en_gull_full", "en_hermit", "en_hermit_full", "en_jelly", "en_jelly_full", "en_octo", "en_octo_full", "en_puffer", "en_puffer_full", "en_shrimp", "en_shrimp_full", "en_turtle", "en_turtle_full", "gift", "pengpeng", "shanshan", "shell", "tt_cheer", "tuantuan", "tw_didi_1", "tw_didi_2", "tw_didi_3", "tw_didi_ice", "tw_didi_jet", "tw_dun_1", "tw_dun_2", "tw_dun_3", "tw_dun_double", "tw_dun_smash", "tw_peng_1", "tw_peng_2", "tw_peng_3", "tw_peng_dragon", "tw_peng_star", "tw_shan_1", "tw_shan_2", "tw_shan_3", "tw_shan_moon", "tw_shan_rainbow", "tw_tt_1", "tw_tt_2", "tw_tt_3", "tw_tt_king", "tw_tt_twin", "tw_zhuo_1", "tw_zhuo_2", "tw_zhuo_3", "tw_zhuo_express", "tw_zhuo_parcel", "zhuozhuo"],OPT=ART.filter(n=>/^(tw|en|boss|bg|ic|st)_/.test(n));   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
+const ART=["bg_1", "bg_2", "bg_3", "bg_4", "bg_5", "boss_dragon", "boss_kingcrab", "boss_octoboss", "boss_pirate", "boss_whale", "didi", "didi_sick", "dundun", "en_crab", "en_crab_full", "en_elite", "en_elite_full", "en_fish", "en_fish_full", "en_gull", "en_gull_full", "en_hermit", "en_hermit_full", "en_jelly", "en_jelly_full", "en_octo", "en_octo_full", "en_puffer", "en_puffer_full", "en_shrimp", "en_shrimp_full", "en_turtle", "en_turtle_full", "gift", "ic_bun", "ic_coin", "ic_gate", "ic_melon", "ic_spot", "ic_star", "ic_wave", "pengpeng", "shanshan", "shell", "tt_cheer", "tuantuan", "tw_didi_1", "tw_didi_2", "tw_didi_3", "tw_didi_ice", "tw_didi_jet", "tw_dun_1", "tw_dun_2", "tw_dun_3", "tw_dun_double", "tw_dun_smash", "tw_peng_1", "tw_peng_2", "tw_peng_3", "tw_peng_dragon", "tw_peng_star", "tw_shan_1", "tw_shan_2", "tw_shan_3", "tw_shan_moon", "tw_shan_rainbow", "tw_tt_1", "tw_tt_2", "tw_tt_3", "tw_tt_king", "tw_tt_twin", "tw_zhuo_1", "tw_zhuo_2", "tw_zhuo_3", "tw_zhuo_express", "tw_zhuo_parcel", "zhuozhuo"],OPT=ART.filter(n=>/^(tw|en|boss|bg|ic|st)_/.test(n));   // art/ 에 넣어 둔 그림 목록(빌드가 채움). 받은 그림은 이름만 맞추면 코드 그림 대신 쓰인다
 const HERO_IMG={tt:'tuantuan',didi:'didi',peng:'pengpeng',shan:'shanshan',dun:'dundun',zhuo:'zhuozhuo'};
 function loadImg(n,tries){tries=tries||0;const im=API?API.createImage():new Image();
   im.onload=()=>{IMG[n]=im;delete IMG_FAIL[n];onImg(n);};
@@ -475,12 +475,13 @@ function drawImg(n,x,y,h,o){const im=IMG[n];if(!im){g.fillStyle='#ffe6c8';circ(x
   o=o||{};const w=h*im.width/im.height,sx=o.sx||1,sy=o.sy||1;g.save();g.translate(x,y);if(o.rot)g.rotate(o.rot);g.scale(sx*(o.flip?-1:1),sy);if(o.a!==undefined)g.globalAlpha*=o.a;g.drawImage(im,-w/2,-h,w,h);g.restore();}
 
 /* ---------- 아이콘 ---------- */
-function icoCoin(x,y,r){g.fillStyle='#e8a520';circ(x,y+r*.12,r);g.fill();g.fillStyle=YEL;circ(x,y,r);g.fill();g.lineWidth=Math.max(2,r*.16);g.strokeStyle=INK;g.stroke();g.strokeStyle='#fff3c4';g.lineWidth=Math.max(2,r*.14);g.beginPath();g.arc(x,y,r*.55,3.6,5.2);g.stroke();}
-function icoStar(x,y,r,on){g.beginPath();for(let i=0;i<10;i++){const a=-1.5708+i*.6283,q=i%2?r*.48:r;g.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q);}g.closePath();g.fillStyle=on?YEL:'#e4d8c4';g.fill();g.lineWidth=Math.max(3,r*.16);g.lineJoin='round';g.strokeStyle=INK;g.stroke();}
+function icoImg(n,x,y,r){const im=IMG[n];if(!im)return false;const h=r*2.3,w=h*im.width/im.height;g.drawImage(im,x-w/2,y-h/2,w,h);return true;}
+function icoCoin(x,y,r){if(icoImg('ic_coin',x,y,r))return;g.fillStyle='#e8a520';circ(x,y+r*.12,r);g.fill();g.fillStyle=YEL;circ(x,y,r);g.fill();g.lineWidth=Math.max(2,r*.16);g.strokeStyle=INK;g.stroke();g.strokeStyle='#fff3c4';g.lineWidth=Math.max(2,r*.14);g.beginPath();g.arc(x,y,r*.55,3.6,5.2);g.stroke();}
+function icoStar(x,y,r,on){if(on&&icoImg('ic_star',x,y,r*1.05))return;g.beginPath();for(let i=0;i<10;i++){const a=-1.5708+i*.6283,q=i%2?r*.48:r;g.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q);}g.closePath();g.fillStyle=on?YEL:'#e4d8c4';g.fill();g.lineWidth=Math.max(3,r*.16);g.lineJoin='round';g.strokeStyle=INK;g.stroke();}
 function icoCastle(x,y,s){g.fillStyle='#f3c97a';g.strokeStyle=INK;g.lineWidth=4;g.lineJoin='round';g.beginPath();g.moveTo(x-s,y+s);g.lineTo(x-s,y-s*.3);g.lineTo(x-s*.55,y-s*.3);g.lineTo(x-s*.55,y-s*.8);g.lineTo(x-s*.2,y-s*.8);g.lineTo(x-s*.2,y-s*.3);g.lineTo(x+s*.2,y-s*.3);g.lineTo(x+s*.2,y-s*.8);g.lineTo(x+s*.55,y-s*.8);g.lineTo(x+s*.55,y-s*.3);g.lineTo(x+s,y-s*.3);g.lineTo(x+s,y+s);g.closePath();g.fill();g.stroke();}
 function icoHand(x,y,t,sc){const b=Math.sin(t*6)*8*(sc||1);g.save();g.translate(x,y+b);g.scale(sc||1,sc||1);g.rotate(-.35);g.fillStyle='#fff';g.strokeStyle=INK;g.lineWidth=5;rr(-13,-50,26,58,13);g.fill();g.stroke();rr(-28,-6,56,52,22);g.fill();g.stroke();g.restore();}
 
-function icoBun(x,y,r){g.fillStyle='#fff';g.strokeStyle=INK;g.lineWidth=Math.max(2.5,r*.17);g.lineJoin='round';g.beginPath();g.ellipse(x,y+r*.1,r,r*.86,0,0,6.2832);g.fill();g.stroke();g.lineWidth=Math.max(2,r*.12);g.lineCap='round';for(const d of [-.5,0,.5]){g.beginPath();g.moveTo(x+d*r,y-r*.25);g.quadraticCurveTo(x+d*r*.5,y-r*.6,x,y-r*.72);g.stroke();}}
+function icoBun(x,y,r){if(icoImg('ic_bun',x,y+r*.05,r*1.05))return;g.fillStyle='#fff';g.strokeStyle=INK;g.lineWidth=Math.max(2.5,r*.17);g.lineJoin='round';g.beginPath();g.ellipse(x,y+r*.1,r,r*.86,0,0,6.2832);g.fill();g.stroke();g.lineWidth=Math.max(2,r*.12);g.lineCap='round';for(const d of [-.5,0,.5]){g.beginPath();g.moveTo(x+d*r,y-r*.25);g.quadraticCurveTo(x+d*r*.5,y-r*.6,x,y-r*.72);g.stroke();}}
 /* ---------- 간식 가게: 그림(tw_*.webp)이 오기 전까지 쓰는 코드 그림. 발 디딘 곳이 (0,0), 위로 46 ---------- */
 function awning(c1){g.strokeStyle=INK;g.lineWidth=1.6;g.beginPath();g.moveTo(-19,0);g.lineTo(-19,-36);g.moveTo(19,0);g.lineTo(19,-36);g.stroke();
   for(let i=0;i<6;i++){g.fillStyle=i%2?'#fff':c1;g.beginPath();g.moveTo(-24+i*8,-47);g.lineTo(-16+i*8,-47);g.lineTo(-16+i*8,-37);g.quadraticCurveTo(-20+i*8,-32,-24+i*8,-37);g.closePath();g.fill();g.stroke();}}
@@ -578,7 +579,7 @@ const DRAW_EN={
 };
 function mkSprites(){for(const k in DRAW_EN){const big=k==='kingcrab'||k==='octoboss'||k==='whale'||k==='pirate'||k==='dragon',sz=big?300:170,c=mkCanvas(sz,sz),x=c.getContext('2d');safeCtx(x);x.translate(sz/2,sz*.53);x.scale(sz/160,sz/160);x.lineJoin='round';x.lineCap='round';DRAW_EN[k](x);SPR[k]=c;SPRW[k]=tint(c,'#fff');}}
 function onImg(n){try{const m=/^(en|boss)_(.+)$/.exec(n);if(m){const im=IMG[n],c=mkCanvas(256,256),x=c.getContext('2d'),s=Math.min(240/im.width,240/im.height);x.drawImage(im,128-im.width*s/2,136-im.height*s/2,im.width*s,im.height*s);SPR[m[2]]=c;SPRW[m[2]]=tint(c,'#fff');}
-  else if(n==='bg_1')mkBg();}catch(e){}}
+  else{if(n==='bg_1'||n==='ic_gate')mkBg();if(/^(bg_|ic_gate)/.test(n)&&run&&B&&B.map)B.map=mkMap(run.si);}}catch(e){}}
 function sprKey(e){return e.k==='boss'?(e.bk||'kingcrab'):e.k;}
 function drawSpr(k,x,y,size,o){const c=(o&&o.white?SPRW:SPR)[k];if(!c)return;o=o||{};g.save();g.translate(x,y);if(o.rot)g.rotate(o.rot);g.scale(o.sx||1,o.sy||1);if(o.a!==undefined)g.globalAlpha*=o.a;g.drawImage(c,-size/2,-size*.53,size,size);g.restore();}
 
@@ -627,9 +628,10 @@ function mkMap(si){
   for(let px=18;px<W;px+=46){if(Math.abs(px-225)<48)continue;x.fillStyle='#f1d08c';x.strokeStyle=INK;x.lineWidth=1.6;x.beginPath();x.moveTo(px-10,GATE_Y+17);x.lineTo(px-10,GATE_Y+5);x.lineTo(px+10,GATE_Y+5);x.lineTo(px+10,GATE_Y+17);x.closePath();x.fill();x.stroke();}
   }
   const gx=225,gy=GATE_Y;x.fillStyle='rgba(60,40,20,.2)';x.beginPath();x.ellipse(gx,gy+20,52,9,0,0,6.2832);x.fill();
+  const gi=IMG.ic_gate;if(gi){const gh=84,gw=gh*gi.width/gi.height;x.drawImage(gi,gx-gw/2,gy+24-gh,gw,gh);}else{
   for(const sgn of [-1,1]){x.fillStyle='#f3c97a';x.strokeStyle=INK;x.lineWidth=2.2;rr(gx+sgn*34-12,gy-30,24,50,3,x);x.fill();x.stroke();x.fillStyle='#e8b65e';for(let k=-1;k<2;k++){rr(gx+sgn*34+k*8-3,gy-37,6,8,1.5,x);x.fill();x.stroke();}
     x.beginPath();x.moveTo(gx+sgn*34,gy-37);x.lineTo(gx+sgn*34,gy-58);x.stroke();x.fillStyle=RED;x.beginPath();x.moveTo(gx+sgn*34,gy-58);x.lineTo(gx+sgn*34+13,gy-53);x.lineTo(gx+sgn*34,gy-48);x.closePath();x.fill();x.stroke();}
-  x.fillStyle='#f3c97a';x.strokeStyle=INK;rr(gx-24,gy-18,48,38,3,x);x.fill();x.stroke();x.fillStyle='#7a4a2a';x.beginPath();x.moveTo(gx-13,gy+20);x.lineTo(gx-13,gy);x.arc(gx,gy,13,3.1416,0);x.lineTo(gx+13,gy+20);x.closePath();x.fill();x.stroke();
+  x.fillStyle='#f3c97a';x.strokeStyle=INK;rr(gx-24,gy-18,48,38,3,x);x.fill();x.stroke();x.fillStyle='#7a4a2a';x.beginPath();x.moveTo(gx-13,gy+20);x.lineTo(gx-13,gy);x.arc(gx,gy,13,3.1416,0);x.lineTo(gx+13,gy+20);x.closePath();x.fill();x.stroke();}
   if(!bg){ // 꾸밈: 길과 타워 자리를 피해서
   const all=[];for(const p of G.paths)for(let i=0;i<p.s.length;i+=3)all.push(p.s[i]);const placed=[];
   for(let n=0,tries=0;n<30&&tries<600;tries++){const px=14+rnd()*422,py=shoreY(px)+22+rnd()*(GATE_Y-shoreY(px)-40),kind=TH.deco[Math.floor(rnd()*TH.deco.length)],big=kind==='palm'||kind==='parasol',need=big?46:32;
@@ -768,7 +770,8 @@ function drawSpots(){
   run.spots.forEach((sp,i)=>{const tw=sp.tw,sel=B.sel===i;
     if(!tw){const can=run.gold>=minC,pu=can?Math.sin(t*4+i)*.5+.5:0;
       g.fillStyle='rgba(60,40,20,.16)';g.beginPath();g.ellipse(sp.x+2,sp.y+5,26,10,0,0,6.2832);g.fill();
-      g.fillStyle=sel?'#fff1c4':'#f3d596';g.strokeStyle=sel?'#ff9f43':'rgba(120,80,40,.75)';g.lineWidth=sel?3:2;g.setLineDash(sel?[]:[5,4]);g.beginPath();g.ellipse(sp.x,sp.y,24,11,0,0,6.2832);g.fill();g.stroke();g.setLineDash([]);
+      const si=IMG.ic_spot;if(si){const sw=sel?64:58,sh=sw*si.height/si.width;if(sel){g.fillStyle='rgba(255,200,80,.45)';g.beginPath();g.ellipse(sp.x,sp.y+2,34,17,0,0,6.2832);g.fill();}g.drawImage(si,sp.x-sw/2,sp.y+14-sh*.78,sw,sh);}else{
+      g.fillStyle=sel?'#fff1c4':'#f3d596';g.strokeStyle=sel?'#ff9f43':'rgba(120,80,40,.75)';g.lineWidth=sel?3:2;g.setLineDash(sel?[]:[5,4]);g.beginPath();g.ellipse(sp.x,sp.y,24,11,0,0,6.2832);g.fill();g.stroke();g.setLineDash([]);}
       g.fillStyle=can?'rgba(255,255,255,'+(.7+pu*.3)+')':'rgba(255,255,255,.45)';g.strokeStyle=can?'#3a9478':'rgba(120,80,40,.5)';g.lineWidth=2;circ(sp.x,sp.y-3-pu*2,9);g.fill();g.stroke();
       g.strokeStyle=can?'#3a9478':'rgba(120,80,40,.6)';g.lineWidth=3;g.lineCap='round';g.beginPath();g.moveTo(sp.x-4.5,sp.y-3-pu*2);g.lineTo(sp.x+4.5,sp.y-3-pu*2);g.moveTo(sp.x,sp.y-7.5-pu*2);g.lineTo(sp.x,sp.y+1.5-pu*2);g.stroke();
       if(sel&&TOWERS[B.pick]){g.fillStyle='rgba(255,255,255,.16)';g.strokeStyle='rgba(255,255,255,.85)';g.lineWidth=2;g.setLineDash([7,5]);circ(sp.x,sp.y,TOWERS[B.pick].range);g.fill();g.stroke();g.setLineDash([]);}return;}
@@ -934,8 +937,8 @@ function drawHud(){
   if(run.boss&&!run.boss.dead){bar(150,100,450,30,1-run.boss.hp/run.boss.max,'#ffb347');txt('BOSS · '+L('배부름','饱腹'),375,115,18,'#fff','center',INK,4);}
   // 아래: 스킬 둘 + 다음 파도
   const live=run.ws!=='prep';
-  skillBtn(14,'tide',L('큰 파도','大浪'),live&&run.cd.tide<=0,live?run.cd.tide:0,SKILL.tide.cd*60,()=>{if(castTide(run)){mission('skill',1);}else sfx('nope');},(x,y)=>{g.strokeStyle='#fff';g.lineWidth=6;g.lineCap='round';g.beginPath();g.moveTo(x-18,y+8);g.quadraticCurveTo(x-6,y-22,x+8,y-2);g.quadraticCurveTo(x+14,y+8,x+20,y+2);g.stroke();},false);
-  skillBtn(150,'bomb',L('왕수박','大西瓜'),live&&run.cd.bomb<=0,live?run.cd.bomb:0,SKILL.bomb.cd*60,()=>{if(!live||run.cd.bomb>0){sfx('nope');return;}B.aim=B.aim==='bomb'?'':'bomb';B.sel=-1;sfx('btn');},(x,y)=>{g.fillStyle='#3fa650';g.strokeStyle=INK;g.lineWidth=3.5;circ(x,y+2,18);g.fill();g.stroke();g.strokeStyle='#1f6b34';g.lineWidth=3;for(const d of [-8,0,8]){g.beginPath();g.moveTo(x+d,y-14);g.quadraticCurveTo(x+d*1.5,y+2,x+d,y+18);g.stroke();}},B.aim==='bomb');
+  skillBtn(14,'tide',L('큰 파도','大浪'),live&&run.cd.tide<=0,live?run.cd.tide:0,SKILL.tide.cd*60,()=>{if(castTide(run)){mission('skill',1);}else sfx('nope');},(x,y)=>{if(icoImg('ic_wave',x,y,22))return;g.strokeStyle='#fff';g.lineWidth=6;g.lineCap='round';g.beginPath();g.moveTo(x-18,y+8);g.quadraticCurveTo(x-6,y-22,x+8,y-2);g.quadraticCurveTo(x+14,y+8,x+20,y+2);g.stroke();},false);
+  skillBtn(150,'bomb',L('왕수박','大西瓜'),live&&run.cd.bomb<=0,live?run.cd.bomb:0,SKILL.bomb.cd*60,()=>{if(!live||run.cd.bomb>0){sfx('nope');return;}B.aim=B.aim==='bomb'?'':'bomb';B.sel=-1;sfx('btn');},(x,y)=>{if(icoImg('ic_melon',x,y,22))return;g.fillStyle='#3fa650';g.strokeStyle=INK;g.lineWidth=3.5;circ(x,y+2,18);g.fill();g.stroke();g.strokeStyle='#1f6b34';g.lineWidth=3;for(const d of [-8,0,8]){g.beginPath();g.moveTo(x+d,y-14);g.quadraticCurveTo(x+d*1.5,y+2,x+d,y+18);g.stroke();}},B.aim==='bomb');
   const canCall=run.phase==='run'&&run.wave<run.S.waves&&(run.ws==='prep'||run.ws==='gap');
   if(run.ws==='prep'){const pu=1+Math.sin(B.time*5)*.02,need=!run.spots.some(sp=>sp.tw);g.save();g.translate(520,1280);g.scale(pu,pu);g.translate(-520,-1280);btn(300,1234,436,90,L('▶ 시작!','▶ 开始！'),()=>{if(need){sfx('nope');toast(L('먼저 가게를 하나 차려요','先摆一个小吃摊吧'));return;}sfx('btn');callWave(run);},{sz:42,off:false,col:need?GREY:RED,dk:need?GREY_D:RED_D});g.restore();
     if(!B.adGold&&run.si>0)btn(300,1150,436,64,L('▶ 광고 보고 시작 골드 +150','▶ 看广告开局金币 +150'),()=>showAd('gold',o=>{if(o){run.gold+=150;B.adGold=true;sfx('reward');}}),{col:YEL,dk:YEL_D,tc:INK,sz:24});}
