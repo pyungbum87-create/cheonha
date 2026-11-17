@@ -26,6 +26,7 @@ function renderBg(M){
   for(let i=0;i<26;i++){const px=R()*W,py=120+R()*(H-120),rw=60+R()*120;x.fillStyle=`rgba(${R()<.5?'10,40,60':'30,70,80'},${.18+R()*.15})`;x.beginPath();x.ellipse(px,py,rw,rw*.35,0,0,7);x.fill();}
   for(let i=0;i<14;i++){const px=R()*W,py=200+R()*(H-200);x.fillStyle=`rgba(5,25,40,${.25+R()*.15})`;x.beginPath();x.moveTo(px-30-R()*30,py);
     for(let j=0;j<5;j++)x.lineTo(px-30+j*15+R()*10,py-12-R()*36);x.lineTo(px+40+R()*20,py);x.closePath();x.fill();}}
+  {const tn=AREAS[Math.floor(M.si/PER_AREA)].tint;if(tn){x.fillStyle=tn;x.fillRect(0,0,W,H);}}
   // 아주 옅은 물살 띠: 길을 '파지' 않고 물빛만 살짝 밝게
   const segs=Object.values(M.segs);x.lineCap=x.lineJoin='round';
   for(const s of segs){segPath(x,s);x.strokeStyle='rgba(160,235,255,.045)';x.lineWidth=60;x.stroke();}
@@ -115,10 +116,10 @@ function drawEnemy(x,e,time){
   let alpha=e.inv?(e.rev?.55:.13):1;x.save();x.translate(e.x,e.y-(e.lift>0?10+Math.sin(time*8)*2:0));
   if(sp<1){x.scale(sp,sp);alpha*=sp;}
   x.globalAlpha=alpha;glow(x,0,0,r*1.9,'rgba(140,60,220,.35)');
-  const eim=IMG['en_'+e.k];
-  if(eim){const sw=Math.sin(time*7+e.id),f2=face*(EFACE[e.k]||1);x.scale(f2*(1+sw*.03),1-sw*.03);const w=EW[e.k],h=w*eim.height/eim.width;x.drawImage(eim,-w/2,-h/2+Math.sin(time*5+e.id)*1.2,w,h);}
+  const eim=IMG['en_'+(E.art||e.k)];if(E.tint)glow(x,0,0,r*2.4,hexA(E.tint,.55),.6+.3*Math.sin(time*3));
+  if(eim){const sw=Math.sin(time*7+e.id),f2=face*(EFACE[e.k]||1);x.scale(f2*(1+sw*.03),1-sw*.03);const w=e.icon?Math.min(34,EW[E.art||e.k]||34):(E.ew||EW[e.k]),h=w*eim.height/eim.width;x.drawImage(eim,-w/2,-h/2+Math.sin(time*5+e.id)*1.2,w,h);}
   else{x.scale(face*1.18,1.18);}const bob=Math.sin(time*6+e.id)*1.2;
-  if(!eim)switch(e.k){
+  if(!eim)switch(E.art||e.k){
     case'minnow':{const w=Math.sin(time*14+e.id)*3;x.fillStyle='#2b2f5a';x.beginPath();x.moveTo(r+2,0);x.quadraticCurveTo(0,-r*.8,-r,0);x.quadraticCurveTo(0,r*.8,r+2,0);x.fill();
       x.beginPath();x.moveTo(-r+1,0);x.lineTo(-r-6,-4+w);x.lineTo(-r-6,4+w);x.closePath();x.fill();x.fillStyle='#d58bff';x.beginPath();x.arc(r*.45,-1.5,1.8,0,7);x.fill();break;}
     case'crab':{x.translate(0,bob*.5);x.strokeStyle='#38506a';x.lineWidth=2;for(let i=-1;i<=1;i++)for(const sd of[-1,1]){x.beginPath();x.moveTo(sd*6,2+i*3);x.lineTo(sd*(r+2),5+i*3+Math.sin(time*12+i)*2);x.stroke();}
@@ -162,12 +163,15 @@ function drawEnemy(x,e,time){
       x.fillStyle='#ff3a6a';x.beginPath();x.arc(r*.42,-r*.35,4.5,0,7);x.fill();x.fillStyle='#fff';x.beginPath();x.arc(r*.46,-r*.38,1.5,0,7);x.fill();break;}
   }
   if(e.hitT>0)glow(x,0,0,r*1.3,'rgba(255,255,255,.5)');x.restore();x.save();x.translate(e.x,e.y);x.globalAlpha=alpha;
+  if(e.clampT>0){x.strokeStyle='rgba(220,225,240,.9)';x.lineWidth=3;x.beginPath();x.arc(0,0,r+2,Math.PI*1.1,Math.PI*1.9);x.stroke();}
+  if(e.poiT>0){x.fillStyle='rgba(140,255,120,.8)';for(let i=0;i<2;i++){x.beginPath();x.arc(Math.sin(time*5+i*3)*r*.6,-r*.4-((time*20+i*9)%12),1.8,0,7);x.fill();}}
+  if(e.schooling){x.strokeStyle='rgba(220,180,255,.6)';x.lineWidth=1;x.beginPath();x.moveTo(-r-2,-3);x.lineTo(-r-9,-3);x.moveTo(-r-2,3);x.lineTo(-r-8,3);x.stroke();}
   if(e.shield>0){x.strokeStyle='rgba(120,200,255,.7)';x.lineWidth=2;x.beginPath();x.arc(0,0,r+4,0,7);x.stroke();}
   if(e.trap>0){const gr=x.createRadialGradient(-4,-6,2,0,-2,r+8);gr.addColorStop(0,'rgba(255,255,255,.5)');gr.addColorStop(1,'rgba(110,231,255,.25)');x.fillStyle=gr;x.beginPath();x.arc(0,-2,r+8,0,7);x.fill();x.strokeStyle='rgba(200,250,255,.9)';x.lineWidth=1.5;x.stroke();}
   if(e.slow>0&&e.slowT>0){x.fillStyle='rgba(150,230,255,.7)';for(let i=0;i<3;i++){const an=time*3+i*2.1;x.beginPath();x.arc(Math.cos(an)*r,Math.sin(an)*r*.5-2,1.8,0,7);x.fill();}}
   if(e.stun>0){x.fillStyle='#fff27a';for(let i=0;i<3;i++){const an=time*8+i*2.1;txt(x,'✦',Math.cos(an)*9,-r-8+Math.sin(an)*3,8,'#fff27a');}}
-  if(e.hp<e.mhp||e.shield>0){const bw=e.k==='boss'?60:Math.max(18,r*2),by=-r-(e.k==='boss'?16:8);x.fillStyle='rgba(0,0,0,.6)';x.fillRect(-bw/2-1,by-1,bw+2,5);
-    x.fillStyle=e.k==='boss'?'#ff4f8a':'#7dff9a';x.fillRect(-bw/2,by,bw*Math.max(0,e.hp/e.mhp),3);if(e.shield>0){x.fillStyle='#7cc8ff';x.fillRect(-bw/2,by-3,bw*Math.min(1,e.shield/e.mhp),2);}}
+  if(e.hp<e.mhp||e.shield>0){const bw=E.ph?64:Math.max(18,r*2),by=-r-(E.ph?18:8);x.fillStyle='rgba(0,0,0,.6)';x.fillRect(-bw/2-1,by-1,bw+2,5);
+    x.fillStyle=E.ph?'#ff4f8a':'#7dff9a';x.fillRect(-bw/2,by,bw*Math.max(0,e.hp/e.mhp),3);if(e.shield>0){x.fillStyle='#7cc8ff';x.fillRect(-bw/2,by-3,bw*Math.min(1,e.shield/e.mhp),2);}}
   x.restore();
 }
 /* ---------- 영웅: 기갑 수호자 가드 ---------- */

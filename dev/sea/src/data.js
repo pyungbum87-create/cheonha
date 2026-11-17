@@ -1,5 +1,7 @@
 /* ============================== 심해 신전 수비대 · 밸런스 표 (숫자는 여기서만 고친다) ==============================
-   좌표는 논리 화면 450×800. 적은 위쪽 심연 동굴에서 나와 해구(길)를 따라 맨 아래 신전 문으로 온다. */
+   좌표는 논리 화면 450×800. 적은 위쪽 심연 동굴에서 나와 물길을 따라 맨 아래 신전 문으로 온다.
+   밸런스 기준(킹덤러시류): 한 판 4~6분 · 8~13웨이브 · 별은 남은 생명 18↑/10↑ · 권장 숙련으로 첫 도전 승률 70~80% · 난이도 톱니(구역 첫 판↓, 5번째 정예, 10번째 보스)
+   수호탑 '골드당 피해' 는 비슷하게(공격형 0.22~0.27, 보조형 0.07~0.13 + 효과) 맞춘다 */
 const W=450,H=800,TICK=60,TEMPLE={x:225,y:704};
 const TOWER_IDS=['coral','bubble','jelly','conch','rune'];
 /* cls: phy 물리(갑옷에 약함) · mag 마력(갑옷 무시) · exp 폭발(갑옷 절반) */
@@ -10,37 +12,60 @@ const TOWERS={
   conch: {cost:110,range:150,cd:2.4,dmg:28, cls:'exp',proj:'shell',speed:330,aoe:42},
   rune:  {cost:90, range:92, cd:.22,dmg:2.6,cls:'mag',beam:true,aura:.15,reveal:true},
 };
-const LV_DMG=[1,1.75,2.7,4.1],LV_RANGE=[1,1.08,1.16,1.24],UP_COST=[.85,1.35,2.4],SELL=.7,MAX_TLV=4;   // 4단계 = 각성
+const LV_DMG=[1,1.75,2.7,4.1],LV_RANGE=[1,1.08,1.16,1.24],UP_COST=[.85,1.35,2.4],SELL=.7,MAX_TLV=4;   // 4단계 = 각성(두 갈래 중 하나)
 const UNLOCK={coral:0,bubble:0,jelly:0,conch:2,rune:5};      // 몇 번째 판(0부터)부터 쓸 수 있는가
-/* 타워 고유 스킬: 판이 지날수록 단계가 오른다(sTier = 1 + 판/3 → 1~4). 판 안의 축복 카드로 더 오른다 */
-const sTierOf=i=>1+Math.floor(i/3);
+/* 각성 갈래: 3단계에서 4단계로 올릴 때 하나를 고른다 */
+const BRANCH={
+  coral: [{id:'storm',n:['산호 폭풍','珊瑚风暴'],d:['연사 +50%, 관통이 더 자주','射速 +50%，更频繁贯穿']},{id:'venom',n:['독가시','毒刺'],d:['맞은 적에 독(3초)과 갑옷 깎기','命中附带中毒(3秒)并削弱护甲']}],
+  bubble:[{id:'frost',n:['빙결 거품','冰结泡泡'],d:['둔화 +20%, 감옥 1.6배','减速 +20%，牢笼 1.6倍']},{id:'blast',n:['거품 폭탄','泡泡炸弹'],d:['거품이 터지며 주변 피해','泡泡爆裂造成范围伤害']}],
+  jelly: [{id:'tempest',n:['폭풍 해파리','风暴水母'],d:['번개 연쇄 +3, 과충전 더 자주','闪电连锁 +3，过载更频繁']},{id:'paralyze',n:['마비 해파리','麻痹水母'],d:['번개에 맞으면 25% 확률로 기절','被闪电击中有25%几率眩晕']}],
+  conch: [{id:'giant',n:['대왕 소라','巨型海螺'],d:['폭발 범위 1.5배, 피해 +25%','爆炸范围1.5倍，伤害 +25%']},{id:'triple',n:['삼연 소라','三连海螺'],d:['한 번에 세 발을 쏨','一次发射三发']}],
+  rune:  [{id:'amp',n:['증폭 룬','增幅符文'],d:['주변 증폭 +20%, 공명 강화','周围增幅 +20%，共鸣强化']},{id:'purge',n:['정화 룬','净化符文'],d:['보호막에 3배, 재생 막기, 광선 +80%','对护盾3倍，阻止再生，光束 +80%']}],
+};
+/* 수호탑 고유 스킬: 판이 지날수록 단계가 오른다(6판마다 +1, 최대 5). 판 안의 축복 카드로 더 오른다 */
+const sTierOf=i=>Math.min(5,1+Math.floor(i/6));
 const TSKILL={
   coral: t=>({every:Math.max(3,7-t),mul:2.2+.4*t,len:170}),          // 관통 가시: N발마다 일직선 관통
   bubble:t=>({cd:Math.max(4,8.5-t),dur:.9+.35*t}),                    // 거품 감옥: 가장 센 적을 가둠(받는 피해 +30%)
   jelly: t=>({cd:Math.max(6,11.5-t),dmg:16*t,stun:.35+.1*t}),         // 과충전: 범위 안 전부 감전·기절
-  conch: t=>({cd:Math.max(5,10.5-t),r:40+4*t,dur:1.8+.5*t,dps:5*t,slow:.4}),   // 소용돌이: 떨어진 자리에 피해·둔화 소용돌이
+  conch: t=>({cd:Math.max(5,10.5-t),r:40+4*t,dur:1.8+.5*t,dps:5*t,slow:.4}),   // 소용돌이
   rune:  t=>({cd:Math.max(7,13.5-t),dur:1.8+.6*t,haste:.4}),          // 공명: 주변 수호탑 공격 속도 +40%
 };
-/* 영웅: 기갑 수호자 '가드'. 눌러서 옮기고, 아래 버튼으로 '닻 내려찍기' */
-const HERO={sp:95,range:96,cd:.6,dmg:10,cls:'phy',skillCd:22,skillR:72,skillDmg:85,stun:.9,lvXp:[0,12,30,60,100]};
-const heroStageMul=i=>1+.11*i;
-
-/* 적: 심연에 물든 심해 생물. from = 몇 번째 판(0부터)부터 특기를 쓰는가 */
-const ENEMIES={
-  minnow:   {hp:12, sp:66,r:8, gold:2, cost:.45},                        // 그림자 치어: 떼로 빠르게
-  crab:     {hp:58, sp:30,r:12,gold:6, cost:1.3,armor:.45},              // 철갑게: 물리에 강함
-  eel:      {hp:36, sp:50,r:10,gold:5, cost:1,  dash:2.2,from:1},        // 전기뱀장어: 반쯤 다치면 돌진
-  ray:      {hp:44, sp:46,r:13,gold:6, cost:1.25,phase:[4,2.5],from:2},  // 그림자가오리: 주기적으로 투명(해파리·룬·영웅 근처에서만 보임)
-  angler:   {hp:92, sp:28,r:13,gold:11,cost:2.4,heal:[4,.08,72],from:3}, // 등불아귀: 주변 동료 회복
-  squid:    {hp:72, sp:38,r:12,gold:9, cost:2,  ink:[7,100,4],from:5},   // 먹물오징어: 수호탑 시야를 가림(눌러서 닦기)
-  horseshoe:{hp:125,sp:26,r:14,gold:12,cost:2.8,armor:.3,split:3,from:6},// 투구게: 쓰러지면 치어 3마리
-  turtle:   {hp:300,sp:18,r:17,gold:25,cost:6,  armor:.3,shell:.3,from:7}, // 바위거북: 3초 안 맞으면 보호막 재생
-  elite:    {hp:520,sp:23,r:18,gold:45,cost:11, armor:.3,leak:3},        // 심연 해마 기사
-  boss:     {hp:6000,sp:12,r:30,gold:150,cost:0,armor:.2,leak:12},       // 심연 아귀왕
+/* 판 밖 성장: 숙련(코인으로 올림). 수호탑마다 따로, 가드도 따로 */
+const MAX_LV=40;
+const masteryMul=lv=>1+.07*(lv-1);
+const lvCost=lv=>Math.round(35*Math.pow(lv,1.15)/5)*5;
+const recLv=i=>1+Math.round(i*.5);   // 첫 클리어 보상만으로 권장 숙련의 80~100%를 채울 수 있게 맞춤(나머지는 출석·미션·다시 하기)
+/* 영웅 가드 + 지휘 스킬 3종 */
+const HERO={sp:95,range:96,cd:.6,dmg:10,cls:'phy',lvXp:[0,12,30,60,100]};
+const CMD={
+  slam:   {ic:'⚓',cd:22,r:72,dmg:85,stun:.9,from:0,n:['닻 내려찍기','铁锚重击'],d:['가드 주변을 내려찍어 피해·기절','重击卫士周围，造成伤害并眩晕']},
+  torpedo:{ic:'💥',cd:28,r:58,dmg:130,from:1,n:['어뢰 폭격','鱼雷轰炸'],d:['누른 곳에 어뢰를 떨어뜨려 큰 범위 피해','在点击处投下鱼雷，造成大范围伤害']},
+  tide:   {ic:'🌊',cd:45,push:75,dmg:30,slow:.5,slowT:2.5,from:3,n:['해일','海啸'],d:['모든 적을 뒤로 밀어내고 느리게','将所有敌人推回并减速']},
 };
-const KIND_AT={minnow:0,crab:0,eel:1,ray:2,angler:3,squid:5,horseshoe:6,turtle:7};
 
-/* ---------- 지도: 굽은 해구. segs = 곡선 제어점, next = 다음 구간(문자) 또는 수문{g,to:[왼,오]} ----------
+/* 적: 모든 몹에 스킬이 하나씩. from = 몇 번째 판(0부터)부터 스킬을 쓰는가 */
+const ENEMIES={
+  minnow:   {hp:12, sp:66,r:8, gold:2, cost:.45,school:.25,from:1},           // 떼 지어 가속: 주변에 치어가 4마리 이상이면 +25%
+  crab:     {hp:58, sp:30,r:12,gold:6, cost:1.3,armor:.45,clamp:[.5,.3,3],from:2}, // 껍질 닫기: 체력 절반 아래로 떨어지면 3초 동안 갑옷 +30%
+  eel:      {hp:36, sp:50,r:10,gold:5, cost:1,  dash:2.2,from:1},             // 돌진: 반쯤 다치면 번쩍 돌진
+  ray:      {hp:44, sp:46,r:13,gold:6, cost:1.25,phase:[4,2.5],from:3},       // 그림자 숨기: 주기적으로 투명
+  angler:   {hp:92, sp:28,r:13,gold:11,cost:2.4,heal:[4,.08,72],from:6},      // 등불 치유: 주변 동료 회복
+  squid:    {hp:72, sp:38,r:12,gold:9, cost:2,  ink:[7,100,4],from:11},       // 먹물: 수호탑 시야를 가림(눌러서 닦기)
+  horseshoe:{hp:125,sp:26,r:14,gold:12,cost:2.8,armor:.3,split:3,from:15},    // 분열: 쓰러지면 치어 3마리
+  turtle:   {hp:300,sp:18,r:17,gold:25,cost:6,  armor:.3,shell:.3,from:21},   // 바위 껍질: 3초 안 맞으면 보호막 재생
+  elite:    {hp:520,sp:23,r:18,gold:45,cost:11, armor:.3,leak:3,command:[80,.18]}, // 지휘: 주변 적 속도 +18%
+  /* 구역 보스: art = 쓸 그림, ph = 체력 비율에 따른 패턴 */
+  boss: {hp:6000,sp:12,r:30,gold:150,cost:0,armor:.2,leak:12,ew:110,ph:[[.7,'summon','minnow',7],[.45,'ink',3.5],[.22,'summon','elite',2]]},
+  boss2:{hp:6600,sp:11,r:30,gold:180,cost:0,armor:.45,leak:12,art:'turtle',ew:120,tint:'#7fa0c0',ph:[[.75,'shield',.25],[.5,'jam',3,4],[.25,'shield',.3]]},
+  boss3:{hp:6400,sp:13,r:30,gold:200,cost:0,armor:.3,leak:12,art:'horseshoe',ew:120,tint:'#ff8a4a',ph:[[.7,'summon','horseshoe',3],[.45,'haste',.35,6],[.2,'summon','horseshoe',4]]},
+  boss4:{hp:6200,sp:14,r:30,gold:220,cost:0,armor:.2,leak:12,art:'squid',ew:118,tint:'#4fd08a',ph:[[.75,'cloak',4],[.5,'ink',4],[.3,'summon','squid',4],[.15,'cloak',5]]},
+  boss5:{hp:6800,sp:12,r:34,gold:400,cost:0,armor:.3,leak:20,art:'boss',ew:130,tint:'#d070ff',ph:[[.8,'summon','elite',2],[.6,'shield',.2],[.45,'ink',4],[.3,'heal',.12],[.15,'summon','turtle',2]]},
+};
+const BOSS_IDS=['boss','boss2','boss3','boss4','boss5'];
+const KIND_AT={minnow:0,crab:0,eel:1,ray:3,angler:6,squid:11,horseshoe:15,turtle:21};
+
+/* ---------- 지도: 굽은 물길. segs = 곡선 제어점, next = 다음 구간(문자) 또는 수문{g,to:[왼,오]} ----------
    cur = [구간,시작t,끝t,속도배수] 해류 띠 · vent = [구간,t] 거품 기둥 */
 const LAYOUTS=[
   {name:['굽이 해구','蜿蜒海沟'],segs:{a:[[225,58],[225,128],[110,190],[95,290],[230,340],[350,400],[345,500],[200,545],[105,610],[175,670],[225,704]]},start:['a'],next:{}},
@@ -52,47 +77,75 @@ const LAYOUTS=[
   {name:['소용돌이 해역','漩涡海域'],segs:{a:[[225,58],[370,112],[410,250],[362,400],[232,452],[108,402],[88,272],[168,190],[292,218],[312,318],[232,362],[212,432],[198,520],[118,592],[198,662],[225,704]]},start:['a'],next:{},vent:[['a',.55]]},
   {name:['급류 갈림길','急流岔路'],segs:{a:[[225,58],[225,142]],b:[[225,142],[118,182],[66,282],[88,402],[158,462],[225,502]],c:[[225,142],[332,202],[342,332],[282,432],[225,502]],
     d:[[225,502],[148,562],[168,642],[225,704]]},start:['a'],next:{a:{g:'g1',to:['b','c']},b:'d',c:'d'},cur:[['c',.08,.92,1.6]],vent:[['d',.3]]},
-  {name:['아귀왕의 둥지','鮟鱇王巢穴'],segs:{a:[[96,58],[108,150],[225,232]],b:[[354,58],[342,150],[225,232]],
+  {name:['심연의 둥지','深渊巢穴'],segs:{a:[[96,58],[108,150],[225,232]],b:[[354,58],[342,150],[225,232]],
     c:[[225,232],[92,300],[80,420],[225,500]],d:[[225,232],[358,300],[370,420],[225,500]],e:[[225,500],[305,572],[252,650],[225,704]]},
     start:['a','b'],next:{a:{g:'g1',to:['c','d']},b:{g:'g1',to:['c','d']},c:'e',d:'e'},vent:[['e',.35]],cur:[['c',.15,.5,1.45],['d',.5,.85,1.45]]},
 ];
-/* 판 10개(1구역 '빛 잃은 산호 숲'). 판이 지날수록: 적 체력↑ · 시작 심연 변이↑ · 수호탑 스킬 단계↑ */
-const STAGE_DEF=[
-  {lay:0,mir:0,spots:9, waves:8},
-  {lay:1,mir:0,spots:9, waves:8},
-  {lay:2,mir:0,spots:10,waves:9},
-  {lay:3,mir:0,spots:10,waves:9},
-  {lay:5,mir:0,spots:10,waves:10,mid:1},
-  {lay:0,mir:1,spots:10,waves:10,cur:[['a',.3,.46,1.5]],vent:[['a',.66]]},
-  {lay:4,mir:0,spots:11,waves:11},
-  {lay:2,mir:1,spots:11,waves:10,diff:.85,cur:[['c',.3,.7,1.35]],vent:[['d',.4],['b',.5]]},
-  {lay:5,mir:1,spots:11,waves:12},
-  {lay:6,mir:0,spots:12,waves:12,boss:1},
+/* ---------- 이야기와 구역: 5구역 × 10판 = 50판 ---------- */
+const AREAS=[
+  {n:['빛 잃은 산호 숲','失光珊瑚林'],boss:'boss',tint:null,lays:[0,1,2,3,5,0,4,2,5,6],
+    intro:[['피난민들이 처음 자리 잡은 얕은 산호 숲.','难民们最初落脚的浅海珊瑚林。'],['빛을 잃은 산호 사이로 첫 번째 심연의 무리가 나타났어요.','失去光芒的珊瑚之间，第一批深渊之群出现了。']],
+    end:['아귀왕이 쓰러지자 그 등에서 녹슨 군용 표식이 떨어졌어요. 오염은 더 아래, 옛 군항에서 오고 있어요.','鮟鱇王倒下时，背上掉下一块生锈的军用标识。污染来自更深处的旧军港。']},
+  {n:['가라앉은 항구','沉没港湾'],boss:'boss2',tint:'rgba(40,55,70,.42)',lays:[1,2,5,0,6,3,2,4,5,6],
+    intro:[['전쟁 때 폭격으로 가라앉은 군항.','战争中被轰炸沉没的军港。'],['부서진 군함 사이로 기름과 녹이 바다를 물들이고 있어요.','破碎的军舰之间，油污和铁锈染黑了海水。']],
+    end:['강철 거북의 등껍질은 군함의 장갑판이었어요. 누군가 바다 밑에 무언가를 계속 버렸던 거예요.','钢铁龟的背甲原来是军舰的装甲板。有人一直在往海底丢弃什么。']},
+  {n:['열수 분출구','热泉喷口'],boss:'boss3',tint:'rgba(110,40,10,.32)',lays:[3,4,0,5,6,2,1,3,4,6],vent:1,
+    intro:[['바다 밑 화산이 끓는 곳. 피난민들의 마지막 에너지원이에요.','海底火山沸腾之处，是难民们最后的能源。'],['심연이 이곳의 열을 삼키며 점점 강해지고 있어요.','深渊正吞噬这里的热量，变得越来越强。']],
+    end:['여왕의 껍질 속에 빛나는 금속 조각이 박혀 있었어요. "심연 폭탄"… 전쟁의 마지막 무기 이름이었죠.','女王的壳里嵌着发光的金属碎片。「深渊炸弹」……那是战争最后的武器之名。']},
+  {n:['해초 미궁','海藻迷宫'],boss:'boss4',tint:'rgba(10,70,30,.34)',lays:[4,5,2,6,1,3,5,0,2,6],cur:1,
+    intro:[['거대한 해초 숲이 미로처럼 얽힌 곳.','巨大的海藻林如迷宫般交错。'],['길을 잃은 피난선의 흔적이 곳곳에 남아 있어요.','到处都是迷途难民船留下的痕迹。']],
+    end:['검은 장막이 걷히자 해구 끝에서 거대한 보랏빛 문이 보였어요.','黑幕散去，海沟尽头出现了一扇巨大的紫色之门。']},
+  {n:['심연의 문','深渊之门'],boss:'boss5',tint:'rgba(50,0,70,.45)',lays:[6,5,4,2,3,6,5,4,2,6],cur:1,vent:1,
+    intro:[['전쟁이 버린 심연 폭탄이 잠든 곳.','被战争遗弃的深渊炸弹沉睡之处。'],['여기를 막지 못하면 바다도 육지처럼 죽어요.','若不能在此阻止，大海也会像陆地一样死去。']],
+    end:['심연의 핵이 잠잠해지자 바다에 다시 빛이 돌아왔어요. 육지는 아직 잿빛이지만, 사람들은 바다에서 다시 살아가는 법을 배웠어요.','深渊之核平息后，光芒重回大海。陆地依旧灰暗，但人们学会了在海中重新生活。']},
 ];
-const AREA_NAME=['빛 잃은 산호 숲','失光珊瑚林'];
+const PROLOGUE=[
+  ['전쟁은 끝나지 않았어요. 불타 버린 땅에는 더 이상 아무것도 자라지 않았죠.','战争从未停止。烧焦的大地上，再也长不出任何东西。'],
+  ['살아남은 사람들은 바다로 내려왔어요. 깊은 바다 밑 고대 신전의 "숨결 결계" 안에서만 숨을 쉴 수 있었거든요.','幸存者们潜入大海。只有在深海古神殿的「呼吸结界」中，人才能呼吸。'],
+  ['하지만 전쟁 때 바다에 버린 무기와 폐기물이 잠든 "심연"을 깨웠어요. 보랏빛으로 물든 바다 생물들이 신전으로 몰려와요.','然而战争时丢进大海的武器和废料，唤醒了沉睡的「深渊」。被染成紫色的海洋生物涌向神殿。'],
+  ['전쟁을 버린 잠수 공병 "가드". 이번엔 부수지 않고, 지키기로 했어요.','抛下战争的潜水工兵「卫士」。这一次，他选择守护，而不是摧毁。'],
+];
+const PER_AREA=10,STAGE_N=AREAS.length*PER_AREA;
 const START_LIVES=20,WAVE_GAP=9,EARLY_BONUS=3,CARD_EVERY=3;
-const KEYS={start:1,every:2,max:3};      // 수문 열쇠: 처음 1개, 2웨이브마다 +1, 최대 3
+const KEYS={start:1,every:2,max:3};
 const VENT={lift:1.1,cd:3.5,amp:.3};
-
-/* 판 i 의 적 종류·숫자 */
+const STAR_LIVES=[18,10];     // 남은 생명 18 이상 ★3, 10 이상 ★2
+/* 판 i 정보: 1구역은 손으로 다듬은 표, 그 뒤는 규칙으로 만든다 */
+const STAGE_FIX=[
+  {spots:9, waves:8},{spots:9, waves:8},{spots:10,waves:9},{spots:10,waves:9},{spots:10,waves:10},
+  {spots:10,waves:10,cur:[['a',.3,.46,1.5]],vent:[['a',.66]]},{spots:11,waves:11},{spots:11,waves:10,cur:[['c',.3,.7,1.35]],vent:[['d',.4],['b',.5]]},{spots:11,waves:12},{spots:12,waves:12},
+];
+const HPK=1.32,HPA=.26,BUDK=.5,BUDCAP=24;   // 적 체력 기본 배수 · 구역당 추가 · 판당 예산 증가 · 예산 상한
+const EASE={39:.93,43:.88};   // 봇 검사에서 튀게 어려웠던 판만 살짝 낮춤
+const SAW=[.88,.93,.97,1,1.06,.95,1,1.04,1.08,1];   // 구역 안 난이도 톱니(첫 판 쉽게, 5번째 정예, 9번째 고비)
 function stageInfo(i){
-  const D=STAGE_DEF[i],U=Object.keys(KIND_AT).filter(k=>KIND_AT[k]<=i&&k!=='minnow'),kinds=['minnow',...U.slice(-5)].sort((a,b)=>ENEMIES[a].cost-ENEMIES[b].cost);
+  const a=Math.floor(i/PER_AREA),n=i%PER_AREA,A=AREAS[a],F=a===0?STAGE_FIX[n]:null,lay=A.lays[n],L=LAYOUTS[lay];
+  const U=Object.keys(KIND_AT).filter(k=>KIND_AT[k]<=i&&k!=='minnow'),kinds=['minnow',...U.slice(-5)].sort((p,q)=>ENEMIES[p].cost-ENEMIES[q].cost);
   const fr=Object.keys(KIND_AT).find(k=>KIND_AT[k]===i&&i>0);if(fr){kinds.splice(kinds.indexOf(fr),1);kinds.splice(Math.min(2,kinds.length),0,fr);}
-  return {i,lay:D.lay,mir:D.mir,spots:D.spots,waves:D.waves,mid:!!D.mid,boss:!!D.boss,kinds,fresh:fr||'',
-    hp:(1.1+.19*i)*(D.diff||1),budget:11+i*.85,gold:200+i*12,sTier:sTierOf(i),twMul:1+.08*i,goldMul:1,startMut:Math.floor(i/3),heroMul:heroStageMul(i)};
+  const last=Object.keys(L.segs).find(id=>!L.next[id]),first=L.start[0];
+  const cur=F?F.cur||[]:A.cur?[[first,.4,.85,1.45]]:[],vent=F?F.vent||[]:A.vent?[[last,.45]]:[];
+  return {i,area:a,n,lay,mir:a===0?(n===5||n===7||n===8?1:0):(i%2),spots:F?F.spots:9+Math.min(3,Math.floor(n/3)+(a>=2?1:0)),waves:F?F.waves:8+Math.min(5,Math.floor(n/2)+Math.min(2,a)),
+    mid:n===4,boss:n===PER_AREA-1?A.boss:'',kinds,fresh:fr||'',cur,vent,
+    hp:HPK*masteryMul(recLv(i))*SAW[n]*(1+a*HPA)*(EASE[i]||1),budget:11+Math.min(BUDCAP,i*BUDK),gold:200+Math.min(160,i*6),sTier:sTierOf(i),startMut:Math.min(4,Math.floor(i/8)),rec:recLv(i)};
 }
 function waveDef(si,w){
   const S=stageInfo(si),last=w===S.waves,budget=S.budget*(1+.33*(w-1)),ks=S.kinds.slice(0,Math.min(S.kinds.length,1+Math.ceil(w*.7))),groups=[];
-  const order=ks;
   const n=w<3?1:w<6?2:3,nStart=LAYOUTS[S.lay].start.length;
-  for(let j=0;j<n;j++){const k=order[(w*2+j*3+si)%order.length],E=ENEMIES[k],cnt=Math.max(1,Math.round(budget/n/E.cost));
+  for(let j=0;j<n;j++){const k=ks[(w*2+j*3+si)%ks.length],E=ENEMIES[k],cnt=Math.max(1,Math.round(budget/n/E.cost));
     groups.push({k,n:cnt,gap:k==='minnow'?.32:E.cost>2.5?1.5:.75,delay:j*3.4,start:(w+j)%nStart});}
   if(S.fresh&&w===2)groups.push({k:S.fresh,n:Math.max(1,Math.round(2.6/ENEMIES[S.fresh].cost)),gap:1.4,delay:1,start:0});
-  if(w%4===0&&!last&&si>=3)groups.push({k:'elite',n:1,gap:3,delay:2,start:w%nStart});
-  if(last&&S.boss)groups.push({k:'boss',n:1,gap:1,delay:4,start:0});
-  else if(last)groups.push({k:'elite',n:S.mid?3:1+Math.floor(si/5),gap:2.6,delay:3,start:0});
+  if(w%4===0&&!last&&si>=3)groups.push({k:'elite',n:1+Math.floor(si/20),gap:3,delay:2,start:w%nStart});
+  if(last&&S.boss)groups.push({k:S.boss,n:1,gap:1,delay:4,start:0});
+  else if(last)groups.push({k:'elite',n:S.mid?3:1+Math.floor(si/12),gap:2.6,delay:3,start:0});
   return {w,groups,hp:S.hp*(1+.11*(w-1)),bonus:20+4*w};
 }
+/* 보상(코인): 이기면 기본 × 별, 지면 조금. 첫 클리어 보너스 */
+const REWARD={base:130,stage:.15,star:[0,.7,.85,1],lose:.25};
+const stageCoins=(i,st)=>Math.round(REWARD.base*(1+REWARD.stage*i)*(st?REWARD.star[st]:REWARD.lose));
+const firstBonus=i=>150+i*30+(i%PER_AREA===PER_AREA-1?400:0);
+const LOGIN=[100,150,200,250,300,400,600];
+const MIS={kill:[300,150,['심연 생물 300마리 물리치기','击退300只深渊生物']],win:[3,200,['3판 이기기','赢得3关']],star:[6,180,['별 6개 모으기','收集6颗星']],
+  awaken:[2,150,['수호탑 2번 각성시키기','觉醒守护塔2次']],cmd:[8,150,['지휘 스킬 8번 쓰기','使用指挥技能8次']],card:[6,120,['축복 카드 6장 고르기','选择6张祝福卡']]};
 
 /* ---------- 카드: 3웨이브마다 축복 1장을 고르고, 심연도 변이 1개를 얻는다 ---------- */
 const BLESS={
@@ -111,6 +164,7 @@ const BLESS={
   key:     {ic:'🔑',n:['수문 열쇠 +2, 최대 +1','水闸钥匙 +2，上限 +1'],needGate:1},
   vent:    {ic:'⛲',n:['거품 기둥 강화: 더 자주, 더 오래','泡泡柱强化：更频繁更持久'],needVent:1},
 };
+
 const MUTS={
   armor: {ic:'🛡',n:['단단한 껍질: 갑옷 +12%','坚硬外壳：护甲 +12%']},
   speed: {ic:'💨',n:['거센 물살: 이동 속도 +12%','汹涌水流：移速 +12%']},

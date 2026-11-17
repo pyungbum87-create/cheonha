@@ -8,9 +8,10 @@ safeCtx(g);
 const QS=new URLSearchParams(location.search),DEBUG=QS.get('debug')==='1';
 /* ---------- 저장 ---------- */
 const SAVE_KEY='deepsea_v1';
-const DEF={stars:STAGE_DEF.map(()=>0),opt:{bgm:1,sfx:1,fast:0},lang:'',seen:{},sel:0};
+const DEF={stars:Array(STAGE_N).fill(0),coins:0,lv:{coral:1,bubble:1,jelly:1,conch:1,rune:1,hero:1},opt:{bgm:1,sfx:1,fast:0},lang:'',seen:{},sel:0,day:'',mis:[],login:{n:0,last:''}};
 function loadSave(){let o=null;try{o=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}const s=JSON.parse(JSON.stringify(DEF));
-  if(o&&typeof o==='object'){if(Array.isArray(o.stars))o.stars.forEach((v,i)=>{if(i<s.stars.length)s.stars[i]=+v||0;});if(o.opt)Object.assign(s.opt,o.opt);if(o.seen)s.seen=o.seen;if(typeof o.lang==='string')s.lang=o.lang;s.sel=+o.sel||0;}
+  if(o&&typeof o==='object'){if(Array.isArray(o.stars))o.stars.forEach((v,i)=>{if(i<s.stars.length)s.stars[i]=Math.max(0,Math.min(3,+v||0));});if(o.opt)Object.assign(s.opt,o.opt);if(o.seen&&typeof o.seen==='object')s.seen=o.seen;if(typeof o.lang==='string')s.lang=o.lang;s.sel=+o.sel||0;
+    s.coins=Math.max(0,+o.coins||0);if(o.lv)for(const k in s.lv)s.lv[k]=Math.max(1,Math.min(MAX_LV,+o.lv[k]||1));if(typeof o.day==='string')s.day=o.day;if(Array.isArray(o.mis))s.mis=o.mis.filter(m=>m&&MIS[m.id]);if(o.login){s.login.n=+o.login.n||0;s.login.last=''+(o.login.last||'');}}
   return s;}
 let SV=loadSave();
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SV));}catch(e){}}
