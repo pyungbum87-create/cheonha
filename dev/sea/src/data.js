@@ -132,13 +132,14 @@ const PER_AREA=10,STAGE_N=AREAS.length*PER_AREA;
 const START_LIVES=20,WAVE_GAP=9,EARLY_BONUS=3,CARD_EVERY=3;
 const KEYS={start:1,every:2,max:3};
 const VENT={lift:1.1,cd:3.5,amp:.3};
+const SAFE=85;   // 심연 동굴에서 나와 이만큼 헤엄칠 때까지는 수호탑이 노리지 않는다(나오자마자 잡혀서 적이 안 보이는 것 방지). 동굴 근처엔 자리도 두지 않는다
 const STAR_LIVES=[18,10];     // 남은 생명 18 이상 ★3, 10 이상 ★2
 /* 판 i 정보: 1구역은 손으로 다듬은 표, 그 뒤는 규칙으로 만든다 */
 const STAGE_FIX=[
   {spots:9, waves:8},{spots:9, waves:8},{spots:10,waves:9},{spots:10,waves:9},{spots:10,waves:10},
   {spots:10,waves:10,cur:[['a',.3,.46,1.5]],vent:[['a',.66]]},{spots:11,waves:11},{spots:11,waves:10,cur:[['c',.3,.7,1.35]],vent:[['d',.4],['b',.5]]},{spots:11,waves:12},{spots:12,waves:12},
 ];
-const HPK=3.4,HPA=.26,BUDK=1.4,BUDCAP=24;   // 적 체력 기본 배수 · 구역당 추가 · 판당 예산 증가 · 예산 상한
+const HPK=3.2,HPA=.26,BUDK=1.4,BUDCAP=24;   // 적 체력 기본 배수 · 구역당 추가 · 판당 예산 증가 · 예산 상한
 const EASE={0:.72,1:.85,39:.93,43:.88};   // 봇 검사에서 튀게 어려웠던 판만 살짝 낮춤
 const SAW=[.88,.93,.97,1,1.06,.95,1,1.04,1.08,1];   // 구역 안 난이도 톱니(첫 판 쉽게, 5번째 정예, 9번째 고비)
 function stageInfo(i){
