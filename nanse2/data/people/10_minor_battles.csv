@@ -1,0 +1,15 @@
+id,name,born,died,est,mu,yong,ji,jeong,in,pers,traits,weapon,sex,group
+yushe,유섭,160,190,e,10,7,3,3,5,yongjang,,mo,m,원술
+panfeng,반봉,155,190,e,12,7,3,3,5,yongjang,,pyeon,m,기주
+mushun,목순,160,190,e,11,7,3,3,5,yongjang,,mo,m,하내
+wuanguo,무안국,160,190,e,13,7,3,3,6,yongjang,,pyeon,m,북해
+lvgong,여공,160,200,e,10,10,10,5,5,gyohwal,gung,gung,m,유표
+chensheng,진생,165,191,e,11,9,5,4,6,yongjang,,mo,m,유표
+zhanghu,장호,165,191,e,11,9,4,3,6,yongjang,,do,m,유표
+wangfang,왕방,165,194,e,11,9,4,3,5,yongjang,,mo,m,동탁
+limeng,이몽,165,194,e,11,10,5,4,5,yongjang,,mo,m,동탁
+chezhou,차주,160,199,e,10,10,7,9,7,sinjung,,do,m,조조
+yuejiu,악취,165,197,e,11,10,4,4,5,yongjang,,mo,m,원술
+lianggang,양강,165,197,e,10,10,5,4,5,yongjang,,mo,m,원술
+chenji_ys,진기(원술 휘하),165,197,e,11,10,5,4,5,yongjang,,mo,m,원술
+tianshi_py,전씨(복양 부호),150,200,e,1,2,11,9,8,gyohwal,gangye,geom,m,여포

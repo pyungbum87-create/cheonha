@@ -1,0 +1,1715 @@
+{
+ "_설명": "황건적의 난(184)부터 관도대전(200)까지 연의 기준 전투·사건. month는 연의 서술 순서로 정한 대략값. scale: small=장수 몇 명 직접 지휘, mid=성 공방·국경전, large=여러 전선의 결전. at은 지도 성 id(가장 가까운 성). duels는 연의 일기토 [공격, 수비, 원작 결과]. branches는 플레이어가 역사를 바꿀 수 있는 지점.",
+ "battles": [
+  {
+   "id": "b184_daxing",
+   "year": 184,
+   "month": 3,
+   "ch": 1,
+   "name": "대흥산 전투",
+   "scale": "small",
+   "at": "ji",
+   "a": {
+    "side": "유비 의용군",
+    "leaders": [
+     "liubei",
+     "guanyu",
+     "zhangfei"
+    ]
+   },
+   "b": {
+    "side": "황건적",
+    "leaders": [
+     "chengyuanzhi",
+     "dengmao"
+    ]
+   },
+   "history": "장비가 등무를, 관우가 정원지를 베고 황건적 5만을 무너뜨린다.",
+   "duels": [
+    [
+     "zhangfei",
+     "dengmao",
+     "장비 승리, 등무 전사"
+    ],
+    [
+     "guanyu",
+     "chengyuanzhi",
+     "관우 승리, 정원지 전사"
+    ]
+   ],
+   "stratagems": [
+    "돌격"
+   ],
+   "branches": [
+    {
+     "if": "의용군 패배",
+     "then": "유비 일행의 이름이 알려지지 않아 출세가 늦어짐"
+    }
+   ]
+  },
+  {
+   "id": "b184_qingzhou",
+   "year": 184,
+   "month": 4,
+   "ch": 1,
+   "name": "청주 구원전",
+   "scale": "small",
+   "at": "bh",
+   "a": {
+    "side": "유비 의용군",
+    "leaders": [
+     "liubei",
+     "guanyu",
+     "zhangfei"
+    ]
+   },
+   "b": {
+    "side": "황건적",
+    "leaders": []
+   },
+   "history": "유비가 관우·장비를 산 양쪽에 숨기고 거짓 퇴각해 황건적을 협공한다.",
+   "duels": [],
+   "stratagems": [
+    "매복",
+    "거짓 퇴각"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b184_yingchuan",
+   "year": 184,
+   "month": 5,
+   "ch": 1,
+   "name": "영천 화공",
+   "scale": "mid",
+   "at": "xc",
+   "a": {
+    "side": "관군",
+    "leaders": [
+     "huangfusong",
+     "zhujun",
+     "caocao"
+    ]
+   },
+   "b": {
+    "side": "황건적",
+    "leaders": [
+     "zhangliang_hj",
+     "zhangbao_hj"
+    ]
+   },
+   "history": "황건적이 풀숲에 진을 치자 황보숭과 주준이 바람을 타 불을 지른다. 퇴로에서 조조가 처음 등장해 적을 벤다.",
+   "duels": [],
+   "stratagems": [
+    "화공"
+   ],
+   "weather": "바람 필요",
+   "branches": [
+    {
+     "if": "바람이 없거나 화공 실패",
+     "then": "황건적이 영천을 지키고 장안·낙양 쪽으로 세력을 넓힘"
+    }
+   ]
+  },
+  {
+   "id": "b184_guangzong",
+   "year": 184,
+   "month": 6,
+   "ch": 2,
+   "name": "광종 포위",
+   "scale": "mid",
+   "at": "ye",
+   "a": {
+    "side": "관군",
+    "leaders": [
+     "lushi"
+    ]
+   },
+   "b": {
+    "side": "황건적",
+    "leaders": [
+     "zhangjiao"
+    ]
+   },
+   "history": "노식이 장각을 포위하지만 환관에게 뇌물을 주지 않아 모함으로 압송된다. 뒤이은 동탁은 패하고 유비 형제가 구한다.",
+   "duels": [],
+   "stratagems": [
+    "포위"
+   ],
+   "events": [
+    "노식 압송",
+    "유비 형제가 동탁을 구했지만 동탁이 무시함 — 장비 분노"
+   ],
+   "branches": [
+    {
+     "if": "플레이어가 환관에게 뇌물을 바침",
+     "then": "노식이 압송되지 않고 장각 토벌이 빨라짐"
+    }
+   ]
+  },
+  {
+   "id": "b184_zhangbao_magic",
+   "year": 184,
+   "month": 8,
+   "ch": 2,
+   "name": "장보의 요술",
+   "scale": "small",
+   "at": "ye",
+   "a": {
+    "side": "관군",
+    "leaders": [
+     "liubei",
+     "guanyu",
+     "zhangfei",
+     "zhujun"
+    ]
+   },
+   "b": {
+    "side": "황건적",
+    "leaders": [
+     "zhangbao_hj"
+    ]
+   },
+   "history": "장보가 요술로 바람과 우레를 부르자, 유비가 짐승의 피로 요술을 깨뜨린다.",
+   "duels": [],
+   "stratagems": [
+    "요술 깨기"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b184_wancheng",
+   "year": 184,
+   "month": 10,
+   "ch": 2,
+   "name": "완성 탈환",
+   "scale": "mid",
+   "at": "wn",
+   "a": {
+    "side": "관군",
+    "leaders": [
+     "zhujun",
+     "liubei",
+     "sunjian"
+    ]
+   },
+   "b": {
+    "side": "황건적",
+    "leaders": [
+     "hanzhong",
+     "zhaohong",
+     "sunzhong"
+    ]
+   },
+   "history": "손견이 맨 먼저 성벽에 올라 조홍(趙弘)을 베고, 한충과 손중도 전사한다.",
+   "duels": [
+    [
+     "sunjian",
+     "zhaohong",
+     "손견 승리"
+    ]
+   ],
+   "stratagems": [
+    "공성",
+    "포위 한쪽 열기"
+   ],
+   "branches": []
+  },
+  {
+   "id": "e189_shichangshi",
+   "year": 189,
+   "month": 8,
+   "ch": 3,
+   "name": "십상시의 난",
+   "scale": "event",
+   "at": "ly",
+   "history": "하진이 십상시에게 살해되고, 원소·조조가 궁에 들어가 환관을 몰살한다. 동탁이 황제를 손에 넣는다.",
+   "branches": [
+    {
+     "if": "플레이어가 하진에게 입궁을 막도록 설득",
+     "then": "하진 생존, 동탁 입경이 늦어짐"
+    }
+   ]
+  },
+  {
+   "id": "e189_dingyuan",
+   "year": 189,
+   "month": 9,
+   "ch": 3,
+   "name": "여포의 배신",
+   "scale": "event",
+   "at": "ly",
+   "history": "이숙이 적토마와 황금으로 여포를 꾀어, 여포가 의부 정원을 죽이고 동탁의 수양아들이 된다.",
+   "branches": [
+    {
+     "if": "이숙의 설득을 막음",
+     "then": "여포가 정원 곁에 남아 동탁이 힘을 잃음"
+    }
+   ]
+  },
+  {
+   "id": "e190_qixing",
+   "year": 190,
+   "month": 1,
+   "ch": 4,
+   "name": "칠성보도 암살 미수",
+   "scale": "event",
+   "at": "ly",
+   "history": "조조가 왕윤의 칠성보도로 동탁을 찌르려다 들켜 칼을 바치는 척하고 달아난다. 도중에 여백사 일가를 죽인다.",
+   "branches": [
+    {
+     "if": "암살 성공 (낮은 확률, 지략·무용 판정)",
+     "then": "동탁 사망, 반동탁 연합이 결성되지 않음"
+    }
+   ]
+  },
+  {
+   "id": "b190_sishui",
+   "year": 190,
+   "month": 2,
+   "ch": 5,
+   "name": "사수관 전투",
+   "scale": "mid",
+   "at": "ly",
+   "place": "사수관",
+   "a": {
+    "side": "반동탁 연합",
+    "leaders": [
+     "sunjian",
+     "baozhong",
+     "guanyu"
+    ]
+   },
+   "b": {
+    "side": "동탁",
+    "leaders": [
+     "huaxiong",
+     "lisu",
+     "huzhen"
+    ]
+   },
+   "history": "화웅이 포충·유섭·반봉을 베고 손견을 패주시켜 조무가 전사한다. 관우가 데운 술이 식기 전에 화웅을 벤다.",
+   "duels": [
+    [
+     "baozhong",
+     "huaxiong",
+     "포충 전사"
+    ],
+    [
+     "yushe",
+     "huaxiong",
+     "유섭 전사"
+    ],
+    [
+     "panfeng",
+     "huaxiong",
+     "반봉 전사"
+    ],
+    [
+     "guanyu",
+     "huaxiong",
+     "관우 승리, 화웅 전사"
+    ]
+   ],
+   "stratagems": [
+    "야습",
+    "보급 차단"
+   ],
+   "events": [
+    "원술이 손견에게 군량을 보내지 않음"
+   ],
+   "branches": [
+    {
+     "if": "원술이 군량을 보냄 (설득)",
+     "then": "손견이 패하지 않고 조무 생존"
+    }
+   ]
+  },
+  {
+   "id": "b190_hulao",
+   "year": 190,
+   "month": 3,
+   "ch": 5,
+   "name": "호뢰관 전투",
+   "scale": "mid",
+   "at": "ly",
+   "place": "호뢰관",
+   "a": {
+    "side": "반동탁 연합",
+    "leaders": [
+     "yuanshao",
+     "gongsunzan",
+     "liubei",
+     "guanyu",
+     "zhangfei"
+    ]
+   },
+   "b": {
+    "side": "동탁",
+    "leaders": [
+     "lvbu"
+    ]
+   },
+   "history": "여포가 방열·목순을 베고 무안국의 팔을 자르며 공손찬을 쫓는다. 장비·관우·유비가 셋이서 여포와 싸워 물리친다.",
+   "duels": [
+    [
+     "fangyue",
+     "lvbu",
+     "방열 전사"
+    ],
+    [
+     "mushun",
+     "lvbu",
+     "목순 전사"
+    ],
+    [
+     "wuanguo",
+     "lvbu",
+     "무안국 팔 잘림"
+    ],
+    [
+     "gongsunzan",
+     "lvbu",
+     "공손찬 도주"
+    ],
+    [
+     "zhangfei",
+     "lvbu",
+     "장비·관우·유비 협공, 여포 퇴각"
+    ]
+   ],
+   "stratagems": [],
+   "branches": [
+    {
+     "if": "여포를 일기토로 사로잡음",
+     "then": "동탁이 낙양을 버리지 못하고 연합과 결전"
+    }
+   ]
+  },
+  {
+   "id": "b190_xingyang",
+   "year": 190,
+   "month": 4,
+   "ch": 6,
+   "name": "형양 추격전",
+   "scale": "small",
+   "at": "ly",
+   "place": "형양",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "xiahoudun",
+     "caohong"
+    ]
+   },
+   "b": {
+    "side": "동탁",
+    "leaders": [
+     "xurong"
+    ]
+   },
+   "history": "장안으로 떠나는 동탁을 조조가 홀로 쫓다가 서영의 매복에 크게 진다. 조홍이 말을 내주어 조조가 산다.",
+   "duels": [
+    [
+     "xiahoudun",
+     "xurong",
+     "하후돈 승리, 서영 전사"
+    ]
+   ],
+   "stratagems": [
+    "매복"
+   ],
+   "branches": [
+    {
+     "if": "정찰로 매복 간파",
+     "then": "동탁 후군을 크게 깨뜨리고 조조 명성 상승"
+    }
+   ]
+  },
+  {
+   "id": "e190_yuxi",
+   "year": 190,
+   "month": 4,
+   "ch": 6,
+   "name": "전국옥새",
+   "scale": "event",
+   "at": "ly",
+   "history": "불탄 낙양의 우물에서 손견이 전국옥새를 얻고 몰래 강동으로 돌아간다. 원소와 사이가 틀어진다.",
+   "branches": [
+    {
+     "if": "플레이어가 먼저 우물을 조사",
+     "then": "플레이어가 옥새를 얻음"
+    }
+   ]
+  },
+  {
+   "id": "b191_jieqiao",
+   "year": 191,
+   "month": 10,
+   "ch": 7,
+   "name": "반하 전투",
+   "scale": "mid",
+   "at": "py",
+   "place": "반하",
+   "a": {
+    "side": "원소",
+    "leaders": [
+     "yuanshao",
+     "wenchou",
+     "quyi"
+    ]
+   },
+   "b": {
+    "side": "공손찬",
+    "leaders": [
+     "gongsunzan",
+     "yangang_gs",
+     "zhaoyun"
+    ]
+   },
+   "history": "문추에게 쫓기던 공손찬을 조운이 구하며 처음 등장한다. 국의가 엄강을 벤다. 유비가 와서 싸움을 멈춘다.",
+   "duels": [
+    [
+     "zhaoyun",
+     "wenchou",
+     "50~60합, 승부 없음"
+    ],
+    [
+     "quyi",
+     "yangang_gs",
+     "국의 승리, 엄강 전사"
+    ]
+   ],
+   "stratagems": [
+    "궁노 매복"
+   ],
+   "branches": [
+    {
+     "if": "조운을 먼저 만나 인연을 쌓음",
+     "then": "조운이 플레이어 쪽으로 출사할 수 있음"
+    }
+   ]
+  },
+  {
+   "id": "b191_xianshan",
+   "year": 191,
+   "month": 11,
+   "ch": 7,
+   "name": "현산 전투",
+   "scale": "mid",
+   "at": "xy",
+   "a": {
+    "side": "손견",
+    "leaders": [
+     "sunjian",
+     "sunce",
+     "chengpu",
+     "huanggai",
+     "hantang"
+    ]
+   },
+   "b": {
+    "side": "유표",
+    "leaders": [
+     "huangzu",
+     "kuailiang",
+     "lvgong",
+     "chensheng",
+     "zhanghu"
+    ]
+   },
+   "history": "손견이 황조를 깨뜨리고 양양을 포위하지만, 괴량의 계책으로 여공이 현산에 매복해 손견이 돌과 화살에 맞아 전사한다.",
+   "duels": [
+    [
+     "hantang",
+     "zhanghu",
+     "한당 승리, 장호 전사"
+    ],
+    [
+     "sunce",
+     "chensheng",
+     "손책이 활로 진생을 쏨"
+    ]
+   ],
+   "stratagems": [
+    "매복",
+    "유인"
+   ],
+   "branches": [
+    {
+     "if": "정찰로 현산 매복 간파 또는 손견을 말림",
+     "then": "손견 생존. 강동 손씨의 역사가 크게 바뀜"
+    }
+   ]
+  },
+  {
+   "id": "e192_lianhuan",
+   "year": 192,
+   "month": 4,
+   "ch": 8,
+   "name": "연환계",
+   "scale": "event",
+   "at": "ca",
+   "history": "왕윤이 초선을 이용해 동탁과 여포 사이를 갈라놓고, 여포가 동탁을 죽인다.",
+   "branches": [
+    {
+     "if": "이유가 동탁에게 초선을 여포에게 주라고 설득",
+     "then": "연환계 실패, 동탁 정권 지속"
+    }
+   ]
+  },
+  {
+   "id": "b192_changan",
+   "year": 192,
+   "month": 6,
+   "ch": 9,
+   "name": "장안 함락",
+   "scale": "mid",
+   "at": "ca",
+   "a": {
+    "side": "이각·곽사",
+    "leaders": [
+     "lijue",
+     "guosi",
+     "zhangji",
+     "fanchou"
+    ]
+   },
+   "b": {
+    "side": "장안 조정",
+    "leaders": [
+     "lvbu",
+     "wangyun"
+    ]
+   },
+   "history": "가후의 권유로 이각·곽사가 장안을 공격한다. 여포는 패주하고 왕윤은 죽는다.",
+   "duels": [],
+   "stratagems": [
+    "교대 공격"
+   ],
+   "branches": [
+    {
+     "if": "왕윤이 동탁 잔당을 사면",
+     "then": "이각·곽사가 항복해 장안 공격이 없음"
+    }
+   ]
+  },
+  {
+   "id": "b194_changping",
+   "year": 194,
+   "month": 3,
+   "ch": 10,
+   "name": "장평관 전투",
+   "scale": "small",
+   "at": "ca",
+   "a": {
+    "side": "서량군",
+    "leaders": [
+     "mateng",
+     "hansui",
+     "machao"
+    ]
+   },
+   "b": {
+    "side": "이각·곽사",
+    "leaders": [
+     "wangfang",
+     "limeng"
+    ]
+   },
+   "history": "열일곱 살 마초가 왕방을 베고 이몽을 사로잡지만, 장안 내응이 들통나 서량군이 물러난다.",
+   "duels": [
+    [
+     "machao",
+     "wangfang",
+     "마초 승리, 왕방 전사"
+    ],
+    [
+     "machao",
+     "limeng",
+     "마초가 이몽 생포"
+    ]
+   ],
+   "stratagems": [
+    "내응"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b194_xuzhou",
+   "year": 194,
+   "month": 4,
+   "ch": 10,
+   "name": "서주 침공",
+   "scale": "large",
+   "at": "xp",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "xiahoudun",
+     "yujin",
+     "dianwei"
+    ]
+   },
+   "b": {
+    "side": "도겸",
+    "leaders": [
+     "taoqian",
+     "caobao",
+     "liubei",
+     "guanyu",
+     "zhangfei"
+    ]
+   },
+   "history": "도겸의 부하 장개가 조조의 아버지 조숭을 죽이자 조조가 서주를 친다. 유비가 구원 오고, 여포가 연주를 습격해 조조가 물러난다.",
+   "duels": [],
+   "stratagems": [
+    "양동",
+    "후방 습격"
+   ],
+   "events": [
+    "조숭 피살",
+    "여포의 연주 습격"
+   ],
+   "branches": [
+    {
+     "if": "조숭 호송을 플레이어가 맡음",
+     "then": "조숭 생존, 서주 침공 없음"
+    }
+   ]
+  },
+  {
+   "id": "b194_beihai",
+   "year": 194,
+   "month": 5,
+   "ch": 11,
+   "name": "북해 구원",
+   "scale": "small",
+   "at": "bh",
+   "a": {
+    "side": "공융·유비",
+    "leaders": [
+     "kongrong",
+     "taishici",
+     "liubei",
+     "guanyu"
+    ]
+   },
+   "b": {
+    "side": "황건적",
+    "leaders": [
+     "guanhai"
+    ]
+   },
+   "history": "포위된 공융을 위해 태사자가 홀로 포위를 뚫고 유비에게 구원을 청한다. 관우가 관해를 벤다.",
+   "duels": [
+    [
+     "taishici",
+     "guanhai",
+     "포위 돌파"
+    ],
+    [
+     "guanyu",
+     "guanhai",
+     "관우 승리, 관해 전사"
+    ]
+   ],
+   "stratagems": [
+    "포위 돌파"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b194_puyang",
+   "year": 194,
+   "month": 8,
+   "ch": 11,
+   "name": "복양 전투",
+   "scale": "large",
+   "at": "pu",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "dianwei",
+     "xiahoudun",
+     "yuejin",
+     "lidian"
+    ]
+   },
+   "b": {
+    "side": "여포",
+    "leaders": [
+     "lvbu",
+     "chengong",
+     "gaoshun",
+     "zhangliao",
+     "zangba"
+    ]
+   },
+   "history": "진궁이 복양 부호 전씨를 시켜 거짓 내응을 약속한다. 성에 들어간 조조가 화공에 갇혀 크게 다치고 전위가 구해낸다.",
+   "duels": [
+    [
+     "dianwei",
+     "lvbu",
+     "전위가 조조를 업고 탈출"
+    ]
+   ],
+   "stratagems": [
+    "거짓 내응",
+    "화공"
+   ],
+   "branches": [
+    {
+     "if": "거짓 내응 간파 (지략 판정)",
+     "then": "조조가 복양을 빼앗고 여포가 일찍 몰락"
+    }
+   ]
+  },
+  {
+   "id": "b195_dingtao",
+   "year": 195,
+   "month": 4,
+   "ch": 12,
+   "name": "정도 전투",
+   "scale": "mid",
+   "at": "pu",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "dianwei",
+     "xuchu"
+    ]
+   },
+   "b": {
+    "side": "여포",
+    "leaders": [
+     "lvbu",
+     "chengong"
+    ]
+   },
+   "history": "조조가 둑 뒤에 병사를 숨기고 부녀자를 내세워 여포를 꾀어낸 뒤 크게 이긴다. 여포는 연주를 잃고 유비에게 간다.",
+   "duels": [],
+   "stratagems": [
+    "매복",
+    "유인"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b195_xuchu",
+   "year": 195,
+   "month": 2,
+   "ch": 12,
+   "name": "허저 등용",
+   "scale": "small",
+   "at": "rn",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "dianwei"
+    ]
+   },
+   "b": {
+    "side": "허저",
+    "leaders": [
+     "xuchu"
+    ]
+   },
+   "history": "황건 잔당 하의·황소를 쫓던 중 조홍이 하만을 베고 이전이 황소를 사로잡는다. 하의를 붙잡은 허저와 전위가 겨루어 승부가 나지 않자 조조가 함정으로 허저를 잡아 등용한다.",
+   "duels": [
+    [
+     "dianwei",
+     "xuchu",
+     "승부 없음"
+    ],
+    [
+     "caohong",
+     "heman",
+     "조홍 승리, 하만 전사"
+    ]
+   ],
+   "stratagems": [
+    "함정"
+   ],
+   "branches": [
+    {
+     "if": "플레이어가 먼저 허저를 만남",
+     "then": "허저가 플레이어에게 출사할 수 있음"
+    }
+   ]
+  },
+  {
+   "id": "b195_shenting",
+   "year": 195,
+   "month": 6,
+   "ch": 15,
+   "name": "신정 일기토",
+   "scale": "small",
+   "at": "jy",
+   "place": "신정",
+   "a": {
+    "side": "손책",
+    "leaders": [
+     "sunce",
+     "chengpu",
+     "huanggai",
+     "hantang"
+    ]
+   },
+   "b": {
+    "side": "유요",
+    "leaders": [
+     "taishici",
+     "liuyao"
+    ]
+   },
+   "history": "손책과 태사자가 신정에서 단둘이 맞붙어 서로 투구와 단극을 빼앗는다. 뒤에 손책이 태사자를 사로잡아 마음을 얻는다.",
+   "duels": [
+    [
+     "sunce",
+     "taishici",
+     "백 합 넘게 승부 없음, 투구와 단극을 빼앗음"
+    ]
+   ],
+   "stratagems": [
+    "회유"
+   ],
+   "branches": [
+    {
+     "if": "태사자를 등용하지 못함",
+     "then": "태사자가 유요와 함께 몰락하거나 다른 세력으로 감"
+    }
+   ]
+  },
+  {
+   "id": "b195_jiangdong",
+   "year": 195,
+   "month": 8,
+   "ch": 15,
+   "name": "강동 평정",
+   "scale": "mid",
+   "at": "wx",
+   "a": {
+    "side": "손책",
+    "leaders": [
+     "sunce",
+     "zhouyu",
+     "zhoutai",
+     "jiangqin",
+     "chenwu"
+    ]
+   },
+   "b": {
+    "side": "강동 군웅",
+    "leaders": [
+     "liuyao",
+     "zerong",
+     "xueli",
+     "yanbaihu",
+     "wanglang"
+    ]
+   },
+   "history": "손책이 유요·착융·설례를 차례로 깨고, 엄백호와 왕랑을 몰아내 강동을 차지한다. 주태가 몸에 열두 군데 상처를 입고 손권을 구하고, 화타가 치료한다.",
+   "duels": [
+    [
+     "sunce",
+     "yanyu",
+     "손책 승리"
+    ]
+   ],
+   "stratagems": [
+    "야습",
+    "화공"
+   ],
+   "events": [
+    "주태가 손권을 구함",
+    "화타 등장"
+   ],
+   "branches": []
+  },
+  {
+   "id": "e195_xiandi_east",
+   "year": 195,
+   "month": 7,
+   "ch": 13,
+   "name": "헌제 동천",
+   "scale": "event",
+   "at": "ly",
+   "history": "이각·곽사가 서로 싸우는 틈에 양봉·한섬·동승이 헌제를 모시고 낙양으로 간다. 서황이 허저와 겨룬다(14회).",
+   "duels": [
+    [
+     "xuhuang",
+     "xuchu",
+     "50합 승부 없음"
+    ]
+   ],
+   "branches": [
+    {
+     "if": "플레이어가 먼저 황제를 맞이함",
+     "then": "플레이어 세력이 천자를 끼고 명분을 얻음"
+    }
+   ]
+  },
+  {
+   "id": "e196_xudu",
+   "year": 196,
+   "month": 8,
+   "ch": 14,
+   "name": "허도 천도",
+   "scale": "event",
+   "at": "xc",
+   "history": "조조가 헌제를 허도로 모셔 천자를 끼고 제후를 호령한다. 서황이 만총의 설득으로 조조에게 간다.",
+   "branches": []
+  },
+  {
+   "id": "b196_xuyi",
+   "year": 196,
+   "month": 6,
+   "ch": 14,
+   "name": "우이 대치와 서주 상실",
+   "scale": "mid",
+   "at": "xp",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "liubei",
+     "guanyu"
+    ]
+   },
+   "b": {
+    "side": "원술",
+    "leaders": [
+     "jiling"
+    ]
+   },
+   "history": "유비가 원술군과 맞서는 동안, 서주를 지키던 장비가 술에 취해 조표를 때리고 조표가 여포를 끌어들여 서주를 잃는다.",
+   "duels": [
+    [
+     "guanyu",
+     "jiling",
+     "30합 승부 없음"
+    ]
+   ],
+   "stratagems": [
+    "내응"
+   ],
+   "branches": [
+    {
+     "if": "장비 대신 다른 장수가 서주를 지킴",
+     "then": "여포가 서주를 얻지 못함"
+    }
+   ]
+  },
+  {
+   "id": "e196_yuanmen",
+   "year": 196,
+   "month": 9,
+   "ch": 16,
+   "name": "원문사극",
+   "scale": "event",
+   "at": "xb",
+   "history": "여포가 멀리 세운 극을 활로 맞히고 기령과 유비를 화해시킨다.",
+   "branches": [
+    {
+     "if": "화살이 빗나감 (여포 궁술 판정)",
+     "then": "기령이 소패를 공격"
+    }
+   ]
+  },
+  {
+   "id": "b197_wancheng",
+   "year": 197,
+   "month": 1,
+   "ch": 16,
+   "name": "완성 전투",
+   "scale": "mid",
+   "at": "wn",
+   "a": {
+    "side": "장수",
+    "leaders": [
+     "zhangxiu",
+     "jiaxu",
+     "huchenger"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "dianwei",
+     "caoang",
+     "caoanmin",
+     "yujin"
+    ]
+   },
+   "history": "항복한 장수가, 조조가 숙부의 미망인 추씨를 취한 데 분노한다. 가후의 계책으로 호거아가 전위의 극을 훔치고 야습해 전위·조앙·조안민이 죽는다.",
+   "duels": [],
+   "stratagems": [
+    "야습",
+    "무기 훔치기"
+   ],
+   "branches": [
+    {
+     "if": "추씨 일을 막거나 전위의 극을 지킴",
+     "then": "전위·조앙 생존"
+    }
+   ],
+   "events": [
+    "전위가 극 없이 영채 문을 막고 버티다 전사"
+   ]
+  },
+  {
+   "id": "b197_sevenroutes",
+   "year": 197,
+   "month": 5,
+   "ch": 17,
+   "name": "원술 칠로군",
+   "scale": "large",
+   "at": "xp",
+   "a": {
+    "side": "원술",
+    "leaders": [
+     "zhangxun",
+     "qiaorui",
+     "chenji_ys",
+     "leibo",
+     "chenlan",
+     "hanxian",
+     "yangfeng"
+    ]
+   },
+   "b": {
+    "side": "여포",
+    "leaders": [
+     "lvbu",
+     "gaoshun",
+     "zhangliao",
+     "chengong",
+     "chendeng"
+    ]
+   },
+   "history": "황제를 칭한 원술이 일곱 갈래로 서주를 친다. 진규·진등 부자가 한섬·양봉을 이간해 배반시키고 여포가 크게 이긴다.",
+   "duels": [],
+   "stratagems": [
+    "이간",
+    "내응"
+   ],
+   "branches": [
+    {
+     "if": "이간을 막음",
+     "then": "여포가 서주를 잃고 원술이 강해짐"
+    }
+   ]
+  },
+  {
+   "id": "b197_shouchun",
+   "year": 197,
+   "month": 9,
+   "ch": 17,
+   "name": "수춘 토벌",
+   "scale": "mid",
+   "at": "sc",
+   "a": {
+    "side": "조조 연합",
+    "leaders": [
+     "caocao",
+     "liubei",
+     "lvbu",
+     "sunce"
+    ]
+   },
+   "b": {
+    "side": "원술",
+    "leaders": [
+     "lifeng",
+     "yuejiu",
+     "lianggang",
+     "chenji_ys"
+    ]
+   },
+   "history": "조조가 군량 부족을 감추려 군량관 왕후를 베어 사기를 다잡고 수춘을 함락한다. 원술은 회수를 건너 달아난다.",
+   "duels": [],
+   "stratagems": [
+    "공성",
+    "사기 다잡기"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b198_rangcheng",
+   "year": 198,
+   "month": 3,
+   "ch": 18,
+   "name": "양성 추격전",
+   "scale": "mid",
+   "at": "wn",
+   "a": {
+    "side": "장수·유표",
+    "leaders": [
+     "zhangxiu",
+     "jiaxu"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "xuchu"
+    ]
+   },
+   "history": "가후는 처음엔 추격을 말리고, 장수가 지자 다시 추격하라 한다. 두 번째 추격은 크게 이긴다.",
+   "duels": [],
+   "stratagems": [
+    "추격 시점 판단"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b198_xiaopei",
+   "year": 198,
+   "month": 9,
+   "ch": 18,
+   "name": "소패 전투",
+   "scale": "small",
+   "at": "xb",
+   "a": {
+    "side": "여포",
+    "leaders": [
+     "gaoshun",
+     "caoxing"
+    ]
+   },
+   "b": {
+    "side": "조조·유비",
+    "leaders": [
+     "xiahoudun",
+     "liubei"
+    ]
+   },
+   "history": "고순과 싸우던 하후돈이 조성의 화살에 왼눈을 맞자, 화살을 뽑아 눈알을 삼키고 조성을 벤다.",
+   "duels": [
+    [
+     "xiahoudun",
+     "gaoshun",
+     "40~50합"
+    ],
+    [
+     "xiahoudun",
+     "caoxing",
+     "하후돈 승리, 조성 전사"
+    ]
+   ],
+   "stratagems": [
+    "저격"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b198_xiapi",
+   "year": 198,
+   "month": 12,
+   "ch": 19,
+   "name": "하비 수공",
+   "scale": "large",
+   "at": "xp",
+   "a": {
+    "side": "조조·유비",
+    "leaders": [
+     "caocao",
+     "liubei",
+     "guanyu",
+     "zhangfei",
+     "xiahoudun",
+     "guojia",
+     "xunyou"
+    ]
+   },
+   "b": {
+    "side": "여포",
+    "leaders": [
+     "lvbu",
+     "chengong",
+     "gaoshun",
+     "zhangliao",
+     "houcheng",
+     "songxian",
+     "weixu"
+    ]
+   },
+   "history": "곽가·순유의 계책으로 사수와 기수를 터뜨려 하비를 물에 잠근다. 후성·송헌·위속이 여포를 묶어 바치고, 여포·진궁·고순은 백문루에서 처형된다. 장료는 항복한다.",
+   "duels": [],
+   "stratagems": [
+    "수공",
+    "내응"
+   ],
+   "branches": [
+    {
+     "if": "여포가 진궁의 기각지계(성 안팎으로 나뉘어 협공)를 받아들임",
+     "then": "포위가 풀리고 여포 세력 존속"
+    }
+   ]
+  },
+  {
+   "id": "e199_yidai",
+   "year": 199,
+   "month": 3,
+   "ch": 20,
+   "name": "의대조",
+   "scale": "event",
+   "at": "xc",
+   "history": "허전 사냥 뒤, 헌제가 옥대 속 밀서로 동승에게 조조 토벌을 명한다. 유비·마등이 서명한다.",
+   "branches": [
+    {
+     "if": "밀서가 조조에게 들킴",
+     "then": "동승 일파와 동귀비 처형, 유비 수배"
+    }
+   ]
+  },
+  {
+   "id": "b199_yijing",
+   "year": 199,
+   "month": 3,
+   "ch": 22,
+   "name": "역경 전투",
+   "scale": "large",
+   "at": "bp",
+   "a": {
+    "side": "원소",
+    "leaders": [
+     "yuanshao",
+     "yanliang",
+     "wenchou",
+     "zhanghe",
+     "gaolan"
+    ]
+   },
+   "b": {
+    "side": "공손찬",
+    "leaders": [
+     "gongsunzan",
+     "gongsunxu",
+     "tiankai"
+    ]
+   },
+   "history": "원소가 땅굴을 파 역경루를 무너뜨리고, 공손찬은 처자를 죽이고 스스로 불에 뛰어든다.",
+   "duels": [],
+   "stratagems": [
+    "땅굴",
+    "공성"
+   ],
+   "branches": [
+    {
+     "if": "흑산적 장연의 구원이 제때 도착",
+     "then": "공손찬 생존, 원소가 남쪽으로 내려오지 못함"
+    }
+   ]
+  },
+  {
+   "id": "b199_yuanshu_end",
+   "year": 199,
+   "month": 6,
+   "ch": 21,
+   "name": "원술 최후",
+   "scale": "small",
+   "at": "xp",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "liubei",
+     "guanyu",
+     "zhangfei"
+    ]
+   },
+   "b": {
+    "side": "원술",
+    "leaders": [
+     "yuanshu",
+     "jiling"
+    ]
+   },
+   "history": "원소에게 가려던 원술을 유비가 막는다. 장비가 기령을 베고, 원술은 꿀물 한 그릇을 찾다 피를 토하고 죽는다.",
+   "duels": [
+    [
+     "zhangfei",
+     "jiling",
+     "장비 승리, 기령 전사"
+    ]
+   ],
+   "stratagems": [
+    "요격"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b199_chezhou",
+   "year": 199,
+   "month": 8,
+   "ch": 21,
+   "name": "서주 탈취",
+   "scale": "small",
+   "at": "xp",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "liubei",
+     "guanyu",
+     "chendeng"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "chezhou"
+    ]
+   },
+   "history": "조조가 차주에게 유비를 죽이라 하지만 진등이 알리고, 관우가 차주를 벤다. 유비가 서주를 차지한다.",
+   "duels": [
+    [
+     "guanyu",
+     "chezhou",
+     "관우 승리, 차주 전사"
+    ]
+   ],
+   "stratagems": [
+    "역계"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b199_liudai",
+   "year": 199,
+   "month": 10,
+   "ch": 22,
+   "name": "유대·왕충 격파",
+   "scale": "small",
+   "at": "xp",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "guanyu",
+     "zhangfei"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "liudai_cao",
+     "wangzhong"
+    ]
+   },
+   "history": "관우가 왕충을, 장비가 꾀를 써서 유대를 사로잡는다. 유비는 둘을 놓아준다.",
+   "duels": [
+    [
+     "guanyu",
+     "wangzhong",
+     "관우가 생포"
+    ],
+    [
+     "zhangfei",
+     "liudai_cao",
+     "장비가 계략으로 생포"
+    ]
+   ],
+   "stratagems": [
+    "거짓 야습"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b200_xuzhou",
+   "year": 200,
+   "month": 1,
+   "ch": 24,
+   "name": "서주 함락",
+   "scale": "mid",
+   "at": "xp",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "zhangliao",
+     "xuhuang",
+     "xiahoudun"
+    ]
+   },
+   "b": {
+    "side": "유비",
+    "leaders": [
+     "liubei",
+     "guanyu",
+     "zhangfei"
+    ]
+   },
+   "history": "유비의 야습이 간파되어 크게 지고 삼형제가 흩어진다. 하비를 지키던 관우는 토산에서 세 가지 약속을 받고 조조에게 몸을 맡긴다.",
+   "duels": [],
+   "stratagems": [
+    "야습",
+    "역매복"
+   ],
+   "events": [
+    "관우 토산 삼약"
+   ],
+   "branches": [
+    {
+     "if": "원소가 아들 병을 핑계로 출병을 거절하지 않음",
+     "then": "원소가 조조 후방을 쳐 서주 함락 실패"
+    }
+   ]
+  },
+  {
+   "id": "b200_baima",
+   "year": 200,
+   "month": 4,
+   "ch": 25,
+   "name": "백마 전투",
+   "scale": "mid",
+   "at": "pu",
+   "place": "백마",
+   "a": {
+    "side": "원소",
+    "leaders": [
+     "yanliang"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "songxian",
+     "weixu",
+     "xuhuang",
+     "guanyu",
+     "zhangliao"
+    ]
+   },
+   "history": "안량이 송헌·위속을 베고 서황을 물리친다. 관우가 적토마를 달려 만군 속에서 안량을 베고 머리를 가져온다.",
+   "duels": [
+    [
+     "songxian",
+     "yanliang",
+     "송헌 전사"
+    ],
+    [
+     "weixu",
+     "yanliang",
+     "위속 전사"
+    ],
+    [
+     "xuhuang",
+     "yanliang",
+     "서황 패퇴"
+    ],
+    [
+     "guanyu",
+     "yanliang",
+     "관우 승리, 안량 전사"
+    ]
+   ],
+   "stratagems": [
+    "돌격"
+   ],
+   "branches": [
+    {
+     "if": "안량이 관우를 경계함",
+     "then": "관우의 공이 없어 조조 곁을 떠나기 어려움"
+    }
+   ]
+  },
+  {
+   "id": "b200_yanjin",
+   "year": 200,
+   "month": 4,
+   "ch": 26,
+   "name": "연진 전투",
+   "scale": "mid",
+   "at": "pu",
+   "place": "연진",
+   "a": {
+    "side": "원소",
+    "leaders": [
+     "wenchou",
+     "liubei"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "zhangliao",
+     "xuhuang",
+     "guanyu"
+    ]
+   },
+   "history": "조조가 군량과 말을 미끼로 버려 문추군을 어지럽힌다. 문추가 장료·서황을 물리치지만 관우에게 베인다.",
+   "duels": [
+    [
+     "zhangliao",
+     "wenchou",
+     "장료 패퇴"
+    ],
+    [
+     "xuhuang",
+     "wenchou",
+     "서황 패퇴"
+    ],
+    [
+     "guanyu",
+     "wenchou",
+     "관우 승리, 문추 전사"
+    ]
+   ],
+   "stratagems": [
+    "미끼"
+   ],
+   "branches": []
+  },
+  {
+   "id": "e200_wuguan",
+   "year": 200,
+   "month": 6,
+   "ch": 27,
+   "name": "오관참육장",
+   "scale": "event",
+   "at": "ly",
+   "history": "유비의 소식을 들은 관우가 두 형수를 모시고 다섯 관문을 지나며 여섯 장수를 벤다.",
+   "duels": [
+    [
+     "guanyu",
+     "kongxiu",
+     "동령관, 공수 전사"
+    ],
+    [
+     "guanyu",
+     "mengtan",
+     "낙양, 맹탄 전사"
+    ],
+    [
+     "guanyu",
+     "hanfu_ly",
+     "낙양, 한복 전사"
+    ],
+    [
+     "guanyu",
+     "bianxi",
+     "기수관, 변희 전사"
+    ],
+    [
+     "guanyu",
+     "wangzhi",
+     "형양, 왕식 전사"
+    ],
+    [
+     "guanyu",
+     "qinqi",
+     "황하 나루, 진기 전사"
+    ]
+   ],
+   "playable": true,
+   "branches": [
+    {
+     "if": "플레이어가 조조의 통행증을 먼저 받아옴",
+     "then": "관문 장수와 싸우지 않고 통과"
+    }
+   ]
+  },
+  {
+   "id": "e200_gucheng",
+   "year": 200,
+   "month": 7,
+   "ch": 28,
+   "name": "고성 재회",
+   "scale": "event",
+   "at": "rn",
+   "place": "고성",
+   "history": "장비가 관우를 의심하자, 관우가 쫓아온 채양을 북이 세 번 울리기 전에 벤다. 주창·관평이 합류하고 조운도 돌아온다.",
+   "duels": [
+    [
+     "guanyu",
+     "caiyang",
+     "관우 승리, 채양 전사"
+    ]
+   ],
+   "branches": []
+  },
+  {
+   "id": "e200_sunce_death",
+   "year": 200,
+   "month": 4,
+   "ch": 29,
+   "name": "손책의 죽음",
+   "scale": "event",
+   "at": "wx",
+   "history": "사냥 중 허공의 식객에게 습격당한 손책이 우길을 죽인 뒤 환영에 시달리다 죽고, 손권이 뒤를 잇는다.",
+   "branches": [
+    {
+     "if": "사냥에 호위를 붙임",
+     "then": "손책 생존, 강동이 북진을 노림"
+    }
+   ]
+  },
+  {
+   "id": "b200_guandu",
+   "year": 200,
+   "month": 10,
+   "ch": 30,
+   "name": "관도대전",
+   "scale": "large",
+   "at": "cl",
+   "place": "관도",
+   "a": {
+    "side": "원소",
+    "leaders": [
+     "yuanshao",
+     "zhanghe",
+     "gaolan",
+     "chunyuqiong",
+     "jushou",
+     "tianfeng",
+     "shenpei",
+     "xuyou",
+     "guotu"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "caocao",
+     "xunyou",
+     "guojia",
+     "xuchu",
+     "zhangliao",
+     "xuhuang",
+     "yuejin",
+     "caoren"
+    ]
+   },
+   "history": "원소가 저수·전풍의 간언을 듣지 않는다. 허유가 조조에게 투항해 오소 군량고를 알려주고, 조조가 직접 오소를 불태운다. 순우경이 패하고 장합·고람이 투항해 원소군이 무너진다.",
+   "duels": [],
+   "stratagems": [
+    "군량 습격",
+    "화공",
+    "땅굴",
+    "벽력거"
+   ],
+   "branches": [
+    {
+     "if": "원소가 저수의 지구전 계책을 따름",
+     "then": "조조 군량이 먼저 바닥나 철수"
+    },
+    {
+     "if": "허유의 투항을 막음 또는 오소 경계 강화",
+     "then": "오소 화공 실패, 조조 패배"
+    },
+    {
+     "if": "플레이어가 원소 진영에서 오소를 지킴",
+     "then": "원소 승리 가상 역사로 진행"
+    }
+   ]
+  }
+ ]
+}

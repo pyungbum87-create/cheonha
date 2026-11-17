@@ -1,0 +1,35 @@
+{
+  "_설명": "장비 데이터. 이름 있는 장비는 삼국지연의 원문 또는 정사에 나오는 것만 쓴다. bonus는 능력치에 더하는 값(1~20 척도 기준).",
+  "slots": ["weapon", "horse", "armor", "book"],
+  "named": [
+    { "id": "qinglong", "name": "청룡언월도", "slot": "weapon", "type": "do", "owner184": "guanyu", "bonus": { "mu": 2 }, "source": "연의 1회, 82근 대도" },
+    { "id": "zhangba", "name": "장팔사모", "slot": "weapon", "type": "mo", "owner184": "zhangfei", "bonus": { "mu": 2 }, "source": "연의 1회, 장팔점강모" },
+    { "id": "shuanggu", "name": "쌍고검", "slot": "weapon", "type": "geom", "owner184": "liubei", "bonus": { "mu": 1, "in": 1 }, "source": "연의 1회" },
+    { "id": "fangtian", "name": "방천화극", "slot": "weapon", "type": "geuk", "owner184": "lvbu", "bonus": { "mu": 2 }, "source": "연의 3회" },
+    { "id": "qixing", "name": "칠성보도", "slot": "weapon", "type": "geom", "owner184": "wangyun", "bonus": { "mu": 1, "ji": 1 }, "source": "연의 4회, 왕윤이 조조에게 줌" },
+    { "id": "guding", "name": "고정도", "slot": "weapon", "type": "do", "owner184": "sunjian", "bonus": { "mu": 2 }, "source": "연의 5회" },
+    { "id": "tieji", "name": "철척사모", "slot": "weapon", "type": "mo", "owner184": "chengpu", "bonus": { "mu": 1 }, "source": "연의 5회" },
+    { "id": "tiebian", "name": "철편", "slot": "weapon", "type": "pyeon", "owner184": "huanggai", "bonus": { "mu": 1 }, "source": "연의 5회" },
+    { "id": "shuangtieji", "name": "쌍철극", "slot": "weapon", "type": "geuk", "owner184": "dianwei", "bonus": { "mu": 2 }, "source": "연의 10회, 80근" },
+    { "id": "yitian", "name": "의천검", "slot": "weapon", "type": "geom", "owner184": "caocao", "bonus": { "mu": 1, "in": 1 }, "source": "연의 41회에 나오는 조조의 보검" },
+    { "id": "qinggang", "name": "청홍검", "slot": "weapon", "type": "geom", "owner184": "caocao", "bonus": { "mu": 2 }, "source": "연의 41회, 하후은에게 맡김" },
+    { "id": "chitu", "name": "적토마", "slot": "horse", "owner184": "dongzhuo", "bonus": { "yong": 2 }, "move": 3, "source": "연의 3회, 동탁이 여포에게 줌" },
+    { "id": "jueying", "name": "절영", "slot": "horse", "owner184": "caocao", "bonus": { "yong": 1 }, "move": 2, "source": "연의 16회, 완성에서 죽음" },
+    { "id": "yuxi", "name": "전국옥새", "slot": "book", "owner184": null, "bonus": { "in": 3 }, "source": "연의 6회, 손견이 낙양 우물에서 얻음. 가진 군주는 칭제 조건 완화" },
+    { "id": "taiping", "name": "태평요술", "slot": "book", "owner184": "zhangjiao", "bonus": { "ji": 2, "in": 2 }, "source": "연의 1회, 장각이 남화노선에게 받음" },
+    { "id": "sunzi", "name": "손자병법", "slot": "book", "owner184": null, "bonus": { "yong": 2, "ji": 1 }, "source": "고전 병법서" },
+    { "id": "wuzi", "name": "오자병법", "slot": "book", "owner184": null, "bonus": { "yong": 1, "ji": 1 }, "source": "고전 병법서" },
+    { "id": "liutao", "name": "육도", "slot": "book", "owner184": null, "bonus": { "ji": 2 }, "source": "고전 병법서" },
+    { "id": "sanlue", "name": "삼략", "slot": "book", "owner184": null, "bonus": { "yong": 1, "jeong": 1 }, "source": "고전 병법서" }
+  ],
+  "generic": {
+    "tiers": [
+      { "tier": 1, "prefix": "평범한", "bonus": 0, "price": 0 },
+      { "tier": 2, "prefix": "잘 벼린", "bonus": 1, "price": 300 },
+      { "tier": 3, "prefix": "명장이 만든", "bonus": 2, "price": 1200 }
+    ],
+    "weapons": { "do": "대도", "mo": "장창", "geuk": "극", "geom": "장검", "gung": "강궁", "pyeon": "철추" },
+    "horses": [ { "tier": 1, "name": "노마", "move": 0 }, { "tier": 2, "name": "준마", "move": 1 }, { "tier": 3, "name": "명마", "move": 2 } ],
+    "armors": [ { "tier": 1, "name": "가죽 갑옷" }, { "tier": 2, "name": "찰갑" }, { "tier": 3, "name": "명광개" } ]
+  }
+}

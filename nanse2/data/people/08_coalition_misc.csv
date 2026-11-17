@@ -1,0 +1,26 @@
+id,name,born,died,est,mu,yong,ji,jeong,in,pers,traits,weapon,sex,group
+baoxin,포신,152,192,,9,13,14,11,14,uiri,ganpa,mo,m,제북
+baozhong,포충,160,190,e,10,8,5,4,6,yongjang,,mo,m,제북
+wangkuang,왕광,150,190,e,7,10,8,10,10,sinjung,,geom,m,하내
+fangyue,방열,160,190,e,12,8,4,3,5,yongjang,,mo,m,하내
+liudai_yan,유대(연주자사),150,192,e,6,8,7,10,9,sinjung,,geom,m,연주
+qiaomao,교모,150,190,e,6,9,8,11,10,onhwa,,geom,m,동군
+kongzhou,공주,150,191,e,3,6,9,10,10,onhwa,,geom,m,예주
+zhangmiao,장막,150,195,e,6,10,9,12,14,uiri,dukmang,geom,m,진류
+zhangchao,장초,155,195,e,9,11,8,9,11,uiri,chungjeol,mo,m,광릉
+zanghong,장홍,160,196,e,8,12,11,12,14,uiri,chungjeol|susung,geom,m,광릉
+zhangyang,장양(張楊),150,198,e,10,11,6,9,13,onhwa,,mo,m,하내
+mugu,목고,160,199,e,10,9,6,5,6,uiri,,mo,m,하내
+yangchou,양추,160,198,e,10,9,8,5,4,gyohwal,,do,m,하내
+suigu,수고,160,199,e,10,10,6,5,5,yasim,,do,m,하내
+yuanyi,원유,150,195,e,4,7,8,10,10,onhwa,,geom,m,산양
+gongsundu,공손도,150,204,e,11,14,10,13,9,yasim,yamang|gima,mo,m,공손도
+gongsunkang,공손강,175,221,e,11,12,10,11,9,yasim,gima,mo,m,공손도
+wangzifu,왕자복,160,200,e,9,8,6,7,7,uiri,chungjeol,geom,m,후한 조정
+chongji,충집,160,200,e,8,7,6,7,7,uiri,chungjeol,geom,m,후한 조정
+wuzilan,오자란,160,200,e,10,9,5,6,6,uiri,chungjeol,mo,m,후한 조정
+wushi_han,오석,160,200,e,9,8,6,7,7,uiri,chungjeol,geom,m,후한 조정
+jiping,길평,160,200,e,1,2,10,8,9,uiri,chungjeol,geom,m,후한 조정
+xiandi,헌제(유협),181,234,,2,3,11,12,15,onhwa,,geom,m,후한 조정
+fushou,복황후,180,214,e,1,1,10,9,14,uiri,,geom,f,후한 조정
+dongguiren,동귀비,180,200,e,1,1,8,7,12,uiri,,geom,f,후한 조정

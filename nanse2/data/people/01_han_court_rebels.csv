@@ -1,0 +1,33 @@
+id,name,born,died,est,mu,yong,ji,jeong,in,pers,traits,weapon,sex,group
+hejin,하진,140,189,e,8,9,4,6,10,yasim,,do,m,후한 조정
+zhangrang,장양,135,189,e,2,2,12,8,3,gyohwal,gangye,geom,m,후한 조정
+lushi,노식,139,192,e,7,15,14,15,15,uiri,chungjeol|dukmang,geom,m,후한 조정
+huangfusong,황보숭,130,195,e,10,17,13,13,14,sinjung,hwagye|susung,mo,m,후한 조정
+zhujun,주준,130,195,e,11,15,12,12,12,yongjang,gongsung,do,m,후한 조정
+wangyun,왕윤,137,192,,3,6,16,16,13,uiri,gangye|chungjeol,qixing,m,후한 조정
+caiyong,채옹,133,192,,1,1,13,14,15,onhwa,,geom,m,후한 조정
+dongcheng,동승,150,200,e,9,10,9,9,11,uiri,chungjeol,geom,m,후한 조정
+yangbiao,양표,142,225,,2,3,13,16,15,sinjung,chise,geom,m,후한 조정
+dingyuan,정원,140,189,e,13,13,7,9,10,yongjang,gima,mo,m,후한 조정
+liuyu,유우,140,193,e,3,7,11,17,18,onhwa,chise|dukmang,geom,m,유주
+zhongyao,종요,151,230,,3,9,15,17,14,sinjung,chise,geom,m,후한 조정
+diaochan,초선,173,,e,1,1,15,6,17,uiri,gangye,geom,f,후한 조정
+caiyan,채염,177,,e,1,1,14,11,12,onhwa,,geom,f,후한 조정
+zhangjiao,장각,140,184,e,6,14,15,10,19,yasim,dukmang|gangye,taiping,m,황건적
+zhangbao_hj,장보,145,184,e,10,12,13,6,12,yasim,gangye,geom,m,황건적
+zhangliang_hj,장량,147,184,e,12,12,10,6,11,yasim,,mo,m,황건적
+chengyuanzhi,정원지,150,184,e,11,9,4,3,6,yongjang,yongmaeng,do,m,황건적
+dengmao,등무,152,184,e,10,8,3,2,4,yongjang,,mo,m,황건적
+hanzhong,한충,150,184,e,10,10,6,4,6,yongjang,,do,m,황건적
+sunzhong,손중,150,184,e,10,9,5,4,6,yongjang,,mo,m,황건적
+zhaohong,조홍(趙弘),150,184,e,10,10,6,4,7,yongjang,,do,m,황건적
+peiyuanshao,배원소,165,191,e,11,6,3,2,7,uiri,,mo,m,황건적
+zhoucang,주창,170,219,e,15,10,6,3,11,uiri,chungjeol|sujeon,do,m,황건적
+liaohua,요화,180,264,e,12,12,11,9,10,uiri,chungjeol|jangsu,mo,m,황건적
+liubi,유벽,160,201,e,11,10,6,6,9,uiri,,do,m,황건적
+gongdu,공도,160,201,e,10,9,6,5,7,yongjang,,do,m,황건적
+guanhai,관해,155,194,e,15,10,5,3,7,yongjang,yongmaeng,do,m,황건적
+heyi,하의,155,196,e,11,9,4,3,7,yongjang,,do,m,황건적
+huangshao,황소,155,196,e,10,8,4,3,6,yongjang,,do,m,황건적
+heman,하만,160,196,e,14,7,3,2,5,yongjang,,do,m,황건적
+zhangyan,장연,160,230,e,12,15,11,8,15,gyohwal,sinsok,mo,m,흑산적
