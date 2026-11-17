@@ -60,8 +60,11 @@ const PEOPLE_DEF = [], JEONG = {}, TRAITS2 = {}, FEMALE = [];
 for (const ln of P_RAW.split('\\n')){ const [id, n, b, d, m, i, l, c, g, t, car, ap, t2, fe] = ln.split(';'); const row = [id, n, +b, +d, m*5, i*5, l*5, c*5, TKR[t], car]; if (ap) row.push(+ap); PEOPLE_DEF.push(row); JEONG[id] = g*5; TRAITS2[id] = t2 ? t2.split('.') : []; if (fe) FEMALE.push(id); }
 const EQUIP0 = ${JSON.stringify(equip)};
 const LOOK2 = ${JSON.stringify(Object.fromEntries(Object.entries(rd('looks.json')).filter(([k]) => !k.startsWith('_'))))};
+// 무기 종류(검 제외), 이름 있는 장비 [이름, 슬롯, {능력 보너스}]
+const WPN = ${JSON.stringify(Object.fromEntries(people.filter(p => p.weaponType !== 'geom').map(p => [p.id, p.weaponType])))};
+const GEAR = ${JSON.stringify(Object.fromEntries(rd('equipment.json').named.map(n => [n.id, [n.name, n.slot, n.bonus]])))};
 // 역사 사건(회귀자의 기억): [id, 연, 월, 이름, 성, 원작 결과, 관련 인물]
-const HIST_EV = ${JSON.stringify(rd('battles_184_200.json').battles.map(b => [b.id, b.year, b.month, b.name, b.at, b.history, [...new Set([...(b.a ? b.a.leaders : []), ...(b.b ? b.b.leaders : [])])]]))};
+const HIST_EV = ${JSON.stringify(rd('battles_184_200.json').battles.map(b => [b.id, b.year, b.month, b.name, b.at, b.history, [...new Set([...(b.a ? b.a.leaders : []), ...(b.b ? b.b.leaders : [])])], b.duels || []]))};
 /*@@DATA_END@@*/
 `;
 const srcF = path.join(root, 'src', 'game_src.html');

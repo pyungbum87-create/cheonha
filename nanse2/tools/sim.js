@@ -17,7 +17,7 @@ function makeCtx() {
     localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } },
     document: { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], createElement: el, addEventListener() {}, body: el(), documentElement: el(), fonts: { ready: Promise.resolve() } },
     navigator: { language: 'ko', vibrate() {} }, location: { search: '', hash: '' }, addEventListener() {}, matchMedia: () => ({ matches: false, addEventListener() {} }),
-    performance: { now: () => Date.now() }, URLSearchParams, Promise, Object, Array, Number, String, Set, Map, Symbol, Error, isNaN, parseInt, parseFloat
+    performance: { now: () => Date.now() }, URLSearchParams, btoa, atob, escape, unescape, encodeURIComponent, decodeURIComponent, Promise, Object, Array, Number, String, Set, Map, Symbol, Error, isNaN, parseInt, parseFloat
   };
   ctx.window = ctx; ctx.globalThis = ctx; ctx.self = ctx;
   vm.createContext(ctx);
@@ -52,7 +52,7 @@ for (let r = 0; r < Math.min(runs, plans.length * 2); r++) {
       else if (ph === 'report') T.afterReport();
       else if (ph === 'event') { stats.events++; const ch = T.evChoices(); let i = ch.findIndex(c => !c.cost || G.gold >= c.cost); T.chooseEvent(Math.max(0, i)); T.afterEvent(); }
       else if (ph === 'battle') { stats.battles++; T.autoBattle(); }
-      else if (ph === 'battleEnd') { if (G.battle && G.battle.cap && !G.battle.capDone) try { T.captiveDo('release'); } catch (e) { bad('captive', e); } if (G.battle && G.battle.kind === 'raise') { G.battle = null; G.phase = G.dead ? 'succession' : 'act'; } else T.afterBattle(); }
+      else if (ph === 'battleEnd') { if (G.battle && G.battle.cap && !G.battle.capDone) try { T.captiveDo('release'); } catch (e) { bad('captive', e); } if (G.battle && (G.battle.kind === 'raise' || G.battle.kind === 'hduel')) { G.battle = null; G.phase = G.dead ? 'succession' : 'act'; } else T.afterBattle(); }
       else if (ph === 'succession') { stats.deaths++; const c = T.heirCands(); if (c.length) T.succeed(c[0]); else { T.G.over = { kind: 'end' }; T.G.phase = 'over'; } }
       else if (ph === 'over') { stats.overs++; if (process.env.V) console.log('  종료', typeof pid==='object'?'회귀자 '+pid.role:pid, sc, '→', G.year+'.'+G.month, JSON.stringify(G.over).slice(0,80)); break; }
       else { bad('알 수 없는 단계', new Error(ph)); break; }
