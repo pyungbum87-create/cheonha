@@ -1,0 +1,1135 @@
+{
+ "_설명": "관도 이후(201)부터 오장원(234)까지 연의 기준 전투·사건. 형식은 battles_184_200.json 과 같다.",
+ "battles": [
+  {
+   "id": "b201_cangting",
+   "year": 201,
+   "month": 4,
+   "ch": 31,
+   "name": "창정 전투",
+   "scale": "large",
+   "at": "py",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "cao",
+     "chengyu",
+     "xuchu",
+     "xuhuang"
+    ]
+   },
+   "b": {
+    "side": "원소",
+    "leaders": [
+     "yuanshao",
+     "yuantan",
+     "yuanshang"
+    ]
+   },
+   "history": "정욱의 십면매복계로 조조가 원소의 대군을 다시 무너뜨린다. 원소는 피를 토하고 이듬해 죽는다.",
+   "duels": [],
+   "stratagems": [
+    "십면매복"
+   ],
+   "branches": [
+    {
+     "if": "매복을 간파",
+     "then": "원소가 하북을 지켜 낸다"
+    }
+   ]
+  },
+  {
+   "id": "b207_bailang",
+   "year": 207,
+   "month": 8,
+   "ch": 33,
+   "name": "백랑산 전투",
+   "scale": "mid",
+   "at": "bp",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "cao",
+     "zhangliao",
+     "guojia"
+    ]
+   },
+   "b": {
+    "side": "원씨 잔당",
+    "leaders": [
+     "yuanshang",
+     "yuanxi"
+    ]
+   },
+   "history": "곽가의 계책으로 조조가 사막을 건너 오환을 치고, 장료가 선봉에서 답돈을 벤다. 곽가는 돌아오는 길에 병으로 죽는다.",
+   "duels": [],
+   "stratagems": [
+    "급습"
+   ],
+   "branches": [
+    {
+     "if": "곽가를 요양시킴",
+     "then": "곽가 생존, 적벽에서 조조가 화공을 간파"
+    }
+   ]
+  },
+  {
+   "id": "e207_sangu",
+   "year": 207,
+   "month": 12,
+   "ch": 37,
+   "name": "삼고초려",
+   "scale": "event",
+   "at": "xy",
+   "history": "유비가 눈보라를 뚫고 세 번 초가를 찾아가 제갈량을 얻는다. 제갈량은 천하삼분의 계책을 내놓는다.",
+   "branches": [
+    {
+     "if": "플레이어가 먼저 제갈량과 인연을 쌓음",
+     "then": "제갈량이 플레이어에게 출사"
+    }
+   ]
+  },
+  {
+   "id": "b208_bowang",
+   "year": 208,
+   "month": 6,
+   "ch": 39,
+   "name": "박망파 화공",
+   "scale": "mid",
+   "at": "xn",
+   "place": "박망파",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "xiahoudun",
+     "yujin",
+     "lidian"
+    ]
+   },
+   "b": {
+    "side": "유비",
+    "leaders": [
+     "liubei",
+     "zhugeliang",
+     "guanyu",
+     "zhangfei",
+     "zhaoyun"
+    ]
+   },
+   "history": "제갈량의 첫 지휘. 조운이 거짓으로 져서 하후돈을 좁은 골짜기로 끌어들이고 불을 놓는다.",
+   "duels": [
+    [
+     "zhaoyun",
+     "xiahoudun",
+     "조운이 거짓 패주로 유인"
+    ]
+   ],
+   "stratagems": [
+    "유인",
+    "화공"
+   ],
+   "branches": [
+    {
+     "if": "이전의 간언을 하후돈이 들음",
+     "then": "화공 실패"
+    }
+   ]
+  },
+  {
+   "id": "b208_changban",
+   "year": 208,
+   "month": 9,
+   "ch": 41,
+   "name": "장판파",
+   "scale": "mid",
+   "at": "xy",
+   "place": "당양 장판",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "cao",
+     "caoren",
+     "zhanghe",
+     "xuchu",
+     "xiahouen"
+    ]
+   },
+   "b": {
+    "side": "유비",
+    "leaders": [
+     "liubei",
+     "zhaoyun",
+     "zhangfei",
+     "mishi"
+    ]
+   },
+   "history": "조운이 홀로 적진을 누비며 아두를 품에 안고 돌아온다. 하후은을 베어 청홍검을 얻고, 미부인은 우물에 몸을 던진다. 장비가 장판교에서 호통쳐 추격을 막는다.",
+   "duels": [
+    [
+     "zhaoyun",
+     "xiahouen",
+     "조운 승리, 청홍검을 얻음"
+    ],
+    [
+     "zhaoyun",
+     "zhanghe",
+     "조운이 구덩이에서 뛰어올라 벗어남"
+    ]
+   ],
+   "stratagems": [
+    "단기 돌파",
+    "의병"
+   ],
+   "branches": [
+    {
+     "if": "미부인을 구함",
+     "then": "미부인 생존"
+    }
+   ]
+  },
+  {
+   "id": "e208_caimao",
+   "year": 208,
+   "month": 10,
+   "ch": 45,
+   "name": "군영회",
+   "scale": "event",
+   "at": "jx",
+   "a": {
+    "side": "주유",
+    "leaders": [
+     "zhouyu"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "caimao"
+    ]
+   },
+   "history": "주유가 옛 벗 장간을 속여 거짓 편지를 훔쳐 가게 한다. 조조는 수군 도독 채모를 의심해 벤다.",
+   "branches": [
+    {
+     "if": "반간계를 간파",
+     "then": "채모 생존, 조조 수군이 강해짐"
+    }
+   ]
+  },
+  {
+   "id": "b208_chibi",
+   "year": 208,
+   "month": 11,
+   "ch": 49,
+   "name": "적벽대전",
+   "scale": "large",
+   "at": "jx",
+   "place": "적벽",
+   "a": {
+    "side": "손권·유비",
+    "leaders": [
+     "zhouyu",
+     "zhugeliang",
+     "huanggai",
+     "lusu",
+     "ganning",
+     "lumeng",
+     "kanze",
+     "pangtong"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "cao",
+     "xuchu",
+     "zhangliao",
+     "xuhuang",
+     "wenpin"
+    ]
+   },
+   "history": "방통이 연환계로 배를 묶게 하고, 황개가 고육계로 거짓 항복한다. 동남풍이 불자 황개의 불배가 조조의 수채를 태운다.",
+   "duels": [],
+   "stratagems": [
+    "고육계",
+    "연환계",
+    "화공",
+    "동남풍"
+   ],
+   "weather": "동남풍 필요",
+   "branches": [
+    {
+     "if": "황개의 거짓 항복을 간파",
+     "then": "화공 실패, 조조가 강남을 차지"
+    },
+    {
+     "if": "동남풍이 불지 않음",
+     "then": "화공이 조조 쪽으로 닿지 않음"
+    }
+   ]
+  },
+  {
+   "id": "e208_huarong",
+   "year": 208,
+   "month": 12,
+   "ch": 50,
+   "name": "화용도",
+   "scale": "event",
+   "at": "jl",
+   "place": "화용도",
+   "history": "패주하는 조조를 관우가 화용도에서 막지만, 옛 은혜를 생각해 길을 터 준다.",
+   "branches": [
+    {
+     "if": "관우가 의리보다 군령을 택함",
+     "then": "조조가 사로잡히거나 전사"
+    }
+   ]
+  },
+  {
+   "id": "b209_nanjun",
+   "year": 209,
+   "month": 3,
+   "ch": 51,
+   "name": "남군 공방전",
+   "scale": "mid",
+   "at": "jl",
+   "a": {
+    "side": "손권",
+    "leaders": [
+     "zhouyu",
+     "ganning",
+     "lumeng"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "caoren",
+     "caochun"
+    ]
+   },
+   "history": "주유가 조인과 싸우다 독화살을 맞는다. 그 틈에 제갈량이 남군·형주·양양을 가로챈다.",
+   "duels": [],
+   "stratagems": [
+    "거짓 죽음",
+    "가로채기"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b209_changsha",
+   "year": 209,
+   "month": 6,
+   "ch": 53,
+   "name": "장사 전투",
+   "scale": "small",
+   "at": "chs",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "guanyu"
+    ]
+   },
+   "b": {
+    "side": "장사",
+    "leaders": [
+     "huangzhong",
+     "weiyan"
+    ]
+   },
+   "history": "관우와 황충이 백여 합을 겨룬다. 황충의 말이 넘어지자 관우가 살려 주고, 황충은 활로 투구 끈만 쏘아 갚는다. 위연이 태수를 베고 성을 바친다.",
+   "duels": [
+    [
+     "guanyu",
+     "huangzhong",
+     "백여 합 승부 없음, 서로 목숨을 살려 줌"
+    ]
+   ],
+   "stratagems": [],
+   "branches": []
+  },
+  {
+   "id": "b211_tongguan",
+   "year": 211,
+   "month": 8,
+   "ch": 58,
+   "name": "동관 전투",
+   "scale": "large",
+   "at": "hn",
+   "place": "동관",
+   "a": {
+    "side": "마초·한수",
+    "leaders": [
+     "machao",
+     "hansui",
+     "pangde",
+     "madai"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "cao",
+     "xuchu",
+     "caohong",
+     "xuhuang",
+     "jiaxu"
+    ]
+   },
+   "history": "마초가 조조를 몰아붙여 조조는 수염을 자르고 전포를 버리고 달아난다. 허저가 웃통을 벗고 마초와 겨룬다. 가후의 이간계로 마초와 한수가 갈라선다.",
+   "duels": [
+    [
+     "xuchu",
+     "machao",
+     "이백여 합 승부 없음"
+    ],
+    [
+     "caohong",
+     "machao",
+     "조홍이 조조를 구함"
+    ]
+   ],
+   "stratagems": [
+    "이간계",
+    "얼음 성"
+   ],
+   "branches": [
+    {
+     "if": "이간계를 간파",
+     "then": "마초가 장안을 차지"
+    }
+   ]
+  },
+  {
+   "id": "b214_luofeng",
+   "year": 214,
+   "month": 7,
+   "ch": 63,
+   "name": "낙봉파",
+   "scale": "mid",
+   "at": "zt",
+   "place": "낙성",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "liubei",
+     "pangtong",
+     "huangzhong",
+     "weiyan"
+    ]
+   },
+   "b": {
+    "side": "유장",
+    "leaders": [
+     "zhangren",
+     "lengbao",
+     "wuyi"
+    ]
+   },
+   "history": "유비의 백마를 타고 좁은 길로 가던 방통이 낙봉파에서 장임의 복병이 쏜 화살에 맞아 죽는다. 뒤에 제갈량이 장임을 사로잡아 벤다.",
+   "duels": [
+    [
+     "weiyan",
+     "lengbao",
+     "위연이 냉포를 사로잡음"
+    ]
+   ],
+   "stratagems": [
+    "매복"
+   ],
+   "branches": [
+    {
+     "if": "방통을 말리거나 길을 바꿈",
+     "then": "방통 생존. 촉이 두 책사를 모두 가짐"
+    }
+   ]
+  },
+  {
+   "id": "b214_jiameng",
+   "year": 214,
+   "month": 10,
+   "ch": 65,
+   "name": "가맹관 전투",
+   "scale": "small",
+   "at": "zt",
+   "place": "가맹관",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "zhangfei",
+     "liubei"
+    ]
+   },
+   "b": {
+    "side": "장로",
+    "leaders": [
+     "machao",
+     "madai"
+    ]
+   },
+   "history": "장비와 마초가 낮부터 횃불을 밝힌 밤까지 겨루어도 승부가 나지 않는다. 제갈량의 계책으로 마초가 유비에게 귀순한다.",
+   "duels": [
+    [
+     "zhangfei",
+     "machao",
+     "이백여 합 승부 없음, 밤까지 이어짐"
+    ]
+   ],
+   "stratagems": [
+    "회유"
+   ],
+   "branches": [
+    {
+     "if": "마초 회유 실패",
+     "then": "마초가 장로 곁에 남음"
+    }
+   ]
+  },
+  {
+   "id": "b215_hefei",
+   "year": 215,
+   "month": 8,
+   "ch": 67,
+   "name": "합비 소요진",
+   "scale": "mid",
+   "at": "lu",
+   "place": "합비",
+   "a": {
+    "side": "손권",
+    "leaders": [
+     "sunquan",
+     "ganning",
+     "lingtong",
+     "lumeng",
+     "zhoutai"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "zhangliao",
+     "yuejin"
+    ]
+   },
+   "history": "장료가 팔백 결사대로 손권의 본진을 짓밟는다. 손권은 말을 뛰어 끊어진 다리를 건너 겨우 목숨을 건지고, 능통이 온몸에 상처를 입고 막아선다.",
+   "duels": [
+    [
+     "lingtong",
+     "zhangliao",
+     "능통이 손권을 지키며 버팀"
+    ]
+   ],
+   "stratagems": [
+    "기습"
+   ],
+   "branches": [
+    {
+     "if": "기습을 대비",
+     "then": "손권이 합비를 함락"
+    }
+   ]
+  },
+  {
+   "id": "b217_ruxu",
+   "year": 217,
+   "month": 2,
+   "ch": 68,
+   "name": "유수구 전투",
+   "scale": "mid",
+   "at": "lu",
+   "place": "유수구",
+   "a": {
+    "side": "조조",
+    "leaders": [
+     "cao",
+     "zhangliao",
+     "xuhuang"
+    ]
+   },
+   "b": {
+    "side": "손권",
+    "leaders": [
+     "sunquan",
+     "ganning",
+     "zhoutai",
+     "xusheng"
+    ]
+   },
+   "history": "감녕이 기병 백 명으로 조조의 영채를 야습하고 한 명도 잃지 않는다. 주태가 손권을 구하다 온몸에 상처를 입는다.",
+   "duels": [],
+   "stratagems": [
+    "야습"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b219_dingjun",
+   "year": 219,
+   "month": 1,
+   "ch": 71,
+   "name": "정군산 전투",
+   "scale": "large",
+   "at": "hz",
+   "place": "정군산",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "liubei",
+     "huangzhong",
+     "fazheng",
+     "zhaoyun"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "xiahouyuan",
+     "zhanghe"
+    ]
+   },
+   "history": "법정이 맞은편 산에서 깃발로 신호하고, 황충이 산 위에서 내리달려 하후연을 벤다. 유비가 한중을 얻는다.",
+   "duels": [
+    [
+     "huangzhong",
+     "xiahouyuan",
+     "황충 승리, 하후연 전사"
+    ]
+   ],
+   "stratagems": [
+    "이일대로",
+    "높은 곳 선점"
+   ],
+   "branches": [
+    {
+     "if": "하후연이 신중히 지킴",
+     "then": "한중을 조조가 지켜 냄"
+    }
+   ]
+  },
+  {
+   "id": "b219_hanshui",
+   "year": 219,
+   "month": 3,
+   "ch": 71,
+   "name": "한수 전투",
+   "scale": "mid",
+   "at": "hz",
+   "place": "한수",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "zhaoyun",
+     "huangzhong"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "cao",
+     "xuhuang",
+     "zhanghe"
+    ]
+   },
+   "history": "조운이 포위된 황충을 구해 영채로 돌아와 문을 활짝 열고 홀로 선다. 조조군은 복병을 의심해 물러나다 크게 진다.",
+   "duels": [],
+   "stratagems": [
+    "빈 영채",
+    "배수진 실패"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b219_fancheng",
+   "year": 219,
+   "month": 8,
+   "ch": 74,
+   "name": "번성 수공",
+   "scale": "large",
+   "at": "xy",
+   "place": "번성",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "guanyu",
+     "guanping",
+     "zhoucang",
+     "liaohua"
+    ]
+   },
+   "b": {
+    "side": "조조",
+    "leaders": [
+     "caoren",
+     "yujin",
+     "pangde",
+     "xuhuang",
+     "manchong"
+    ]
+   },
+   "history": "관을 메고 나선 방덕이 관우와 겨루어 화살을 맞힌다. 관우가 가을 장마에 강둑을 터 칠군을 물에 잠근다. 우금은 항복하고 방덕은 굽히지 않다 죽는다.",
+   "duels": [
+    [
+     "guanyu",
+     "pangde",
+     "백여 합 승부 없음, 방덕의 화살이 관우의 팔에 맞음"
+    ],
+    [
+     "zhoucang",
+     "pangde",
+     "주창이 물속에서 방덕을 사로잡음"
+    ]
+   ],
+   "stratagems": [
+    "수공"
+   ],
+   "branches": [
+    {
+     "if": "우금이 높은 곳에 진을 침",
+     "then": "수공 실패, 관우가 번성에서 발이 묶임"
+    }
+   ]
+  },
+  {
+   "id": "b220_maicheng",
+   "year": 220,
+   "month": 1,
+   "ch": 77,
+   "name": "맥성",
+   "scale": "mid",
+   "at": "jl",
+   "place": "맥성",
+   "a": {
+    "side": "손권",
+    "leaders": [
+     "panzhang",
+     "zhuran",
+     "luxun"
+    ]
+   },
+   "b": {
+    "side": "유비",
+    "leaders": [
+     "guanyu",
+     "guanping",
+     "zhoucang",
+     "liaohua"
+    ]
+   },
+   "history": "여몽이 흰옷으로 강을 건너 형주를 빼앗는다. 맥성에 갇힌 관우는 구원을 얻지 못하고 길을 뚫다 사로잡혀 관평과 함께 죽는다.",
+   "duels": [],
+   "stratagems": [
+    "백의도강",
+    "매복"
+   ],
+   "branches": [
+    {
+     "if": "형주의 봉화대를 지키거나 상용의 구원이 도착",
+     "then": "관우 생존. 촉이 형주를 지킴"
+    }
+   ]
+  },
+  {
+   "id": "e221_zhangfei",
+   "year": 221,
+   "month": 6,
+   "ch": 81,
+   "name": "장비의 죽음",
+   "scale": "event",
+   "at": "zt",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "zhangfei"
+    ]
+   },
+   "history": "관우의 복수를 서두르던 장비가 부하를 매질하고, 술에 취해 잠든 사이 그들의 손에 죽는다.",
+   "branches": [
+    {
+     "if": "장비를 말리거나 호위를 붙임",
+     "then": "장비 생존"
+    }
+   ]
+  },
+  {
+   "id": "b222_yiling",
+   "year": 222,
+   "month": 6,
+   "ch": 84,
+   "name": "이릉대전",
+   "scale": "large",
+   "at": "ya",
+   "place": "이릉",
+   "a": {
+    "side": "손권",
+    "leaders": [
+     "luxun",
+     "zhuran",
+     "xusheng",
+     "dingfeng",
+     "zhoutai"
+    ]
+   },
+   "b": {
+    "side": "유비",
+    "leaders": [
+     "liubei",
+     "zhaoyun",
+     "guanxing",
+     "zhangbao"
+    ]
+   },
+   "history": "유비가 숲을 따라 칠백 리에 영채를 잇자, 육손이 때를 기다려 불을 놓는다. 유비는 백제성으로 달아나고 조운이 뒤를 끊는다.",
+   "duels": [],
+   "stratagems": [
+    "지구전",
+    "화공"
+   ],
+   "branches": [
+    {
+     "if": "유비가 숲을 벗어나 진을 침",
+     "then": "화공 실패, 촉이 형주를 되찾음"
+    }
+   ]
+  },
+  {
+   "id": "e223_baidi",
+   "year": 223,
+   "month": 4,
+   "ch": 85,
+   "name": "백제성 탁고",
+   "scale": "event",
+   "at": "ya",
+   "place": "백제성",
+   "a": {
+    "side": "유비",
+    "leaders": [
+     "liubei"
+    ]
+   },
+   "history": "병이 깊어진 유비가 제갈량에게 아들과 나라를 맡기고 세상을 떠난다.",
+   "branches": [
+    {
+     "if": "이릉에서 지지 않음",
+     "then": "유비가 병들지 않음"
+    }
+   ]
+  },
+  {
+   "id": "b225_nanman",
+   "year": 225,
+   "month": 5,
+   "ch": 90,
+   "name": "남만 정벌",
+   "scale": "large",
+   "at": "jg",
+   "a": {
+    "side": "촉",
+    "leaders": [
+     "zhugeliang",
+     "zhaoyun",
+     "weiyan",
+     "madai",
+     "wangping"
+    ]
+   },
+   "b": {
+    "side": "남만",
+    "leaders": [
+     "menghuo"
+    ]
+   },
+   "history": "제갈량이 맹획을 일곱 번 사로잡고 일곱 번 놓아 주어 마음으로 복종시킨다.",
+   "duels": [
+    [
+     "weiyan",
+     "menghuo",
+     "위연이 거짓 패주로 유인"
+    ]
+   ],
+   "stratagems": [
+    "칠종칠금",
+    "화공"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b228_xincheng",
+   "year": 228,
+   "month": 1,
+   "ch": 94,
+   "name": "신성 급습",
+   "scale": "mid",
+   "at": "sy",
+   "a": {
+    "side": "위",
+    "leaders": [
+     "simayi"
+    ]
+   },
+   "b": {
+    "side": "맹달",
+    "leaders": [
+     "mengda"
+    ]
+   },
+   "history": "촉으로 돌아서려던 맹달을 사마의가 여드레 만에 천이백 리를 달려와 벤다.",
+   "duels": [],
+   "stratagems": [
+    "급습"
+   ],
+   "branches": [
+    {
+     "if": "맹달이 서둘러 거병",
+     "then": "제갈량의 북벌에 동쪽 길이 열림"
+    }
+   ]
+  },
+  {
+   "id": "b228_tianshui",
+   "year": 228,
+   "month": 2,
+   "ch": 93,
+   "name": "천수 전투",
+   "scale": "mid",
+   "at": "ts",
+   "a": {
+    "side": "촉",
+    "leaders": [
+     "zhugeliang",
+     "zhaoyun",
+     "weiyan"
+    ]
+   },
+   "b": {
+    "side": "위",
+    "leaders": [
+     "jiangwei"
+    ]
+   },
+   "history": "강유가 제갈량의 계책을 꿰뚫고 조운과 맞선다. 제갈량은 반간계로 강유를 얻는다.",
+   "duels": [
+    [
+     "zhaoyun",
+     "jiangwei",
+     "승부 없음, 조운이 강유의 창법에 놀람"
+    ]
+   ],
+   "stratagems": [
+    "반간계"
+   ],
+   "branches": [
+    {
+     "if": "강유 회유 실패",
+     "then": "강유가 위에 남음"
+    }
+   ]
+  },
+  {
+   "id": "b228_jieting",
+   "year": 228,
+   "month": 5,
+   "ch": 95,
+   "name": "가정 전투",
+   "scale": "mid",
+   "at": "ts",
+   "place": "가정",
+   "a": {
+    "side": "위",
+    "leaders": [
+     "simayi",
+     "zhanghe"
+    ]
+   },
+   "b": {
+    "side": "촉",
+    "leaders": [
+     "masu",
+     "wangping"
+    ]
+   },
+   "history": "마속이 왕평의 말을 듣지 않고 산 위에 진을 쳤다가 물길이 끊겨 무너진다. 제갈량은 빈 성에서 거문고를 타 사마의를 물리고, 울면서 마속을 벤다.",
+   "duels": [],
+   "stratagems": [
+    "급수 차단",
+    "공성계"
+   ],
+   "branches": [
+    {
+     "if": "길목에 진을 침",
+     "then": "가정을 지키고 1차 북벌 성공"
+    }
+   ]
+  },
+  {
+   "id": "b228_chencang",
+   "year": 228,
+   "month": 12,
+   "ch": 97,
+   "name": "진창 공방전",
+   "scale": "mid",
+   "at": "ca",
+   "place": "진창",
+   "a": {
+    "side": "촉",
+    "leaders": [
+     "zhugeliang",
+     "weiyan",
+     "jiangwei"
+    ]
+   },
+   "b": {
+    "side": "위",
+    "leaders": [
+     "haozhao",
+     "wangshuang"
+    ]
+   },
+   "history": "학소가 삼천 병사로 스무 날 넘게 제갈량의 운제·충차·땅굴을 모두 막아 낸다. 구원 온 왕쌍은 위연에게 베인다.",
+   "duels": [
+    [
+     "weiyan",
+     "wangshuang",
+     "위연 승리, 왕쌍 전사"
+    ]
+   ],
+   "stratagems": [
+    "운제",
+    "충차",
+    "땅굴"
+   ],
+   "branches": []
+  },
+  {
+   "id": "b231_mumen",
+   "year": 231,
+   "month": 6,
+   "ch": 101,
+   "name": "목문도",
+   "scale": "mid",
+   "at": "ts",
+   "place": "목문도",
+   "a": {
+    "side": "촉",
+    "leaders": [
+     "zhugeliang",
+     "weiyan",
+     "jiangwei"
+    ]
+   },
+   "b": {
+    "side": "위",
+    "leaders": [
+     "zhanghe",
+     "simayi"
+    ]
+   },
+   "history": "물러나는 촉군을 쫓던 장합이 목문도 골짜기에서 쇠뇌 매복에 걸려 죽는다.",
+   "duels": [],
+   "stratagems": [
+    "매복",
+    "거짓 퇴각"
+   ],
+   "branches": [
+    {
+     "if": "추격을 말림",
+     "then": "장합 생존"
+    }
+   ]
+  },
+  {
+   "id": "b234_shangfang",
+   "year": 234,
+   "month": 4,
+   "ch": 103,
+   "name": "상방곡",
+   "scale": "mid",
+   "at": "ca",
+   "place": "상방곡",
+   "a": {
+    "side": "촉",
+    "leaders": [
+     "madai",
+     "jiangwei"
+    ]
+   },
+   "b": {
+    "side": "위",
+    "leaders": [
+     "simayi",
+     "simashi",
+     "simazhao"
+    ]
+   },
+   "history": "제갈량이 사마의 부자를 골짜기에 가두고 불을 놓지만, 갑자기 소나기가 내려 불이 꺼진다.",
+   "duels": [],
+   "stratagems": [
+    "유인",
+    "화공"
+   ],
+   "weather": "비가 오면 실패",
+   "branches": [
+    {
+     "if": "비가 내리지 않음",
+     "then": "사마의 부자 전사. 위의 역사가 바뀜"
+    }
+   ]
+  },
+  {
+   "id": "e234_wuzhang",
+   "year": 234,
+   "month": 8,
+   "ch": 104,
+   "name": "오장원",
+   "scale": "event",
+   "at": "ca",
+   "place": "오장원",
+   "a": {
+    "side": "촉",
+    "leaders": [
+     "zhugeliang"
+    ]
+   },
+   "history": "과로로 쓰러진 제갈량이 수명을 비는 등불을 켜지만 등불이 꺼진다. 가을바람 부는 오장원에서 별이 진다.",
+   "branches": [
+    {
+     "if": "등불을 지킴",
+     "then": "제갈량의 수명이 열두 해 늘어남"
+    }
+   ]
+  },
+  {
+   "id": "e234_weiyan",
+   "year": 234,
+   "month": 9,
+   "ch": 105,
+   "name": "위연의 반란",
+   "scale": "event",
+   "at": "hz",
+   "a": {
+    "side": "촉",
+    "leaders": [
+     "madai"
+    ]
+   },
+   "b": {
+    "side": "위연",
+    "leaders": [
+     "weiyan"
+    ]
+   },
+   "history": "제갈량이 죽자 위연이 잔도를 불태우고 맞선다. \"누가 감히 나를 베랴\" 외치는 순간 뒤에 있던 마대가 벤다.",
+   "duels": [
+    [
+     "madai",
+     "weiyan",
+     "마대가 뒤에서 벰"
+    ]
+   ],
+   "branches": [
+    {
+     "if": "위연과 양의를 화해시킴",
+     "then": "위연 생존"
+    }
+   ]
+  }
+ ]
+}

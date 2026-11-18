@@ -66,7 +66,7 @@ const GEAR = ${JSON.stringify(Object.fromEntries(rd('equipment.json').named.map(
 // 그림 초상화가 있는 인물 (portraits/<id>.webp)
 const PORTRAITS = ${JSON.stringify(fs.existsSync(path.join(root, 'portraits')) ? fs.readdirSync(path.join(root, 'portraits')).filter(f => f.endsWith('.webp')).map(f => f.replace('.webp', '')).sort() : [])};
 // 역사 사건(회귀자의 기억): [id, 연, 월, 이름, 성, 원작 결과, 관련 인물]
-const HIST_EV = ${JSON.stringify(rd('battles_184_200.json').battles.map(b => [b.id, b.year, b.month, b.name, b.at, b.history, [...new Set([...(b.a ? b.a.leaders : []), ...(b.b ? b.b.leaders : [])])], b.duels || []]))};
+const HIST_EV = ${JSON.stringify([...rd('battles_184_200.json').battles, ...rd('battles_201_234.json').battles].map(b => [b.id, b.year, b.month, b.name, b.at, b.history, [...new Set([...(b.a ? b.a.leaders : []), ...(b.b ? b.b.leaders : [])])], b.duels || []]))};
 /*@@DATA_END@@*/
 `;
 const srcF = path.join(root, 'src', 'game_src.html');
