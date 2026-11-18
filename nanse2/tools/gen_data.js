@@ -63,6 +63,8 @@ const LOOK2 = ${JSON.stringify(Object.fromEntries(Object.entries(rd('looks.json'
 // 무기 종류(검 제외), 이름 있는 장비 [이름, 슬롯, {능력 보너스}]
 const WPN = ${JSON.stringify(Object.fromEntries(people.filter(p => p.weaponType !== 'geom').map(p => [p.id, p.weaponType])))};
 const GEAR = ${JSON.stringify(Object.fromEntries(rd('equipment.json').named.map(n => [n.id, [n.name, n.slot, n.bonus]])))};
+// 그림 초상화가 있는 인물 (portraits/<id>.webp)
+const PORTRAITS = ${JSON.stringify(fs.existsSync(path.join(root, 'portraits')) ? fs.readdirSync(path.join(root, 'portraits')).filter(f => f.endsWith('.webp')).map(f => f.replace('.webp', '')).sort() : [])};
 // 역사 사건(회귀자의 기억): [id, 연, 월, 이름, 성, 원작 결과, 관련 인물]
 const HIST_EV = ${JSON.stringify(rd('battles_184_200.json').battles.map(b => [b.id, b.year, b.month, b.name, b.at, b.history, [...new Set([...(b.a ? b.a.leaders : []), ...(b.b ? b.b.leaders : [])])], b.duels || []]))};
 /*@@DATA_END@@*/

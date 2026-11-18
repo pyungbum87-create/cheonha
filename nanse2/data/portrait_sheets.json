@@ -1,0 +1,7 @@
+{
+ "_설명": "ChatGPT로 받은 초상화 시트(가로 4 × 세로 4)의 칸 순서. tools/slice_portraits.py 가 이 순서대로 잘라 portraits/<id>.webp 로 저장한다.",
+ "1": ["liubei","guanyu","zhangfei","zhaoyun","zhugeliang","machao","huangzhong","pangtong","weiyan","jiangwei","xushu","madai","guanping","liaohua","fazheng","zhoucang"],
+ "2": ["cao","xiahoudun","xiahouyuan","caoren","zhangliao","xuchu","dianwei","xuhuang","zhanghe","xunyu","guojia","jiaxu","simayi","caopi","yujin","chengyu"],
+ "3": ["sunjian","sunce","sunquan","zhouyu","lusu","lumeng","luxun","taishici","ganning","huanggai","zhoutai","chengpu","diaochan","daqiao","xiaoqiao","sunfuren"],
+ "4": ["dongzhuo","lvbu","yuanshao","yuanshu","liubiao","gongsunzan","zhangjiao","chengong","gaoshun","yanliang","wenchou","huaxiong","mateng","pangde","zhenshi","huatuo"]
+}
