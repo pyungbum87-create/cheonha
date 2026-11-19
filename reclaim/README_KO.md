@@ -1,6 +1,6 @@
 # RECLAIM: 돌아온 땅 — 출시 후보판 (A트랙 미니게임판: 웹·토스·위챗·더우인)
 
-빌드 1119-1730
+빌드 1119-2100
 
 ## 들어 있는 것
 - 1막 탈출: 탭해서 이동, 가방 8칸 고르기, 아래에서 올라오는 불길, 감염체 피하기, 비행기 탑승
@@ -16,13 +16,22 @@
 game.js의 `AD_UNIT` (wx / tt / toss). 토스는 G3에서 앱인토스 SDK 광고를 `globalThis.__tossAd(place, onReward, onFail)`로 연결.
 
 ## 통계 이벤트 (관리자 화면에 같은 이름으로 등록)
-act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, quest, rescue, bottle, ch1_clear, reclaim, barricade, flow_lost, flow_held, ch2_clear, reclaim_river, toll, toll_fail, trade, coffee, ch3_clear, reclaim_city, bomb_craft, ch4_clear, game_clear, regrow, feel_d3, toss_ready, prologue_done, talk, talk_skip, doc, ff, sea_event, ev_boat, ev_trade, ev_school, shark_bite, shark_win, surv_tap, act1_pick, ad_open, ad_reward, share, guide_open, app_hide, draw_error
+act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, quest, rescue, bottle, ch1_clear, reclaim, barricade, flow_lost, flow_held, ch2_clear, reclaim_river, toll, toll_fail, trade, coffee, ch3_clear, reclaim_city, bomb_craft, ch4_clear, game_clear, regrow, feel_d3, toss_ready, prologue_done, talk, talk_skip, doc, ff, sea_event, ev_boat, ev_trade, ev_school, shark_bite, shark_win, surv_tap, town_build, act1_pick, ad_open, ad_reward, share, guide_open, app_hide, draw_error
 
 ## 테스트 결과 (이번 빌드)
 - 한국어·중국어 전 화면 캡처, 중국어 화면 한글 누수 0건
 - 그리기 포함 자동 플레이(해역 3종 × 4일) 그리기 오류 0건
 - 위챗 흉내 환경: 오류 0건, 오디오 서브패키지·일시정지 동작
 - 시간대/언어별 첫 언어: 중국 → 중국어, 한국 → 한국어
+
+## 1119-2100 변경 (정착 1단계: 항구 마을 · 이어진 지도 · 선단)
+- 1장 끝(등대 점등) 뒤 기본 화면이 뗏목 → 항구 마을로 바뀜. 4구역(부두·시장·발전소·광장)이 잿빛 폐허로 보이고, 되찾으면 그 자리가 색을 되찾고 건물에 불이 켜짐
+- 마을에서 구역을 탭: 원정 / 방벽 세우기 / 마을 건물 짓기 (선착장: 30초마다 어선이 물건을 건져 옴 · 텃밭: 아침 열매 3 · 진료소: 아침 치료약 1)
+- 2장부터 떠다니는 물건이 크게 줄고, 매일 아침 동료들이 건져 둔 보급(판자 2·플라스틱 1·천 1)이 자동으로 들어옴
+- [🗺 지도]: 항구 → 강 → 도시가 한 장으로 이어진 지도. 감염 구역은 회색 구름, 되찾은 곳은 초록, 아직 이야기가 닿지 않은 곳은 「?」. 되찾는 순간 구름이 걷히는 연출 후 마을로 복귀
+- 선단: 선착장·다리 통과·공항 수복마다 배 1척, 배마다 원정 짐 칸 +2
+- 뗏목은 [⛵ 뗏목] 버튼으로 계속 오갈 수 있음 (시설 사용·낚시 등)
+- 다음 단계 예정: 밤 습격 방어전 (망루·방벽·동료가 막고, 뚫린 곳을 탭해서 돕기)
 
 ## 1119-1730 변경 (바다 지루함 줄이기 + 동료 일하기)
 - 바다 사건 (첫날 밤을 넘긴 뒤 낮에 55~90초마다): 상어(지느러미 3번 탭), 표류 보트(뒤질지 말지), 떠돌이 상인(1회 교환), 물고기 떼(반짝이는 물결 탭)
