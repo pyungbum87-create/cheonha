@@ -79,7 +79,7 @@ function particles(kind,where){const p=at(where);const n={drops:16,spark:20,conf
 function slots(){const n=L.tools.length+1;const a=L.tools.map((t,i)=>({id:t.id,tool:t,x:VW*(i+.5)/n,y:SS+TRAY/2+4,r:36}));a.push({id:'preview',x:VW*(n-.5)/n,y:SS+TRAY/2+4,r:36});return a;}
 /* ---------- drawing helpers ---------- */
 const fnt=(sz,f)=>(f?'':'600 ')+sz+'px '+(f||FZ);
-const GOALKO=['설날 가족사진','개업 기념사진','거실 단체사진','다락방 단체사진','장터 단체사진','바닷가 단체사진','우체국 단체사진','꽃가게 단체사진','언덕 단체사진','생일 단체사진','병문안 단체사진','딤섬 단체사진','도서관 단체사진','야시장 단체사진','빗속 단체사진','친구들 단체사진','야시장 불빛','음악회 단체사진','장터 큰 단체사진','온 동네 단체사진','수박 파티 단체사진','반딧불이 단체사진','빨래 날 단체사진','빙수 가게 단체사진','연못 단체사진','추석 단체사진','낙엽 청소 단체사진','감 따기 단체사진','운동회 단체사진','풍년 장터 단체사진'];
+const GOALKO=['설날 가족사진','개업 기념사진','거실 단체사진','다락방 단체사진','장터 단체사진','바닷가 단체사진','우체국 단체사진','꽃가게 단체사진','언덕 단체사진','생일 단체사진','병문안 단체사진','딤섬 단체사진','도서관 단체사진','야시장 단체사진','빗속 단체사진','친구들 단체사진','야시장 불빛','음악회 단체사진','장터 큰 단체사진','온 동네 단체사진','수박 파티 단체사진','반딧불이 단체사진','빨래 날 단체사진','빙수 가게 단체사진','연못 단체사진','추석 단체사진','낙엽 청소 단체사진','감 따기 단체사진','운동회 단체사진','풍년 장터 단체사진','첫눈 단체사진','납팔절 단체사진','얼음 등 축제 단체사진','병문안 단체사진','설맞이 단체사진'];
 const SPK={'刺刺':'콕콕이','团团':'탄탄','栗栗':'리리','滴滴':'방울이','墩墩':'둥둥','闪闪':'반짝','啄啄':'쫑쫑','小猫':'고양이','砰砰':'펑펑'};
 const C={paper:'#fbefdc',ink:'#5b3520',soft:'#8a6448',red:'#d8473a',redd:'#a8332a',gold:'#f2b52c',goldd:'#bd8a1a',cream:'#fff8ec',line:'#e7cfa9',tray:'#f3dcb8'};
 const FZ='"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Apple SD Gothic Neo","Malgun Gothic",sans-serif',FB='"PingFang SC","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
