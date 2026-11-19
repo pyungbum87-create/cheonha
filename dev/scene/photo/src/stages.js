@@ -365,15 +365,16 @@ stage({id:31,title:'第一场雪',ko:'첫눈',goal:'初雪合影',bg:'s2_w_snow'
 /* 32 laba porridge --------------------------------------------------------------------------- */
 stage({id:32,title:'腊八暖暖',ko:'납팔죽 끓이기',goal:'腊八节合影',bg:'s2_w_dim',lili:[.46,.80,.17],hid:'cici_eyes',
  open:[say('腊八节要喝热粥！可是店里好冷……','납팔절엔 따뜻한 죽! 그런데 가게가 추워…','lili',2.2)],
- probs:[P('snow','雪吹进门里','눈이 문 안으로 들어왔고','门口变成雪地','문 앞이 눈밭'),P('lid','蒸笼盖飞走了','찜통 뚜껑은 날아갔고','包子凉了','만두가 식었어'),P('cat','小猫冻得发抖','고양이는 덜덜 떨고','小猫打喷嚏','고양이 재채기'),P('dump','包子滚到地上','만두는 바닥에 굴렀고','包子跑掉了','만두가 도망갔어'),P('tea','茶壶倒了','찻주전자는 쓰러졌고','茶水流一地','차가 줄줄')],
+ probs:[P('snow','雪吹进门里','눈이 문 안으로 들어왔고','门口变成雪地','문 앞이 눈밭'),P('pot','粥锅溢出来了','죽솥은 넘치고','粥洒了一地','죽이 넘쳤어'),P('cat','小猫冻得发抖','고양이는 덜덜 떨고','小猫打喷嚏','고양이 재채기'),P('beans','豆子撒了','콩은 쏟아졌고','豆子满地滚','콩이 데굴데굴'),P('fire','炉火快灭了','화로 불은 꺼져 가고','屋里冷冰冰','방이 썰렁해')],
  all:['暖暖的腊八节','따뜻한 납팔절'],none:['冷冰冰的小店','썰렁한 가게'],pair:['10100','雪吹进来，小猫冻坏了','눈은 들어오고 고양이는 꽁꽁'],
  tools:[ZHUO],
- objs:[{id:'snow',img:'s2_w_icefloor',x:.56,y:.62,w:.16,z:2,r:.09,show:'!snow'},{id:'lid',img:'lid',x:.86,y:.90,w:.09,z:3,r:.07,alt:[{if:'lid',x:.71,y:.36,w:.08}]},
-  {id:'cat',img:'s2_w_cat',x:.76,y:.72,w:.09,z:3,r:.07,alt:[{if:'cat',img:'cat_dry'}]},{id:'dump',img:'xiaolong',x:.28,y:.92,w:.08,z:3,r:.07,alt:[{if:'dump',x:.10,y:.50,w:.06}]},
-  {id:'tea',img:'s2_teaset',x:.20,y:.70,w:.10,z:3,r:.07,alt:[{if:'tea',img:'tea',w:.06}]},{id:'hidC',img:'cici_eyes',x:.60,y:.40,w:.05,z:1,show:'!found'}],
+ objs:[{id:'snow',img:'s2_w_icefloor',x:.56,y:.62,w:.16,z:2,r:.09,show:'!snow'},{id:'pot',img:'s2_w_pot_over',x:.90,y:.44,w:.10,z:3,r:.07,alt:[{if:'pot',img:'s2_w_pot'}]},
+  {id:'cat',img:'s2_w_cat',x:.76,y:.72,w:.09,z:3,r:.07,alt:[{if:'cat',img:'cat_dry'}]},{id:'beans',img:'s2_w_beans',x:.28,y:.92,w:.10,z:3,r:.07,show:'!beans'},
+  {id:'fire',img:'s2_w_fire_low',x:.62,y:.80,w:.09,z:3,r:.07,alt:[{if:'fire',img:'s2_w_fire'}]},{id:'bowls',img:'s2_w_bowls',x:.20,y:.52,w:.07,z:3},{id:'hidC',img:'cici_eyes',x:.60,y:.40,w:.05,z:1,show:'!found'}],
  rules:[Object.assign(swipe('snow','left','!snow&!tw',set('tw'),['tone','nope'],say('风又把雪吹进来了！再扫一次','바람이 눈을 또 들였어! 한 번 더','snow',1.5)),{lockq:1}),swipe('snow','left','!snow&tw',set('snow')),
-  use('zhuo','lid','!lid',['fly','zhuozhuo','tray','lid',.6,.2,.1],set('lid'),say('盖子盖回去啦','뚜껑을 다시 덮었어',[.6,.3],1.2)),use('hotT','cat','!cat',set('cat'),say('抱着热水袋好暖和','물주머니를 안으니 따뜻해','cat',1.3)),
-  drag('dump',[.10,.50,.1],'!dump',set('dump')),tap('tea','!tea',set('tea')),tap('hidC','',set('found'),['found'],['mood','shock'],say('门外有一双小眼睛！','문밖에 작은 눈이!','hidC',1.6))]}),
+  hold('pot','!pot',['fx','steam','pot'],set('pot'),say('火小一点，粥就不溢了','불을 줄이니 안 넘쳐','pot',1.3)),tap('fire','!fire',['fx','spark','fire'],set('fire')),
+  use('hotT','cat','!cat',set('cat'),say('抱着热水袋好暖和','물주머니를 안으니 따뜻해','cat',1.3)),use('zhuo','beans','!beans',['fly','zhuozhuo','tray','beans',.6,.2,.1],set('beans'),say('啄啄把豆子都捡回来了','쫑쫑이 콩을 다 주워 왔어',[.3,.7],1.3)),
+  tap('hidC','',set('found'),['found'],['mood','shock'],say('门外有一双小眼睛！','문밖에 작은 눈이!','hidC',1.6))]}),
 /* 33 ice lanterns ---------------------------------------------------------------------------- */
 stage({id:33,title:'冰灯之夜',ko:'얼음 등불 밤',goal:'冰灯节合影',bg:'s2_w_ice',lili:[.50,.80,.16],hid:'cici_back',
  open:[say('冰灯好漂亮！小心地滑哦','얼음 등 정말 예뻐! 미끄러우니 조심','lili',2.2)],
@@ -411,6 +412,66 @@ stage({id:35,title:'年货大集',ko:'설맞이 장보기',goal:'年货合影',b
   swipe('list','down','!list',set('list'),say('购物单抓住啦','장보기 목록 잡았다','lili',1.2)),
   Object.assign(drag('wheel',[.58,.66,.1],'!wheel&!tw',set('tw'),['go','wheel',.12,.68,.4],['tone','nope'],say('轮子又滚走了！','바퀴가 또 굴러갔어!','wheel',1.3),['off','wheel']),{lockq:1}),drag('wheel',[.58,.66,.1],'!wheel&tw',set('wheel')),
   rot('lan',-.7,'!lan',null,set('lan')),tap('hidC','',set('found'),['found'],['mood','shock'],say('花盆边有个小刺球！','화분 옆에 가시 공이!','hidC',1.6))]}),
+/* 36 arbor day ------------------------------------------------------------------------------- */
+stage({id:36,title:'植树节',ko:'나무 심기',goal:'植树合影',bg:'s2_p_hill',lili:[.40,.70,.16],hid:'cici_post',
+ open:[say('春天来啦！一起种小树吧！','봄이 왔어! 같이 나무 심자!','lili',2.2)],
+ probs:[P('tree','小树歪了','어린 나무는 기울었고','小树要倒了','나무가 쓰러지려 해'),P('water','小树没浇水','나무는 물을 못 마셨고','小树口渴了','목마른 나무'),P('worm','蚯蚓迷路了','지렁이는 길을 잃었고','蚯蚓晒太阳','햇볕 쬐는 지렁이'),P('sign','牌子倒了','표지판은 쓰러졌고','找不到路','길을 모르겠어'),P('pot','花盆空空的','화분은 비어 있고','花盆没种子','씨 없는 화분')],
+ all:['小树长高啦','나무가 쑥쑥'],none:['春天还没开始','봄이 아직이야'],pair:['11000','小树又歪又渴','나무가 기울고 목말라'],
+ tools:[],
+ objs:[{id:'tree',img:'s2_p_tree_bent',x:.50,y:.86,w:.11,z:3,r:.08,alt:[{if:'tree',img:'s2_p_tree'}]},{id:'worm',img:'s2_p_worm',x:.15,y:.78,w:.08,z:3,r:.07,show:'!worm'},
+  {id:'sign',img:'s2_p_sign',x:.84,y:.74,w:.10,rot:.6,z:3,r:.08,alt:[{if:'sign',rot:0}]},{id:'pot',img:'s2_p_pot',x:.68,y:.60,w:.08,z:3,r:.07,alt:[{if:'pot',img:'s2_p_pot_sprout'}]},{id:'hidC',img:'cici_post',x:.97,y:.40,w:.06,z:2,show:'!found'}],
+ rules:[Object.assign(hold('tree','!tree&!tw',set('tw'),['wig','tree',.6],['tone','nope'],say('土太松了，再扶一次','흙이 헐거워, 한 번 더 세워 줘','tree',1.4)),{lockq:1}),hold('tree','!tree&tw',set('tree')),
+  use('canT','tree','!water',['fx','drops','tree'],set('water'),say('咕嘟咕嘟，喝饱啦','꿀꺽꿀꺽, 배불러','tree',1.2)),swipe('worm','down','!worm',set('worm'),say('回家吧，小蚯蚓','집으로 가렴, 지렁이야','worm',1.2)),
+  rot('sign',-.6,'!sign',null,set('sign')),use('shovelT','pot','!pot',set('pot'),say('种下一颗小种子','작은 씨앗을 심었어','pot',1.2)),tap('hidC','',set('found'),['found'],['mood','shock'],say('亭子边有个小家伙在偷看！','정자 옆에서 누가 엿보고 있어!','hidC',1.6))]}),
+/* 37 spring rain ----------------------------------------------------------------------------- */
+stage({id:37,title:'春雨花园',ko:'봄비 정원',goal:'雨中合影',bg:'s2_p_rain',lili:[.40,.80,.16],hid:'cici_eyes',rain:1,
+ open:[say('下雨啦！花儿们还好吗？','비가 와! 꽃들은 괜찮을까?','lili',2.2)],
+ probs:[P('umb','雨伞被吹翻了','우산은 뒤집혔고','大家淋湿了','모두 비에 젖었어'),P('sprout','花苗被雨打弯','꽃모종은 비에 꺾였고','花苗垂下头','고개 숙인 꽃'),P('snail','蜗牛在路中间','달팽이는 길 한가운데 있고','小心蜗牛！','달팽이 조심!'),P('boots','雨靴放在雨里','장화는 비를 맞고','雨靴灌满水','장화에 물이 가득'),P('seeds','种子袋撒了','씨앗 봉투는 쏟아졌고','种子被冲走','씨앗이 떠내려가')],
+ all:['雨中的花园真美','빗속 정원이 예뻐'],none:['雨把花园弄乱了','비에 엉망이 된 정원'],pair:['10001','伞翻了，种子也撒了','우산은 뒤집히고 씨앗은 쏟아지고'],
+ tools:[DIDI],
+ objs:[{id:'umb',img:'s2_p_umb_flip',x:.70,y:.88,w:.12,z:3,r:.08,alt:[{if:'umb',img:'s2_p_umb',x:.40,y:.62,w:.14,z:5}]},{id:'sprout',img:'s2_p_sprout_down',x:.10,y:.62,w:.09,z:3,r:.07,alt:[{if:'sprout',img:'s2_p_pot_sprout',w:.07}]},
+  {id:'snail',img:'s2_p_snail',x:.58,y:.70,w:.09,z:3,r:.07,alt:[{if:'snail',x:.94,y:.52,w:.07}]},{id:'boots',img:'s2_p_boots',x:.90,y:.80,w:.09,z:3,r:.07,alt:[{if:'boots',x:.82,y:.48,w:.07}]},
+  {id:'seeds',img:'s2_p_seeds',x:.24,y:.90,w:.09,z:3,r:.07,show:'!seeds'},{id:'bfly',img:'s2_p_butterfly',x:.06,y:.42,w:.07,z:4},{id:'hidC',img:'cici_eyes',x:.92,y:.62,w:.05,z:2,show:'!found'}],
+ rules:[Object.assign(tap('umb','!umb&!tw',set('tw'),['wig','umb',.6],['tone','nope'],say('风一吹又翻了！','바람에 또 뒤집혔어!','umb',1.3)),{lockq:1}),tap('umb','!umb&tw',set('umb')),
+  use('didi','sprout','!sprout',['fx','drops','sprout'],set('sprout'),say('滴滴帮花苗站起来啦','방울이가 꽃모종을 세워 줬어',[.2,.5],1.3)),drag('snail',[.94,.52,.1],'!snail',set('snail')),drag('boots',[.82,.48,.1],'!boots',set('boots')),
+  hold('seeds','!seeds',set('seeds'),say('种子收好啦','씨앗을 잘 담았어','seeds',1.2)),tap('hidC','',set('found'),['found'],['mood','shock'],say('花丛里有一双小眼睛！','꽃덤불 속에 작은 눈이!','hidC',1.6))]}),
+/* 38 cici's new home ------------------------------------------------------------------------- */
+stage({id:38,title:'刺刺的新家',ko:'콕콕이 집들이',goal:'新家合影',bg:'s2_p_home',lili:[.40,.80,.16],hid:'cat_dry',
+ open:[say('刺刺搬新家啦！我们来帮忙！','콕콕이가 이사했어! 우리가 도와주자!','lili',2.2)],
+ probs:[P('boxes','箱子堆得乱七八糟','상자는 엉망으로 쌓였고','箱子要倒了','상자가 무너지려 해'),P('frame','画框歪了','액자는 삐뚤어졌고','画在睡觉','액자가 누웠어'),P('cush','坐垫破了','방석은 터졌고','棉花飞出来','솜이 날려'),P('hat','叶子帽掉在地上','낙엽 모자는 바닥에 떨어졌고','帽子找不到家','모자가 갈 곳이 없어'),P('door','门锁住了','문은 잠겼고','进不了门','들어갈 수가 없어')],
+ all:['欢迎来刺刺家！','콕콕이네 놀러 왔어!'],none:['新家乱糟糟','엉망진창 새집'],pair:['10001','箱子乱，门还锁着','상자는 엉망, 문은 잠겨 있어'],
+ tools:[],
+ objs:[{id:'cici',img:'cici_shy',x:.70,y:.66,w:.12,z:2,alt:[{if:'door',img:'cici_joy'}]},{id:'boxes',img:'s2_p_boxes',x:.16,y:.70,w:.14,z:3,r:.09,alt:[{if:'boxes',img:'s2_p_boxes_ok',w:.12}]},
+  {id:'frame',img:'s2_p_frame',x:.60,y:.40,w:.09,rot:.5,z:3,r:.07,alt:[{if:'frame',rot:0}]},{id:'cush',img:'s2_p_cush_torn',x:.52,y:.92,w:.10,z:3,r:.07,alt:[{if:'cush',img:'s2_p_cush',w:.09}]},
+  {id:'hat',img:'s2_p_hat',x:.28,y:.92,w:.09,z:3,r:.07,alt:[{if:'hat',x:.68,y:.16,w:.07}]},{id:'door',img:'s2_p_door',x:.84,y:.84,w:.11,z:3,r:.08,show:'!door'},{id:'hidC',img:'cat_dry',x:.08,y:.56,w:.07,z:2,show:'!found'}],
+ rules:[Object.assign(tap('boxes','!boxes&!tw',set('tw'),['wig','boxes',.7],['tone','shake'],say('哎呀，又歪了！','어이쿠, 또 기울었어!','boxes',1.3)),{lockq:1}),tap('boxes','!boxes&tw',set('boxes')),
+  rot('frame',-.5,'!frame',null,set('frame')),hold('cush','!cush',set('cush'),say('缝好啦！','다 꿰맸어!','cush',1.2)),drag('hat',[.68,.16,.1],'!hat',set('hat'),say('帽子挂好啦','모자를 걸었어','cici',1.2)),
+  use('keyT','door','!door',['fx','spark','door'],set('door'),say('咔嚓！门开了','철컥! 문이 열렸어','cici',1.3)),tap('hidC','',set('found'),['found'],['mood','shock'],say('小猫也来帮忙啦！','고양이도 도와주러 왔네!','hidC',1.6))]}),
+/* 39 spring picnic --------------------------------------------------------------------------- */
+stage({id:39,title:'春日野餐',ko:'봄소풍',goal:'野餐合影',bg:'s2_p_pond',lili:[.42,.74,.16],hid:'cici_back',
+ open:[say('樱花开了，去野餐吧！','벚꽃이 피었어, 소풍 가자!','lili',2.2)],
+ probs:[P('mat','野餐垫被风吹跑','돗자리는 바람에 날아가고','坐在地上吃','바닥에 앉아 먹어'),P('kite','风筝挂在树上','연은 나무에 걸렸고','风筝下不来','연이 안 내려와'),P('bee','蜜蜂嗡嗡转','꿀벌은 빙빙 돌고','蜜蜂来做客','꿀벌 손님'),P('sand','三明治放在地上','샌드위치는 바닥에 있고','三明治迷路了','길 잃은 샌드위치'),P('petal','花瓣铺满地','꽃잎이 가득 깔렸고','花瓣雨','꽃잎 비')],
+ all:['春天的野餐真开心','신나는 봄소풍'],none:['野餐乱成一团','엉망진창 소풍'],pair:['11000','垫子飞了，风筝也挂住了','돗자리는 날고 연은 걸렸어'],
+ tools:[ZHUO],
+ objs:[{id:'mat',img:'s2_p_mat',x:.82,y:.66,w:.15,z:2,r:.09,anim:'shake',calm:'mat',alt:[{if:'mat',x:.46,y:.88,w:.20}]},{id:'kite',img:'s2_p_kite',x:.88,y:.30,w:.13,z:5,r:.08,alt:[{if:'kite',x:.30,y:.12}]},
+  {id:'bee',img:'s2_p_bee',x:.60,y:.60,w:.07,z:4,anim:'bob',show:'!bee',r:.07},{id:'sand',img:'s2_p_sand',x:.14,y:.90,w:.10,z:3,r:.07,alt:[{if:'sand',x:.46,y:.88,w:.09,z:4}]},
+  {id:'petal',img:'s2_p_petals',x:.70,y:.90,w:.11,z:3,r:.08,show:'!petal'},{id:'hidC',img:'cici_back',x:.97,y:.86,w:.05,z:2,show:'!found'}],
+ rules:[Object.assign(drag('mat',[.46,.88,.12],'!mat&!tw',set('tw'),['go','mat',.82,.66,.4],['tone','nope'],say('风又把垫子吹走了！','바람이 돗자리를 또 날렸어!',[.6,.6],1.3),['off','mat']),{lockq:1}),drag('mat',[.46,.88,.12],'!mat&tw',set('mat')),
+  use('zhuo','kite','!kite',['fly','zhuozhuo','tray','kite',.6,.2,.1],set('kite'),say('风筝飞起来啦！','연이 날아올랐어!',[.4,.2],1.3)),swipe('bee','right','!bee',set('bee'),say('去花丛里吧，小蜜蜂','꽃밭으로 가렴, 꿀벌아','bee',1.2)),
+  drag('sand',[.46,.88,.12],'!sand',set('sand')),swipe('petal','left','!petal',set('petal')),
+  tap('hidC','',set('found'),['found'],['mood','shock'],say('灌木后面有一团小刺！','덤불 뒤에 가시 뭉치가!','hidC',1.6))]}),
+/* 40 four seasons photo ---------------------------------------------------------------------- */
+stage({id:40,title:'四季全家福',ko:'사계절 단체사진',goal:'四季大合照',bg:'s2_p_hall',lili:[.38,.78,.15],hid:'cat_dry',
+ open:[say('最后一张，四季全家福！刺刺，过来呀！','마지막 사진, 사계절 단체사진! 콕콕아, 이리 와!','lili',2.6)],
+ probs:[P('frame','大相框还在地上','큰 액자는 바닥에 있고','墙上空空的','벽이 허전해'),P('wreath','花环没挂','화환은 아직 안 걸었고','少了花环','화환이 없어'),P('bow','蝴蝶结掉了','리본은 떨어졌고','少了蝴蝶结','리본이 없어'),P('line','照片绳歪了','사진 줄은 삐뚤어졌고','照片要掉了','사진이 떨어지려 해'),P('cici','刺刺不敢站中间','콕콕이는 가운데 서기 무섭고','刺刺躲在角落','구석에 숨은 콕콕이')],
+ all:['四季全家福！','사계절 단체사진!'],none:['全家福还没准备好','단체사진 준비가 아직이야'],pair:['00011','照片绳歪了，刺刺还在角落','사진 줄은 삐뚤, 콕콕이는 구석에'],
+ tools:[DUN],
+ objs:[{id:'frame',img:'s2_p_bigframe',x:.20,y:.90,w:.14,rot:.4,z:3,r:.09,alt:[{if:'frame',x:.50,y:.50,rot:0,w:.24}]},{id:'wreath',img:'s2_p_wreath',x:.84,y:.92,w:.10,z:3,r:.07,alt:[{if:'wreath',x:.24,y:.50,w:.11}]},
+  {id:'bow',img:'s2_p_bow',x:.08,y:.70,w:.08,z:3,r:.07,alt:[{if:'bow',x:.76,y:.50,w:.10}]},{id:'line',img:'s2_p_line',x:.62,y:.66,w:.14,rot:.6,z:3,r:.08,alt:[{if:'line',rot:0}]},
+  {id:'cici',img:'cici_shy',x:.93,y:.66,w:.10,z:2,r:.08,alt:[{if:'cici',img:'cici_joy',x:.60,y:.80,w:.13,z:3}]},{id:'hidC',img:'cat_dry',x:.04,y:.52,w:.07,z:2,show:'!found'}],
+ rules:[drag('frame',[.50,.50,.12],'!frame',set('frame')),drag('wreath',[.24,.50,.1],'!wreath',set('wreath')),drag('bow',[.76,.50,.1],'!bow',set('bow')),rot('line',-.6,'!line',null,set('line')),
+  Object.assign(tap('cici','!cici&!tw',set('tw'),['wig','cici',.6],say('我……我站后面就好……','나… 난 뒤에 서도 돼…','cici',1.6)),{lockq:1}),use('dun','cici','!cici&tw',set('cici'),['mood','joy'],say('墩墩牵着刺刺站到中间！','둥둥이 콕콕이 손을 잡고 가운데로!',[.6,.6],1.6)),
+  tap('hidC','',set('found'),['found'],['mood','shock'],say('小猫抱着照片盒在偷看！','고양이가 사진 상자를 안고 엿보고 있어!','hidC',1.6))]}),
 ];
 
 /* ---------- difficulty: stage 1 is the gentle one, then help shrinks and puzzles deepen ---------- */
@@ -440,6 +501,11 @@ gate(at(32),'zhuo','zhuozhuo',.44,.10,.05,'啄啄挂在钩子上取暖','쫑쫑�
 decoy(at(33),'s2_w_icicle',.90,.30,.05,'这根冰柱很结实','이 고드름은 튼튼해');
 decoy(at(34),'s2_w_star',.92,.40,.05,'这是墩墩的装饰','둥둥의 장식이야');
 gate(at(35),'zhuo','zhuozhuo',.94,.30,.05,'啄啄在摊位上数糖葫芦','쫑쫑이 가게에서 탕후루를 세고 있었네');
+pick(at(36),'canT','s2_p_can',.06,.60,.06,'找到浇水壶！','물뿌리개를 찾았어!',['这里不用浇水','여긴 물 안 줘도 돼']);pick(at(36),'shovelT','s2_p_shovel',.30,.56,.06,'找到小铲子！','작은 삽을 찾았어!',['这里不用挖','여긴 안 파도 돼']);
+gate(at(37),'didi','didi',.06,.30,.05,'滴滴在花丛里玩雨','방울이가 꽃밭에서 비를 맞고 놀고 있었네');decoy(at(37),'s2_p_flowers',.60,.46,.06,'这篮花是要卖的','이 꽃바구니는 파는 거야');
+pick(at(38),'keyT','s2_p_key',.56,.22,.05,'书架上有把钥匙！','책장 위에 열쇠가!',['钥匙是开门用的','열쇠는 문 여는 데 써']);
+gate(at(39),'zhuo','zhuozhuo',.12,.30,.06,'啄啄在亭子里躲太阳','쫑쫑이 정자에서 해를 피하고 있었네');
+gate(at(40),'dun','dundun',.94,.30,.06,'墩墩在灯笼后面等合照','둥둥이 등롱 뒤에서 단체사진을 기다리고 있었네');
 gate(at(25),'dun','dundun',.92,.27,.06,'墩墩在柳树下乘凉','둥둥이 버드나무 아래서 쉬고 있었네');gate(at(25),'didi','didi',.06,.37,.05,'滴滴在绣球花里','방울이가 수국 사이에 있었네');
 decoy(at(2),'tea',.10,.545,.06,'茶还热着呢','차가 아직 따뜻해');
 decoy(at(3),'tissue',.11,.60,.07,'这不是垃圾','이건 쓰레기가 아니야');
@@ -460,7 +526,7 @@ under(at(18),'muffs','cov_box','right',.10,'耳罩找到了！','귀마개를 �
 gate(at(19),'zhuo','zhuozhuo',.70,.09,.06,'啄啄在树上休息','쫑쫑이 나무에서 쉬고 있었네');gate(at(19),'peng','pengpeng',.07,.62,.07,'砰砰在台子后面','펑펑이 무대 뒤에 있었네');under(at(19),'lion','blanket','left',.15,'舞狮藏在被子下！','사자가 이불 밑에 숨었네!');decoy(at(19),'paper',.60,.60,.05,'纸团不用管','종이뭉치는 그냥 둬');
 under(at(20),'shan','cov_mat','right',.11,'闪闪在这里！','반짝이 여기 있네!');under(at(20),'didi','cov_bundle','left',.11,'滴滴藏在布包后面','방울이가 보따리 뒤에 숨어 있었네');
 /* the little story a 5/5 photo unlocks */
-const AFTER=[['那天的全家福，被团团挂在了店门口。','그날의 가족사진은 탄탄 가게 문 앞에 걸렸어요.'],['开张第一笼，三分钟就卖光啦。','첫 찜통은 3분 만에 다 팔렸어요.'],['墩墩答应，以后只在院子里玩球。','둥둥은 이제 마당에서만 공놀이하기로 했어요.'],['闪闪发现，阁楼的月亮最好看。','반짝은 다락에서 보는 달이 제일 예쁘다는 걸 알았어요.'],['狮子跳得太开心，把鞋都甩掉了。','사자는 너무 신나서 신발까지 벗겨졌어요.'],['海鸥后来成了点心店的常客。','갈매기는 나중에 딤섬 가게 단골이 됐어요.'],['那封信，是写给全镇的新年问候。','그 편지는 온 동네에 보내는 새해 인사였어요.'],['花店送给每家一朵小红花。','꽃가게는 집집마다 작은 꽃을 선물했어요.'],['风停了，气球还舍不得下来。','바람이 멎어도 풍선은 내려오기 싫어했어요.'],['团团吹蜡烛时，偷偷许了个愿。','탄탄은 초를 불며 몰래 소원을 빌었어요.'],['滴滴病好了，第一件事是去踩水。','방울이는 낫자마자 물웅덩이부터 밟으러 갔어요.'],['小猫学会了，闻到香味就排队。','고양이는 냄새가 나면 줄을 서게 됐어요.'],['第六封信写着：谢谢你来找我们。','여섯 번째 편지에는 찾아 줘서 고맙다고 적혀 있었어요.'],['评委说：这张照片，连灯笼都在笑。','심사위원은 등롱까지 웃는 사진이라고 했어요.'],['雨停后，天边出现了一道彩虹。','비가 그치자 하늘에 무지개가 떴어요.'],['朋友们约好，明年还一起来帮忙。','친구들은 내년에도 함께 돕기로 약속했어요.'],['夜市的灯，一直亮到了天亮。','야시장의 불빛은 날이 밝을 때까지 빛났어요.'],['墩墩戴着耳罩，也跟着节奏点头。','둥둥은 귀마개를 쓰고도 박자에 맞춰 고개를 끄덕였어요.'],['这一天，小镇的笑声传得好远。','그날 동네의 웃음소리는 아주 멀리까지 퍼졌어요.'],['照片挂上墙，小镇的故事还在继续。','사진이 벽에 걸리고, 동네 이야기는 계속돼요.'],['西瓜皮后面，藏着一排害羞的小刺。','수박 껍질 뒤에 수줍은 가시가 숨어 있었어요.'],['草丛里的小眼睛，一整晚都在偷看。','풀숲의 작은 눈이 밤새 몰래 보고 있었어요.'],['被子上的小刺，像一句悄悄的谢谢。','이불에 꽂힌 가시는 조용한 고맙다는 인사 같았어요.'],['冰箱旁多了一只吃了一半的小碗。','아이스박스 옆에 반쯤 먹은 작은 그릇이 남았어요.'],['水面上第一次映出了刺刺的笑脸。','물 위에 처음으로 콕콕이의 웃는 얼굴이 비쳤어요.'],['月饼盒后面，留着一块小小的月饼。','월병 상자 뒤에 작은 월병 하나를 남겨 두었어요.'],['叶子堆旁边，放着一顶叶子帽。','낙엽 더미 옆에 낙엽 모자를 놓아두었어요.'],['一颗柿子，从树后面滚了过来。','감 하나가 나무 뒤에서 굴러왔어요.'],['球筐里的“小刺球”，偷偷看完了比赛。','공 바구니 속 가시 공이 몰래 경기를 다 봤어요.'],['稻草人的帽子下，第一次传来一声谢谢。','허수아비 모자 밑에서 처음으로 고맙다는 말이 들렸어요.'],['雪地上的小脚印，停在雪人身后。','눈 위의 작은 발자국이 눈사람 뒤에서 멈췄어요.'],['窗外的小客人，下次一定请进来。','창밖의 작은 손님, 다음엔 꼭 안으로 초대할 거예요.'],['冰兔子戴上了红围巾。','얼음 토끼가 빨간 목도리를 둘렀어요.'],['床头的姜茶，是一份悄悄的关心。','머리맡의 생강차는 조용한 마음이었어요.'],['刺刺第一次说出了“新年快乐”。','콕콕이가 처음으로 "새해 복 많이 받아"라고 말했어요.']];
+const AFTER=[['那天的全家福，被团团挂在了店门口。','그날의 가족사진은 탄탄 가게 문 앞에 걸렸어요.'],['开张第一笼，三分钟就卖光啦。','첫 찜통은 3분 만에 다 팔렸어요.'],['墩墩答应，以后只在院子里玩球。','둥둥은 이제 마당에서만 공놀이하기로 했어요.'],['闪闪发现，阁楼的月亮最好看。','반짝은 다락에서 보는 달이 제일 예쁘다는 걸 알았어요.'],['狮子跳得太开心，把鞋都甩掉了。','사자는 너무 신나서 신발까지 벗겨졌어요.'],['海鸥后来成了点心店的常客。','갈매기는 나중에 딤섬 가게 단골이 됐어요.'],['那封信，是写给全镇的新年问候。','그 편지는 온 동네에 보내는 새해 인사였어요.'],['花店送给每家一朵小红花。','꽃가게는 집집마다 작은 꽃을 선물했어요.'],['风停了，气球还舍不得下来。','바람이 멎어도 풍선은 내려오기 싫어했어요.'],['团团吹蜡烛时，偷偷许了个愿。','탄탄은 초를 불며 몰래 소원을 빌었어요.'],['滴滴病好了，第一件事是去踩水。','방울이는 낫자마자 물웅덩이부터 밟으러 갔어요.'],['小猫学会了，闻到香味就排队。','고양이는 냄새가 나면 줄을 서게 됐어요.'],['第六封信写着：谢谢你来找我们。','여섯 번째 편지에는 찾아 줘서 고맙다고 적혀 있었어요.'],['评委说：这张照片，连灯笼都在笑。','심사위원은 등롱까지 웃는 사진이라고 했어요.'],['雨停后，天边出现了一道彩虹。','비가 그치자 하늘에 무지개가 떴어요.'],['朋友们约好，明年还一起来帮忙。','친구들은 내년에도 함께 돕기로 약속했어요.'],['夜市的灯，一直亮到了天亮。','야시장의 불빛은 날이 밝을 때까지 빛났어요.'],['墩墩戴着耳罩，也跟着节奏点头。','둥둥은 귀마개를 쓰고도 박자에 맞춰 고개를 끄덕였어요.'],['这一天，小镇的笑声传得好远。','그날 동네의 웃음소리는 아주 멀리까지 퍼졌어요.'],['照片挂上墙，小镇的故事还在继续。','사진이 벽에 걸리고, 동네 이야기는 계속돼요.'],['西瓜皮后面，藏着一排害羞的小刺。','수박 껍질 뒤에 수줍은 가시가 숨어 있었어요.'],['草丛里的小眼睛，一整晚都在偷看。','풀숲의 작은 눈이 밤새 몰래 보고 있었어요.'],['被子上的小刺，像一句悄悄的谢谢。','이불에 꽂힌 가시는 조용한 고맙다는 인사 같았어요.'],['冰箱旁多了一只吃了一半的小碗。','아이스박스 옆에 반쯤 먹은 작은 그릇이 남았어요.'],['水面上第一次映出了刺刺的笑脸。','물 위에 처음으로 콕콕이의 웃는 얼굴이 비쳤어요.'],['月饼盒后面，留着一块小小的月饼。','월병 상자 뒤에 작은 월병 하나를 남겨 두었어요.'],['叶子堆旁边，放着一顶叶子帽。','낙엽 더미 옆에 낙엽 모자를 놓아두었어요.'],['一颗柿子，从树后面滚了过来。','감 하나가 나무 뒤에서 굴러왔어요.'],['球筐里的“小刺球”，偷偷看完了比赛。','공 바구니 속 가시 공이 몰래 경기를 다 봤어요.'],['稻草人的帽子下，第一次传来一声谢谢。','허수아비 모자 밑에서 처음으로 고맙다는 말이 들렸어요.'],['雪地上的小脚印，停在雪人身后。','눈 위의 작은 발자국이 눈사람 뒤에서 멈췄어요.'],['窗外的小客人，下次一定请进来。','창밖의 작은 손님, 다음엔 꼭 안으로 초대할 거예요.'],['冰兔子戴上了红围巾。','얼음 토끼가 빨간 목도리를 둘렀어요.'],['床头的姜茶，是一份悄悄的关心。','머리맡의 생강차는 조용한 마음이었어요.'],['刺刺第一次说出了“新年快乐”。','콕콕이가 처음으로 "새해 복 많이 받아"라고 말했어요.'],['新种的小树旁，多了一双小小的脚印。','새로 심은 나무 옆에 작은 발자국이 생겼어요.'],['春雨里，刺刺为大家撑起了伞。','봄비 속에서 콕콕이가 모두에게 우산을 씌워 줬어요.'],['刺刺的新家，第一次有了客人。','콕콕이네 새집에 처음으로 손님이 왔어요.'],['风筝飞得高高的，刺刺笑得甜甜的。','연은 높이 날고, 콕콕이는 환하게 웃었어요.'],['四季的照片里，刺刺终于站在了中间。','사계절 사진 속에서 콕콕이가 드디어 가운데 섰어요.']];
 /* 5/5 story: three lines per stage, and one running mystery of the little footprints */
 const C_='刺刺',L_='栗栗',T_='团团',D_='滴滴',N_='墩墩',Z_='啄啄',X_='闪闪',P_='砰砰',M_='小猫';
 const STORY=[
@@ -498,7 +564,12 @@ const STORY=[
 [[D_,'腊八粥热乎乎的！','납팔죽이 따끈따끈해!'],[Z_,'窗外有人在看我们！','창밖에서 누가 보고 있어!'],[L_,'下次一定请它进来一起喝。','다음엔 꼭 들어와서 같이 먹자고 해야지.']],
 [[X_,'冰兔子看起来好冷呀。','얼음 토끼가 추워 보여.'],[D_,'把红围巾给它戴上吧！','빨간 목도리를 둘러 주자!'],[L_,'冰雕后面，叶子帽在偷偷笑。','얼음 조각 뒤에서 낙엽 모자가 웃고 있어.']],
 [[N_,'阿嚏！好冷……','에취! 추워…'],[L_,'床头怎么多了一杯姜茶？','머리맡에 생강차가 언제 생겼지?'],[N_,'旁边还有一根小刺呢。','옆에 작은 가시도 하나 있어.']],
-[[Z_,'春联贴好啦！','춘련 다 붙였어!'],[L_,'推车的轮子是谁找回来的？','수레 바퀴는 누가 찾아 왔을까?'],[C_,'（小声）是、是我……新年快乐！','(작은 목소리로) 나, 나야… 새해 복 많이 받아!']]];
+[[Z_,'春联贴好啦！','춘련 다 붙였어!'],[L_,'推车的轮子是谁找回来的？','수레 바퀴는 누가 찾아 왔을까?'],[C_,'（小声）是、是我……新年快乐！','(작은 목소리로) 나, 나야… 새해 복 많이 받아!']],
+[[L_,'小树种好啦！','나무를 다 심었어!'],[N_,'刺刺也来帮忙浇水了。','콕콕이도 물 주러 왔어.'],[C_,'（小声）我……可以和你们一起玩吗？','(작은 목소리로) 나… 같이 놀아도 돼?']],
+[[D_,'雨停了，花儿抬起头了！','비가 그치니 꽃이 고개를 들었어!'],[C_,'我把伞举高，大家都不会淋湿。','내가 우산을 높이 들게, 아무도 안 젖게.'],[L_,'刺刺的伞，比太阳还暖和。','콕콕이 우산은 햇볕보다 따뜻해.']],
+[[C_,'欢、欢迎来我家！','어, 어서 와, 우리 집에!'],[N_,'这里好舒服呀！','여기 정말 아늑하다!'],[L_,'以后我们常来玩！','앞으로 자주 놀러 올게!']],
+[[C_,'我第一次放风筝！','나 처음으로 연 날려 봐!'],[Z_,'飞得好高呀！','정말 높이 난다!'],[L_,'今天，刺刺一次也没有躲起来。','오늘 콕콕이는 한 번도 숨지 않았어.']],
+[[N_,'大家站好，看镜头！','다들 서, 카메라 봐!'],[C_,'这次……我要站在中间！','이번엔… 나도 가운데 설래!'],[L_,'小猫的照片盒里，多了一本「刺刺的四季相册」。','고양이의 사진 상자에 「콕콕이의 사계절 앨범」이 한 권 더 생겼어.']]];
 ST.forEach((s,i)=>{s.after=AFTER[i];s.story=STORY[i];const a='end_'+String(i+1).padStart(2,'0');if(require('fs').existsSync(require('path').join(__dirname,'../art',a+'.webp')))s.endArt=a;});
 /* side missions: stage 1-5 have 3, 6-12 have 4, 13-20 have 5, so a stage has 8 to 10 problems.
    f find · u find under a cover · g bring to Lili · h hold to blow up · b pick a tool, use it on a mess */
@@ -537,6 +608,11 @@ s2_w_dim:[[.06,.60],[.34,.66],[.88,.70],[.12,.80],[.30,.80],[.66,.80],[.80,.80],
 s2_w_ice:[[.24,.70],[.62,.72],[.30,.80],[.66,.82],[.36,.92],[.56,.92],[.20,.80],[.70,.76],[.48,.60],[.60,.60]],
 s2_w_room:[[.14,.80],[.46,.72],[.62,.72],[.24,.92],[.48,.92],[.72,.90],[.92,.92],[.62,.82],[.30,.80],[.86,.82]],
 s2_w_market:[[.30,.60],[.44,.60],[.70,.62],[.24,.74],[.40,.72],[.80,.74],[.30,.82],[.62,.82],[.52,.94],[.86,.88]],
+s2_p_hill:[[.08,.56],[.26,.56],[.62,.56],[.92,.62],[.10,.66],[.30,.66],[.62,.72],[.28,.92],[.70,.92],[.92,.92],[.40,.60]],
+s2_p_rain:[[.08,.74],[.30,.66],[.54,.62],[.72,.62],[.14,.80],[.36,.92],[.58,.84],[.76,.72],[.50,.94],[.92,.94]],
+s2_p_home:[[.30,.66],[.50,.60],[.62,.80],[.28,.80],[.44,.70],[.76,.90],[.94,.92],[.10,.92],[.86,.62],[.58,.70]],
+s2_p_pond:[[.06,.58],[.30,.58],[.56,.56],[.74,.58],[.10,.70],[.30,.66],[.60,.74],[.86,.78],[.26,.80],[.62,.84],[.90,.92]],
+s2_p_hall:[[.22,.60],[.40,.60],[.80,.60],[.10,.82],[.28,.74],[.50,.62],[.76,.80],[.36,.94],[.60,.94],[.94,.84]],
 hall_bg:[[.08,.66],[.92,.66],[.25,.7],[.75,.7],[.15,.88],[.4,.9],[.65,.9],[.06,.8]]};
 const TABLE={s2_ice:[.25,.56],l1_bg2:[.11,.545],l3_bg:[.67,.44],l6_bg:[.48,.525],flower_bg:[.42,.455],lib_bg:[.72,.46],l5_bg:[.33,.61],l7_bg:[.40,.49]};
 function free(s,seed,ground){const a=spots(s);let best=null,bs=-9;for(const q of SPOT[s.bg].filter(q=>!ground||q[1]>=.66)){let d=9;for(const p of a)d=Math.min(d,Math.hypot(q[0]-p[0],q[1]-p[1])-p[2]);const j=Math.abs(Math.sin(q[0]*91+q[1]*37+seed*13))*.012;if(d+j>bs){bs=d+j;best=q;}}return best.slice();}
@@ -555,7 +631,7 @@ const SIDE=[[['f','find_orange'],['f','sesame'],['g','tea']],[['f','hargow'],['g
 {const s=at(3);s.rules=s.rules.filter(q=>!(q.t==='rug'&&q.on==='swipe'));pick(s,'dusterT','duster',.95,.50,.07,'找到掸子啦！','먼지떨이를 찾았어!',['这里不用掸','여긴 털 필요 없어']);s.rules.push(rub('dusterT','rug','!rug',set('rug'),say('地毯平整啦','양탄자가 평평해졌어','rug')));}
 pick(at(4),'duster','duster',.60,.62,.08,'旧掸子还能用！','낡은 먼지떨이도 쓸 만해!');
 {const s=at(5);s.objs=s.objs.filter(o=>o.id!=='haw');s.rules=s.rules.filter(q=>q.t!=='haw');s.objs.push({id:'stall',hot:1,x:.93,y:.46,r:.08});s.tools.push({id:'hawT',img:'hawthorn',have:'out',miss:['这个是给墩墩的','이건 둥둥 줄 거야']});s.rules.push(tap('stall','!out',['fly','hawthorn',[.93,.46],'tray',.4,.05,.05],set('out'),['tone','good'],say('买到糖葫芦啦！','탕후루를 샀어!',[.5,.86],1.5)));s.rules.push(use('hawT','dun','!haw',set('haw'),say('甜甜的！','달콤해!','dun')));}
-SIDE.push([['f','find_orange'],['g','lunch'],['u','find_bell','cov_basket'],['h'],['b','broom2']],[['f','find_dragonfly'],['g','find_orange'],['u','find_top','cov_box'],['u','find_yarn','cov_bundle'],['h']],[['f','find_pouch'],['g','find_orange'],['u','find_bell','cov_barrel'],['u','find_top','cov_box'],['b','hanky']],[['f','find_bell'],['g','tea'],['u','find_orange','cov_box'],['u','find_dragonfly','cov_steamer'],['b','broom2']],[['f','find_top'],['g','find_orange'],['u','find_pouch','cov_basket'],['u','find_yarn','cov_bundle'],['h']],[['f','find_bell'],['g','find_orange'],['u','find_top','cov_box'],['u','find_dragonfly','cov_bundle'],['h']],[['f','find_pouch'],['g','lunch'],['u','find_bell','cov_barrel'],['u','find_yarn','cov_box'],['b','broom2']],[['f','find_dragonfly'],['g','find_orange'],['u','find_top','cov_bundle'],['h'],['b','hanky']],[['f','find_yarn'],['g','lunch'],['u','find_bell','cov_box'],['u','find_pouch','cov_barrel'],['h']],[['f','find_top'],['g','find_orange'],['u','find_dragonfly','cov_box'],['u','find_bell','cov_bundle'],['b','broom2']],[['f','find_bell'],['g','find_orange'],['u','find_yarn','cov_box'],['u','find_top','cov_bundle'],['h']],[['f','find_pouch'],['g','lunch'],['u','find_dragonfly','cov_steamer'],['u','find_bell','cov_box'],['b','broom2']],[['f','find_yarn'],['g','find_orange'],['u','find_top','cov_barrel'],['u','find_pouch','cov_bundle'],['h']],[['f','find_dragonfly'],['g','lunch'],['u','find_bell','cov_box'],['u','find_yarn','cov_basket'],['b','hanky']],[['f','find_top'],['g','find_orange'],['u','find_pouch','cov_box'],['u','find_bell','cov_barrel'],['h']]);
+SIDE.push([['f','find_orange'],['g','lunch'],['u','find_bell','cov_basket'],['h'],['b','broom2']],[['f','find_dragonfly'],['g','find_orange'],['u','find_top','cov_box'],['u','find_yarn','cov_bundle'],['h']],[['f','find_pouch'],['g','find_orange'],['u','find_bell','cov_barrel'],['u','find_top','cov_box'],['b','hanky']],[['f','find_bell'],['g','tea'],['u','find_orange','cov_box'],['u','find_dragonfly','cov_steamer'],['b','broom2']],[['f','find_top'],['g','find_orange'],['u','find_pouch','cov_basket'],['u','find_yarn','cov_bundle'],['h']],[['f','find_bell'],['g','find_orange'],['u','find_top','cov_box'],['u','find_dragonfly','cov_bundle'],['h']],[['f','find_pouch'],['g','lunch'],['u','find_bell','cov_barrel'],['u','find_yarn','cov_box'],['b','broom2']],[['f','find_dragonfly'],['g','find_orange'],['u','find_top','cov_bundle'],['h'],['b','hanky']],[['f','find_yarn'],['g','lunch'],['u','find_bell','cov_box'],['u','find_pouch','cov_barrel'],['h']],[['f','find_top'],['g','find_orange'],['u','find_dragonfly','cov_box'],['u','find_bell','cov_bundle'],['b','broom2']],[['f','find_bell'],['g','find_orange'],['u','find_yarn','cov_box'],['u','find_top','cov_bundle'],['h']],[['f','find_pouch'],['g','lunch'],['u','find_dragonfly','cov_steamer'],['u','find_bell','cov_box'],['b','broom2']],[['f','find_yarn'],['g','find_orange'],['u','find_top','cov_barrel'],['u','find_pouch','cov_bundle'],['h']],[['f','find_dragonfly'],['g','lunch'],['u','find_bell','cov_box'],['u','find_yarn','cov_basket'],['b','hanky']],[['f','find_top'],['g','find_orange'],['u','find_pouch','cov_box'],['u','find_bell','cov_barrel'],['h']],[['f','find_dragonfly'],['g','lunch'],['u','find_bell','cov_basket'],['u','find_top','cov_box'],['b','broom2']],[['f','find_yarn'],['g','find_orange'],['u','find_pouch','cov_bundle'],['u','find_dragonfly','cov_basket'],['h']],[['f','find_bell'],['g','tea'],['u','find_top','cov_box'],['u','find_yarn','cov_basket'],['b','broom2']],[['f','find_pouch'],['g','lunch'],['u','find_dragonfly','cov_basket'],['u','find_bell','cov_bundle'],['h']],[['f','find_top'],['g','find_orange'],['u','find_yarn','cov_box'],['u','find_pouch','cov_barrel'],['b','hanky']]);
 ST.forEach((s,i)=>side(s,SIDE[i]));
 for(const s of ST){s.diff=diff(s.id);s.time=time(s.id);}
 module.exports=ST;
