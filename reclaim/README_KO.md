@@ -1,6 +1,6 @@
 # RECLAIM: 돌아온 땅 — 출시 후보판 (A트랙 미니게임판: 웹·토스·위챗·더우인)
 
-빌드 1118-0200
+빌드 1119-1730
 
 ## 들어 있는 것
 - 1막 탈출: 탭해서 이동, 가방 8칸 고르기, 아래에서 올라오는 불길, 감염체 피하기, 비행기 탑승
@@ -16,13 +16,24 @@
 game.js의 `AD_UNIT` (wx / tt / toss). 토스는 G3에서 앱인토스 SDK 광고를 `globalThis.__tossAd(place, onReward, onFail)`로 연결.
 
 ## 통계 이벤트 (관리자 화면에 같은 이름으로 등록)
-act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, quest, rescue, bottle, ch1_clear, reclaim, barricade, flow_lost, flow_held, ch2_clear, reclaim_river, toll, toll_fail, trade, coffee, ch3_clear, reclaim_city, bomb_craft, ch4_clear, game_clear, regrow, feel_d3, toss_ready, prologue_done, talk, talk_skip, doc, act1_pick, ad_open, ad_reward, share, guide_open, app_hide, draw_error
+act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, quest, rescue, bottle, ch1_clear, reclaim, barricade, flow_lost, flow_held, ch2_clear, reclaim_river, toll, toll_fail, trade, coffee, ch3_clear, reclaim_city, bomb_craft, ch4_clear, game_clear, regrow, feel_d3, toss_ready, prologue_done, talk, talk_skip, doc, ff, sea_event, ev_boat, ev_trade, ev_school, shark_bite, shark_win, surv_tap, act1_pick, ad_open, ad_reward, share, guide_open, app_hide, draw_error
 
 ## 테스트 결과 (이번 빌드)
 - 한국어·중국어 전 화면 캡처, 중국어 화면 한글 누수 0건
 - 그리기 포함 자동 플레이(해역 3종 × 4일) 그리기 오류 0건
 - 위챗 흉내 환경: 오류 0건, 오디오 서브패키지·일시정지 동작
 - 시간대/언어별 첫 언어: 중국 → 중국어, 한국 → 한국어
+
+## 1119-1730 변경 (바다 지루함 줄이기 + 동료 일하기)
+- 바다 사건 (첫날 밤을 넘긴 뒤 낮에 55~90초마다): 상어(지느러미 3번 탭), 표류 보트(뒤질지 말지), 떠돌이 상인(1회 교환), 물고기 떼(반짝이는 물결 탭)
+- 빨리 감기 [▶ x1 / ▶▶ x3]: 사건이 생기거나 체력 30 미만이면 저절로 꺼짐
+- 원정 하루 2번까지 (해 지기 전 출발)
+- 동료가 각자 일함: 도하 🎣 낚시·굽기 / 유나 🔧 건지기·수리·불 / 마루 🔭 보급 드럼 발견·밤 망보기 / 한수 🪚 판자 다듬기 / 서린 🩺 치료. 이름 옆 그림 + 진행 막대, 동료를 탭하면 설명
+- 갑판 위로만 걷기 (바다를 가로질러 걷던 문제 수정, 갑판 길 찾기)
+- 갈매기 다시 그림 (날갯짓·그림자), 모듈에 받침판과 이름표를 달아 판자 위에서도 잘 보이게
+- 떠내려오는 물건이 갑판을 덮지 않고 옆으로 비켜 감
+- 2장 난이도 완화: 항구 감염체 수 줄임(6/8/9/10 → 5/6/7/8), 역류 간격 4일 → 6일, 방벽 재료 판자 6·고철 3 → 판자 5·고철 2
+- 자동 플레이 완주: 해역 3종 게임 속 18~44일 (이전 30~105일), 쓰러짐 0회
 
 ## 1118-0200 변경 (이야기 확장)
 - 세계관 정리: 한빛시의 청명바이오가 강 정화균 G-7을 풀었고, G-7은 소금에 죽는다 → 그래서 감염체가 바다를 못 건넌다. 주인공은 회장 전용기의 부기장
