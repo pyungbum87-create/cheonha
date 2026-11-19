@@ -1,6 +1,6 @@
 # RECLAIM: 돌아온 땅 — 출시 후보판 (A트랙 미니게임판: 웹·토스·위챗·더우인)
 
-빌드 1119-2100
+빌드 1120-0100
 
 ## 들어 있는 것
 - 1막 탈출: 탭해서 이동, 가방 8칸 고르기, 아래에서 올라오는 불길, 감염체 피하기, 비행기 탑승
@@ -16,13 +16,24 @@
 game.js의 `AD_UNIT` (wx / tt / toss). 토스는 G3에서 앱인토스 SDK 광고를 `globalThis.__tossAd(place, onReward, onFail)`로 연결.
 
 ## 통계 이벤트 (관리자 화면에 같은 이름으로 등록)
-act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, quest, rescue, bottle, ch1_clear, reclaim, barricade, flow_lost, flow_held, ch2_clear, reclaim_river, toll, toll_fail, trade, coffee, ch3_clear, reclaim_city, bomb_craft, ch4_clear, game_clear, regrow, feel_d3, toss_ready, prologue_done, talk, talk_skip, doc, ff, sea_event, ev_boat, ev_trade, ev_school, shark_bite, shark_win, surv_tap, town_build, act1_pick, ad_open, ad_reward, share, guide_open, app_hide, draw_error
+act1_start, act1_clear, zone_pick, debris, build, night_start, storm, day_end, land_start, land_back, fail, revive, pass_out, radio_signal, quest, rescue, bottle, ch1_clear, reclaim, barricade, flow_lost, flow_held, ch2_clear, reclaim_river, toll, toll_fail, trade, coffee, ch3_clear, reclaim_city, bomb_craft, ch4_clear, game_clear, regrow, feel_d3, toss_ready, prologue_done, talk, talk_skip, doc, ff, sea_event, ev_boat, ev_trade, ev_school, shark_bite, shark_win, surv_tap, town_build, tower, raid_start, raid_win, raid_lost, act1_pick, ad_open, ad_reward, share, guide_open, app_hide, draw_error
 
 ## 테스트 결과 (이번 빌드)
 - 한국어·중국어 전 화면 캡처, 중국어 화면 한글 누수 0건
 - 그리기 포함 자동 플레이(해역 3종 × 4일) 그리기 오류 0건
 - 위챗 흉내 환경: 오류 0건, 오디오 서브패키지·일시정지 동작
 - 시간대/언어별 첫 언어: 중국 → 중국어, 한국 → 한국어
+
+## 1120-0100 변경 (정착 2단계: 밤 습격 방어전)
+- 기존 "감염 역류"(팝업 한 장)를 실제 방어전으로 교체. 항구 구역을 하나라도 되찾으면 3~4일마다 밤에 습격
+  - 전날 마루의 무전, 당일 아침 예고 안내, 마을 화면에 「🌙 오늘 밤 습격」 표시
+  - 밤이 되면 마을 화면으로 전환되고 회색 무리가 가장자리·감염 구역에서 몰려옴 (되찾은 구역 수와 날짜에 따라 5~26마리, 날이 갈수록 뛰는 감염체 비율 증가)
+  - 방벽(체력 30)이 감염체를 붙잡고, 망루(새 건물: 판자 4·고철 3, 구역마다 1개)와 배부른 동료가 자동으로 쏨
+  - 플레이어: 감염체 탭 = 공격, 금 간 방벽 탭 = 판자 1개로 +10 수리
+  - 방벽이 뚫리면 구역 안으로 들어가 구역 체력(20)을 깎고, 0이 되면 그 구역을 잃음(다시 원정)
+  - 막아내면 고철 +2·판자 +2. 동이 트면 남은 감염체는 물러남
+- 2장 목표 「감염 역류 막기」 → 「밤 습격을 막아내기」
+- 습격 중에는 시간이 멈추고 마을 밖으로 나갈 수 없음
 
 ## 1119-2100 변경 (정착 1단계: 항구 마을 · 이어진 지도 · 선단)
 - 1장 끝(등대 점등) 뒤 기본 화면이 뗏목 → 항구 마을로 바뀜. 4구역(부두·시장·발전소·광장)이 잿빛 폐허로 보이고, 되찾으면 그 자리가 색을 되찾고 건물에 불이 켜짐
