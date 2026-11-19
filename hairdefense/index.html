@@ -15,7 +15,7 @@
 <link rel="icon" href="assets/icon-192.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <title>머리카락 사수 대작전 | 头发保卫战</title>
-<link rel="stylesheet" href="style.css?v=1114-2220">
+<link rel="stylesheet" href="style.css?v=1119-1250">
 </head>
 <body>
 <div id="app"><div id="gameWrap">
@@ -31,7 +31,7 @@
 <div id="toast"></div>
 <div id="reaction" class="reaction hidden" aria-live="polite"><img id="reactionArt" alt=""><div class="reactionWords"><b id="reactionTitle"></b><span id="reactionSub"></span></div></div>
 <div id="heroBanner" class="heroBanner" aria-live="polite"></div>
-<div class="bottomBar" id="bottomBar"><button id="quizBtn" class="ability">📚 <span data-i="quiz">언어 반격</span> <span id="energyCount">0/2</span></button><div class="hint" id="hint"></div></div>
+<div class="bottomBar" id="bottomBar"><div class="inkPill" id="inkPill">✨<b id="inkCount">0</b></div><button class="hzCard" type="button"><canvas width="96" height="96"></canvas><span></span></button><button class="hzCard" type="button"><canvas width="96" height="96"></canvas><span></span></button><button class="hzCard" type="button"><canvas width="96" height="96"></canvas><span></span></button><button id="quizBtn" class="ability">📚 <span data-i="quiz">언어 반격</span> <span id="energyCount">0/2</span></button><div class="hint" id="hint"></div></div>
 <button id="helpBtn" aria-label="도움말">?</button>
 
 <!-- 로딩 -->
@@ -48,6 +48,7 @@
   <div class="coinPill">🪙 <b id="coinCount">0</b></div>
   <div class="topBtns">
    <button class="miniBtn" id="rewardBtn" type="button"><span id="rewardLabel">🎁 매일 보상</span><i id="rewardDot" class="redDot hidden"></i></button>
+   <button class="iconBtn" id="shopBtn" type="button" aria-label="shop">🎨</button>
    <button class="iconBtn" id="settingsBtn" type="button" aria-label="설정">⚙️</button>
   </div>
  </div>
@@ -55,7 +56,7 @@
  <div class="subtitle" id="startSub">头发保卫战 · Last Hair Standing</div>
  <div class="heroStage" id="heroStage">
   <button class="heroArrow" id="heroPrev" type="button" aria-label="이전">‹</button>
-  <img id="heroPreviewImage" src="assets/hero_boss.webp?v=1114-2220" alt="">
+  <img id="heroPreviewImage" src="assets/hero_boss.webp?v=1119-1250" alt="">
   <div class="heroInfo"><b id="heroName"></b><span id="heroSkill"></span><span id="heroLv" class="heroLv"></span></div>
   <button class="heroArrow right" id="heroNext" type="button" aria-label="다음">›</button>
  </div>
@@ -83,6 +84,7 @@
   <div class="voiceInfo" id="voiceInfo"></div>
   <button class="voiceBtn" id="voiceTest" type="button"></button>
  </div>
+ <div class="voiceInfo" id="credits" style="text-align:center"></div>
  <button class="linkBtn" id="privacyBtn" type="button"></button>
  <button class="linkBtn danger" id="resetBtn" type="button"></button>
  <button class="cta" id="settingsClose" type="button"></button>
@@ -95,10 +97,12 @@
 <div class="screen hidden" id="reviveScreen"><div class="panel"><div style="font-size:52px">🥹</div><div class="title" id="reviveTitle"></div><div class="subtitle" id="reviveSub"></div><button class="cta ad" id="reviveAdBtn" type="button"></button><button class="cta secondary" id="reviveSkipBtn" type="button"></button></div></div>
 <div class="screen hidden" id="rewardScreen"><div class="panel"><div class="title" id="rewardTitle"></div><div class="coinPill" style="display:inline-block">🪙 <b id="coinCount2">0</b></div><div id="rewardBody"></div><button class="cta secondary" id="rewardClose" type="button"></button></div></div>
 <div class="screen hidden" id="privacyScreen"><div class="panel"><div class="title" id="privacyTitle"></div><div class="privacyText" id="privacyText"></div><button class="cta" id="privacyClose" type="button"></button></div></div>
+<div class="screen hidden" id="shopScreen"><div class="panel"><div class="title" id="shopTitle"></div><div class="coinPill" style="display:inline-block">🪙 <b id="coinCount3">0</b></div><div id="shopBody" class="shopGrid"></div><button class="cta secondary" id="shopClose" type="button"></button></div></div>
 <div id="adLayer" class="adLayer hidden"><div class="adBox"><div class="brand" style="color:#aaa">TEST AD</div><div id="adTitle" style="font-weight:900;margin:8px 0"></div><div id="adCount">2</div><div class="small" id="adNote" style="color:#bbb"></div></div></div>
 <div class="footer" id="version">HAIR DEFENSE</div>
 </div></div>
-<script src="words.js?v=1114-2220"></script>
-<script src="game.js?v=1114-2220"></script>
+<script src="words.js?v=1119-1250"></script>
+<script src="hanzi.js?v=1119-1250"></script>
+<script src="game.js?v=1119-1250"></script>
 </body>
 </html>
