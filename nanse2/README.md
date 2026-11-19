@@ -67,3 +67,11 @@ node tools/era_check.js                # 184년 시작 → 190년 시대 전환 
 - 그림 초상화: `portraits/<id>.webp` 가 있으면 코드 초상화 대신 쓴다. 시트 자르기 `python3 tools/slice_portraits.py <이미지> <시트 번호>` (칸 순서는 data/portrait_sheets.json). 자른 뒤 gen_data → rebuild.
 - 201~234년 사건 31건(data/battles_201_234.json): 삼고초려, 장판파, 적벽, 동관, 낙봉파, 정군산, 번성, 맥성, 이릉, 남만, 가정, 오장원 등.
 - 디버그: 주소 뒤에 `?dbg=1` 을 붙이면 `D.G`, `D.tbStart()` 등을 콘솔에서 쓸 수 있다.
+
+### 2026-11-19 · 극 연출
+- 초상화 대화 장면(`viewTalk`): 역사 사건 39개에 직접 쓴 대사(`data/talks.json`), 나머지 큰 사건은 서술로 자동 연출.
+- 평정: 군주는 달마다 무장·책사·문관 셋의 진언 중 하나를 채택, 장수는 주공의 명을 듣고 공략을 진언(`ACT.propose`). 상단 評 버튼, 설정에서 끌 수 있음.
+- 교류·등용·전투 시작·일기토 앞에 성격별 대사(성격 데이터 `PERS`).
+- 전투 포진 화면에서 전장 지휘를 기본으로, 3합 승부는 접어 둠.
+- 대사 없는 사건(삼고초려 등)이 발생하지 않던 버그 수정.
+- 배경 그림 자리: art/bg_council, bg_camp, bg_tavern, bg_house, bg_field, bg_palace (없으면 title.webp로 대신).

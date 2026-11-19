@@ -5,6 +5,7 @@ const root = path.join(__dirname, '..');
 const rd = f => JSON.parse(fs.readFileSync(path.join(root, 'data', f), 'utf8'));
 const people = rd('people.json'), scen = rd('scenarios.json'), legacy = rd('careers_legacy.json');
 const errs = [];
+const talks = Object.fromEntries(Object.entries(rd('talks.json')).filter(([k]) => !k.startsWith('_')));
 
 // 경력: 기존 경력 + careers.txt (@는 기존 경력 앞에 붙이기)
 const careers = {}, pre = {};
@@ -67,8 +68,12 @@ const GEAR = ${JSON.stringify(Object.fromEntries(rd('equipment.json').named.map(
 const PORTRAITS = ${JSON.stringify(fs.existsSync(path.join(root, 'portraits')) ? fs.readdirSync(path.join(root, 'portraits')).filter(f => f.endsWith('.webp')).map(f => f.replace('.webp', '')).sort() : [])};
 const SCENES = ${JSON.stringify(fs.readdirSync(path.join(root, 'art')).filter(f => f.startsWith('s_')).map(f => f.slice(2).replace('.webp', '')))};
 const GICON = ${JSON.stringify(fs.readdirSync(path.join(root, 'art')).filter(f => f.startsWith('g_')).map(f => f.slice(2).replace('.webp', '')))};
-// 역사 사건(회귀자의 기억): [id, 연, 월, 이름, 성, 원작 결과, 관련 인물]
-const HIST_EV = ${JSON.stringify([...rd('battles_184_200.json').battles, ...rd('battles_201_234.json').battles].map(b => [b.id, b.year, b.month, b.name, b.at, b.history, [...new Set([...(b.a ? b.a.leaders : []), ...(b.b ? b.b.leaders : [])])], b.duels || []]))};
+// 역사 사건(회귀자의 기억): [id, 연, 월, 이름, 성, 원작 결과, 관련 인물, 일기토, 대화 등장인물, 규모, a측 대표, b측 대표]
+const HIST_EV = ${JSON.stringify([...rd('battles_184_200.json').battles, ...rd('battles_201_234.json').battles].map(b => [b.id, b.year, b.month, b.name, b.at, b.history, [...new Set([...(b.a ? b.a.leaders : []), ...(b.b ? b.b.leaders : [])])], b.duels || [], talks[b.id] ? [...new Set(talks[b.id].lines.map(l => l[0]).filter(Boolean))] : [], b.scale || '', b.a && b.a.leaders[0] || '', b.b && b.b.leaders[0] || '']))};
+// 역사 사건 대화 연출: {id: {bg, lines:[[인물|null, 대사]]}}
+const TALKS = ${JSON.stringify(talks)};
+// 성격(대사 말투): uiri 의리 · sinjung 신중 · yongjang 용장 · gyohwal 교활 · onhwa 온화 · yasim 야심
+const PERS = ${JSON.stringify(Object.fromEntries(people.filter(p => p.personality).map(p => [p.id, p.personality])))};
 /*@@DATA_END@@*/
 `;
 const srcF = path.join(root, 'src', 'game_src.html');
