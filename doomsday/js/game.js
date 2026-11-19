@@ -569,7 +569,9 @@ window.DX = window.DX || {};
   function combo(id) { if (!G) return false; const c = (C.combos || []).find(k => k.id === id); return !!(c && G.weapons[c.a] && G.weapons[c.b]); }
   // 전투 손보기 배율 (config core / runMods)
   const CO = () => (C.core && C.core.on && G && !G.prologue) ? C.core : null;
-  const hordeK = k => { const c = CO(); return c ? c.horde[k] : 1; };
+  const hordeK = k => { const c = CO(); if (!c) return 1; let v = c.horde[k]; const g = c.grow;
+    if (g && !G.endless) { if (k === 'count') v *= 1 + G.stageIdx * g.stage + (G.sub || 0) * g.sub; else if (k === 'hp') v *= 1 + G.stageIdx * g.hp; }
+    return v; };
   const modK = (k, d) => (G && G.mod && G.mod[k] != null) ? G.mod[k] : (d == null ? 1 : d);
   function aliveN() { let n = 0; for (const z of G.zs) if (!z.dead) n++; return n; }
   function flashCar(kind, v) { if (G) G.carFlash[kind] = Math.max(G.carFlash[kind] || 0, v || 0.25); }
@@ -1943,6 +1945,8 @@ window.DX = window.DX || {};
   function updBoss(z, dt, h, d) {
     if (z.bt === undefined) { z.bt = 0; z.bst = null; z.bk = 0; z.throwT = rand(2.5, 4); }
     const reach = z.r + 0.12;
+    const BS = CO() && C.bossSkills;
+    if (BS && bossSkill(z, dt, h, d, BS, reach)) return true;
     if (z.bst) {
       z.bt -= dt;
       if (z.bst === 'wind') { z.bk = Math.min(1, z.bk + dt / 0.85); if (z.bt <= 0) { bossStrike(z); z.bst = 'strike'; z.bt = 0.25; } return true; }
@@ -1959,6 +1963,63 @@ window.DX = window.DX || {};
     z.atk = false;
     z.throwT -= dt;
     if (z.throwT <= 0 && d < 34 && d > reach + 4) { z.throwT = rand(4, 5.5) * (z.raged ? (z.cfg.rage || C.bossRage).throwMul : 1); z.bst = 'throw'; z.bk = 0; z.bt = 0.55; return true; }
+    return false;
+  }
+  function bossSkill(z, dt, h, d, BS, reach) {
+    const big = z.s / 3;
+    if (z.bst === 'barrage') {
+      z.bt -= dt; z.bk = Math.min(1, z.bk + dt / 0.4);
+      if (z.bt <= 0) { bossThrow(z); z.bk = 0; z.bn--; z.bt = BS.barrage.gap; if (z.bn <= 0) { z.bst = 'rec'; z.bt = 0.5; } }
+      return true;
+    }
+    if (z.bst === 'chargeW') {   // 돌진 준비: 이때 집중 사격하면 저지
+      z.bt -= dt; z.bk = Math.min(1, z.bk + dt / BS.charge.wind); z.atk = false;
+      const need = z.maxHp * BS.charge.breakPct, got = z.chHp - z.hp;
+      z.chBar = Math.min(1, got / need);
+      if (got >= need) {
+        z.bst = null; z.bk = 0; z.stun = BS.charge.stun; z.chBar = 0; z.skT = rand(BS.every[0], BS.every[1]);
+        G.ult = Math.min(1, G.ult + 0.12); G.shake = Math.max(G.shake, 0.8); G.hitstop = 0.08;
+        shockRing(z.x, z.z, 6, '#7dffb0'); FX.text(z.x, 7 * big, z.z, DX.L('저지 성공!!', '成功打断！！'), '#7dffb0', 34, 1.2, true); S.combo && S.combo(); vib(60);
+        return true;
+      }
+      if (Math.random() < dt * 14) part({ mesh: 'ico', x: z.x + rand(-2, 2), y: rand(0.5, 4), z: z.z + rand(-2, 2), vy: rand(2, 5), s: 0.5, s1: 0.1, max: 0.4, col: '#ff3030', emi: 2, pass: 2, alpha: 0.8, drift: 0 });
+      if (z.bt <= 0) { z.bst = 'charge'; z.chBar = 0; S.roar(); FX.text(z.x, 7 * big, z.z, DX.L('돌진!!', '冲撞！！'), '#ff4040', 32, 0.8, true); }
+      return true;
+    }
+    if (z.bst === 'charge') {
+      const st = Math.min(BS.charge.speed * dt, Math.max(0, d - reach));
+      z.x += (h.hx - z.x) / d * st; z.z += (h.hz - z.z) / d * st; z.ph += dt * 20; z.atk = true;
+      if (Math.random() < 0.7) part({ mesh: 'ico', x: z.x + rand(-1, 1), y: 0.4, z: z.z + rand(-1, 1), s: 1, s1: 2.2, max: 0.5, col: '#d9c7a8', emi: 0.2, pass: 2, alpha: 0.5, drift: 0 });
+      if (d <= reach + 0.4) {
+        z.target = { x: h.hx, z: h.hz }; bossStrike(z); damageTrain(z.dps * (BS.charge.dmg - 1.6));
+        G.shake = Math.max(G.shake, 1.8); G.hitstop = 0.1; z.bst = 'back'; z.bt = 0.9; z.bdx = (z.x - h.hx) / d; z.bdz = (z.z - h.hz) / d;
+      }
+      return true;
+    }
+    if (z.bst === 'back') {   // 치고 빠지기
+      z.bt -= dt; z.atk = false; z.x += (z.bdx || 0) * 12 * dt; z.z += (z.bdz || -1) * 12 * dt;
+      if (z.bt <= 0 || d > BS.standoff + 1.5) { z.bst = null; z.bk = 0; }
+      return true;
+    }
+    if (z.bst || z.stun > 0) return false;
+    z.skT = (z.skT == null ? BS.first : z.skT) - dt;
+    if (d > BS.standoff + 0.5 && d > 30) return false;   // 아직 멀면 걸어옴
+    if (z.skT <= 0) {
+      z.skN = (z.skN || 0) + 1; const sk = BS.order[(z.skN - 1 + (z.cfg.hp | 0)) % BS.order.length];
+      z.skT = rand(BS.every[0], BS.every[1]) * (z.raged ? BS.rageEvery : 1); z.bk = 0;
+      if (sk === 'barrage') { z.bst = 'barrage'; z.bn = BS.barrage.n + (z.raged ? 2 : 0); z.bt = 0.35; S.roar(); }
+      else if (sk === 'charge') {
+        z.bst = 'chargeW'; z.bt = BS.charge.wind * (z.raged ? 0.85 : 1); z.chHp = z.hp; z.chBar = 0;
+        telegraph(h.hx, h.hz, 4, z.bt + 0.4); telegraph((h.hx + z.x) / 2, (h.hz + z.z) / 2, 2.2, z.bt + 0.2); telegraph(z.x, z.z, 3, z.bt);
+        FX.text(z.x, 7.5 * big, z.z, DX.L('돌진 준비! 쏴서 막아라!', '准备冲撞！开火打断！'), '#ffd23d', 26, 1.5, true); S.alarm && S.alarm();
+      } else {
+        const sm = z.cfg.summon || 'office', zx2 = zoneX();
+        for (let i = 0; i < BS.summon.n + (z.raged ? 4 : 0); i++) { let sx = z.x + rand(-6, 6); if (zx2) sx = clamp(sx, zx2[0] + 0.6, zx2[1] - 0.6); spawnZombie(sm, sx, z.z + rand(-6, 6)); }
+        shockRing(z.x, z.z, 7, '#ff6bd0'); FX.text(z.x, 6.5 * big, z.z, DX.L('부하 소환!!', '召唤手下！！'), '#ff6bd0', 26, 1.2, true); S.roar(); z.skT *= 0.6;
+      }
+      return true;
+    }
+    if (d <= BS.standoff) { z.atk = false; z.ph += dt * 2; return true; }   // 거리를 두고 버팀
     return false;
   }
   function bossStrike(z) {
@@ -2015,6 +2076,11 @@ window.DX = window.DX || {};
     }
   }
   function drawBossFx() {
+    if (G.boss && G.boss.chBar != null && G.boss.bst === 'chargeW') {   // 저지 게이지
+      const bz = G.boss, y = 6.2 * (bz.s / 3);
+      T.reset().tr(bz.x, y, bz.z).sc(5, 0.5, 0.2); E.draw('cube', '#200808', 0.2, 0.85, 2);
+      T.reset().tr(bz.x - 2.5 * (1 - bz.chBar), y, bz.z + 0.05).sc(5 * bz.chBar + 0.01, 0.36, 0.22); E.draw('cube', '#7dffb0', 2, 1, 2);
+    }
     for (const t of G.tele) {
       const p = t.t / t.dur, pulse = 0.55 + Math.sin(t.t * 22) * 0.25;
       T.reset().tr(t.x, 0.12, t.z).sc(t.r * 2); E.draw('ring', '#ff2a2a', 1.6, pulse, 2);
@@ -2090,7 +2156,7 @@ window.DX = window.DX || {};
           shockRing(z.x, z.z, 9, '#ff3030'); FX.text(z.x, 7 * (z.s / 3), z.z, rg.quote, '#ff4040', 30, 1.8, true);
           if (DX.UI) DX.UI.banner(DX.L('분노 2단계!!', '狂暴第二阶段！！'), '“' + DX.T(z.cfg.rageQuote || rg.quote) + '”', 'boss');
         }
-        z.stompT -= dt;
+        z.stompT -= (CO() && C.bossSkills) ? 0 : dt;
         if (z.stompT <= 0) {
           z.stompT = 6;
           G.shake = Math.max(G.shake, 0.7); S.roar();
@@ -2466,9 +2532,9 @@ window.DX = window.DX || {};
     // 투사체
     for (const b of G.bullets) {
       const a = Math.atan2(b.vx, b.vz);
-      const bw = b.man ? 0.3 : b.gold ? 0.24 : 0.2;
-      T.reset().tr(b.x, b.y, b.z).ry(a).sc(bw, bw, b.man ? 2.8 : 2.2);
-      E.draw('cube', b.ghost ? '#9ff6ff' : b.man ? '#ffb347' : b.gold ? '#ffd23d' : '#fff3b0', 2.6, 1, 2);
+      const bw = b.man ? 0.16 : 0.12, bl = b.man ? 3.2 : 2.4, gc = b.ghost ? '#6fe9ff' : b.gold ? '#ffc21a' : b.man ? '#ff7a1a' : '#ffa53a';
+      T.reset().tr(b.x - Math.sin(a) * bl * 0.35, b.y, b.z - Math.cos(a) * bl * 0.35).ry(a).sc(bw * 3.2, bw * 1.2, bl * 1.5); E.draw('cube', gc, 1.6, 0.38, 2);   // 잔광
+      T.reset().tr(b.x, b.y, b.z).ry(a).sc(bw, bw, bl); E.draw('cube', '#fffbe0', 3, 1, 2);   // 밝은 심
     }
     for (const s of G.shells) {
       const p = s.t / s.dur, x = lerp(s.sx, s.tx, p), z = lerp(s.sz, s.tz, p), y = lerp(s.sy, 0.3, p) + Math.sin(Math.PI * p) * 4;

@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.25',
+    version: 'v0.26',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -40,10 +40,23 @@ DX.CONFIG = {
     horde: { count: 1.6, hp: 0.9, speed: 1.2, bossHp: 1.7, dps: 1.9, xp: 0.5, gold: 1.4 },
     aim: { rate: 0.55, dmg: 1.6, splash: 2.4, splashMul: 0.5 },
     noMini: true,
+    // 갈수록 좀비가 늘어남: 좀비 수 ×(1 + 장번호×stage + 스테이지번호×sub), 체력 ×(1 + 장번호×hp)
+    grow: { stage: 0.045, sub: 0.07, hp: 0.015 },
     mgRate: 0.75, pierce: 1,   // 기관총: 자동 연사 간격 배율, 관통 +1 (한 줄로 오는 좀비를 꿰뚫음)
     power: 1.5,       // 모든 무기 피해 배율: 좀비가 쌓이지 않고 쓸려 나가게 (대신 horde.dps 로 한 대가 아프게)
     killRush: 0.035,   // 좀비 1마리 잡을 때마다 웨이브 시간이 이만큼(초) 빨리 지나감 → 잘하는 사람은 빨리 끝남
   },
+  /* 보스 전용 기술 (일반 좀비처럼 달라붙지 않음). 보스는 standoff 거리에서 멈춰 서서 every 초마다 기술 하나:
+     barrage 연속 투척(n발, 분노 시 +2) / charge 돌진: wind 초 동안 준비 — 그동안 체력의 breakPct 만큼 깎으면 저지(stun 초 기절),
+     못 막으면 dmg(보스 공격력 배율) 피해 / summon 부하 n마리 소환 */
+  bossSkills: {
+    standoff: 7.5, first: 2.5, every: [3.2, 4.6], rageEvery: 0.7,
+    order: ['barrage', 'charge', 'summon', 'charge', 'barrage'],
+    barrage: { n: 3, gap: 0.42 },
+    charge: { wind: 1.6, breakPct: 0.035, stun: 3, speed: 26, dmg: 5 },
+    summon: { n: 8 },
+  },
+
   /* 오늘의 변수: 판마다 하나 뽑힘 (after 판째부터) → 매번 조금씩 다른 판.
      greed 골드, haste 속도(작을수록 빠름), crit 치명타 +, dmg 피해, hp 열차 체력, spawn 좀비 수, xp 경험치 */
   runMods: {
