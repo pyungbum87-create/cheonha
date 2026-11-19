@@ -24,7 +24,20 @@ function oldTrait(p) {
   const s = p.stats; const top = Object.entries({ mu: s.mu, ji: s.ji, yong: s.yong, in: s.in }).sort((a, b) => b[1] - a[1])[0][0];
   return { mu: '맹장', ji: '지장', yong: '명장', in: '인덕' }[top];
 }
-const X = v => v * 5; // 1~20 → 엔진 내부 100점 척도
+// 능력치 100점: data/stats100.json 에 직접 잰 값이 있으면 그것을, 없으면 옛 1~20 등급 ×5 + 특성·일기토 기록으로 보정
+const S100 = rd('stats100.json').people, SKEY = ['mu', 'yong', 'ji', 'jeong', 'in'];
+const TADJ = { ilgi:{ mu:3 }, yongmaeng:{ mu:2 }, gung:{ mu:1 }, gima:{ yong:1 }, sinsok:{ yong:2 }, susung:{ yong:2 }, gongsung:{ yong:1 }, sujeon:{ yong:1 }, hwagye:{ ji:2 }, gangye:{ ji:2 }, ganpa:{ ji:2 }, chise:{ jeong:3 }, dukmang:{ in:3 }, chungjeol:{ in:2 }, yamang:{ in:-2 } };
+const duelDead = new Set();
+for (const b of [...rd('battles_184_200.json').battles, ...rd('battles_201_234.json').battles]) for (const [a, d, note] of (b.duels || [])) { const pd = people.find(q => q.id === d); if (pd && note && note.includes(pd.name.replace(/\(.*\)/, '') + ' 전사')) duelDead.add(d); }
+for (const id of Object.keys(S100)) if (!people.some(q => q.id === id)) errs.push('stats100 인물 없음: ' + id);
+function st100(p) {
+  if (S100[p.id]) return Object.fromEntries(SKEY.map((k, i) => [k, S100[p.id][i]]));
+  const o = Object.fromEntries(SKEY.map(k => [k, p.stats[k] * 5]));
+  for (const t of p.traits) for (const [k, v] of Object.entries(TADJ[t] || {})) o[k] += v;
+  if (duelDead.has(p.id)) o.mu -= 2;
+  for (const k of SKEY) o[k] = Math.max(1, Math.min(99, o[k]));
+  return o;
+}
 const rows = [], jeong = {}, newTraits = {}, equip = {};
 for (const p of people) {
   // 새 경력(careers.txt)이 있으면 그것을 쓰고, 그 마지막 연도 뒤의 기존 경력(207·219·228 등)을 이어 붙인다.
@@ -37,9 +50,10 @@ for (const p of people) {
   parts.forEach(([y, f, ci]) => { if (!(+y >= 184)) errs.push(`${p.id} 연도 ${y}`); if (!facIds.has(f)) errs.push(`${p.id} 세력 ${f}`); if (!cityIds.has(ci)) errs.push(`${p.id} 성 ${ci}`); });
   parts.sort((a, b) => a[0] - b[0]);
   const ap = legacy[p.id] && legacy[p.id].ap;
-  const row = [p.id, p.name, p.born, p.died || p.born + 60, X(p.stats.mu), X(p.stats.ji), X(p.stats.yong), X(p.stats.in), oldTrait(p), parts.map(x => x.join(' ')).join('|')];
+  const T = st100(p);
+  const row = [p.id, p.name, p.born, p.died || p.born + 60, T.mu, T.ji, T.yong, T.in, oldTrait(p), parts.map(x => x.join(' ')).join('|')];
   if (ap) row.push(ap);
-  rows.push(row); jeong[p.id] = X(p.stats.jeong); newTraits[p.id] = p.traits;
+  rows.push(row); jeong[p.id] = T.jeong; newTraits[p.id] = p.traits;
   if (p.equip.weapon || p.equip.horse || p.equip.book) equip[p.id] = p.equip;
 }
 for (const id of Object.keys(careers)) if (!people.some(p => p.id === id)) errs.push('경력만 있고 인물 없음: ' + id);
@@ -55,10 +69,10 @@ const FAC_RAW = ${JSON.stringify(scen.factions)};
 const SCEN = ${JSON.stringify(scen.scenarios)};
 const SCEN_YEARS = Object.keys(SCEN).map(Number);
 // 인물 압축 표기: id;이름;출생;사망;무용;지략;용병;인망;정무(1~20);특성;경력;등장연도;새특성(.구분);여성
-const P_RAW = \`${rows.map(r => [r[0], r[1], r[2], r[3], r[4]/5, r[5]/5, r[6]/5, r[7]/5, jeong[r[0]]/5, TK[r[8]], r[9], r[10] || '', (newTraits[r[0]] || []).join('.'), femaleSet.has(r[0]) ? 1 : ''].join(';').replace(/;+$/, '')).join('\n')}\`;
+const P_RAW = \`${rows.map(r => [r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], jeong[r[0]], TK[r[8]], r[9], r[10] || '', (newTraits[r[0]] || []).join('.'), femaleSet.has(r[0]) ? 1 : ''].join(';').replace(/;+$/, '')).join('\n')}\`;
 const TKR = ${JSON.stringify(Object.fromEntries(Object.entries(TK).map(([k, v]) => [v, k])))};
 const PEOPLE_DEF = [], JEONG = {}, TRAITS2 = {}, FEMALE = [];
-for (const ln of P_RAW.split('\\n')){ const [id, n, b, d, m, i, l, c, g, t, car, ap, t2, fe] = ln.split(';'); const row = [id, n, +b, +d, m*5, i*5, l*5, c*5, TKR[t], car]; if (ap) row.push(+ap); PEOPLE_DEF.push(row); JEONG[id] = g*5; TRAITS2[id] = t2 ? t2.split('.') : []; if (fe) FEMALE.push(id); }
+for (const ln of P_RAW.split('\\n')){ const [id, n, b, d, m, i, l, c, g, t, car, ap, t2, fe] = ln.split(';'); const row = [id, n, +b, +d, +m, +i, +l, +c, TKR[t], car]; if (ap) row.push(+ap); PEOPLE_DEF.push(row); JEONG[id] = +g; TRAITS2[id] = t2 ? t2.split('.') : []; if (fe) FEMALE.push(id); }
 const EQUIP0 = ${JSON.stringify(equip)};
 const LOOK2 = ${JSON.stringify(Object.fromEntries(Object.entries(rd('looks.json')).filter(([k]) => !k.startsWith('_'))))};
 // 무기 종류(검 제외), 이름 있는 장비 [이름, 슬롯, {능력 보너스}]
