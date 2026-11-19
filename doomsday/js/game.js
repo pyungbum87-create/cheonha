@@ -595,6 +595,7 @@ window.DX = window.DX || {};
     G.rescued = G.citizens ? G.citizens.length : 0;
     G.crit = (p.crit || 0) * C.passives.crit.per + jobCount('crit') * C.jobs.crit.crit;
     G.greed = (1 + (p.greed || 0) * C.passives.greed.per) * (1 + Math.min(G.rescued, C.safeCar.maxPeople) * C.safeCar.goldPer + jobCount('gold') * C.jobs.gold.gold + skinBonus());
+    if (CO() && C.core.power) G.pMul *= C.core.power;
     if (G.mod) { const m = G.mod; G.pMul *= m.dmg || 1; G.haste *= m.haste || 1; G.crit += m.crit || 0; G.greed *= m.greed || 1; }
     G.layout = trainLayout(G.cars);
     // 드론 수
@@ -761,7 +762,7 @@ window.DX = window.DX || {};
     const hp = cfg.hp * w.hp * hordeK('hp');
     const s = cfg.scale * rand(0.92, 1.08);
     const zb = { type, cfg, x, z, y: 0, yaw: 0, ph: rand(0, 6), s, hp, maxHp: hp, armor: cfg.armor ? cfg.armor * w.hp : 0,
-      spd: cfg.speed * rand(0.85, 1.15), dps: cfg.dps * hordeK('dps'), mass: cfg.mass || 1, kx: 0, kz: 0, stun: 0, flash: 0, burn: 0, burnT: 0, atk: false, seed: Math.random(),
+      spd: cfg.speed * rand(0.85, 1.15) * (CO() ? C.core.horde.speed || 1 : 1), dps: cfg.dps * hordeK('dps'), mass: cfg.mass || 1, kx: 0, kz: 0, stun: 0, flash: 0, burn: 0, burnT: 0, atk: false, seed: Math.random(),
       onTrain: false, jump: null, r: 0.42 * s, dead: false, lastKind: 'shot', tf: Math.pow(Math.random(), 0.85), side: x < 0 ? -1 : x > 0 ? 1 : (Math.random() < 0.5 ? -1 : 1) };
     const zx = zoneX();
     if (zx && world.theme.deck && (x <= zx[0] + 0.01 || x >= zx[1] - 0.01)) { zb.climb = 1; zb.y = -2.4; }
@@ -795,7 +796,7 @@ window.DX = window.DX || {};
   }
   function spawnBoss() {
     const w = G.wave, cfg = C.bosses[w.boss] || C.bosses.bujang;
-    const hp = cfg.hp * (w.bossHp || 1);
+    const hp = cfg.hp * (w.bossHp || 1) * (CO() ? C.core.horde.bossHp || 1 : 1);
     const b = { type: 'boss', model: cfg.model === 'giant' ? cfg.base : null, giant: cfg.model === 'giant', cfg, x: -2, z: -70, y: 0, yaw: 0, ph: 0, s: cfg.scale * (w.bossHp > 2 ? 1.25 : 1), hp, maxHp: hp, armor: 0, spd: cfg.speed, dps: cfg.dps,
       mass: 999, kx: 0, kz: 0, stun: 0, flash: 0, burn: 0, burnT: 0, atk: false, onTrain: false, jump: null, r: 2.2, dead: false, boss: true, stompT: 5 };
     b.r = (b.giant ? 0.4 : 0.8) * b.s;
@@ -1309,7 +1310,7 @@ window.DX = window.DX || {};
       const lv = G.passives[id] || 0; if (lv >= 5) continue;
       if (lv === 0 && pOwned >= LM.passives) continue;
       const pair = Object.keys(W).find(k => W[k].evoWith === id && G.weapons[k]);
-      opts.push({ kind: 'passive', id, lv: lv + 1, name: P[id].name, desc: P[id].desc + (pair ? ' · ★ ' + DX.T(W[pair].name) + DX.L(' 진화 짝', ' 进化搭档') : ''), emoji: P[id].icon, isNew: lv === 0, w: pair ? 2 : 1.4 });
+      opts.push({ kind: 'passive', id, lv: lv + 1, name: P[id].name, desc: P[id].desc + (pair ? ' · ★ ' + DX.T(W[pair].name) + DX.L(' 진화 짝', ' 进化搭档') : ''), icon: P[id].img, emoji: P[id].icon, isNew: lv === 0, w: pair ? 2 : 1.4 });
     }
     const out = [];
     while (out.length < 3 && opts.length) {
@@ -1513,10 +1514,10 @@ window.DX = window.DX || {};
         const tx = tg.x - s[0], tz = tg.z - s[2];
         G.aim[i] = Math.atan2(tx, tz);
         if (G.tm.mg[i] <= 0) {
-          G.tm.mg[i] = w.rate[ml - 1] * haste * ph('gun') * rand(0.85, 1.15) * (man && CO() ? C.core.aim.rate : 1); flashCar('gun', 0.12);
+          G.tm.mg[i] = w.rate[ml - 1] * haste * ph('gun') * rand(0.85, 1.15) * (CO() ? (man ? C.core.aim.rate : C.core.mgRate || 1) : 1); flashCar('gun', 0.12);
           const d = Math.hypot(tx, tz) || 1, sp = 70;
           const a = G.aim[i] + rand(-0.04, 0.04);
-          G.bullets.push({ x: s[0] + Math.sin(a) * 0.9, y: 2.6, z: s[2] + Math.cos(a) * 0.9, vx: Math.sin(a) * sp, vz: Math.cos(a) * sp, dmg: w.dmg[ml - 1] * pm * (man ? (CO() ? C.core.aim.dmg : 1.3) : 1), spl: man && !!CO(), life: man ? 0.75 : 0.6, pierce: w.pierce[ml - 1], gold: ml >= 5, man, hit: [] });
+          G.bullets.push({ x: s[0] + Math.sin(a) * 0.9, y: 2.6, z: s[2] + Math.cos(a) * 0.9, vx: Math.sin(a) * sp, vz: Math.cos(a) * sp, dmg: w.dmg[ml - 1] * pm * (man ? (CO() ? C.core.aim.dmg : 1.3) : 1), spl: man && !!CO(), life: man ? 0.75 : 0.6, pierce: w.pierce[ml - 1] + (CO() ? C.core.pierce || 0 : 0), gold: ml >= 5, man, hit: [] });
           G.recoil[i] = 1;
           if (!fxSprite('muzzle', s[0] + Math.sin(a) * 1.1, 2.6, s[2] + Math.cos(a) * 1.1, 1.1, 1.5, 0.07, { rot: Math.atan2(-Math.cos(a), Math.sin(a)), vr: 0 }))
             part({ mesh: 'ico', x: s[0] + Math.sin(a) * 1.0, y: 2.6, z: s[2] + Math.cos(a) * 1.0, s: 0.45, s1: 0.1, max: 0.06, col: '#ffe9a0', emi: 2, pass: 2, alpha: 1, drift: 0 });
@@ -2465,8 +2466,9 @@ window.DX = window.DX || {};
     // 투사체
     for (const b of G.bullets) {
       const a = Math.atan2(b.vx, b.vz);
-      T.reset().tr(b.x, b.y, b.z).ry(a).sc(b.gold ? 0.2 : 0.14, b.gold ? 0.2 : 0.14, 1.6);
-      E.draw('cube', b.ghost ? '#9ff6ff' : b.gold ? '#ffd23d' : '#ffe9a0', 1.8, 1, 2);
+      const bw = b.man ? 0.3 : b.gold ? 0.24 : 0.2;
+      T.reset().tr(b.x, b.y, b.z).ry(a).sc(bw, bw, b.man ? 2.8 : 2.2);
+      E.draw('cube', b.ghost ? '#9ff6ff' : b.man ? '#ffb347' : b.gold ? '#ffd23d' : '#fff3b0', 2.6, 1, 2);
     }
     for (const s of G.shells) {
       const p = s.t / s.dur, x = lerp(s.sx, s.tx, p), z = lerp(s.sz, s.tz, p), y = lerp(s.sy, 0.3, p) + Math.sin(Math.PI * p) * 4;

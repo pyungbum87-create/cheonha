@@ -11,7 +11,7 @@ DX.CONFIG = {
   game: {
     title: 'DOOMSDAY EXPRESS',
     subtitle: '둠스데이 익스프레스 : 병맛 에디션',
-    version: 'v0.24',
+    version: 'v0.25',
     unlockAllStages: true,      // 테스트용: true면 모든 스테이지 바로 플레이 가능 (출시 때 false)
     maxZombies: 320,            // 동시에 존재 가능한 최대 좀비 수 (폰이 느리면 줄이기)
     maxZombiesLow: 160,         // '저사양 모드'일 때 최대 좀비 수
@@ -37,9 +37,11 @@ DX.CONFIG = {
      noMini = 판 중간 미니게임 끄기 (흐름 안 끊기게). 구조 작전 스테이지의 미니게임은 그대로 */
   core: {
     on: !/[?&]old=1/.test(typeof location !== 'undefined' ? location.search : ''),
-    horde: { count: 1.8, hp: 0.72, dps: 0.9, xp: 0.6, gold: 0.4 },
+    horde: { count: 1.6, hp: 0.9, speed: 1.2, bossHp: 1.7, dps: 1.9, xp: 0.5, gold: 1.4 },
     aim: { rate: 0.55, dmg: 1.6, splash: 2.4, splashMul: 0.5 },
     noMini: true,
+    mgRate: 0.75, pierce: 1,   // 기관총: 자동 연사 간격 배율, 관통 +1 (한 줄로 오는 좀비를 꿰뚫음)
+    power: 1.5,       // 모든 무기 피해 배율: 좀비가 쌓이지 않고 쓸려 나가게 (대신 horde.dps 로 한 대가 아프게)
     killRush: 0.035,   // 좀비 1마리 잡을 때마다 웨이브 시간이 이만큼(초) 빨리 지나감 → 잘하는 사람은 빨리 끝남
   },
   /* 오늘의 변수: 판마다 하나 뽑힘 (after 판째부터) → 매번 조금씩 다른 판.
@@ -567,9 +569,9 @@ DX.CONFIG = {
   passives: {
     power: { name: '근육 단백질', icon: '💪', desc: '모든 피해 +12%', per: 0.12 },
     haste: { name: '에너지 드링크', icon: '⚡', desc: '공격·쿨타임 속도 +8%', per: 0.08 },
-    armor: { name: '덕테이프 장갑', icon: '🛡️', desc: '열차 최대 체력 +15%, 30% 회복', per: 0.15 },
+    armor: { img: 'assets/icons/p_armor.png', name: '덕테이프 장갑', icon: '🛡️', desc: '열차 최대 체력 +15%, 30% 회복', per: 0.15 },
     magnet: { name: '냉장고 자석', icon: '🧲', desc: '경험치 흡수 범위 +35%', per: 0.35 },
-    crit: { name: '럭키 양말', icon: '🧦', desc: '치명타 확률 +8% (피해 2배)', per: 0.08 },
+    crit: { img: 'assets/icons/p_crit.png', name: '럭키 양말', icon: '🧦', desc: '치명타 확률 +8% (피해 2배)', per: 0.08 },
     greed: { name: '부장님 법카', icon: '💳', desc: '골드 획득 +20%', per: 0.20 },
   },
 

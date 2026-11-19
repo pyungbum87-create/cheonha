@@ -44,7 +44,7 @@ DX.save.meta = meta; DX.save.mild = false;
 
 const out = [];
 for (let r = 0; r < runs; r++) {
-  DX.startRun(stageIdx);
+  DX.startRun(stageIdx, process.env.SUB != null ? +process.env.SUB : undefined);
   const g = G; const dt = 1 / 30; let t = 0, minHp = 1, bossT = [], bossStart = -1, wasBoss = false, waveT = [];
   let lastWave = -1;
   while (t < 900) {
