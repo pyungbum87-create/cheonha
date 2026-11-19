@@ -16,7 +16,7 @@ if(API){const dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2};}
 else{c.width=W;c.height=H;}
 function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('canvas');cv.width=w;cv.height=h;return cv}
-const BUILD='1119-1127';
+const BUILD='1119-1300';
 const QS=(!API&&typeof location!=='undefined')?location.search:'';
 // 안전장치: 반지름 음수·NaN이면 그리기 전체가 멈추는 문제 방지
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
@@ -26,43 +26,28 @@ const clamp=(v,a,b)=>v<a?a:v>b?b:v, rand=(a,b)=>a+Math.random()*(b-a), hyp=Math.
 function hashStr(s){let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
 
 // ================================================================ 그림 불러오기
-const IMG_LIST=['map1','map2','map3','map4','map5','run_jay','z_walk','z_pred','z_blk','z_cmd','z_boss','props'];
-const MUST=['map1','run_jay','z_walk','props'];
+const IMG_LIST=['map1','map2','map3','map4','map5','jay','title','z_walk','z_run','z_pred','z_blk','z_cmd','z_boss','props'];
+const MUST=['map1','jay','z_walk','props'];
 const imgs={},imgFail={};
 function loadImg(name,tries=0){const im=API?(API.createImage?API.createImage():c.createImage()):new Image();
  im.onload=()=>{imgs[name]=im;onImg(name,im)};
  im.onerror=()=>{if(tries<8)setTimeout(()=>loadImg(name,tries+1),600+tries*900);else imgFail[name]=1};
- im.src='res/'+name+(name.indexOf('map')===0?'.jpg':'.png')+(API?'':'?v='+BUILD+(tries?'r'+tries:''))}
+ im.src='res/'+name+(name.indexOf('map')===0||name==='title'?'.jpg':'.png')+(API?'':'?v='+BUILD+(tries?'r'+tries:''))}
 const ZWHITE={};let ZRED=null;
 function tintOf(im,col,a){const cv=mkCanvas(im.width,im.height),x=cv.getContext('2d');x.drawImage(im,0,0);x.globalCompositeOperation='source-atop';x.globalAlpha=a;x.fillStyle=col;x.fillRect(0,0,im.width,im.height);return cv}
-function onImg(name,im){if(name.indexOf('z_')===0){const k=name.slice(2);try{ZWHITE[k]=tintOf(im,'#ffffff',.75);if(k==='walk')ZRED=tintOf(im,'#c0281a',.24)}catch(e){}}}
+function onImg(name,im){if(name.indexOf('z_')===0){const k=name.slice(2);try{ZWHITE[k]=tintOf(im,'#ffffff',.75)}catch(e){}}}
 IMG_LIST.forEach(n=>loadImg(n));
 
 // ================================================================ 캐릭터 · 감염체 그림 (잘라 붙인 부품을 코드로 움직임)
-const RUN_CELL=224,RUN_AX=112,RUN_AY=224*.33,RUN_W=100;
-function drawRunner(cx,x,y,ang,phase,mag,sz){const im=imgs.run_jay;if(!im)return;const K=sz/RUN_W,s=Math.sin(phase),m=Math.min(1,mag);let f;
- if(m<.15)f=1;else{const hs=Math.floor(phase/PI),tt=phase/PI-hs,odd=((hs%2)+2)%2;f=tt<.8?(odd?2:0):(odd?3:1)}
- cx.save();cx.translate(x,y);cx.fillStyle='rgba(0,0,0,.45)';cx.beginPath();cx.ellipse(0,4,sz*.5,sz*.25,0,0,TAU);cx.fill();
- cx.rotate(ang-PI/2+.05*s*m);const bob=1+.03*Math.abs(s)*m;cx.scale(K*bob,K*bob);cx.drawImage(im,f*RUN_CELL,0,RUN_CELL,RUN_CELL,-RUN_AX,-RUN_AY,RUN_CELL,RUN_CELL);cx.restore()}
-const ZM={"walk":{"torso":{"x":2,"y":2,"w":105,"h":107,"px":52.6,"py":56.6},"armL":{"x":109,"y":2,"w":53,"h":132,"px":38.1,"py":6.8},"armR":{"x":164,"y":2,"w":52,"h":131,"px":14.8,"py":6.8},"legL":{"x":218,"y":2,"w":35,"h":127,"px":18.7,"py":6.6},"legR":{"x":255,"y":2,"w":35,"h":127,"px":16.6,"py":6.6},"head":{"x":292,"y":2,"w":42,"h":48,"px":21.1,"py":22.4},"J":{"armL":[-43.4,4.7],"armR":[43.1,4.7],"legL":[-14.9,30.8],"legR":[14.7,30.8],"head":[0.0,41.5]},"tw":105},"pred":{"torso":{"x":2,"y":2,"w":110,"h":106,"px":54.9,"py":53.1},"armL":{"x":114,"y":2,"w":47,"h":152,"px":31.0,"py":7.8},"armR":{"x":163,"y":2,"w":45,"h":151,"px":15.3,"py":7.8},"legL":{"x":210,"y":2,"w":34,"h":116,"px":19.3,"py":6.0},"legR":{"x":246,"y":2,"w":31,"h":116,"px":14.7,"py":6.0},"head":{"x":279,"y":2,"w":35,"h":44,"px":17.5,"py":20.5},"J":{"armL":[-42.5,9.1],"armR":[42.5,9.1],"legL":[-15.1,-13.7],"legR":[15.1,-13.7],"head":[0.0,48.0]},"tw":110},"blk":{"torso":{"x":2,"y":2,"w":140,"h":128,"px":70.1,"py":66.2},"armL":{"x":144,"y":2,"w":63,"h":134,"px":43.6,"py":6.9},"armR":{"x":209,"y":2,"w":63,"h":134,"px":19.9,"py":6.9},"legL":{"x":274,"y":2,"w":46,"h":104,"px":26.3,"py":5.4},"legR":{"x":322,"y":2,"w":47,"h":103,"px":19.8,"py":5.4},"J":{"armL":[-51.8,20.6],"armR":[51.8,20.6],"legL":[-18.6,39.0],"legR":[18.6,39.0]},"tw":140},"cmd":{"torso":{"x":2,"y":2,"w":120,"h":97,"px":60.0,"py":52.1},"armL":{"x":124,"y":2,"w":56,"h":136,"px":41.8,"py":7.0},"armR":{"x":182,"y":2,"w":56,"h":136,"px":14.2,"py":7.0},"legL":{"x":240,"y":2,"w":39,"h":115,"px":23.5,"py":6.0},"legR":{"x":281,"y":2,"w":36,"h":115,"px":15.5,"py":5.9},"J":{"armL":[-40.8,10.9],"armR":[41.0,10.9],"legL":[-13.5,28.4],"legR":[13.7,28.4]},"tw":120},"boss":{"torso":{"x":2,"y":2,"w":190,"h":176,"px":95.1,"py":90.4},"armL":{"x":194,"y":2,"w":89,"h":179,"px":62.8,"py":9.3},"armR":{"x":285,"y":2,"w":89,"h":179,"px":25.7,"py":9.3},"legL":{"x":376,"y":2,"w":57,"h":137,"px":30.1,"py":7.1},"legR":{"x":435,"y":2,"w":59,"h":136,"px":27.4,"py":7.1},"J":{"armL":[-67.0,17.6],"armR":[66.7,17.6],"legL":[-27.3,52.9],"legR":[21.1,52.9]},"tw":190}};
-const ZSIZE={walk:28,run:27,pred:30,blk:44,cmd:38,boss:84};
-function zpart(cx,im,M,n,rot,sy){const m=M[n];if(!m)return;const j=M.J[n]||[0,0];cx.save();cx.translate(j[0],j[1]);if(rot)cx.rotate(rot);cx.scale(1,sy);cx.drawImage(im,m.x,m.y,m.w,m.h,-m.px,-m.py,m.w,m.h);cx.restore()}
-function drawZ(cx,t,x,y,ang,phase,mag,o){o=o||{};const key=t==='run'?'walk':t,M=ZM[key];
- const im=o.flash?ZWHITE[key]:(t==='run'?ZRED:imgs['z_'+key]);if(!im)return;
- const sz=ZSIZE[t]*(o.scale||1),K=sz/M.tw,s=Math.sin(phase),m=Math.min(1,mag);
- cx.save();cx.translate(x,y);cx.fillStyle='rgba(0,0,0,.42)';cx.beginPath();cx.ellipse(0,4,sz*.52,sz*.26,0,0,TAU);cx.fill();cx.rotate(ang-PI/2);cx.scale(K,K);
- let lL=.2+.4*s*m,lR=.2-.4*s*m,aL=.5+.14*s*m,aR=.5-.14*s*m,sp=-.12,tw=.06*s*m;
- if(t==='pred'){lL=.22+.36*s*m;lR=.22-.36*s*m;aL=.6-.36*s*m;aR=.6+.36*s*m;sp=.05;if(o.tele){aL=aR=.9;lL=lR=.05}}
- else if(t==='blk'){lL=.15+.25*s*m;lR=.15-.25*s*m;aL=.45-.2*s*m;aR=.45+.2*s*m;sp=0}
- else if(t==='cmd'){aL=.45-.3*s*m;aR=.45+.3*s*m;sp=0;if(o.tele){aL=aR=-.35;sp=.35}}
- else if(t==='boss'){lL=.15+.22*s*m;lR=.15-.22*s*m;aL=.5-.22*s*m;aR=.5+.22*s*m;sp=0;if(o.tele){aL=aR=.95;sp=-.3}tw*=.5}
- else if(o.tele){aL=aR=.75}
- zpart(cx,im,M,'legL',0,lL);zpart(cx,im,M,'legR',0,lR);cx.save();cx.rotate(tw);zpart(cx,im,M,'armL',sp,aL);zpart(cx,im,M,'armR',-sp,aR);zpart(cx,im,M,'torso',0,1);cx.rotate(-tw*.5);zpart(cx,im,M,'head',0,1);cx.restore();cx.restore()}
-// 감염체 걷기 8장을 미리 그려 둠(매 프레임 부품 조립 대신 한 장 그리기)
-const ZF={},NF=8;let zfReady=false;
-function buildSprites(){if(zfReady)return true;for(const k of['walk','pred','blk','cmd','boss'])if(!imgs['z_'+k]||!ZWHITE[k])return false;if(!ZRED)return false;
- for(const t in ZSIZE){const S=Math.ceil(ZSIZE[t]*3.4),mk=(ph,o)=>{const cv=mkCanvas(S*2,S*2),x=cv.getContext('2d');x.scale(2,2);drawZ(x,t,S/2,S/2,PI/2,ph,1,o);return cv};
-  ZF[t]={S,f:[],white:mk(0,{flash:true}),tele:mk(0,{tele:true})};for(let i=0;i<NF;i++)ZF[t].f.push(mk(i/NF*TAU))}
+const SPR={"jay":[200,59.8],"blk":[160,71.8],"pred":[128,55.0],"boss":[256,133.9],"cmd":[128,64.6],"run":[128,55.0],"walk":[128,55.0]};const NF=6;
+function drawRunner(cx,x,y,ang,phase,mag,sz){const im=imgs.jay;if(!im)return;const C=SPR.jay[0],D=sz*SPR.jay[1]/34,m=Math.min(1,mag),f=m<.15?0:(((phase/TAU*NF)|0)%NF+NF)%NF;
+ cx.save();cx.translate(x,y);cx.fillStyle='rgba(0,0,0,.45)';cx.beginPath();cx.ellipse(0,3,sz*.42,sz*.3,0,0,TAU);cx.fill();cx.rotate(ang-PI/2);cx.drawImage(im,f*C,0,C,C,-D/2,-D/2,D,D);cx.restore()}
+// 감염체 걷기 6장을 미리 잘라 둠(그림자 포함, 흰 번쩍임·예고 색 포함)
+const ZF={};let zfReady=false;
+function buildSprites(){if(zfReady)return true;for(const k of['walk','run','pred','blk','cmd','boss'])if(!imgs['z_'+k]||!ZWHITE[k])return false;
+ for(const t of['walk','run','pred','blk','cmd','boss']){const C=SPR[t][0],S=SPR[t][1],im=imgs['z_'+t],sh=C*.17,mk=(src,i,tint)=>{const cv=mkCanvas(C,C),x=cv.getContext('2d');if(!tint||tint==='t'){x.fillStyle='rgba(0,0,0,.42)';x.beginPath();x.ellipse(C/2,C/2+2,sh,sh*.8,0,0,TAU);x.fill()}x.drawImage(src,i*C,0,C,C,0,0,C,C);
+   if(tint==='t'){x.globalCompositeOperation='source-atop';x.globalAlpha=.4;x.fillStyle='#ff7a2a';x.fillRect(0,0,C,C)}return cv};
+  ZF[t]={S,f:[],white:mk(ZWHITE[t],0,'w'),tele:mk(im,1,'t')};for(let i=0;i<NF;i++)ZF[t].f.push(mk(im,i))}
  zfReady=true;return true}
 const PROP_M={radio:[2,2,96,96],firebottle:[100,2,44,96],bottle:[146,2,39,96],crate:[187,2,87,96],spikes:[276,2,95,96],parcel:[373,2,96,96],turret:[471,2,96,90],sandbag:[569,2,96,32],medkit:[667,2,96,75],battery:[765,2,96,61]};
 function prop(k,x,y,w,rot){const im=imgs.props;if(!im)return false;const m=PROP_M[k],h=w*m[3]/m[2];g.save();g.translate(x,y);if(rot)g.rotate(rot);g.drawImage(im,m[0],m[1],m[2],m[3],-w/2,-h/2,w,h);g.restore();return true}
@@ -575,9 +560,7 @@ function nextGoal(){if(!save.clr[1])return[L('목표: 주거 지구에서 문지
  const cu=UPG.find(u=>upLv(u.k)<u.m&&save.sup>=upCost(u));if(cu)return[L('▲ 지금 대피소에서 ','▲ 现在可在避难所强化 ')+LL(cu.n)+L(' 강화 가능!',''),'#7fe0b0'];
  for(let i=1;i<5;i++)if(!save.clr[i+1]&&save.clr[i])return[L('다음 목표: ','下一目标：')+LL(STAGES[i].n)+L(' 탈출',' 撤离'),'#ffe2c4'];
  return[L('다음 목표: 더 높은 난이도에 도전','下一目标：挑战更高难度'),'#ffe2c4']}
-function title(){bgMap(0,.55);const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(4,6,12,.2)');gr.addColorStop(.55,'rgba(4,6,12,.55)');gr.addColorStop(1,'rgba(4,6,12,.95)');g.fillStyle=gr;g.fillRect(0,0,W,H);
- if(zfReady){for(let i=0;i<7;i++){const a=frame*.25+i*.9,x=375+Math.cos(a)*(230+i*9),y=520+Math.sin(a)*130,t=i%3===0?'pred':'walk';const F=ZF[t];g.save();g.translate(x,y);g.rotate(Math.atan2(520-y,375-x)-PI/2);g.globalAlpha=.85;g.drawImage(F.f[((frame*6+i)|0)%NF],-F.S*1.1,-F.S*1.1,F.S*2.2,F.S*2.2);g.restore()}}
- drawRunner(g,375,560,-PI/2,frame*10,1,120);
+function title(){const ti=imgs.title;if(ti){g.fillStyle='#05070c';g.fillRect(0,0,W,H);const th=W*ti.height/ti.width;g.drawImage(ti,0,0,W,th);let gr=g.createLinearGradient(0,0,0,340);gr.addColorStop(0,'rgba(5,7,12,.8)');gr.addColorStop(1,'rgba(5,7,12,0)');g.fillStyle=gr;g.fillRect(0,0,W,340);gr=g.createLinearGradient(0,680,0,th);gr.addColorStop(0,'rgba(5,7,12,0)');gr.addColorStop(1,'rgba(5,7,12,1)');g.fillStyle=gr;g.fillRect(0,680,W,th-680)}else{bgMap(0,.6)}
  txt('DEAD ROUTE',375,190,84,'#ffffff','center');txt(L('좀비 떼 생존','尸潮突围'),375,262,34,'#ff8a3d','center');
  supIcon(540,330,14);txt(save.sup,566,330,28,'#ffe2a0');txt(L('별 ','星 ')+totalStars()+'/15',200,330,22,'#ffd166','center');
  const [goal,gc]=nextGoal();rr(60,770,630,56,16,'rgba(10,14,22,.8)');txt(goal,375,798,19,gc,'center',false,700);
