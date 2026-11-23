@@ -211,7 +211,7 @@ p{margin:0}
 .thero .brand h1,.thero .brand p{text-shadow:0 0 6px #f7f0e1,0 0 12px #f7f0e1}
 .thero .brand p{color:var(--ink)}
 .duelp .dside{background:linear-gradient(#f7f0e199,#f7f0e1cc),url(art/duel.webp) center 45%/cover;border-radius:12px;padding:12px 10px}
-.scene{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:10px;display:block;box-shadow:inset 0 0 0 1px #26201c22}
+.rscene{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:10px;display:block;box-shadow:inset 0 0 0 1px #26201c22;margin:0 auto}
 .gears{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .gear{display:inline-flex;align-items:center;gap:6px;background:#fff6dd;border:1px solid var(--line);border-radius:10px;padding:3px 8px 3px 3px;font-size:13px}
 .gear img{width:34px;height:34px;border-radius:7px;object-fit:cover}
@@ -381,6 +381,43 @@ details summary{font-weight:800;cursor:pointer;padding:5px 0}
 .talk.has-ch .tk-band{max-height:26vh}.talk.has-ch .tk-stage{margin-top:-60px;flex:1}.talk.has-ch .tk-pt{width:min(28vw,120px)}.talk.has-ch .tk-box{min-height:0;margin-top:8px;padding:14px 14px 14px}.talk.has-ch .tk-text{font-size:15px}.talk.has-ch .tk-ch{flex:none;max-height:56vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
 .btn.tbgo{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px}.btn.tbgo b{font-size:18px}.btn.tbgo small{font-weight:400;opacity:.85;font-size:11.5px}
 details.quick{border:1px dashed #b9a98a;border-radius:10px;padding:6px 10px;margin:6px 0}details.quick summary{font-size:13px;font-weight:700;cursor:pointer;color:#5a4d3a}
+
+.facepick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:2px 0 4px}
+.facepick .fp{width:auto;height:auto;aspect-ratio:1;border-radius:12px;border:2px solid var(--line);padding:0;overflow:hidden;background:#efe5cf}
+.facepick .fp img{width:100%;height:100%;object-fit:cover;display:block}
+.facepick .fp[aria-pressed=true]{border-color:var(--fac,#7a3b2a);box-shadow:0 0 0 2px var(--fac,#7a3b2a)}
+.facepick .fp.brush{font-size:12px;color:var(--ink2,#5a4d3a);line-height:1.3}
+.sheet>*,.page>*,.modal>*,.cpanel>*{flex-shrink:0}
+.sheet.tall{max-height:96%}
+.cu-head{display:flex;justify-content:space-between;align-items:center}.cu-head h3{margin:0}
+.cu-hero{display:flex;gap:12px;align-items:stretch}.cu-hero>.pt{flex:none;width:min(44vw,200px)!important;height:auto!important;aspect-ratio:1;border-radius:14px}
+.cu-id{flex:1;display:flex;flex-direction:column;gap:7px;justify-content:center;min-width:0}
+.cu-id input{font:inherit;font-size:17px;font-weight:700;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--paper2);width:100%;box-sizing:border-box}
+.cu-foot{position:sticky;bottom:calc(-16px - env(safe-area-inset-bottom,0px));margin:4px -14px calc(-16px - env(safe-area-inset-bottom,0px));padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(0,0,0,0),var(--paper2) 30%);z-index:2}
+.cu-foot .btn{width:100%}
+
+.rcard{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 2px;font:inherit;color:inherit}
+.rcard:last-child{border-bottom:0}.rcard>.pt{flex:none;border-radius:10px}
+.rc-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.rc-top{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.rc-nm{font-size:15.5px}.rc-sub{font-size:11.5px;color:var(--muted,#7a6d5a);margin-left:auto}
+.stat5{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.stat5>span{display:flex;align-items:baseline;justify-content:center;gap:3px;background:#26201c0b;border-radius:7px;padding:3px 0;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
+.stat5 i{font-style:normal;font-weight:600;font-size:10.5px;opacity:.6}
+.stat5 .g5{color:#a8740c;background:#d4a01f22}.stat5 .g4{color:#a3322a}.stat5 .g3{color:var(--ink)}.stat5 .g2{color:#6b5e4b}.stat5 .g1{color:#a89a80;font-weight:600}
+.rc-bot{display:grid;grid-template-columns:1fr auto 1fr auto;gap:4px 6px;align-items:center}.rc-bot .tiny{white-space:nowrap}
+.rc-bar{height:5px;border-radius:3px;background:#26201c14;overflow:hidden}.rc-bar i{display:block;height:100%}
+
+.top .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:4px;overflow:visible}
+.top .stat{flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px 2px;font-size:10px;line-height:1.15;text-align:center;min-width:0}
+.top .stat b{font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.top .stat.warn b{color:var(--red)}
+.top .sub2{font-size:10.5px;color:var(--muted,#7a6d5a);text-align:center;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+
+.sbars{display:flex;flex-direction:column;gap:5px;margin:2px 0}
+.sbars>div{display:grid;grid-template-columns:3em 1fr 2.4em;gap:8px;align-items:center;font-size:12.5px}
+.sbars i{height:8px;border-radius:4px;background:#26201c12;overflow:hidden;display:block}.sbars i b{display:block;height:100%;border-radius:4px;background:#6b5e4b}
+.sbars em{font-style:normal;font-weight:800;font-size:15px;text-align:right;font-variant-numeric:tabular-nums}
+.sbars .g5 b{background:linear-gradient(90deg,#c9971c,#e6bd4a)}.sbars .g5 em{color:#a8740c}.sbars .g4 b{background:#a3322a}.sbars .g4 em{color:#a3322a}.sbars .g3 b{background:var(--ink)}.sbars .g1 b{background:#b8ab92}.sbars .g1 em{color:#a89a80}
 </style>
 <div id="app"></div>
 
@@ -3834,9 +3871,21 @@ const kp = (k, size) => ptHTML(k.look || kidLook(k), G.year-k.born, k.sex==='여
 function actBtn(label, sub, attrs, enabled, cls=''){ return `<button class="act ${cls}" ${attrs} ${enabled?'':'disabled'}>${label}${sub?`<small>${esc(sub)}</small>`:''}</button>`; }
 const roleText = () => G.role==='ruler' ? '군주' : G.role==='officer' ? `${RANKS[G.rank]}${G.gov?' · '+city(G.gov).n+' 태수':''}` : '재야';
 
-function render(){
+// 다시 그려도 스크롤과 열린 패널이 그대로 있게 한다 (누를 때마다 맨 위로 튀지 않게)
+const KEEP_SEL = ['.page', '.view', '.cpanel', '.modal', '.tk-ch', '.cpick', '.picks'];
+let keepKey = null;
+function keepScroll(fn){
+  const key = !G ? 'title:' + (typeof titleTab!=='undefined' ? titleTab : '') : G.phase + ':' + (G.view||'') + ':' + (G.sel||'');
+  const same = key===keepKey, saved = KEEP_SEL.map(q => { const e = $app.querySelector(q); return e ? e.scrollTop : null; });
+  fn();
+  keepKey = key;
+  if (!same) return;
+  KEEP_SEL.forEach((q, i) => { const e = $app.querySelector(q); if (e && saved[i]!=null){ e.scrollTop = saved[i]; if (q==='.cpanel' || q==='.modal') e.style.animation = 'none'; } });
+}
+function render(){ if (SIM) return; keepScroll(render0); }
+function render0(){
   if (SIM) return;
-  if (!G) return renderTitle();
+  if (!G) return renderTitle0();
   document.documentElement.style.setProperty('--fac', G.pfac ? facColor(G.pfac) : '#6f6356');
   if (G.phase==='over') return renderOver();
   if (G.phase==='succession') return renderSuccession();
@@ -4140,10 +4189,8 @@ function viewTop(){
       <span class="stat">${G.role==='ruler'?'총병력':'병력'} <b>${fmt(troops)}</b></span>
       <span class="stat ${G.role!=='ronin' && trv<35?'warn':''}">${tr} <b>${Math.round(trv)}</b></span>
       <span class="stat ${G.hp<35?'warn':''}">체력 <b>${Math.round(G.hp)}</b></span>
-      <span class="stat">훈련 <b>${G.train}</b></span>
-      ${G.role!=='ronin' ? `<span class="stat">공적 <b>${fmt(G.merit)}</b></span>` : ''}
-      <span class="stat">무${SV(p.m)} 지${SV(p.i)} 용${SV(p.l)} 정${SV(p.g||p.i)} 인${SV(p.c)}</span>
     </div>
+    <div class="sub2">훈련 ${G.train}${G.role!=='ronin' ? ` · 공적 ${fmt(G.merit)}` : ''} · 무${SV(p.m)} 용${SV(p.l)} 지${SV(p.i)} 정${SV(p.g||p.i)} 인${SV(p.c)}</div>
   </header>`;
 }
 function viewNav(){
@@ -4414,12 +4461,19 @@ function viewArmy(){
 }
 
 /* ---------- 인물 ---------- */
+// 능력치 다섯 칸: 90+ 금색, 80+ 붉은색, 70+ 먹색, 그 아래는 옅게
+const gradeCls = v => v>=90 ? 'g5' : v>=80 ? 'g4' : v>=70 ? 'g3' : v>=50 ? 'g2' : 'g1';
+const statBars = p => `<div class="sbars">${[['무용',p.m],['용병',p.l],['지략',p.i],['정무',p.g||p.i],['인망',p.c]].map(([k,v]) => `<div class="${gradeCls(SV(v))}"><span>${k}</span><i><b style="width:${SV(v)}%"></b></i><em>${SV(v)}</em></div>`).join('')}</div>`;
+const stat5 = p => `<span class="stat5">${[['무',p.m],['용',p.l],['지',p.i],['정',p.g||p.i],['인',p.c]].map(([k,v]) => `<span class="${gradeCls(SV(v))}"><i>${k}</i>${SV(v)}</span>`).join('')}</span>`;
 function prowHtml(p){
   const bd = bond(p.id), col = bd>=60 ? 'var(--good)' : bd<0 ? 'var(--red)' : 'var(--gold)';
   const badges = [isSworn(p.id)?'<span class="badge">의형제</span>':'', aliveFacs().some(f=>f.ruler===p.id)?'<span class="badge" style="background:var(--ink)">군주</span>':'', p.fam?'<span class="badge" style="background:var(--good)">가족</span>':'', p.army?'<span class="badge" style="background:var(--red)">원정</span>':''].join(' ');
-  return `<button class="prow" data-person="${p.id}">${pp(p,38)}<span class="nm">${esc(p.n)} ${badges}</span>
-    <span class="mini">${ageOf(p)}세 · 무${SV(p.m)} 지${SV(p.i)} 용${SV(p.l)} 정${SV(p.g||p.i)} 인${SV(p.c)}${G.role==='ruler'&&p.fac===G.pfac?` · 충성 ${Math.round(p.loy)}`:''}<br>${p.army ? '원정 중' : esc(city(p.city).n)}${city(p.city).gov===p.id && !p.army?' 태수':''}</span>
-    <span class="bond"><span class="tiny" style="font-weight:800">${bd}</span><div class="track"><i style="width:${clamp((bd+100)/2)}%;background:${col}"></i></div></span></button>`;
+  const loy = G.role==='ruler' && p.fac===G.pfac ? Math.round(p.loy) : null;
+  return `<button class="rcard" data-person="${p.id}">${pp(p,52)}<span class="rc-main">
+      <span class="rc-top"><b class="rc-nm">${esc(p.n)}</b>${badges}<span class="rc-sub">${p.army ? '원정 중' : esc(city(p.city).n)}${city(p.city).gov===p.id && !p.army?' · 태수':''} · ${ageOf(p)}세</span></span>
+      ${stat5(p)}
+      <span class="rc-bot"><span class="rc-bar"><i style="width:${clamp((bd+100)/2)}%;background:${col}"></i></span><span class="tiny">인연 ${bd}</span>${loy!=null?`<span class="rc-bar"><i style="width:${loy}%;background:${loy<45?'var(--red)':'#5a7d9a'}"></i></span><span class="tiny">충성 ${loy}</span>`:''}</span>
+    </span></button>`;
 }
 function viewPeople(){
   const tabs = [['mine', G.pfac?'우리 세력':'이 성'], ['free','재야'], ['world','천하']];
@@ -4498,7 +4552,7 @@ function viewEvent(){
 function viewReport(){
   const items = G.mnews.slice().sort((a,b) => (b.mine?1:0)-(a.mine?1:0)).slice(0, 14);
   return `<div class="modal"><div class="ehead"><span class="seal">報</span><div><h3>${G.repDate||dateStr()}의 소식</h3><div class="small muted">${G.lastIncome ? `수입 금 +${fmt(G.lastIncome)}` : ''}</div></div></div>
-    ${G.scene ? `<img class="scene" src="art/s_${G.scene}.webp" alt="">` : ''}
+    ${G.scene ? `<img class="rscene" src="art/s_${G.scene}.webp" alt="">` : ''}
     <div class="news">${items.map(n => `<div class="${n.mine?'mine':''}">${esc(n.t)}</div>`).join('') || '<div>조용한 달이었다.</div>'}</div>
     ${G.dead ? `<p class="result bad">${esc(me().n)}의 숨이 멎었다.</p>` : ''}
     <button class="btn" id="reportNext">${G.over ? (G.over.kind==='era'?'시대의 끝':'천하통일!') : G.dead ? '생의 끝' : `${dateStr()}을 맞는다`}</button></div>`;
@@ -4806,7 +4860,7 @@ function regForm(sc){
     <p class="small muted">${REG_ROLES[d.role][1]}${d.role==='ruler' && !cities.length ? ' <b style="color:var(--red)">이 시점에는 주인 없는 성이 없다. 무명으로 시작해 거병하라.</b>' : ''}</p>
     ${d.role==='officer' ? `<span class="lbl">섬길 세력</span><div class="three">${facs.map(fr => seg('fac', fr[0], facName0(fr))).join('')}</div>` : ''}
     ${d.role!=='officer' && cities.length ? `<span class="lbl">${d.role==='ruler'?'일어설 성 (주인 없는 성)':'눈을 뜬 곳'}</span><select id="rgCity" style="font:inherit;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--paper2)">${cities.map(c => `<option value="${c}" ${c===d.city?'selected':''}>${cityName(c)}</option>`).join('')}</select>` : ''}
-    <span class="lbl">얼굴</span>${facePick(d.face, false).replace('</div>', faceList(true).map(x => `<button class="fp" data-face="${x}" aria-pressed="${d.face===x}"><img src="portraits/${x}.webp" alt=""></button>`).join('') + '</div>')}
+    <span class="lbl">얼굴</span>${facePick(d.face, false, true)}
     <span class="lbl">회귀 전에 잘하던 것</span>
     <div class="three">${Object.entries(FOCUS).map(([k,[t,sub,st]]) => seg('focus', k, t, ST[st]+' +4')).join('')}</div>
     <p class="small muted">${FOCUS[d.focus][1]}. 다른 인물들은 역사 속 수명대로 세상을 떠나지만, 그대의 기억으로 그 운명을 바꿀 수 있다.</p>
@@ -4836,8 +4890,8 @@ const cuList = () => META.custom || (META.custom = []);
 const cuUsed = c => CU_STATS.reduce((a,[k]) => a + c.st[k], 0);
 const FACES = PORTRAITS.filter(x => x.startsWith('face'));
 const faceList = female => FACES.filter(x => female ? +x.slice(4) >= 13 : +x.slice(4) <= 12);
-const facePick = (cur, female) => `<div class="facepick"><button class="fp" data-face="" aria-pressed="${!cur}">붓<br>그림</button>${faceList(female).map(x => `<button class="fp" data-face="${x}" aria-pressed="${cur===x}"><img src="portraits/${x}.webp" alt=""></button>`).join('')}</div>`;
-function cuBlank(){ return { id:'cu'+Date.now().toString(36), n:'', female:false, age:22, st:{ mu:10, yong:10, ji:10, jeong:10, in:10 }, tr:['ilgi'], pers:'uiri', w:'do', look:{ skin:'a', hat:'helmet', hc:'#666666', beard:'mustache', bc:'', eye:'sharp', extra:'' } }; }
+const facePick = (cur, female, all) => `<div class="facepick">${(all ? [...faceList(false), ...faceList(true)] : faceList(female)).map(x => `<button class="fp" data-face="${x}" aria-pressed="${cur===x}"><img src="portraits/${x}.webp" alt=""></button>`).join('')}<button class="fp brush" data-face="" aria-pressed="${!cur}">직접<br>꾸미기</button></div>`;
+function cuBlank(){ return { id:'cu'+Date.now().toString(36), n:'', female:false, age:22, st:{ mu:10, yong:10, ji:10, jeong:10, in:10 }, tr:['ilgi'], pers:'uiri', w:'do', look:{ img:'face01', skin:'a', hat:'helmet', hc:'#666666', beard:'mustache', bc:'', eye:'sharp', extra:'' } }; }
 const cuPt = (c, size) => ptHTML(c.look, c.age, c.female, '#7a3b2a', size, 'sq');
 function openCustom(){
   const L = cuList();
@@ -4852,23 +4906,26 @@ function openCuEdit(c, isNew){
   const left = CU_POINTS - cuUsed(c);
   const seg = (k, v, t, on) => `<button class="segb" aria-pressed="${on}" data-${k}="${v}"><b>${t}</b></button>`;
   const lookRow = k => { const opts = CU_LOOK[k], i = Math.max(0, opts.findIndex(o => o[0]===c.look[k])); return `<button class="ghost" data-lk="${k}" style="display:flex;justify-content:space-between;width:100%"><span>${CU_LBL[k]}</span><b>${opts[i][1]} ▸</b></button>`; };
-  const bg = sheet(`<h3>${isNew?'새 장수 만들기':'장수 고치기'}</h3>
-    <div class="row">${cuPt(c, 88)}<div class="grow" style="display:flex;flex-direction:column;gap:6px">
-      <input id="cuName" maxlength="6" placeholder="이름 (예: 한결)" value="${esc(c.n)}" style="font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper2)">
+  const bg = sheet(`<div class="cu-head"><h3>${isNew?'새 장수 만들기':'장수 고치기'}</h3><button class="icon" data-close aria-label="닫기">✕</button></div>
+    <div class="cu-hero">${cuPt(c, 200)}<div class="cu-id">
+      <input id="cuName" maxlength="6" placeholder="이름 (예: 한결)" value="${esc(c.n)}">
       <div class="row">${seg('sx','m','남',!c.female)}${seg('sx','f','여',c.female)}</div>
-      <div class="row between"><span class="small">나이 <b>${c.age}</b>세</span><span class="row"><button class="ghost" data-age="-1">−</button><button class="ghost" data-age="1">+</button></span></div></div></div>
+      <div class="row between"><span class="small">나이 <b>${c.age}</b>세</span><span class="row"><button class="ghost" data-age="-1">−</button><button class="ghost" data-age="1">+</button></span></div>
+      <p class="tiny muted" style="margin:0">${CU_STATS.map(([k,n]) => n+' '+c.st[k]*5).join(' · ')}</p></div></div>
+    <span class="lbl">얼굴</span>${facePick(c.look.img, c.female)}
+    ${c.look.img ? '' : '<span class="lbl">생김새</span>'}${c.look.img ? '' : (c.female ? ['skin','eye'] : Object.keys(CU_LOOK)).map(lookRow).join('')}
     <span class="lbl">능력 (남은 포인트 <b style="color:${left?'var(--red)':'var(--good)'}">${left*5}</b> / 총 ${CU_POINTS*5}, 항목당 ${CU_STMIN*5}~${CU_STMAX*5})</span>
     ${CU_STATS.map(([k,n]) => `<div class="row between"><span class="small" style="width:3.5em">${n}</span><div class="grow" style="height:7px;border-radius:4px;background:#26201c18;overflow:hidden"><div style="height:7px;width:${c.st[k]/20*100}%;background:var(--ink)"></div></div><b style="width:2em;text-align:right">${c.st[k]*5}</b><button class="ghost" data-st="${k}" data-d="-1">−5</button><button class="ghost" data-st="${k}" data-d="1">+5</button></div>`).join('')}
     <span class="lbl">특성 (2개까지)</span>
     <div class="chips">${CU_TRAITS.map(([k,n]) => `<button class="chip${c.tr.includes(k)?' gold':''}" data-tr="${k}" style="border:0">${n}</button>`).join('')}</div>
     <span class="lbl">성격</span><div class="three">${CU_PERS.map(([k,n]) => seg('ps',k,n,c.pers===k)).join('')}</div>
     <span class="lbl">무기</span><div class="three">${CU_W.map(([k,n]) => seg('wp',k,n,c.w===k)).join('')}</div>
-    <span class="lbl">얼굴 그림</span>${facePick(c.look.img, c.female)}
-    ${c.look.img ? '' : '<span class="lbl">생김새</span>'}${c.look.img ? '' : (c.female ? ['skin','eye'] : Object.keys(CU_LOOK)).map(lookRow).join('')}
-    <button class="btn" id="cuSave">${left<0?'포인트를 넘었다':'저장'}</button>${isNew?'':'<button class="btn2" id="cuCopy">공유 코드 복사</button><button class="btn2" id="cuDel">이 장수 지우기</button>'}<button class="btn2" data-close>닫기</button>`);
-  const again = () => { const n = bg.querySelector('#cuName'); c.n = n.value.trim().slice(0,6); bg.remove(); openCuEdit(c, isNew); };
+    ${isNew?'':'<div class="row"><button class="btn2 grow" id="cuCopy">공유 코드 복사</button><button class="btn2 grow" id="cuDel">이 장수 지우기</button></div>'}
+    <div class="cu-foot"><button class="btn" id="cuSave">${left<0?'포인트를 넘었다':left>0?`저장 (남은 포인트 ${left*5})`:'저장'}</button></div>`);
+  bg.querySelector('.sheet').classList.add('tall');
+  const again = () => { const n = bg.querySelector('#cuName'); c.n = n.value.trim().slice(0,6); const y = bg.querySelector('.sheet').scrollTop; bg.remove(); const nb = openCuEdit(c, isNew); const sh = nb && nb.querySelector('.sheet'); if (sh){ sh.style.animation = 'none'; sh.scrollTop = y; } };
   bg.querySelector('#cuName').oninput = e => { c.n = e.target.value.trim().slice(0,6); };
-  bg.querySelectorAll('[data-sx]').forEach(b => b.onclick = () => { c.female = b.dataset.sx==='f'; delete c.look.img; again(); });
+  bg.querySelectorAll('[data-sx]').forEach(b => b.onclick = () => { c.female = b.dataset.sx==='f'; c.look.img = faceList(c.female)[0]; again(); });
   bg.querySelectorAll('[data-face]').forEach(b => b.onclick = () => { if (b.dataset.face) c.look.img = b.dataset.face; else delete c.look.img; again(); });
   bg.querySelectorAll('[data-age]').forEach(b => b.onclick = () => { c.age = clamp(c.age + +b.dataset.age, 16, 45); again(); });
   bg.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { const k = b.dataset.st, d = +b.dataset.d, v = c.st[k] + d;
@@ -4883,6 +4940,7 @@ function openCuEdit(c, isNew){
     saveMeta(); track('custom_save'); bg.remove(); openCustom(); };
   const cp = bg.querySelector('#cuCopy'); if (cp) cp.onclick = () => { const code = cuCode(c); try { navigator.clipboard.writeText(code); note('공유 코드를 복사했다.', [['복사',true]]); } catch(e) { sheet(`<h3>공유 코드</h3><textarea style="width:100%;height:90px">${code}</textarea><button class="btn2" data-close>닫기</button>`); } };
   const del = bg.querySelector('#cuDel'); if (del) del.onclick = () => { META.custom = cuList().filter(x => x.id!==c.id); saveMeta(); bg.remove(); openCustom(); };
+  return bg;
 }
 function cuSummon(c){
   if (!G || G.people[c.id]) return false;
@@ -4948,7 +5006,8 @@ function openBackup(){
     if (cuList().length >= CU_MAX) return note(`내 장수는 ${CU_MAX}명까지다.`, [], true);
     cuList().push(c); saveMeta(); bg.remove(); note(`${c.n}이(가) 내 장수에 들어왔다.`, [['내 장수',true]]); renderTitle(); };
 }
-function renderTitle(){
+function renderTitle(){ keepScroll(renderTitle0); }
+function renderTitle0(){
   const pr = prefs(), sc = pr.scen;
   if (!['reg','wei','shu','wu','qun','ruler'].includes(titleTab)) titleTab = 'reg';
   const col = KINGDOM[titleTab][2];
@@ -5019,7 +5078,7 @@ function openPick(id){
   const ce = careerAt(id, sc), f = ce[1]!=='free' && !SCEN[sc].rulers[ce[1]] ? 'free' : ce[1];
   const startTxt = isRuler ? '군주로 시작합니다. 군단을 편성해 천하를 다툽니다.' : f==='free' ? '재야로 시작합니다. 주군을 찾거나 스스로 일어서야 합니다.' : `${startY}년, ${startY-r[4]}세에 ${G_FACNAME(f, sc)} 장수로 시작합니다.`;
   const bg = sheet(`<div class="row">${ptHTML(rowLook(id), startY - r[4], false, KINGDOM[titleTab][2], 96, 'sq')}<div><h2 style="font-size:26px">${r[1]}</h2><div class="small muted">${r[4]}–${r[5]} · ${r[10]}<br>${TRAITS[r[10]]}</div></div></div>
-    <div class="kv"><div><span>무용</span><b>${SV(r[6])}</b></div><div><span>지략</span><b>${SV(r[7])}</b></div><div><span>용병</span><b>${SV(r[8])}</b></div><div><span>정무</span><b>${SV(JEONG[r[0]]||r[7])}</b></div><div><span>인망</span><b>${SV(r[9])}</b></div></div>
+    ${statBars({ m:r[6], i:r[7], l:r[8], g:JEONG[r[0]]||r[7], c:r[9] })}
     <p class="small">병종 적성 <b>${aptLine({ id, m:r[6], i:r[7], l:r[8], c:r[9], fac:r[2] })}</b> (기병·창병·궁병·수군)</p>
     <p class="small muted">${startTxt} ${pr.mode==='real' ? `역사 속 ${r[1]}은(는) ${r[5]}년에 세상을 떠났습니다.` : '가상 모드: 역사 속 수명에 묶이지 않습니다.'}</p>
     <p class="small"><b>${sc}년 시나리오</b> · ${pr.mode==='real'?'현실 모드':'가상 모드'}</p>
@@ -5224,7 +5283,7 @@ function openSheet(kind, arg){
     const canTalk = !isMe && !p.army && (sameFac || p.city===G.city) && G.phase==='act';
     const modes = [['drink','술자리','c'],['talk','담론','i'],['spar','무예 겨루기','m'],['gift','선물 (금 60)',null]];
     let body = `<div class="row">${pp(p,84,'sq')}<div><h2 style="font-size:24px">${esc(p.n)}</h2><div class="small muted">${ageOf(p)}세 · ${p.tr} (${TRAITS[p.tr]})<br>${p.fac==='free'?'재야':esc(facName(p.fac))} · ${p.army?'원정 중':esc(city(p.city).n)}</div></div></div>
-      <div class="kv"><div><span>무용</span><b>${SV(p.m)}</b></div><div><span>지략</span><b>${SV(p.i)}</b></div><div><span>용병</span><b>${SV(p.l)}</b></div><div><span>정무</span><b>${SV(p.g||p.i)}</b></div><div><span>인망</span><b>${SV(p.c)}</b></div></div>${(p.gear||[]).length ? `<div class="gears">${p.gear.map(n => { const gid = GEAR_ID[n], ic = GICON.includes(gid) ? gid : GEAR[gid] && GEAR[gid][1]==='book' ? 'book' : null; return `<span class="gear">${ic ? `<img src="art/g_${ic}.webp" alt="">` : ''}<b>${esc(n)}</b></span>`; }).join('')}</div>` : ''}<p class="tiny muted" style="margin:2px 0 0">${({do:'대도',mo:'창·모',geuk:'극',geom:'검',gung:'활',pyeon:'편·추'})[p.wtype||'geom']}${(p.tr2||[]).length?' · 특성 '+p.tr2.map(t=>({ilgi:'일기당천',gima:'기마술',sujeon:'수전',gung:'궁술',hwagye:'화계',gangye:'간계',ganpa:'간파',susung:'수성',gongsung:'공성',sinsok:'신속',chise:'치세',dukmang:'덕망',yongmaeng:'용맹',chungjeol:'충절',yamang:'야망',jangsu:'강건'})[t]).join('·'):''}</p>
+      ${statBars(p)}${(p.gear||[]).length ? `<div class="gears">${p.gear.map(n => { const gid = GEAR_ID[n], ic = GICON.includes(gid) ? gid : GEAR[gid] && GEAR[gid][1]==='book' ? 'book' : null; return `<span class="gear">${ic ? `<img src="art/g_${ic}.webp" alt="">` : ''}<b>${esc(n)}</b></span>`; }).join('')}</div>` : ''}<p class="tiny muted" style="margin:2px 0 0">${({do:'대도',mo:'창·모',geuk:'극',geom:'검',gung:'활',pyeon:'편·추'})[p.wtype||'geom']}${(p.tr2||[]).length?' · 특성 '+p.tr2.map(t=>({ilgi:'일기당천',gima:'기마술',sujeon:'수전',gung:'궁술',hwagye:'화계',gangye:'간계',ganpa:'간파',susung:'수성',gongsung:'공성',sinsok:'신속',chise:'치세',dukmang:'덕망',yongmaeng:'용맹',chungjeol:'충절',yamang:'야망',jangsu:'강건'})[t]).join('·'):''}</p>
       <p class="small">병종 적성 <b>${aptLine(p)}</b> (기병·창병·궁병·수군)</p>`;
     if (!isMe){
       body += `<p class="small">인연 <b>${bond(p.id)}</b>${isSworn(p.id)?' · 의형제':''}${G.role==='ruler'&&sameFac?` · 충성 ${Math.round(p.loy)}`:''}</p>`;
