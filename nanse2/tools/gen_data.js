@@ -71,8 +71,8 @@ const SCEN_YEARS = Object.keys(SCEN).map(Number);
 // 인물 압축 표기: id;이름;출생;사망;무용;지략;용병;인망;정무(1~20);특성;경력;등장연도;새특성(.구분);여성
 const P_RAW = \`${rows.map(r => [r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], jeong[r[0]], TK[r[8]], r[9], r[10] || '', (newTraits[r[0]] || []).join('.'), femaleSet.has(r[0]) ? 1 : ''].join(';').replace(/;+$/, '')).join('\n')}\`;
 const TKR = ${JSON.stringify(Object.fromEntries(Object.entries(TK).map(([k, v]) => [v, k])))};
-const PEOPLE_DEF = [], JEONG = {}, TRAITS2 = {}, FEMALE = [];
-for (const ln of P_RAW.split('\\n')){ const [id, n, b, d, m, i, l, c, g, t, car, ap, t2, fe] = ln.split(';'); const row = [id, n, +b, +d, +m, +i, +l, +c, TKR[t], car]; if (ap) row.push(+ap); PEOPLE_DEF.push(row); JEONG[id] = +g; TRAITS2[id] = t2 ? t2.split('.') : []; if (fe) FEMALE.push(id); }
+const PEOPLE_DEF = [], JEONG = {}, TRAITS2 = {}, FEMALE = [], NAMED_IDS = new Set();
+for (const ln of P_RAW.split('\\n')){ const [id, n, b, d, m, i, l, c, g, t, car, ap, t2, fe] = ln.split(';'); const row = [id, n, +b, +d, +m, +i, +l, +c, TKR[t], car]; if (ap) row.push(+ap); PEOPLE_DEF.push(row); JEONG[id] = +g; TRAITS2[id] = t2 ? t2.split('.') : []; if (fe) FEMALE.push(id); NAMED_IDS.add(id); }
 const EQUIP0 = ${JSON.stringify(equip)};
 const LOOK2 = ${JSON.stringify(Object.fromEntries(Object.entries(rd('looks.json')).filter(([k]) => !k.startsWith('_'))))};
 // 무기 종류(검 제외), 이름 있는 장비 [이름, 슬롯, {능력 보너스}]

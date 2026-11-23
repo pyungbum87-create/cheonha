@@ -378,6 +378,7 @@ details summary{font-weight:800;cursor:pointer;padding:5px 0}
 .tk-ch .choice{background:#f3ead6;color:#2a241c}
 .tk-q{position:relative;z-index:4;text-align:center;font-size:11px;color:#a89a80;margin:0 0 calc(env(safe-area-inset-bottom,0px) + 8px)}
 @media (orientation:landscape) and (max-height:520px){.tk-band{max-height:42vh}.tk-stage{margin-top:-14%}.tk-pt{width:min(22vw,150px)}.tk-box{min-height:70px;padding:14px 14px 18px}}
+.talk.has-ch .tk-band{max-height:26vh}.talk.has-ch .tk-stage{margin-top:-60px;flex:1}.talk.has-ch .tk-pt{width:min(28vw,120px)}.talk.has-ch .tk-box{min-height:0;margin-top:8px;padding:14px 14px 14px}.talk.has-ch .tk-text{font-size:15px}.talk.has-ch .tk-ch{flex:none;max-height:56vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
 .btn.tbgo{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px}.btn.tbgo b{font-size:18px}.btn.tbgo small{font-weight:400;opacity:.85;font-size:11.5px}
 details.quick{border:1px dashed #b9a98a;border-radius:10px;padding:6px 10px;margin:6px 0}details.quick summary{font-size:13px;font-weight:700;cursor:pointer;color:#5a4d3a}
 </style>
@@ -781,8 +782,8 @@ jiangwei;강유;202;264;89;91;89;77;69;g;228 wei ts;218;gima.ganpa.chungjeol
 menghuo;맹획;185;240;87;30;73;76;40;a;219 free jg;;yongmaeng
 gongsunyuan;공손연;190;238;55;45;60;33;45;c;228 gsd yp;212;yamang`;
 const TKR = {"a":"맹장","b":"지장","c":"명장","d":"인덕","e":"강철","f":"충의","g":"기병","h":"장수"};
-const PEOPLE_DEF = [], JEONG = {}, TRAITS2 = {}, FEMALE = [];
-for (const ln of P_RAW.split('\n')){ const [id, n, b, d, m, i, l, c, g, t, car, ap, t2, fe] = ln.split(';'); const row = [id, n, +b, +d, +m, +i, +l, +c, TKR[t], car]; if (ap) row.push(+ap); PEOPLE_DEF.push(row); JEONG[id] = +g; TRAITS2[id] = t2 ? t2.split('.') : []; if (fe) FEMALE.push(id); }
+const PEOPLE_DEF = [], JEONG = {}, TRAITS2 = {}, FEMALE = [], NAMED_IDS = new Set();
+for (const ln of P_RAW.split('\n')){ const [id, n, b, d, m, i, l, c, g, t, car, ap, t2, fe] = ln.split(';'); const row = [id, n, +b, +d, +m, +i, +l, +c, TKR[t], car]; if (ap) row.push(+ap); PEOPLE_DEF.push(row); JEONG[id] = +g; TRAITS2[id] = t2 ? t2.split('.') : []; if (fe) FEMALE.push(id); NAMED_IDS.add(id); }
 const EQUIP0 = {"wangyun":{"weapon":"qixing","horse":null,"book":null},"zhangjiao":{"weapon":null,"horse":null,"book":"taiping"},"dongzhuo":{"weapon":null,"horse":"chitu","book":null},"lvbu":{"weapon":"fangtian","horse":null,"book":null},"cao":{"weapon":"yitian","horse":null,"book":null},"xiahouen":{"weapon":"qinggang","horse":null,"book":null},"dianwei":{"weapon":"shuangtieji","horse":null,"book":null},"liubei":{"weapon":"shuanggu","horse":null,"book":null},"guanyu":{"weapon":"qinglong","horse":null,"book":null},"zhangfei":{"weapon":"zhangba","horse":null,"book":null},"sunjian":{"weapon":"guding","horse":null,"book":null},"chengpu":{"weapon":"tieji","horse":null,"book":null},"huanggai":{"weapon":"tiebian","horse":null,"book":null}};
 const LOOK2 = {"zhangjiao":"a,band,#d9a520,long,#e8e8e8,calm,robe","zhangbao_hj":"b,band,#d9a520,full,,sharp,","zhangliang_hj":"d,band,#d9a520,wild,,round,thick","chengyuanzhi":"d,band,#d9a520,wild,,round,","dengmao":"b,band,#d9a520,full,,round,","hanzhong":"b,band,#d9a520,mustache,,sharp,","sunzhong":"d,band,#d9a520,full,,round,","zhaohong":"b,band,#d9a520,stub,,sharp,","guanhai":"d,band,#d9a520,wild,,round,thick","heyi":"b,band,#d9a520,full,,round,","huangshao":"d,band,#d9a520,stub,,round,","heman":"d,band,#d9a520,wild,,round,fat","peiyuanshao":"b,band,#d9a520,full,,round,","zhoucang":"d,band,#3a3a3a,wild,,round,thick","liaohua":"a,helmet,#7a7a7a,mustache,,sharp,","zhangyan":"b,band,#3a3a3a,full,,sharp,","liubi":"b,band,#7a6a3a,full,,round,","gongdu":"d,band,#7a6a3a,stub,,round,","hejin":"a,cap,#2b2b2b,full,,round,fat noble","zhangrang":"e,cap,#4a3a5a,none,,sharp,noble","lushi":"a,scholar,#d8d2c0,long,#bdbdbd,calm,","huangfusong":"b,helmet,#8a8a9a,long,#e8e8e8,sharp,","zhujun":"b,helmet,#7a6a5a,full,,sharp,","wangyun":"a,cap,#2b2b2b,long,#e8e8e8,calm,noble","caiyong":"a,scholar,#d8d2c0,long,#d0d0d0,calm,","dongcheng":"a,cap,#2b2b2b,full,,calm,noble","yangbiao":"a,cap,#2b2b2b,long,#d9d9d9,calm,noble","dingyuan":"b,helmet,#666666,full,,sharp,","liuyu":"a,cap,#2b2b2b,long,#e8e8e8,calm,noble","zhongyao":"a,cap,#2b2b2b,goatee,,calm,","xiandi":"e,crown,#c9a227,none,,calm,noble","lisu":"a,cap,#2b2b2b,mustache,,sharp,","huzhen":"d,helmet,#555555,full,,round,","niufu":"d,helmet,#555555,full,,round,","zhangji":"b,helmet,#666666,mustache,,sharp,","fanchou":"d,helmet,#555555,wild,,round,","xurong":"b,helmet,#6a6a6a,mustache,,sharp,","zangba":"b,helmet,#555555,full,,sharp,thick","haomeng":"d,helmet,#555555,stub,,round,","caoxing":"b,helmet,#666666,mustache,,sharp,","chenglian":"b,helmet,#666666,stub,,sharp,","weixu":"d,helmet,#5a5a5a,full,,round,","songxian":"b,helmet,#6a6a6a,mustache,,round,","houcheng":"b,helmet,#6a6a6a,goatee,,sharp,","chenggui":"a,cap,#2b2b2b,long,#e8e8e8,sharp,","chendeng":"a,cap,#2b2b2b,mustache,,sharp,","huchenger":"d,band,#555555,wild,,round,thick","yangfeng":"b,helmet,#666666,full,,round,","hanxian":"d,helmet,#555555,full,,round,","caochun":"a,helmet,#6a7a8a,mustache,,sharp,","caoang":"e,helmet,#7a8a9a,none,,calm,","xiahouen":"e,helmet,#7a8a9a,none,,round,","yuejin":"b,helmet,#555555,mustache,,sharp,","yujin":"b,helmet,#666666,full,,sharp,","lidian":"a,helmet,#6a6a6a,goatee,,calm,","xunyou":"a,cap,#2b2b2b,goatee,,calm,","chengyu":"b,cap,#2b2b2b,long,#d0d0d0,sharp,","liuye":"a,cap,#2b2b2b,mustache,,calm,","manchong":"a,cap,#2b2b2b,full,,sharp,","xuyou":"a,cap,#2b2b2b,goatee,,sharp,","maojie":"a,cap,#2b2b2b,goatee,,calm,","dongzhao":"a,cap,#2b2b2b,mustache,,sharp,","huaxin":"a,cap,#2b2b2b,goatee,,calm,","wanglang":"a,cap,#2b2b2b,long,#d0d0d0,calm,","chenqun":"a,cap,#2b2b2b,goatee,,calm,","mizhu":"a,cap,#2b2b2b,goatee,,calm,noble","sunqian":"a,cap,#2b2b2b,mustache,,calm,","jianyong":"a,cap,#2b2b2b,stub,,round,","mifang":"a,helmet,#6a6a6a,mustache,,round,","gaolan":"b,helmet,#666666,full,,sharp,","quyi":"b,helmet,#7a6a5a,full,,sharp,","chunyuqiong":"d,helmet,#555555,full,,round,fat","guotu":"a,cap,#2b2b2b,goatee,,sharp,","fengji":"a,cap,#2b2b2b,mustache,,sharp,","chenlin":"a,scholar,#d8d2c0,mustache,,calm,","xinpi":"a,cap,#2b2b2b,goatee,,calm,","gaogan":"a,helmet,#7a7a7a,mustache,,sharp,","yuanxi":"a,cap,#2b2b2b,none,,calm,","zhangxun":"b,helmet,#666666,mustache,,sharp,","leibo":"d,helmet,#555555,full,,round,","chenlan":"b,helmet,#555555,full,,round,","yanxiang":"a,cap,#2b2b2b,long,#d0d0d0,calm,","chenwu":"d,helmet,#555555,full,,round,","dongxi":"b,helmet,#666666,full,,sharp,","jiangqin":"b,helmet,#666666,mustache,,sharp,","wujing":"a,helmet,#6a6a6a,full,,calm,","zhanghong":"a,cap,#2b2b2b,long,#e0e0e0,calm,","guyong":"a,cap,#2b2b2b,goatee,,calm,","yufan":"a,cap,#2b2b2b,mustache,,sharp,","lvfan":"a,cap,#2b2b2b,goatee,,sharp,","lingcao":"b,band,#a8382a,full,,sharp,","sunjing":"a,helmet,#7a6a5a,mustache,,calm,","qiaoguo":"a,cap,#2b2b2b,long,#f0f0f0,calm,noble","liuyao":"a,cap,#2b2b2b,goatee,,calm,noble","zerong":"d,band,#555555,stub,,sharp,","yanbaihu":"d,band,#555555,full,,round,thick","yanyu":"d,band,#555555,stub,,round,","huatuo":"b,scholar,#d8d2c0,long,#e8e8e8,calm,","yuji":"a,scholar,#e9e4d4,long,#f0f0f0,closed,","simahui":"a,scholar,#e9e4d4,long,#e0e0e0,calm,fan","xushao":"a,cap,#2b2b2b,long,#d0d0d0,sharp,","simalang":"a,cap,#2b2b2b,goatee,,calm,","baoxin":"a,helmet,#6a6a6a,goatee,,calm,","zhangmiao":"a,cap,#2b2b2b,goatee,,calm,","zhangyang":"b,helmet,#666666,full,,round,","kuailiang":"a,cap,#2b2b2b,goatee,,calm,","wangwei":"a,cap,#2b2b2b,mustache,,calm,","fushou":"e,none,,none,,calm,crownF","dongguiren":"e,none,,none,,calm,crownF","bianshi":"a,none,,none,,calm,crownF","zhenshi":"e,none,,none,,calm,crownF","wushi":"a,none,,none,,calm,crownF","daqiao":"e,none,,none,,calm,twin","xiaoqiao":"e,none,,none,,calm,twin","lvbudaughter":"a,none,,none,,sharp,twin","diaochan":"e,none,,none,,calm,","caiyan":"e,none,,none,,calm,","sunfuren":"a,none,,none,,sharp,twin"};
 // 무기 종류(검 제외), 이름 있는 장비 [이름, 슬롯, {능력 보너스}]
@@ -1265,7 +1266,8 @@ const DEFAULT_LOOK = { skin:'b', hat:'helmet', hc:'#6a6a6a', beard:'stub', bc:''
 function lookOf(p){
   if (p.look) return p.look;
   if (PORTRAITS.includes(p.id)) return { img:p.id, skin:'a', hat:'none', hc:'', beard:'none', bc:'', eye:'calm', extra:'' };
-  if (LOOK[p.id]){ const [skin,hat,hc,beard,bc,eye,extra] = LOOK[p.id].split(','); return { skin, hat, hc, beard, bc, eye, extra }; }
+  // 그림 초상화가 없는 장수는 수묵 얼굴 16장 가운데 하나를 쓴다 (만화풍 얼굴이 섞이지 않게)
+  if (NAMED_IDS.has(p.id) && !(typeof G!=='undefined' && G && p.id===G.pid && G.reg)){ const f = p.female || FEMALE.includes(p.id), h = hashStr(p.id + p.n); return { img: 'face' + String(f ? 13 + h%4 : 1 + h%12).padStart(2,'0'), skin:'a', hat:'none', hc:'', beard:'none', bc:'', eye:'calm', extra:'' }; }
   const r = seeded(hashStr(p.id + p.n)), mil = (p.m||50)+(p.l||50) >= (p.i||50)+(p.c||50);
   return { skin:'abde'[Math.floor(r()*4)], hat: mil ? (r()<.8 ? 'helmet' : 'band') : (r()<.75 ? 'cap' : 'scholar'),
     hc:['#555555','#666666','#7a6a5a','#6a7a8a','#8a7a6a','#4a5560'][Math.floor(r()*6)], beard:['none','stub','mustache','goatee','full'][Math.floor(r()*5)], bc:'', eye:['sharp','calm','round'][Math.floor(r()*3)], extra:'' };
@@ -1325,6 +1327,7 @@ const maxWall = c => 30 + c.dev*5 + ({ pass:30, mountain:15, river:5 }[TERRAIN[c
 const cityCap = c => c.dev*2200 + 3000;
 const besieged = cid => G.armies.some(a => a.state==='siege' && a.to===cid);
 const travel = (a,b) => { const A = city(a), B = city(b); return Math.hypot(A.x-B.x, A.y-B.y) > 24 ? 2 : 1; };
+const dist = (a,b) => { const A = city(a), B = city(b); return Math.hypot(A.x-B.x, A.y-B.y); };
 const wavg = (list, k) => { const t = list.reduce((s,a)=>s+a.troops,0) || 1; return list.reduce((s,a)=>s+a[k]*a.troops,0)/t; };
 const notable = p => PEOPLE_RAW.some(r => r[0]===p.id) || p.fam;
 const playerCity = () => G.inArmy ? null : G.city;
@@ -1503,7 +1506,7 @@ function histTick(){
     if ((!ps.length && !cs.length) || ps.some(p => !p.alive) || cs.some(p => !p.alive) || match < 45){ if (G.reg && match>=25) news(`원작에서는 이 무렵 「${n}」이 있었다. 이번 천하에서는 그 일이 일어나지 않았다.`, false, true); continue; }
     news(`「${n}」 ${t.split('. ')[0]}.`, true, false);
     histTalk(e);
-    histFlow(id, at);
+    histFlow(id, at); histKill(id);
     if (SCENES.includes(id)) G.scene = id;
     if (!G.hduelOffer && !G.inArmy){
       let hd = null;
@@ -1611,7 +1614,9 @@ function monthStep(ff){
   for (const f of shuffle(aliveFacs())){
     if (!f.alive) continue;
     const cs = citiesOf(f.id);
-    if (!cs.length){ if (!armiesOf(f.id).length) destroyFaction(f.id); continue; }
+    if (!cs.length){
+      if (f.guest && f.guest.until >= mi() && person(f.ruler) && person(f.ruler).alive){ guestStep(f, ff); continue; }
+      if (!armiesOf(f.id).length) destroyFaction(f.id); continue; }
     for (const c of cs){
       c.pool = Math.min(c.dev*600, (c.pool||0) + c.dev*45);
       if (!besieged(c.id)){ c.wall = Math.min(maxWall(c), c.wall + 3); c.morale = Math.min(100, (c.morale??100) + 5); }
@@ -1626,6 +1631,7 @@ function monthStep(ff){
       } else if (c.troops < cap) c.troops = Math.min(cap, c.troops + Math.round(c.dev*30*dif().grow));
     }
     if (f.id===pr) continue;
+    aiRally(f);
     f.gold = (f.gold||0) + cs.reduce((a,c)=>a+c.dev*8, 0);
     if (f.gold >= 700 && Math.random()<.25){ const c = pick(cs); if (c.dev<10){ c.dev++; f.gold -= 700; } }
     aiWar(f, ff);
@@ -1719,6 +1725,161 @@ function aiDiplomacy(ff){
   }
 }
 
+/* ---------------- 전략 AI: 군주와 책사의 지혜로 판단한다 ----------------
+   skill 0~1 = 군주의 지략·용병(60%) + 가장 뛰어난 책사의 지략(40%). 조조·손권·유비(제갈량 이후)처럼 사람을 얻은 세력일수록 똑똑해진다.
+   똑똑한 세력은 ① 국경 성의 수비병을 남기고 남는 병력만 보내고 ② 확실히 이길 때만 치고 ③ 적이 다가오면 미리 원군을 보내고 ④ 후방 병력을 국경으로 옮긴다. */
+function brain(fid){
+  const F = fac(fid); if (!F) return { s:0, a:1 };
+  if (F._bm === mi() && F._b) return F._b;
+  const r = person(F.ruler);
+  const rs = r ? clamp(((r.i + r.l)/2 - 45)/50, 0, 1) : .2;
+  const adv = npcs().filter(p => p.fac===fid && active(p) && p.id!==F.ruler).sort((a,b) => b.i-a.i)[0];
+  const as = adv ? clamp((adv.i - 60)/38, 0, 1) : 0;
+  const listen = r && persOf(r)==='yasim' ? .6 : 1;            // 야심 많은 군주는 간언을 덜 듣는다
+  const s = clamp(rs*.6 + as*.4*listen, 0, 1);
+  const a = r ? ({ yongjang:1.25, yasim:1.2, gyohwal:1.05, uiri:1, sinjung:.85, onhwa:.8 })[persOf(r)] || 1 : 1;
+  F._bm = mi(); F._b = { s, a, adv: adv && adv.id };
+  return F._b;
+}
+// 영웅 군주: 인망이 높거나 지혜로운 군주는 궁지에 몰려도 백성과 장수가 성을 지킨다. 사실 모드에서는 위·촉·오도 버틴다.
+function heroFac(fid){
+  const F = fac(fid); if (!F || !F.alive) return 0;
+  const r = person(F.ruler); let h = 0;
+  if (r && r.c >= 85) h += .5; if (brain(fid).s >= .6) h += .3;
+  if (G.mode!=='virtual' && ['wei','shu','wu'].includes(fid)) h += .5;
+  return Math.min(1, h);
+}
+function lastStand(fid){
+  if (!fid) return 1; const n = citiesOf(fid).length; if (n > 3) return 1;
+  return 1 + heroFac(fid) * (n<=1 ? .55 : n===2 ? .35 : .15);
+}
+// 국경 위협: 이웃 적성의 병력과 이쪽으로 오는 적 군단
+function threatOf(c, fid){
+  let t = 0;
+  for (const a of c.adj){ const n = city(a); if (n.owner && n.owner!==fid && !allied(fid, n.owner)) t += n.troops*.55; }
+  for (const a of G.armies) if (a.to===c.id && a.fac!==fid && a.state!=='return' && !allied(fid, a.fac)) t += a.troops;
+  return t;
+}
+function garrisonNeed(c, fid){
+  const th = threatOf(c, fid), s = brain(fid).s;
+  if (!th) return 600;
+  return Math.max(2000, th * (.22 + s*.28));
+}
+function spare(c, fid){
+  const s = brain(fid).s, old = c.troops*AI_SEND;                     // 예전 방식: 일단 65%를 보낸다
+  const smart = Math.max(0, c.troops - garrisonNeed(c, fid));
+  return Math.round(old*(1-s) + smart*s);
+}
+// 후방 병력을 가장 위험한 국경으로 옮긴다
+function aiShift(f, ff){
+  const s = brain(f.id).s; if (s < .3 || Math.random() > s*.45) return;
+  const cs = citiesOf(f.id); if (cs.length < 2) return;
+  const need = cs.map(c => [c, garrisonNeed(c, f.id) - c.troops]).filter(x => x[1] > 1500 && !besieged(x[0].id)).sort((a,b) => b[1]-a[1])[0];
+  if (!need) return;
+  const [to] = need;
+  const src = to.adj.map(city).filter(x => x.owner===f.id && !besieged(x.id) && x.troops - garrisonNeed(x, f.id) > 2500).sort((a,b) => (b.troops-garrisonNeed(b,f.id))-(a.troops-garrisonNeed(a,f.id)))[0];
+  if (!src || G.armies.some(a => a.fac===f.id && a.to===to.id)) return;
+  const n = Math.round(Math.min(need[1], (src.troops - garrisonNeed(src, f.id))*.8)); if (n < 1500) return;
+  src.troops -= n;
+  createArmy({ fac:f.id, gens:[], troops:n, from:src.id, to:to.id, kind:'reinforce', food:3 });
+}
+// 궁지에 몰린 영웅 세력: 의병이 모여든다
+function aiRally(f){
+  const ls = lastStand(f.id); if (ls <= 1) return;
+  for (const c of citiesOf(f.id)) c.troops = Math.min(cityCap(c)*1.2, c.troops + Math.round(c.dev*40*(ls-1)*2));
+}
+// 재기: 영웅 군주가 마지막 성을 잃으면 가까운 빈 땅으로 물러나 다시 일어선다 (두 번까지)
+function tryExile(of, lost, ff){
+  const F = fac(of); if (!F || !F.alive || (F.exiles||0) >= 2 || heroFac(of) < .5 || of===G.pfac) return false;
+  const r = person(F.ruler); if (!r || !r.alive) return false;
+  const seen = new Set([lost.id]); let q = [lost.id], dest = null;
+  for (let d = 0; d < 3 && !dest; d++){ const nq = []; for (const id of q) for (const a of city(id).adj){ if (seen.has(a)) continue; seen.add(a); const c = city(a); if (!c.owner && !G.armies.some(x => x.to===a && x.state==='siege')){ dest = c; break; } nq.push(a); } q = nq; }
+  if (!dest){
+    // 빈 땅이 없으면 다른 세력에 몸을 의탁해 때를 기다린다 (최대 4년)
+    if (heroFac(of) < .5 || F.guest) return false;
+    const host = aliveFacs().filter(h => h.id!==of && h.id!==lost.owner && citiesOf(h.id).length).map(h => [h, citiesOf(h.id).sort((a,b) => dist(a.id, lost.id)-dist(b.id, lost.id))[0]]).sort((a,b) => dist(a[1].id, lost.id)-dist(b[1].id, lost.id))[0];
+    if (!host) return false;
+    F.guest = { host:host[0].id, city:host[1].id, until:mi()+48 }; r.fac = of;
+    for (const p of npcs()) if (p.fac===of && !p.army) p.city = host[1].id;
+    if (!ff) news(`${J(r.n,'이')} ${J(lost.n,'을')} 잃고 ${facName(host[0].id)}의 ${host[1].n}에 몸을 의탁했다. 다시 일어설 때를 기다린다.`, true, false);
+    return true;
+  }
+  F.exiles = (F.exiles||0) + 1;
+  dest.owner = of; dest.troops = 3000 + dest.dev*400; dest.morale = 80; dest.gov = null;
+  r.fac = of; for (const p of npcs()) if (p.fac===of){ if (!p.army) p.city = dest.id; }
+  if (!ff) news(`${facName(of)}의 ${r.n}이(가) ${J(lost.n,'을')} 잃었으나 무리를 이끌고 ${dest.n}(으)로 물러나 다시 일어섰다.`, true, false);
+  return true;
+}
+
+function guestStep(f, ff){
+  if (Math.random() > .05) return;
+  const seen = new Set([f.guest.city]); let q = [f.guest.city], dest = null;
+  for (let d = 0; d < 4 && !dest; d++){ const nq = []; for (const id of q) for (const a of city(id).adj){ if (seen.has(a)) continue; seen.add(a); const c = city(a); if (!c.owner || c.owner!==G.pfac && c.troops < 2500 && c.owner!==f.guest.host && !allied(f.id, c.owner)){ dest = c; break; } nq.push(a); } q = nq; }
+  if (!dest) return;
+  const r = person(f.ruler); delete f.guest;
+  transferCity(dest, f.id, 4000 + dest.dev*500, true); dest.morale = 85;
+  for (const p of npcs()) if (p.fac===f.id && !p.army) p.city = dest.id;
+  if (!ff) news(`의탁해 있던 ${J(r.n,'이')} 무리를 모아 ${J(dest.n,'을')} 차지하고 다시 일어섰다!`, true, false);
+}
+/* 사실 모드: 연의의 큰 흐름(영토). 해당 세력이 살아 있고 플레이어가 끼어들지 않았으면 그때 그 성이 넘어간다. */
+const HIST_TERR = [
+  [191, 7, 'wei', ['pu'], '조조가 동군 태수가 되어 복양을 얻었다.'],
+  [192, 6, 'wei', ['xc'], '조조가 청주 황건 30만을 거두어 연주를 차지했다.', 20000],
+  [196, 8, 'wei', ['xc','qi','ly'], '조조가 황제를 허도로 맞아들였다.'],
+  [197, 9, 'wei', ['sc'], '조조가 수춘에서 원술을 쳤다.'],
+  [198, 12, 'wei', ['xp','xb','hn','ca'], '하비가 떨어지고 관중도 조조에게 귀순했다.'],
+  [199, 3, 'yuan', ['bp','ji'], '역경이 무너지고 공손찬이 스스로 불에 뛰어들었다.'],
+  [199, 11, 'wei', ['wn'], '장수가 가후의 권유로 조조에게 귀순했다.'],
+  [199, 12, 'wu', ['lu'], '손책이 여강을 빼앗았다.'],
+  [201, 9, 'shu', ['xn'], '유비가 유표에게 의탁해 신야에 머물렀다.'],
+  [204, 8, 'wei', ['ye','sd','jny'], '조조가 업을 함락했다.'],
+  [205, 1, 'wei', ['np','py','bh'], '남피에서 원담이 죽고 청주·기주가 평정되었다.'],
+  [207, 9, 'wei', ['bp','ji'], '백랑산에서 오환이 무너지고 하북 통일이 끝났다.'],
+  [208, 9, 'wei', ['xy','jl'], '유표가 죽고 유종이 형주를 바쳤다.'],
+  [208, 10, 'shu', ['jx'], '유비가 강하의 유기에게 몸을 의탁했다.'],
+  [209, 3, 'shu', ['wl','chs','ll','gy'], '유비가 형주 남쪽 네 군을 평정했다.'],
+  [209, 12, 'wu', ['jl'], '주유가 남군을 빼앗았다.'],
+  [210, 6, 'shu', ['jl'], '손권이 남군을 유비에게 빌려주었다.'],
+  [211, 9, 'wei', ['ca','ad','ts'], '동관에서 마초와 한수가 무너졌다.'],
+  [214, 5, 'shu', ['zt','cd','jz','ya','jg'], '유장이 항복하고 유비가 익주를 차지했다.'],
+  [215, 7, 'wei', ['hz','sy'], '장로가 항복하고 한중이 조조의 손에 들어갔다.'],
+  [219, 5, 'shu', ['hz'], '정군산 이후 유비가 한중을 얻었다.'],
+  [219, 8, 'shu', ['sy'], '맹달이 상용을 쳐서 얻었다.'],
+  [220, 1, 'wu', ['jl','wl','chs','ll','gy'], '여몽이 형주를 빼앗았다.'],
+];
+// 역사 사건에서 죽는 인물 (사건 대사가 있는 장면)
+const HIST_KILL = { e192_lianhuan:['dongzhuo'], e200_sunce_death:['sunce'], e221_zhangfei:['zhangfei'], e223_baidi:['liubei'], e234_wuzhang:['zhugeliang'], e234_weiyan:['weiyan'], b197_wancheng:['dianwei'], b198_xiapi:['lvbu','chengong'] };
+for (const [eid, ids] of Object.entries(HIST_KILL)){ const e = HIST_EV.find(x => x[0]===eid); if (e) for (const w of ids) if (!HIST_DEATH[w]) HIST_DEATH[w] = [e[1], e[2], eid]; }
+function histKill(eid, ff){
+  if (G.mode==='virtual') return;
+  if (eid==='e192_lianhuan' && G.facs.dz && G.facs.dz.alive && G.pfac!=='dz'){
+    // 동탁이 죽자 서량 세력은 갈라진다: 낙양은 버려지고 서쪽은 마등에게, 남은 무리는 이각이 이끈다
+    if (city('ly').owner==='dz' && !G.armies.some(a => a.fac===G.pfac && a.to==='ly')){ city('ly').owner = null; city('ly').troops = 1500; }
+    if (G.facs.md && G.facs.md.alive) for (const id of ['ad','ts']) if (city(id).owner==='dz') transferCity(city(id), 'md', city(id).troops*.7, true);
+    for (const c of citiesOf('dz')) c.troops = Math.round(c.troops*.6);
+  }
+  for (const w of HIST_KILL[eid] || []){ const p = person(w); if (p && p.alive && p.id!==G.pid && p.id!==G.protect && !p.army) killNpc(p, '역사'); }
+}
+function histTerr(ff){
+  if (G.mode==='virtual') return;
+  const now = G.year*12 + G.month; if (!HIST_TERR.some(x => x[0]*12+x[1]===now)) return; if (histMatch() < 25) return; G.terrDone = G.terrDone || {};
+  for (const [y, m, win, cids, txt, bonus] of HIST_TERR){
+    const k = `${y}.${m}.${win}`; if (y*12+m !== now || G.terrDone[k]) continue;
+    G.terrDone[k] = 1;
+    const W = G.facs[win]; if (!W || !W.alive || win===G.pfac && G.role==='ruler') continue;
+    let got = 0;
+    for (let pass = 0; pass < 2; pass++) for (const cid of cids){
+      const c = city(cid); if (c.owner===win) continue;
+      if (c.owner && (c.owner===G.pfac || allied(win, c.owner) && !['xn','jx','jl'].includes(cid))) continue;
+      if (G.armies.some(a => a.fac===G.pfac && a.to===cid)) continue;
+      if (!c.adj.some(a => city(a).owner===win) && citiesOf(win).length) continue;
+      transferCity(c, win, Math.max(c.troops*.6, 4000 + c.dev*600), true); got++;
+    }
+    if (bonus && got) for (const c of citiesOf(win).slice(0, 2)) c.troops += bonus/2;
+    if (got && !ff) news(txt, true, false);
+  }
+}
+
 /* ---------------- AI 전쟁 ---------------- */
 let AI_SEND = .65, AI_THRESH = 1.0, AI_RATE = .10;
 const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { rate:.55, thr:1.05, grow:.8, inc:1.3, plot:.10, ai:.1, adMul:1.2, adCap:5 }],
@@ -1729,18 +1890,24 @@ const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { r
 const dif = () => (DIFF[(G && G.diff) || 'normal'] || DIFF.normal)[2];
 function aiWar(f, ff){
   const cs = citiesOf(f.id);
+  const B = brain(f.id);
   for (const c of cs){
-    if (!besieged(c.id) || Math.random() > .35) continue;
+    const inc = G.armies.some(a => a.to===c.id && a.fac!==f.id && a.state==='march' && !allied(f.id, a.fac) && a.troops > c.troops*.8);
+    if (!(besieged(c.id) || inc && B.s >= .4) || Math.random() > .35 + B.s*.5) continue;
     if (G.armies.some(a => a.fac===f.id && a.to===c.id)) continue;
-    const src = c.adj.map(city).filter(s => s.owner===f.id && !besieged(s.id) && s.troops>=4000).sort((a,b)=>b.troops-a.troops)[0];
+    const src = c.adj.map(city).filter(s => s.owner===f.id && !besieged(s.id) && s.troops>=4000).sort((a,b)=>(b.troops-garrisonNeed(b,f.id))-(a.troops-garrisonNeed(a,f.id)))[0];
     if (!src) continue;
-    const n = Math.round(src.troops*.45), g = bestGen(src.id, f.id);
+    const n = Math.round(Math.max(src.troops*.3, Math.min(src.troops*.6, src.troops - garrisonNeed(src, f.id)*.7))), g = bestGen(src.id, f.id);
+    if (n < 1500) continue;
     src.troops -= n;
     createArmy({ fac:f.id, gens:g?[g.id]:[], troops:n, from:src.id, to:c.id, kind:'reinforce', food:3 });
     if (!ff && G.armies.some(a => a.fac===G.pfac && a.to===c.id)) news(`${facName(f.id)}이(가) ${c.n}에 원군 ${fmt(n)}을 보냈다!`, true, true);
   }
+  aiShift(f, ff);
   const busy = G.armies.some(a => a.fac===f.id && a.kind==='attack');
-  if (Math.random() > (busy ? AI_RATE*.35 : AI_RATE)*dif().rate) return;
+  if (Math.random() > (busy ? AI_RATE*.35 : AI_RATE)*dif().rate*B.a*(1 + B.s*.6)) return;
+  // 똑똑한 세력은 국경이 위태로우면 원정을 미룬다
+  if (B.s >= .5 && cs.some(c => c.troops < garrisonNeed(c, f.id)*.5 && threatOf(c, f.id) > 8000) && Math.random() < B.s*.5) return;
   const targets = new Set();
   for (const c of cs) for (const t of c.adj) targets.add(t);
   let best = null;
@@ -1748,22 +1915,23 @@ function aiWar(f, ff){
     const t = city(tid);
     if (t.owner===f.id || (t.owner && allied(f.id, t.owner))) continue;
     if (G.armies.some(a => a.fac===f.id && a.to===tid)) continue;
-    const srcs = t.adj.map(city).filter(s => s.owner===f.id && !besieged(s.id) && s.troops>=3000).sort((a,b)=>b.troops-a.troops).slice(0,3);
+    const srcs = t.adj.map(city).filter(s => s.owner===f.id && !besieged(s.id) && s.troops>=3000).sort((a,b)=>b.troops-a.troops).slice(0, 3 + Math.round(B.s*2));
     if (!srcs.length) continue;
-    const avail = srcs.reduce((a,s)=>a+s.troops*AI_SEND, 0);
-    const def = t.troops * (1 + t.wall/400) * 1.1;
+    const avail = srcs.reduce((a,s)=>a+spare(s, f.id), 0);
+    const def = t.troops * (1 + t.wall/400) * 1.1 * (t.owner ? lastStand(t.owner) : 1) + (t.owner ? t.adj.map(city).filter(x => x.owner===t.owner).reduce((a,x)=>a+x.troops*.25, 0)*B.s : 0);
     const big = !ff && G.pfac && citiesOf(G.pfac).length>=Math.round(CITY_RAW.length*.35);
     const ai = dif().ai, mine = totalTroops(f.id), theirs = t.owner ? totalTroops(t.owner) : 0;
     const weak = t.owner ? clamp(mine/Math.max(1, theirs) - 1, 0, 1.5) : .5;   // 약한 세력일수록
     const cut = t.adj.filter(a => city(a).owner===t.owner).length <= 1 ? 1 : 0; // 고립된 성일수록 (원군이 못 온다)
-    const score = avail/def * (t.owner ? 1 : 1.4) * (!ff && t.owner===G.pfac ? (big ? 1.3 : .9) : 1) * (1 + ai*(.25*weak + .25*cut)) * rnd(1 - .15*(1-ai*.6), 1 + .15*(1-ai*.6));
-    if (score > AI_THRESH*dif().thr && (!best || score > best.score)) best = { t, srcs, score };
+    const val = 1 + B.s*((t.dev-5)/20 + (t.owner && citiesOf(t.owner).length===1 ? .2 : 0));
+    const score = avail/def * val * (t.owner ? 1 : 1.4) * (!ff && t.owner===G.pfac ? (big ? 1.3 : .9) : 1) * (1 + ai*(.25*weak + .25*cut)) * rnd(1 - .15*(1-ai*.6), 1 + .15*(1-ai*.6));
+    if (score > AI_THRESH*dif().thr*(1 + B.s*.08) && (!best || score > best.score)) best = { t, srcs, score };
   }
   if (!best) return;
   const used = best.srcs;
   let sent = 0;
   for (const s of used){
-    const n = Math.round(s.troops*Math.min(.8, AI_SEND*(1 + dif().ai*.15))); if (n<1500) continue;
+    const n = Math.round(Math.min(s.troops*.85, spare(s, f.id)*(1 + dif().ai*.15))); if (n<1500) continue;
     const gs = peopleIn(s.id, f.id).sort((a,b)=>(b.m+b.l)-(a.m+a.l)).slice(0, used.length>1 ? 1 : 2).map(p=>p.id);
     s.troops -= n; sent += n;
     createArmy({ fac:f.id, gens:gs, troops:n, from:s.id, to:best.t.id, kind:'attack', food:6 });
@@ -1807,7 +1975,7 @@ function armiesStep(ff){
     const wk = (gs0.some(p => hasT(p, 'gongsung')) ? 1.4 : 1) * (hasT(dg0, 'susung') ? .7 : 1);
     t.wall = Math.max(0, t.wall - Math.round((6 + tot/1500)*wk));
     t.morale = Math.max(0, (t.morale??100) - 6);
-    if (t.morale<=20 && tot > t.troops*1.5){ surrender(tid, fid, list, ff); continue; }
+    if (t.morale<=20 && tot > t.troops*1.5*lastStand(t.owner)){ surrender(tid, fid, list, ff); continue; }
     if (!ff && siegeInvolvesPlayer(list, t)){ G.queue.push({ kind:'siege', to:tid, fac:fid }); continue; }
     const est = siegeOdds(list, t);
     if (est < .75 && list.every(a => a.food>=2) && Math.random()<.8){ if (!ff && involves(list[0])) news(`${t.n}: ${facName(fid)}이(가) 포위를 굳히며 때를 기다린다. (성벽 ${t.wall})`, false, list[0].fac===G.pfac || t.owner===G.pfac); continue; }
@@ -1820,7 +1988,7 @@ function siegeOdds(list, t){
   const cmd = gens.slice().sort((a,b)=>(b.m+b.l)-(a.m+a.l))[0];
   const att = list.reduce((s,a)=>s+a.troops*(.4+a.morale/170),0) * genFactor(cmd) * (1 + Math.min(.2, (gens.length-1)*.05));
   const dg = bestGen(t.id, t.owner);
-  const def = Math.max(1, t.troops) * (.4+(t.morale??100)/170) * genFactor(dg) * (1 + t.wall/300) * (TERRAIN[t.id]==='pass' ? 1.25 : 1);
+  const def = Math.max(1, t.troops) * (.4+(t.morale??100)/170) * genFactor(dg) * (1 + t.wall/300) * (TERRAIN[t.id]==='pass' ? 1.25 : 1) * lastStand(t.owner);
   return att/def;
 }
 // 작전 화면용: 같은 조건으로 여러 번 굴려 함락 확률을 어림한다
@@ -1998,6 +2166,7 @@ function buildSiege(tid, fid, list, interactive){
   const ps = list.some(a => a.player) ? 'att' : pDef ? 'def' : null;
   const B = { kind:'siege', to:tid, fid, armies:list.map(a => a.id), att, def, round:1, log:[], ps, cmdPlayer:!!ps,
     share: pDef && G.role!=='ruler' && dTroops ? G.troops/dTroops : 0, months: Math.max(...list.map(a => a.siege)) };
+  const ls = t.owner!==G.pfac ? lastStand(t.owner) : 1; if (ls > 1){ def.support += (ls-1)*.5; def.morale = Math.min(100, def.morale + 15); }
   if (!(interactive && ps==='def')) setUnit(def, aiUnit(def, tid));
   if (!(interactive && ps==='att')) setUnit(att, aiUnit(att, tid, def.u));
   if (G.pfac && fid===G.pfac && G.plots[tid] >= mi()){ def.morale -= 30; delete G.plots[tid]; B.log.push('성 안에서 내응이 일어났다! 적의 사기가 무너진다.'); }
@@ -2047,8 +2216,11 @@ function resolveSiege(B, ff){
 function transferCity(t, nf, troops, ff){
   const of = t.owner;
   t.owner = nf; t.troops = Math.round(troops);
+  if (nf && G.facs[nf] && G.facs[nf].guest) delete G.facs[nf].guest;
   if (t.gov===G.pid) G.gov = null;
   t.gov = null;
+  let saved = false;
+  if (of && G.facs[of] && G.facs[of].alive && citiesOf(of).length===0 && !armiesOf(of).some(a => a.state!=='return')) saved = tryExile(of, t, ff);
   for (const p of npcs()){
     if (p.city!==t.id || p.army || !of || p.fac!==of) continue;
     const dest = t.adj.map(city).find(c => c.owner===of);
@@ -2058,7 +2230,7 @@ function transferCity(t, nf, troops, ff){
     const dest = t.adj.map(city).find(c => c.owner===of) || citiesOf(of)[0];
     if (dest){ G.city = dest.id; me().city = dest.id; if (!ff) news(`그대는 ${dest.n}(으)로 물러났다.`, true, true); }
   }
-  if (of && G.facs[of] && G.facs[of].alive && citiesOf(of).length===0 && !armiesOf(of).some(a => a.state!=='return')) destroyFaction(of, ff);
+  if (!saved && of && G.facs[of] && G.facs[of].alive && citiesOf(of).length===0 && !armiesOf(of).some(a => a.state!=='return')) destroyFaction(of, ff);
 }
 function destroyFaction(f, ff){
   const F = fac(f); if (!F.alive) return;
@@ -3180,7 +3352,7 @@ function openPolicy(){
 /* ---------------- 한 달의 흐름 ---------------- */
 function startMonth(first){
   G.ap = apMax(); G.toast = null;
-  histTick(); histYearEnd();
+  histTick(); histTerr(); histYearEnd();
   if (G.over) return endGame();
   if (G.dead){ G.phase = 'succession'; return; }
   const forced = EVENTS.some(e => e.forced && !(G.done[e.id] && !e.rep) && roleOk(e) && e.forced());
@@ -3729,7 +3901,7 @@ function viewTalk(){
   const who = sp ? (sp===G.pid ? me() : person(sp)) : null, side = sp && sp===sl.r ? 'r' : 'l';
   const bg = `background-image:${T.bg ? `url(art/${T.bg}.webp),` : ''}url(art/title.webp)`;
   const ch = last && T.choices ? `<div class="tk-ch">${T.choices.map((c,i) => `<button class="choice" data-tkc="${i}" ${c.off?'disabled':''}><span>${esc(c.t)}</span>${c.sub?`<span class="p">${esc(c.sub)}</span>`:''}</button>`).join('')}</div>` : '';
-  return `<div class="talk" id="talk"><div class="tk-blur" style="${bg}"></div><div class="tk-band" style="${bg}"><span class="tk-title">${esc(T.title||'')}</span>${T.choices?'':`<button class="tk-skip" id="tkSkip">넘기기 ▸▸</button>`}</div>
+  return `<div class="talk ${last && T.choices ? 'has-ch' : ''}" id="talk"><div class="tk-blur" style="${bg}"></div><div class="tk-band" style="${bg}"><span class="tk-title">${esc(T.title||'')}</span>${T.choices?'':`<button class="tk-skip" id="tkSkip">넘기기 ▸▸</button>`}</div>
     <div class="tk-stage">${pt(sl.l,'l')}${pt(sl.r,'r')}</div>
     <div class="tk-box ${who?side:'nar'}" id="tkBox">${who?`<span class="tk-name">${esc(who.n)}</span>`:''}<p class="tk-text">${esc(L[1])}</p>${last && T.choices ? '' : '<span class="tk-more">▼</span>'}</div>${ch}
     ${G.talks.length>1 ? `<p class="tk-q">이어서 ${G.talks.length-1}개</p>` : ''}</div>`;
@@ -3741,11 +3913,19 @@ function bindTalk(){
   el.querySelector('#tkBox').onclick = adv; el.querySelector('.tk-stage').onclick = adv;
   const sk = el.querySelector('#tkSkip'); if (sk) sk.onclick = e => { e.stopPropagation(); G.talks.shift(); save(); render(); };
   el.querySelectorAll('[data-tkc]').forEach(b => b.onclick = e => {
-    e.stopPropagation(); const c = T.choices[+b.dataset.tkc]; G.talks.shift();
+    e.stopPropagation(); const idx = +b.dataset.tkc, c = T.choices[idx]; G.talks.shift();
     if (c.by && person(c.by)) addBond(c.by, 2);
-    if (c.sheet){ save(); render(); openSheet(c.sheet, c.arg); }
-    else if (c.act) doAct(c.act, c.arg, c.arg2);
-    else { save(); render(); }
+    if (c.sheet){ save(); render(); openSheet(c.sheet, c.arg); return; }
+    let res = null;
+    if (c.cn){ res = CN[c.cn](c.arg, c.arg2); }
+    else if (c.act){ if (G.phase!=='act') return; G.toast = null; ACT[c.act](c.arg, c.arg2); res = G.toast ? G.toast.msg : null; if (G.dead && G.phase==='act'){ G.phase = 'succession'; G.deadAt = 'act'; } }
+    // 평정은 이어서 다른 진언을 고를 수 있다
+    if (T.council && !c.end && G.phase==='act'){
+      const rest = T.choices.filter((x, j) => j!==idx && !(c.grp && x.grp===c.grp)).map(x => Object.assign({}, x, { off: x.off || (x.act && G.ap<=0) }));
+      if (rest.some(x => !x.end)) G.talks.unshift({ title:T.title, bg:T.bg, slots:T.slots, council:1, i:0, lines:[[null, res || '그리하라 일렀다.'], [null, G.ap>0 ? `남은 행동력 ${G.ap}. 다른 진언도 듣겠는가?` : '행동력을 다 썼다. 남은 상소는 처리할 수 있다.']], choices:rest });
+      else if (res) toast(res);
+    } else if (res) toast(res);
+    save(); render();
   });
 }
 
@@ -3791,60 +3971,147 @@ function recruitTalk(p, ok){
 
 /* 평정: 달마다 정청에 모여 방침을 정한다 */
 function councilOn(){ return opt().council!==0; }
-function councilRuler(){
+function councilCast(){
   const pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && p.id!==G.pid);
-  if (!pool.length) return null;
-  const take = f => { if (!pool.length) return null; pool.sort((a,b) => f(b)-f(a)); return pool.shift(); };
-  const wa = take(p => p.m+p.l), ws = take(p => p.i*2+p.l*.3), cv = take(p => (JEONG[p.id]||p.i)+p.c);
-  const lines = [[null, `${city(G.city).n}의 정청. 장수들이 모였다. 금 ${fmt(G.gold)} · 총병력 ${fmt(totalTroops(G.pfac))}.`]], choices = [];
-  const mineC = citiesOf(G.pfac);
+  const used = new Set(), top = f => { const q = pool.filter(p => !used.has(p.id) || pool.length <= used.size).sort((a,b) => f(b)-f(a))[0] || null; if (q) used.add(q.id); return q; };
+  const ws = top(p => p.i*2+p.l*.3), wa = top(p => p.m+p.l), cv = top(p => (JEONG[p.id]||p.i)+p.c);
+  return { pool, wa, ws, cv };
+}
+// 정세 보고: 천하의 형세와 우리 국경
+function councilReport(sp){
+  const fs = aliveFacs().filter(f => citiesOf(f.id).length);
+  const top = fs.slice().sort((a,b) => citiesOf(b.id).length - citiesOf(a.id).length)[0];
+  const nb = [...new Set(citiesOf(G.pfac).flatMap(c => c.adj).map(city).filter(c => c.owner && c.owner!==G.pfac).map(c => c.owner))];
+  const enemy = nb.filter(f => !allied(G.pfac, f)).sort((a,b) => totalTroops(b)-totalTroops(a))[0];
+  const ally = Object.keys(fac(G.pfac).ally || {}).filter(f => G.facs[f] && G.facs[f].alive);
+  const inc = G.armies.filter(a => a.fac!==G.pfac && city(a.to).owner===G.pfac && a.state!=='return');
+  let t = `천하에서 가장 큰 세력은 ${facName(top.id)}(성 ${citiesOf(top.id).length}개)입니다.`;
+  if (enemy) t += ` 이웃 가운데 가장 위협이 되는 것은 ${facName(enemy)}, 병력 ${fmt(totalTroops(enemy))}입니다.`;
+  if (inc.length) t += ` 지금 적군 ${inc.length}개 군단이 우리 땅으로 오고 있습니다!`;
+  else if (ally.length) t += ` 동맹: ${ally.map(facName).join(', ')}.`;
+  return [sp ? sp.id : null, t];
+}
+// 상소: 한 달에 한 번, 백성·장수·사신의 일
+function petition(cast){
+  const mine = citiesOf(G.pfac); if (!mine.length || Math.random() < .25) return null;
+  const c = pick(mine), cv = cast.cv || cast.wa, list = [];
+  if (c.dev <= 7 || G.month>=6 && G.month<=8) list.push({ w:2, who:cv, t:`${c.n}에 흉년이 들어 백성이 굶주립니다. 곳간을 여시겠습니까?`,
+    ch:[{ t:`구휼한다`, sub:'금 150', cn:'relief', arg:c.id, off:G.gold<150 }, { t:'곳간을 지킨다', cn:'ignoreFamine', arg:c.id }] });
+  if (c.troops >= 2500) list.push({ w:1.5, who:cast.wa, t:`${c.n} 근처에 도적 떼가 들끓습니다. 제가 군사를 이끌고 소탕하겠습니다.`,
+    ch:[{ t:`${cast.wa ? cast.wa.n+'에게 ' : ''}토벌을 맡긴다`, sub:'병력 소모', cn:'bandits', arg:c.id, arg2:cast.wa && cast.wa.id }, { t:'내버려 둔다', cn:'ignoreBandits', arg:c.id }] });
+  const greedy = cast.pool.filter(p => (p.loy??70) < 75 && !p.fam).sort((a,b) => (a.loy??70)-(b.loy??70))[0];
+  if (greedy) list.push({ w:1.2, who:greedy, t:`주공, 그동안의 공에 비해 녹봉이 박합니다. 헤아려 주십시오.`,
+    ch:[{ t:`${greedy.n}의 녹봉을 올린다`, sub:'금 80', cn:'raise', arg:greedy.id, off:G.gold<80 }, { t:'지금은 어렵다고 달랜다', cn:'refuseRaise', arg:greedy.id }] });
+  list.push({ w:.8, who:null, t:`거상 한 사람이 군자금 300을 바치며 벼슬자리를 청합니다.`,
+    ch:[{ t:'받고 벼슬을 내린다', sub:'금 +300', cn:'merchant', arg:1 }, { t:'돌려보낸다', sub:'인망', cn:'merchant', arg:0 }] });
+  const nbs = [...new Set(mine.flatMap(x => x.adj).map(city).filter(x => x.owner && x.owner!==G.pfac && !allied(G.pfac, x.owner)).map(x => x.owner))];
+  const env = nbs.find(f => totalTroops(f) < totalTroops(G.pfac));
+  if (env) list.push({ w:1.3, who:null, t:`${facName(env)}에서 사신이 왔습니다. 화친을 맺고 싶다 합니다.`,
+    ch:[{ t:'화친을 받아들인다', sub:'1년 동맹', cn:'envoy', arg:env }, { t:'돌려보낸다', cn:'envoyNo', arg:env }] });
+  const hidden = npcs().filter(p => p.fac==='free' && active(p) && !p.army && city(p.city).owner!==G.pfac && notable(p)).sort((a,b) => (b.m+b.i+b.l)-(a.m+a.i+a.l))[0];
+  if (hidden) list.push({ w:1, who:cast.ws, t:`${city(hidden.city).n}에 ${hidden.n}(이)라는 인재가 숨어 산다고 합니다. 사람을 보내 모셔 오시지요.`,
+    ch:[{ t:'예물을 들려 사람을 보낸다', sub:'금 100', cn:'invite', arg:hidden.id, off:G.gold<100 }, { t:'때가 아니다', cn:'none' }] });
+  const tot = list.reduce((a,x) => a+x.w, 0); let r = Math.random()*tot;
+  for (const x of list){ r -= x.w; if (r <= 0) return x; }
+  return list[0] || null;
+}
+function councilRuler(){
+  const cast = councilCast(); if (!cast.pool.length) return null;
+  const { wa, ws, cv } = cast, mineC = citiesOf(G.pfac), props = [];
+  // 무장: 출진 · 방비 · 훈련
   if (wa){
     const cand = [];
-    for (const c of mineC) for (const a of c.adj){ const t = city(a); if (!t.owner || hostile(G.pfac, t.owner)) cand.push([t, c.adj.length ? mineC.filter(x => x.adj.includes(t.id)).reduce((s,x)=>s+x.troops,0) / (t.troops + t.wall*40 + 500) : 0]); }
+    for (const c of mineC) for (const a of c.adj){ const t = city(a); if (!t.owner || hostile(G.pfac, t.owner)) cand.push([t, mineC.filter(x => x.adj.includes(t.id)).reduce((s,x)=>s+x.troops,0) / (t.troops + t.wall*40 + 500)]); }
     cand.sort((a,b) => b[1]-a[1]);
     if (cand.length && cand[0][1] > .9){ const t = cand[0][0];
-      lines.push([wa.id, `${t.n}의 수비가 ${visible(t.id) ? fmt(t.troops) : '얼마 되지 않는다는 소문'}${visible(t.id)?'뿐입니다.':'입니다.'}${LN.warTail[persOf(wa)]}`]);
-      choices.push({ t:`${wa.n}: ${t.n} 출진`, sub:'출진 계획', sheet:'war', arg:t.id, by:wa.id, off:G.ap<=0 });
-    } else { lines.push([wa.id, '지금 섣불리 움직이면 손해입니다. 병사를 조련해 때를 기다리시지요.']); choices.push({ t:`${wa.n}: 군사 훈련`, sub:'금 60', act:'train', by:wa.id, off:G.ap<=0 || G.gold<60 }); }
+      props.push([cand[0][1], [wa.id, `${t.n}의 수비가 ${visible(t.id) ? fmt(t.troops)+'뿐입니다.' : '얇다는 소문입니다.'}${LN.warTail[persOf(wa)]}`], { t:`${wa.n}: ${t.n} 출진`, sub:'출진 계획', sheet:'war', arg:t.id, by:wa.id, off:G.ap<=0 }]); }
+    const weak = mineC.map(c => [c, threatOf(c, G.pfac) - c.troops]).filter(x => x[1] > 2000).sort((a,b) => b[1]-a[1])[0];
+    const src = weak && weak[0].adj.map(city).filter(x => x.owner===G.pfac && x.troops >= 4000 && threatOf(x, G.pfac) < x.troops*.6).sort((a,b) => b.troops-a.troops)[0];
+    if (weak && src) props.push([1.5, [wa.id, `${weak[0].n}이(가) 위태롭습니다. ${src.n}의 병력 절반을 옮겨 막으시지요.`], { t:`${wa.n}: ${src.n} → ${weak[0].n} 병력 이동`, sub:fmt(Math.round(src.troops*.5)), act:'transport', arg:weak[0].id, arg2:src.id, by:wa.id, again:1, off:G.ap<=0 }]);
+    if (G.train < 60) props.push([.7, [wa.id, `군사들의 훈련이 ${G.train}에 머물러 있습니다. 조련하시지요.`], { t:`${wa.n}: 군사 훈련`, sub:'금 60', act:'train', by:wa.id, again:1, off:G.ap<=0 || G.gold<60 }]);
   }
+  // 책사: 계략 · 정찰 · 외교
   if (ws){
     const th = G.armies.filter(a => a.fac!==G.pfac && city(a.to).owner===G.pfac && a.state!=='return').sort((a,b)=>b.troops-a.troops)[0];
-    const pc = !th && mineC.flatMap(c => c.adj).map(city).find(t => t.owner && hostile(G.pfac, t.owner) && plotRange(t.id));
-    if (th){ lines.push([ws.id, `${facName(th.fac)}의 군단 ${fmt(th.troops)}이(가) ${J(city(th.to).n,'을')} 노립니다. 유언비어로 발을 묶으십시오.`]); choices.push({ t:`${ws.n}: 유언비어`, sub:`${Math.round(armyPlotChance(th)*100)}%`, act:'armyPlot', arg:'rumor', arg2:th.id, by:ws.id, off:G.ap<=0 }); }
-    else if (pc){ lines.push([ws.id, `${pc.n}에 손을 써 두면, 칠 때 한결 수월할 것입니다.`]); choices.push({ t:`${ws.n}: ${pc.n} 계략`, sub:'계략 고르기', sheet:'plot', arg:pc.id, by:ws.id, off:G.ap<=0 }); }
-    else { const f = aliveFacs().filter(x => x.id!==G.pfac && !allied(G.pfac, x.id) && citiesOf(x.id).length).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length)[0];
-      if (f){ lines.push([ws.id, `${J(facName(f.id),'과')} 손을 잡으십시오. 등 뒤가 편해야 앞을 칠 수 있습니다.`]); choices.push({ t:`${ws.n}: ${facName(f.id)}에 동맹 제안`, sub:'금 200', act:'diplo', arg:f.id, by:ws.id, off:G.ap<=0 || G.gold<200 }); } }
+    if (th) props.push([2, [ws.id, `${facName(th.fac)}의 군단 ${fmt(th.troops)}이(가) ${J(city(th.to).n,'을')} 노립니다. 유언비어로 발을 묶으십시오.`], { t:`${ws.n}: 유언비어`, sub:`${Math.round(armyPlotChance(th)*100)}%`, act:'armyPlot', arg:'rumor', arg2:th.id, by:ws.id, again:1, off:G.ap<=0 }]);
+    const pc = mineC.flatMap(c => c.adj).map(city).find(t => t.owner && hostile(G.pfac, t.owner) && plotRange(t.id));
+    if (pc) props.push([.9, [ws.id, `${pc.n}에 손을 써 두면, 칠 때 한결 수월할 것입니다.`], { t:`${ws.n}: ${pc.n} 계략`, sub:'계략 고르기', sheet:'plot', arg:pc.id, by:ws.id, off:G.ap<=0 }]);
+    const unseen = mineC.flatMap(c => c.adj).map(city).find(t => t.owner && t.owner!==G.pfac && !visible(t.id));
+    if (unseen) props.push([.6, [ws.id, `${unseen.n}의 사정을 모릅니다. 첩자를 보내 알아보겠습니다.`], { t:`${ws.n}: ${unseen.n} 정찰`, sub:'6개월', act:'scout', arg:unseen.id, by:ws.id, again:1, off:G.ap<=0 }]);
+    const f = aliveFacs().filter(x => x.id!==G.pfac && !allied(G.pfac, x.id) && citiesOf(x.id).length).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length);
+    const big = f[0], partner = big && f.find(x => x!==big && citiesOf(x.id).some(c => c.adj.some(a => city(a).owner===big.id)));
+    if (partner) props.push([1, [ws.id, `${facName(big.id)}이(가) 너무 커졌습니다. ${J(facName(partner.id),'과')} 손을 잡아 함께 막으시지요.`], { t:`${ws.n}: ${facName(partner.id)}에 동맹 제안`, sub:'금 200', act:'diplo', arg:partner.id, by:ws.id, again:1, off:G.ap<=0 || G.gold<200 }]);
   }
+  // 문관: 포상 · 내정 · 징병 · 등용
   if (cv){
     const low = npcs().filter(p => p.fac===G.pfac && active(p) && !p.fam && p.loy<55).sort((a,b)=>a.loy-b.loy)[0];
+    if (low) props.push([1.6, [cv.id, `${low.n}의 마음이 흔들립니다(충성 ${Math.round(low.loy)}). 상을 내려 붙잡으십시오.`], { t:`${cv.n}: ${low.n} 포상`, sub:'금 120', act:'reward', arg:low.id, by:cv.id, again:1, off:G.ap<=0 || G.gold<120 }]);
     const dv = mineC.filter(c => c.dev<10).sort((a,b)=>a.dev-b.dev)[0];
+    if (dv && G.gold>=300) props.push([.8, [cv.id, `${dv.n}의 개발이 ${dv.dev}에 머물러 있습니다. 금 300을 들여 다듬으시지요.`], { t:`${cv.n}: ${dv.n} 내정`, sub:'금 300', act:'develop', arg:dv.id, by:cv.id, again:1, off:G.ap<=0 }]);
     const dr = mineC.filter(c => (c.pool||0)>=600).sort((a,b)=>(b.pool||0)-(a.pool||0))[0];
-    if (low){ lines.push([cv.id, `${low.n}의 마음이 흔들립니다(충성 ${Math.round(low.loy)}). 상을 내려 붙잡으십시오.`]); choices.push({ t:`${cv.n}: ${low.n} 포상`, sub:'금 120', act:'reward', arg:low.id, by:cv.id, off:G.ap<=0 || G.gold<120 }); }
-    else if (dv && G.gold>=300){ lines.push([cv.id, `${dv.n}의 개발이 ${dv.dev}에 머물러 있습니다. 금 300을 들여 다듬으시지요.`]); choices.push({ t:`${cv.n}: ${dv.n} 내정`, sub:'금 300', act:'develop', arg:dv.id, by:cv.id, off:G.ap<=0 }); }
-    else if (dr){ lines.push([cv.id, `${dr.n}에 장정 ${fmt(dr.pool)}명이 모여 있습니다. 병사를 모으시지요.`]); choices.push({ t:`${cv.n}: ${dr.n} 징병`, sub:'금 24~', act:'draft', arg:dr.id, by:cv.id, off:G.ap<=0 || G.gold<24 }); }
-    else lines.push([cv.id, '나라 살림은 무탈합니다. 지금처럼만 다스리시면 됩니다.']);
+    if (dr) props.push([.9, [cv.id, `${dr.n}에 장정 ${fmt(dr.pool)}명이 모여 있습니다. 병사를 모으시지요.`], { t:`${cv.n}: ${dr.n} 징병`, sub:'금 24~', act:'draft', arg:dr.id, by:cv.id, again:1, off:G.ap<=0 || G.gold<24 }]);
+    const fr = npcs().find(p => p.fac==='free' && active(p) && !p.army && city(p.city).owner===G.pfac && notable(p));
+    if (fr) props.push([1.4, [cv.id, `재야의 ${fr.n}이(가) ${city(fr.city).n}에 머물고 있습니다. 불러 쓰시지요.`], { t:`${cv.n}: ${fr.n} 등용`, sub:'인재', act:'recruit', arg:fr.id, by:cv.id, again:1, off:G.ap<=0 }]);
   }
-  lines.push([null, '누구의 진언을 받아들이겠는가? (채택한 장수와 인연 +2)']);
-  choices.push({ t:'오늘은 내가 직접 정한다' });
-  return { title:`${dateStr()} 평정`, bg:'bg_council', lines, choices };
+  props.sort((a,b) => b[0]-a[0]);
+  const use = props.slice(0, 5), pt = petition(cast);
+  const lines = [[null, `${city(G.city).n}의 정청. 장수들이 모였다. 금 ${fmt(G.gold)} · 총병력 ${fmt(totalTroops(G.pfac))} · 행동력 ${G.ap}.`], councilReport(ws || cv || wa), ...use.map(x => x[1])];
+  const choices = use.map(x => x[2]);
+  if (pt){ lines.push([pt.who ? pt.who.id : null, pt.t]); pt.ch.forEach(c => { c.grp = 'pt'; c.t = '상소: ' + c.t; choices.push(c); }); }
+  lines.push([null, '누구의 진언을 받아들이겠는가? 여러 개를 골라도 된다. (채택한 장수와 인연 +2)']);
+  choices.push({ t:'평정을 마친다', end:1 });
+  return { title:`${dateStr()} 평정`, bg:'bg_council', lines, choices, council:1 };
 }
+// 상소 처리
+const CN = {
+  relief(cid){ const c = city(cid); G.gold -= 150; c.morale = Math.min(100, (c.morale??100) + 20); c.pool = (c.pool||0) + c.dev*80; me().c = clamp(me().c + 1); return `${c.n}의 백성이 주공의 은혜에 감읍했다. 민심이 오르고 장정이 모여든다. (인망 +1)`; },
+  ignoreFamine(cid){ const c = city(cid); c.morale = Math.max(30, (c.morale??100) - 15); const n = Math.round(c.troops*.04); c.troops -= n; return `${c.n}의 민심이 흉흉하다. 굶주린 병사 ${fmt(n)}이 달아났다.`; },
+  bandits(cid, gid){ const c = city(cid), g = person(gid), ok = Math.random() < clamp(.55 + ((g ? g.m+g.l : 100) - 120)/200, .3, .95), loss = Math.round(c.troops*(ok ? .03 : .08)); c.troops -= loss;
+    if (ok){ G.gold += 120; if (g) addBond(g.id, 3); return `${g ? g.n+'이(가)' : '군이'} 도적을 소탕했다. 노획한 금 120. (병력 -${fmt(loss)})`; } return `토벌이 실패했다. 병력 ${fmt(loss)}을 잃었다.`; },
+  ignoreBandits(cid){ const c = city(cid); G.gold = Math.max(0, G.gold - 60); return `도적이 ${c.n}의 상단을 털었다. 세금 60이 덜 걷혔다.`; },
+  raise(id){ const p = person(id); G.gold -= 80; p.loy = clamp(p.loy + 12); addBond(id, 4); return `${p.n}이(가) 깊이 고개를 숙였다. (충성 +12)`; },
+  refuseRaise(id){ const p = person(id); p.loy = clamp(p.loy - 6); return `${p.n}이(가) 말없이 물러갔다. (충성 -6)`; },
+  merchant(take){ if (+take){ G.gold += 300; me().c = clamp(me().c - 1); for (const p of npcs().filter(q => q.fac===G.pfac && hasT(q,'chungjeol'))) p.loy = clamp(p.loy - 3); return '금 300을 얻었다. 강직한 신하들은 못마땅해한다. (인망 -1)'; }
+    me().c = clamp(me().c + 1); return '벼슬은 돈으로 사는 것이 아니라며 돌려보냈다. 소문이 퍼졌다. (인망 +1)'; },
+  envoy(f){ fac(G.pfac).ally[f] = 12; fac(f).ally[G.pfac] = 12; return `${J(facName(f),'과')} 1년 동안 화친을 맺었다.`; },
+  envoyNo(f){ return `${facName(f)}의 사신을 돌려보냈다.`; },
+  invite(id){ const p = person(id); G.gold -= 100; if (Math.random() < clamp(.35 + (me().c-60)/120 + bond(id)/150, .1, .9)){ p.fac = G.pfac; p.city = G.city; p.loy = 60; addBond(id, 8); recruitTalk(p, true); return `${p.n}이(가) 예물을 받고 찾아와 휘하에 들었다!`; }
+    addBond(id, 4); return `${p.n}이(가) 예물만 받고 정중히 사양했다. (인연 +4)`; },
+  none(){ return '그 일은 덮어 두었다.'; },
+  // 장수의 평정
+  answer(ok){ if (+ok){ trustAdd(4); G.merit += 5; return '주공이 무릎을 쳤다. "옳다, 그대 말대로 하겠다." (신뢰 +4, 공적 +5)'; } trustAdd(-1); return '주공이 고개를 저었다. "그건 아니다." (신뢰 -1)'; },
+  help(id){ if (!spend(0)) return '행동력이 없다.'; const p = person(id); addBond(id, 6); G.merit += 2; return `${p.n}의 일을 도왔다. (인연 +6, 공적 +2)`; },
+};
 function councilOfficer(){
   const lord = person(fac(G.pfac).ruler); if (!lord || !active(lord) || lord.id===G.pid) return null;
   const lines = [[null, `${facName(G.pfac)}의 평정. 주공 ${lord.n} 앞에 장수들이 늘어섰다.`]], choices = [];
   const m = G.mission, key = m ? JSON.stringify([m.t, m.target||m.city||m.npc||'', m.goal]) : '';
   if (m && G.mSeen!==key){ G.mSeen = key; lines.push([lord.id, `${me().n}, ${missionText(m)}. ${m.months}개월을 주겠다.`]); }
   else lines.push([lord.id, lnP('greet', lord)]);
+  // 공을 쌓았으면 상을 내린다
+  if (G.merit - (G.lastPraise||0) >= 60){ G.lastPraise = G.merit; G.gold += 100; trustAdd(2); lines.push([lord.id, `${me().n}의 공이 크다. 금 100을 내리노라.`]); }
   const col = npcs().filter(p => p.fac===G.pfac && active(p) && p.id!==lord.id && p.id!==G.pid && !p.army).sort((a,b)=>bond(b.id)-bond(a.id))[0];
   const th = G.armies.find(a => a.fac!==G.pfac && city(a.to).owner===G.pfac && a.state!=='return');
   if (col) lines.push([col.id, th ? `${facName(th.fac)}의 군대가 ${city(th.to).n}(으)로 다가오고 있다 하옵니다.` : (() => { const f = aliveFacs().filter(x => x.id!==G.pfac).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length)[0]; return f ? `요즘 ${facName(f.id)}의 세력이 날로 커지고 있습니다. 대비해야 합니다.` : '천하가 잠시 숨을 고르고 있습니다.'; })()]);
+  // 주공의 하문: 정답은 형세로 정해진다. 지략이 높으면 실마리가 보인다.
+  const nbs = [...new Set(citiesOf(G.pfac).flatMap(c => c.adj).map(city).filter(c => c.owner && hostile(G.pfac, c.owner)).map(c => c.owner))];
+  const foe = nbs.sort((a,b) => totalTroops(b)-totalTroops(a))[0];
+  if (foe && Math.random() < .6){
+    const r = totalTroops(G.pfac) / Math.max(1, totalTroops(foe)), right = r > 1.25 ? 0 : r < .8 ? 2 : 1;
+    lines.push([lord.id, `${facName(foe)}이(가) 국경에서 병력 ${fmt(totalTroops(foe))}을 거느리고 있다. 우리는 ${fmt(totalTroops(G.pfac))}. 그대라면 어찌하겠는가?`]);
+    const hint = me().i >= 75 ? right : me().i >= 60 && Math.random() < .5 ? right : -1;
+    ['먼저 쳐서 기세를 꺾어야 합니다', '성을 굳게 지키며 때를 기다려야 합니다', '다른 세력과 손잡아 함께 막아야 합니다'].forEach((t, i) => choices.push({ t:'아뢴다: '+t, sub: i===hint ? '지략: 이것이 맞다' : '', cn:'answer', arg: i===right ? 1 : 0, grp:'q' }));
+  }
+  if (col && G.ap > 0 && Math.random() < .5) { lines.push([col.id, pick(['군량 장부가 엉망이라 큰일입니다. 좀 도와주시겠소?', '병사들 조련에 손이 모자랍니다. 함께 해 주시겠소?', '성벽 보수를 맡았는데 일손이 부족하오.'])]);
+    choices.push({ t:`${col.n}을(를) 돕는다`, sub:'행동력 1', cn:'help', arg:col.id, grp:'h' }); }
   const tgt = !G.inArmy && city(G.city).owner===G.pfac && !(G.campaign && G.campaign.until>=mi()) ? city(G.city).adj.map(city).filter(c => c.owner && hostile(G.pfac, c.owner)).sort((a,b)=>a.troops-b.troops)[0] : null;
   if (tgt && G.proposed!==mi()) choices.push({ t:`진언: ${tgt.n} 공략을 청한다`, sub:`${Math.round(proposeChance()*100)}%`, act:'propose', arg:tgt.id });
   choices.push({ t:'주공을 따로 뵙는다', sub:'알현', sheet:'audience', off:G.ap<=0 });
-  choices.push({ t:'물러난다' });
+  choices.push({ t:'물러난다', end:1 });
   lines.push([null, '그대도 한마디 아뢸 수 있다.']);
-  return { title:`${dateStr()} 평정`, bg:'bg_council', slots:{ r:lord.id }, lines, choices };
+  return { title:`${dateStr()} 평정`, bg:'bg_council', slots:{ r:lord.id }, lines, choices, council:1 };
 }
-const proposeChance = () => clamp(.25 + G.trust/200 + G.rank*.06 + (SV(me().i)-10)*.02, .1, .9);
+const proposeChance = () => clamp(.25 + G.trust/200 + G.rank*.06 + (me().i-50)*.004, .1, .9);
 function queueCouncil(force){
   if (SIM || !G.pfac || G.role==='ronin' || G.inArmy && !force) return;
   if (!force && !councilOn()) return;
@@ -4240,7 +4507,7 @@ function sideHtml(s, label){
   const hint = s.isPlayer ? (s.helpers.length ? `함께: ${s.helpers.join(', ')}` : '') : (s.helpers && s.helpers.length ? `부장: ${s.helpers.join(', ')}` : tendency(s));
   const face = s.isPlayer ? pp(me(),36) : s.gid && person(s.gid) ? pp(person(s.gid),36) : ptHTML(DEFAULT_LOOK, 35, false, facColor(s.fid), 36);
   return `<div class="side"><span class="lbl">${label}${s.joint>1?` · 합동 ${s.joint}군단`:''}</span><div class="row">${face}<h3>${esc(s.name)}</h3></div>
-    <div class="st">무 ${SV(s.st.m)} · 지 ${SV(s.st.i)} · 통 ${SV(s.st.l)}</div>
+    <div class="st">무 ${SV(s.st.m)} · 지 ${SV(s.st.i)} · 용 ${SV(s.st.l)}</div>
     ${s.u ? `<div><span class="chip gold">${UNITS[s.u][0]} · 적성 ${s.apt}</span></div>` : '<div><span class="chip">병종 선택 중</span></div>'}
     ${bar('병력', s.troops, s.max, 'var(--fac)', fmt(s.troops))}
     ${bar('사기', s.morale, 100, s.morale<35?'var(--red)':'var(--gold)')}
@@ -4824,7 +5091,7 @@ function warSheet(tid){
       ${srcs.map(s => { const p = plan[s.id], gs = avail(s);
         return `<div class="card" style="gap:6px"><div class="row between"><b>${s.n}에서</b><span class="small muted">병력 ${fmt(s.troops)} · ${travel(s.id,tid)}개월 거리</span></div>
           <div class="seg">${[0,.3,.5,.8].map(v=>`<button data-src="${s.id}" data-pct="${v}" aria-pressed="${p.pct===v}">${v?Math.round(v*100)+'%':'안 보냄'}</button>`).join('')}</div>
-          ${p.pct ? `<div class="row wrap" style="gap:5px">${gs.length ? gs.map(g => { const k = p.gens.indexOf(g.id); return `<button class="ghost row" style="gap:5px;padding:3px 9px 3px 3px;${k>=0?'background:var(--ink);color:#f6eedc;border-color:var(--ink)':''}" data-gen="${g.id}" data-src="${s.id}">${pp(g,22)}${k===0?'대장 ':k>0?'부장 ':''}${esc(g.id===G.pid?'그대가 직접':g.n)} <span class="tiny" style="opacity:.7">통${SV(g.l)}</span></button>`; }).join('') : '<span class="small" style="color:var(--red)">이 성에 장수가 없다. 장수 없이 보내면 약하다.</span>'}</div>` : ''}
+          ${p.pct ? `<div class="row wrap" style="gap:5px">${gs.length ? gs.map(g => { const k = p.gens.indexOf(g.id); return `<button class="ghost row" style="gap:5px;padding:3px 9px 3px 3px;${k>=0?'background:var(--ink);color:#f6eedc;border-color:var(--ink)':''}" data-gen="${g.id}" data-src="${s.id}">${pp(g,22)}${k===0?'대장 ':k>0?'부장 ':''}${esc(g.id===G.pid?'그대가 직접':g.n)} <span class="tiny" style="opacity:.7">용${SV(g.l)}</span></button>`; }).join('') : '<span class="small" style="color:var(--red)">이 성에 장수가 없다. 장수 없이 보내면 약하다.</span>'}</div>` : ''}
         </div>`; }).join('')}
       <div class="row between"><span class="lbl">군량</span><div class="seg" style="width:60%">${[3,6,9].map(v=>`<button data-food="${v}" aria-pressed="${food===v}">${v}개월</button>`).join('')}</div></div>
       <div class="card" style="background:#26201c0b"><div class="row between"><span>총병력 <b>${fmt(total)}</b>${used.length>1?' · <span class="chip up">합동</span>':''}</span><span class="chip ${tone}">${label}</span></div>
@@ -4854,7 +5121,7 @@ function campaignSheet(tid){
       ${pass ? `<div class="card" style="background:#fff6dd"><b>주공의 허가</b><span class="small">지원군 ${fmt(sup)} · 부장 ${maxD}명 · 군량 무상</span></div>`
         : `<div class="card"><span class="small">주공의 허가 없이 내 병력만으로 칠 수도 있다. 허가를 받으면 지원군 ${fmt(supportAmt())}과 부장 둘이 붙는다.</span><button class="btn2" id="req" ${G.ap>0?'':'disabled'}>주공께 지원 요청 (인망 ${Math.round(check('c', 55 - Math.round(G.trust/10))*100)}%)</button></div>`}
       <span class="lbl">부장 (최대 ${maxD}명${pass?'':' · 인연 40 이상'})</span>
-      <div class="row wrap" style="gap:5px">${cands.length ? cands.map(p => `<button class="ghost row" style="gap:5px;padding:3px 9px 3px 3px;${deps.includes(p.id)?'background:var(--ink);color:#f6eedc;border-color:var(--ink)':''}" data-dep="${p.id}">${pp(p,22)}${esc(p.n)} <span class="tiny" style="opacity:.7">통${SV(p.l)}</span></button>`).join('') : '<span class="small muted">함께 갈 장수가 없다.</span>'}</div>
+      <div class="row wrap" style="gap:5px">${cands.length ? cands.map(p => `<button class="ghost row" style="gap:5px;padding:3px 9px 3px 3px;${deps.includes(p.id)?'background:var(--ink);color:#f6eedc;border-color:var(--ink)':''}" data-dep="${p.id}">${pp(p,22)}${esc(p.n)} <span class="tiny" style="opacity:.7">용${SV(p.l)}</span></button>`).join('') : '<span class="small muted">함께 갈 장수가 없다.</span>'}</div>
       ${pass ? '' : `<div class="row between"><span class="lbl">군량</span><div class="seg" style="width:60%">${[3,6,9].map(v=>`<button data-food="${v}" aria-pressed="${food===v}">${v}개월</button>`).join('')}</div></div>`}
       <div class="card" style="background:#26201c0b"><div class="row between"><span>총병력 <b>${fmt(total)}</b></span>${est ? `<span class="chip ${est.p>=.65?'up':est.p<.35?'down':''}">함락 ${Math.round(est.p*100)}%</span>` : '<span class="chip">정찰 필요</span>'}</div><span class="small muted">내 병력 ${fmt(G.troops)}${sup?` + 지원 ${fmt(sup)}`:''} · ${cost?`군량 금 ${fmt(cost)} · `:''}행동력 1</span></div>
       <button class="btn fac" id="go" ${total>=500 && G.gold>=cost && G.ap>0 ? '' : 'disabled'}>출진</button><button class="btn2" data-close>닫기</button>`;
@@ -4904,7 +5171,7 @@ function openSheet(kind, arg){
     const c = city(arg), dg = bestGen(arg, c.owner), vis = visible(arg);
     const opts = [['rumor','유언비어','적 병력 10% 이탈, 사기 저하',0],['arson','화계','적 병력 15%, 성벽 -15',80],['inside','내응','3개월 안에 치면 적 사기 -30',120]];
     const gens = vis ? peopleIn(arg, c.owner).filter(p => !aliveFacs().some(f=>f.ruler===p.id)) : [];
-    const bg = sheet(`<h3>${c.n}에 계략</h3><p class="small muted">상대 ${dg?`${esc(dg.n)} (지략 ${SV(dg.i)})`:'수비대장 (지략 8)'} · 그대의 지략 ${SV(me().i)} · 행동력 1</p>
+    const bg = sheet(`<h3>${c.n}에 계략</h3><p class="small muted">상대 ${dg?`${esc(dg.n)} (지략 ${SV(dg.i)})`:'수비대장 (지략 40)'} · 그대의 지략 ${SV(me().i)} · 행동력 1</p>
       <div class="choices">${opts.map(([k,n,d,g])=>{ const p = Math.round(plotChance(k, arg)*100); return `<button class="choice" data-plot="${k}" ${G.gold>=g?'':'disabled'}><span><b>${n}</b>${g?` · 금 ${g}`:''}<br><span class="small muted">${d}</span></span><span class="p ${p>=60?'hi':p<40?'lo':''}">${p}%</span></button>`; }).join('')}</div>
       <span class="lbl">이간 · 금 80 · 적장을 빼내 온다 (인연 30 이상이면 우리 편으로)</span>
       ${gens.map(p=>`<div class="prow">${pp(p,32)}<span class="nm">${esc(p.n)}</span><span class="mini">인연 ${bond(p.id)}</span><button class="ghost" data-dis="${p.id}" ${G.gold>=80?'':'disabled'}>이간 ${Math.round(plotChance('discord', arg, p.id)*100)}%</button></div>`).join('') || `<p class="small muted">${vis?'빼낼 만한 장수가 없다.':'정찰해야 성 안의 장수를 알 수 있다.'}</p>`}
