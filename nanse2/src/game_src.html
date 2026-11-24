@@ -310,9 +310,12 @@ p{margin:0}
 .dlog{margin:4px 0;font-size:13px;color:#4a3a22;font-weight:700}
 .tacs.three{grid-template-columns:repeat(3,1fr)}
 .tacs.jail{grid-template-columns:1fr}
+.tbar{position:relative;height:30px;border-radius:15px;background:#3a2a1a;overflow:hidden;margin:6px 0}.tbar .tz{position:absolute;top:0;bottom:0;background:rgba(217,176,74,.75);border-left:2px solid #ffe27a;border-right:2px solid #ffe27a}.tbar .tn{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#fff;box-shadow:0 0 8px #fff;animation:tneedle var(--spd) linear infinite alternate}
+@keyframes tneedle{from{left:0}to{left:100%}}.btn.tap{font-size:20px;min-height:56px}
+.cdx{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #e6dcc6}
 .plan{display:flex;flex-direction:column;gap:8px}.intel{display:flex;flex-wrap:wrap;gap:6px;font-size:12.5px}.intel span{background:#efe6d2;border-radius:8px;padding:4px 8px}.intel b.bad{color:var(--red)}
 .tale{display:flex;flex-direction:column;gap:8px}.tsteps{display:flex;gap:4px}.tstep{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:#e6dcc6;color:#7a6d5a}.tstep.on{background:#a3322a;color:#fff}.tstep.done{background:#d4a01f;color:#fff}.hpbar{height:6px;background:#3a1410;border-radius:3px;overflow:hidden;margin-top:4px}.hpbar i{display:block;height:100%;background:#d9b04a}
-.tale-row{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px;margin:0 0 6px;border-radius:12px;border:1px solid #c8b48a;background:#f7f0e1;font:inherit;color:inherit;min-height:56px}.tale-row small{display:block;font-size:11.5px}.tale-row small.d{color:#5a4e3c;margin-top:2px}.tacs.jail .tac:disabled{opacity:.45}
+.tale-row{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px;margin:0 0 6px;border-radius:12px;border:1px solid #c8b48a;background:#f7f0e1;font:inherit;color:inherit;min-height:56px}.tale-row.alt{margin-left:24px;width:calc(100% - 24px);min-height:44px;background:#efe3c8}.tale-row small{display:block;font-size:11.5px}.tale-row small.d{color:#5a4e3c;margin-top:2px}.tacs.jail .tac:disabled{opacity:.45}
 .tacs.three .tac small{font-size:10.5px}
 button.stat{border:0;font:inherit;cursor:pointer}
 button.stat.pol{background:#e4d3a2;color:#3b2c14}
@@ -1660,8 +1663,8 @@ function histTick(){
       if (hd) G.hduelOffer = hd;
     }
     const victims = ps.filter(p => p.d===y && p.id!==G.pid && p.id!==G.protect && active(p) && G.mode!=='virtual' && !(G.hduelOffer && G.hduelOffer.id===id && G.hduelOffer.foe===p.id));
-    const canOffer = G.reg && G.reg.hist >= 45 && !G.histOffer;
-    const near = canOffer ? victims.filter(p => (G.pfac && p.fac===G.pfac) || bond(p.id)>=50 || isSworn(p.id) || p.city===G.city || city(G.city).adj.includes(at)) : [];
+    const canOffer = (G.reg ? G.reg.hist >= 45 : true) && !G.histOffer && !SIM;
+    const near = canOffer ? victims.filter(p => G.reg ? ((G.pfac && p.fac===G.pfac) || bond(p.id)>=50 || isSworn(p.id) || p.city===G.city || city(G.city).adj.includes(at)) : ((G.pfac && p.fac===G.pfac && G.pfac!=='free') || bond(p.id)>=60 || isSworn(p.id))) : [];
     if (near.length) G.histOffer = { id, n, t, v:near.map(p => p.id), st: HIST_STAT[id] || 'i' };
     for (const p of victims) if (!near.includes(p)) killNpc(p, '전사');
   }
@@ -2607,6 +2610,7 @@ function duelStart(B){
   const pre = [];
   if (B.ds.mw==='gung' || hasT(me(),'gung')){ B.ds.fh -= 8; pre.push('먼저 쏜 화살이 적장을 스쳤다 (적 -8)'); }
   if (B.ds.fw==='gung' || hasT(fp,'gung')){ B.ds.mh -= 8; pre.push('적장의 화살이 날아들었다 (그대 -8)'); }
+  const rv = fp && rivalOf(fp.id); if (rv && rv.l > rv.w){ B.ds.my += 5; pre.push('설욕의 의지가 끓는다 (무력 +5)'); }
   if (pre.length) B.ds.last = pre.join(' · ');
   B.ds.h0 = [B.ds.mh, B.ds.fh];
   duelIntro(B, fp);
@@ -2713,6 +2717,7 @@ function duelFinish(B, out){
   const ds = B.ds, mine = B[B.ps], foe = B.ps==='att' ? B.def : B.att;
   const lr = ds.rounds[ds.rounds.length-1];
   mine.duel = true; B.lastDuel = { win: out==='win', draw: out==='draw', fled: out==='fled', cap:false, rounds: lr ? [lr] : [], hp0: lr ? lr.h0 : ds.h0 };
+  if (!B.tale) rivalNote(foe.gid, out);
   if (B.tale) return taleAfterDuel(B, out);
   if (out==='win'){
     const ko = ds.fh <= 0;
@@ -2976,6 +2981,7 @@ function tbDuelStart(B, u, e){
 }
 function tbDuelFinish(B, out){
   const tb = B.tb, ds = B.ds, u = tbById(tb, ds.tb.u), e = tbById(tb, ds.tb.e);
+  rivalNote(e && e.gid, out);
   B.ds = null; u.dueled = e.dueled = true; u.hidden = false;
   B.lastDuel = { win: out==='win', draw: out==='draw', fled: out==='fled', cap:false, rounds: ds.rounds };
   if (out==='win'){ const ko = ds.fh<=0; e.morale = clamp(e.morale - (ko ? 45 : 32), 0, 130); e.troops = Math.round(e.troops*.9); u.morale = clamp(u.morale+15, 0, 130); G.duels++;
@@ -3234,25 +3240,119 @@ const TALES = [
          { foe:'machao', carry:1, maxR:5, goal:'survive', strip:1, t:'진으로 돌아와 숨을 돌렸다 · 갑옷을 벗고 다시 나갈 수도 있다' } ],
     win:[['machao','…호치라는 이름, 헛말이 아니구나.'], [null, '날이 저물도록 승부는 나지 않았다.']], lose:[[null, '마초의 창이 어깨를 꿰뚫었다.']] }
 ];
+
+/* 열전 추가분: 일기토만이 아니라 선택·타이밍·전투가 섞인 장면들 */
+TALES.push(
+  { id:'ym', n:'원문의 화살', y:196, hero:'lvbu', bg:'bg_camp', d:'유비와 기령 사이에 끼어든 여포. 백오십 보 밖 극의 곁날을 맞히면 싸움을 멈추라 한다.',
+    intro:[['lvbu','내 화살이 저 극의 곁날을 맞히면, 양쪽 모두 군을 물려라.']],
+    st:[ { type:'timing', t:'백오십 보 밖, 원문에 세운 극', d:'바람이 잦아드는 순간 시위를 놓는다', zone:[.46, .56], spd:900, stat:'m', tries:2, ok:{ log:'화살이 곁날 한가운데를 맞혔다! 장수들이 숨을 삼킨다.' }, no:{ log:'화살이 빗나갔다.' } },
+         { type:'choice', t:'기령이 칼자루를 놓지 않는다', opts:[ { t:'호통으로 누른다', stat:'m', diff:80, ok:{ log:'기령이 칼을 거두었다.' }, no:{ log:'기령이 이를 악물고 버틴다.', hp:-5 } }, { t:'술잔을 들어 달랜다', stat:'c', diff:45, ok:{ log:'양쪽 장수가 마지못해 잔을 들었다.' }, no:{ log:'술잔이 엎어졌다.', fail:1 } } ] } ],
+    win:[['lvbu','하하! 하늘이 싸우지 말라 하는구나!']], lose:[[null, '극 곁을 스친 화살이 땅에 박혔다. 칼집에서 칼들이 빠져나온다.']] },
+  { id:'hf', n:'팔백 기의 돌격', y:215, hero:'zhangliao', bg:'bg_field', d:'합비. 손권의 십만 대군 앞에 장료의 결사대는 팔백. 새벽에 먼저 친다.',
+    intro:[['zhangliao','적이 다 모이기 전에 꺾어야 한다. 나를 따르라!']],
+    st:[ { type:'battle', t:'새벽 돌격 · 오군 선봉을 꿰뚫는다', my:800, foe:9000, morale:130, boost:'charge', u:'cav', foeName:'오군 선봉', foeId:'chenwu', goal:'survive' },
+         { type:'choice', t:'손권의 깃발이 보인다. 그런데 아군 몇이 포위되었다', opts:[ { t:'곧장 손권에게 달려간다', stat:'m', diff:88, ok:{ log:'손권이 언덕으로 달아났다! 오군이 술렁인다.', foeHp:20 }, no:{ log:'호위 장수들이 앞을 막는다.', duel:1 } }, { t:'되돌아가 포위된 아군을 구한다', stat:'l', diff:70, ok:{ log:'"장군께서 우리를 버리셨는가!" — 아니다. 다시 돌아왔다!', hp:-8 }, no:{ log:'구했지만 크게 다쳤다.', hp:-20 } } ] },
+         { foe:'lingtong', maxR:4, goal:'survive', t:'소요진 다리 · 능통이 막아선다' } ],
+    win:[[null, '이날 이후 강동의 아이들은 장료의 이름만 들어도 울음을 그쳤다고 한다.']], lose:[[null, '대군의 물결이 결사대를 삼켰다.']] },
+  { id:'dj', n:'정군산의 노장', y:219, hero:'huangzhong', bg:'bg_field', d:'높은 곳을 차지했다. 법정이 깃발을 흔들 때까지 기다렸다가, 지친 하후연을 친다.',
+    intro:[['fazheng','제가 흰 깃발을 들면 기다리시고, 붉은 깃발을 들면 치십시오.'], ['huangzhong','늙은이라 얕보는 자들에게 보여 주지.']],
+    st:[ { type:'timing', t:'산 위에서 때를 기다린다', d:'붉은 깃발이 오르고 적이 지친 순간에 친다. 너무 이르면 맞서고, 늦으면 놓친다', zone:[.62, .78], spd:1400, stat:'l', tries:1, ok:{ log:'붉은 깃발! 북소리와 함께 산을 내리닫는다.', foeHp:30 }, no:{ log:'때를 놓쳤다. 적이 대열을 갖추었다.', hp:-10 } },
+         { foe:'xiahouyuan', goal:'win', boost:8, t:'하후연과 맞선다 (내리닫는 기세 무력 +8)' } ],
+    win:[['huangzhong','보았느냐! 이 칼은 아직 녹슬지 않았다!']], lose:[[null, '하후연의 칼이 노장의 투구를 스쳤다.']] },
+  { id:'cb', n:'동남풍', y:208, hero:'zhouyu', bg:'bg_camp', d:'적벽. 조조의 배는 이미 쇠사슬로 묶였다. 남은 것은 거짓 항복과 바람.',
+    intro:[['zhouyu','모든 것이 갖추어졌으나, 동풍만이 모자라는구나.']],
+    st:[ { type:'choice', t:'황개가 거짓 항복을 자청한다', opts:[ { t:'장수들 앞에서 매질한다 (고육계)', stat:'c', diff:55, ok:{ log:'피투성이 황개의 항복 서신을 조조가 믿었다.' }, no:{ log:'조조가 반쯤만 믿는다.', hp:-10 } }, { t:'서신만 보낸다', stat:'i', diff:85, ok:{ log:'서신이 통했다.' }, no:{ log:'조조가 의심하고 경계를 높였다.', hp:-15 } } ] },
+         { type:'timing', t:'제단의 바람을 기다린다', d:'깃발이 서북으로 눕는 순간 불배를 띄운다', zone:[.7, .82], spd:1100, stat:'i', tries:2, ok:{ log:'동남풍이다! 불배 스무 척이 미끄러지듯 나아간다.' }, no:{ log:'바람이 아직 아니다.' } },
+         { type:'battle', t:'불배가 쇠사슬로 묶인 함대를 덮친다', my:30000, foe:80000, morale:120, boost:'fire', boostK:2.2, u:'navy', foeName:'조조 수군', foeId:'cao', goal:'win' } ],
+    win:[['zhouyu','강 위가 대낮처럼 밝구나…'], [null, '적벽의 불길은 사흘 밤낮 꺼지지 않았다.']], lose:[[null, '불길이 바람을 거슬러 아군 배로 번졌다.']] },
+  { id:'kc', n:'빈 성의 거문고', y:228, hero:'zhugeliang', bg:'bg_palace', d:'서성. 군사는 모두 나가고 남은 것은 늙은 병사 이천. 사마의 십오만이 다가온다.',
+    intro:[['zhugeliang','성문을 모두 열고 길을 쓸어라. 나는 성루에서 거문고를 타겠다.']],
+    st:[ { type:'choice', t:'사마의의 선봉이 성문 앞에 닿았다', opts:[ { t:'성문을 열고 백성 차림의 병사에게 길을 쓸게 한다', stat:'i', diff:70, ok:{ log:'선봉이 멈칫했다.' }, no:{ log:'선봉 장수가 웃으며 앞으로 나온다.', hp:-15 } }, { t:'성문을 닫고 깃발을 숨긴다', stat:'l', diff:90, ok:{ log:'성은 텅 빈 듯 조용하다. 선봉이 의심한다.' }, no:{ log:'선봉이 성벽을 오르기 시작했다!', fail:1 } } ] },
+         { type:'timing', t:'성루에서 거문고를 탄다', d:'한 음도 흔들림 없이. 손끝이 떨리는 순간을 피해 다음 소절로 넘어간다', zone:[.4, .6], spd:800, stat:'i', tries:2, ok:{ log:'거문고 소리가 맑다. 사마의가 말고삐를 당긴다.' }, no:{ log:'한 음이 떨렸다.', hp:-15 } },
+         { type:'choice', t:'사마의의 아들이 "빈 성입니다!" 하고 외친다', opts:[ { t:'아무렇지 않게 술을 따른다', stat:'i', diff:80, ok:{ log:'"공명은 평생 조심스러운 사람이다. 반드시 복병이 있다." 사마의가 군을 돌렸다!' }, no:{ log:'사마의의 눈빛이 흔들린다…', fail:1 } } ] } ],
+    win:[['zhugeliang','…등에 식은땀이 흘렀구나. 다시는 못 할 일이다.']], lose:[[null, '활짝 열린 성문으로 위군이 밀려들었다.']] },
+  { id:'dd', n:'칼 한 자루 들고 가는 잔치', y:215, hero:'guanyu', bg:'bg_tavern', d:'노숙이 형주를 돌려 달라며 잔치에 불렀다. 장막 뒤에는 칼잡이가 숨어 있다.',
+    intro:[['lusu','장군, 형주를 빌려 간 지 오래입니다. 오늘은 그 이야기를 합시다.']],
+    st:[ { type:'choice', t:'노숙이 형주 반환을 다그친다', opts:[ { t:'수염을 쓸며 꾸짖는다', stat:'m', diff:75, ok:{ log:'자리의 공기가 얼어붙었다. 아무도 먼저 칼을 뽑지 못한다.' }, no:{ log:'장막 뒤에서 칼 소리가 난다.', hp:-10 } }, { t:'술잔을 들고 말을 돌린다', stat:'c', diff:65, ok:{ log:'노숙이 웃으며 잔을 받는다.' }, no:{ log:'노숙의 얼굴이 굳는다.', hp:-5 } } ] },
+         { type:'choice', t:'잔치가 끝날 무렵, 문밖에 칼잡이들이 늘어섰다', opts:[ { t:'노숙의 손목을 잡고 함께 강가로 걷는다', stat:'m', diff:70, ok:{ log:'노숙을 놓아주자 주창의 배가 이미 닿아 있었다.' }, no:{ log:'칼잡이 하나가 달려든다!', duel:1 } }, { t:'주창에게 신호를 보내 배를 댄다', stat:'i', diff:60, ok:{ log:'배가 강가에 닿았다. 유유히 올랐다.' }, no:{ log:'신호가 늦었다. 길을 뚫어야 한다.', duel:1 } } ], foe:'zhoutai' } ],
+    win:[['guanyu','노숙, 오늘 술은 좋았소.']], lose:[[null, '강동의 칼끝이 겨누어졌다.']] },
+  { id:'qz', n:'일곱 번 잡고 일곱 번 놓다', y:225, hero:'zhugeliang', bg:'bg_field', d:'남만왕 맹획. 몸이 아니라 마음을 꺾어야 다시는 등을 돌리지 않는다.',
+    intro:[['menghuo','이번엔 운이 나빴을 뿐이다! 다시 싸우면 내가 이긴다!']],
+    st:[ { type:'choice', t:'첫째 · 골짜기에 군을 숨긴다', opts:[ { t:'거짓으로 져서 끌어들인다', stat:'i', diff:55, ok:{ log:'맹획을 사로잡았다. 웃으며 풀어 주었다.' }, no:{ log:'맹획이 눈치채고 물러났다.', hp:-8 } } ] },
+         { type:'choice', t:'넷째 · 독천 넷이 길을 막는다', opts:[ { t:'샘의 물을 피하는 길을 찾는다', stat:'i', diff:70, ok:{ log:'은자가 해독할 풀을 일러 주었다.' }, no:{ log:'병사들이 독에 쓰러졌다.', hp:-20 } } ] },
+         { type:'battle', t:'여섯째 · 등갑군을 불로 잡는다', my:15000, foe:20000, boost:'fire', boostK:2, u:'spear', foeName:'등갑군', foeId:'menghuo', goal:'win' },
+         { type:'choice', t:'일곱째 · 맹획을 또 풀어 준다', opts:[ { t:'마음으로 대한다', stat:'c', diff:60, ok:{ log:'"승상의 하늘 같은 위엄, 남인은 다시는 배반하지 않겠습니다."' }, no:{ log:'맹획이 이를 갈며 돌아갔다.', fail:1 } } ] } ],
+    win:[['menghuo','…이제 알겠소. 졌소.']], lose:[[null, '남중은 다시 들끓었다.']] },
+  { id:'bm', n:'백마의 일격', y:200, hero:'guanyu', bg:'bg_field', d:'백마. 원소의 맹장 안량이 깃발 아래 서 있다. 만 군 사이로 말을 몰아 단숨에 벤다.',
+    intro:[['cao','안량을 당해낼 자가 없구려…'], ['guanyu','저 자는 머리를 팔려고 꽂아 둔 것과 같습니다.']],
+    st:[ { type:'timing', t:'적진을 가르며 달린다', d:'안량이 고개를 돌리는 찰나에 청룡도를 내리친다', zone:[.48, .58], spd:700, stat:'m', tries:1, ok:{ log:'안량이 칼을 들기도 전에 청룡도가 떨어졌다!', foeHp:60 }, no:{ log:'안량이 알아채고 칼을 들었다!' } },
+         { foe:'yanliang', maxR:2, goal:'win', t:'두 합 안에 끝낸다' } ],
+    win:[[null, '안량의 머리를 들고 만 군 사이를 빠져나왔다. 원소군이 길을 비켰다.']], lose:[[null, '안량의 호위가 겹겹이 몰려들었다.']] },
+  { id:'sr', n:'삼영전 · 여포의 눈으로', y:190, hero:'lvbu', bg:'bg_field', d:'호뢰관. 고리눈의 장수 하나는 우습다. 그런데 하나가 더, 또 하나가 더 온다.',
+    intro:[['lvbu','덤빌 놈은 다 덤벼라!']],
+    st:[ { foe:'zhangfei', maxR:4, goal:'survive', t:'장비와 맞붙는다' },
+         { foe:'guanyu', maxR:3, goal:'survive', foeBoost:10, t:'관우가 끼어들었다 (적 무력 +10)' },
+         { type:'choice', t:'유비까지 칼을 뽑았다. 셋을 상대로', opts:[ { t:'유비 쪽 틈을 찔러 빠져나간다', stat:'m', diff:90, ok:{ log:'극을 한 번 휘둘러 길을 열고 관으로 돌아갔다.' }, no:{ log:'세 자루 병기가 동시에 날아든다!', hp:-25 } }, { t:'적토마를 믿고 내달린다', stat:'l', diff:40, ok:{ log:'적토마가 바람처럼 내달렸다.' }, no:{ log:'말이 헛디뎠다.', hp:-15 } } ] } ],
+    win:[['lvbu','셋이서 하나를 못 잡는구나! 하하하!']], lose:[[null, '세 형제의 병기에 포위되었다.']] },
+  { id:'hr', n:'화용도', y:208, hero:'cao', bg:'bg_field', d:'적벽에서 불타 달아나는 길. 두 갈래 길 중 하나를 골라야 한다.',
+    intro:[['cao','…아직 끝나지 않았다. 길을 찾아라.']],
+    st:[ { type:'choice', t:'큰길에는 연기가 없고, 좁은 화용도에는 연기가 피어오른다', opts:[ { t:'연기 나는 화용도로 (허를 찌른다)', stat:'i', diff:60, ok:{ log:'"공명이 일부러 연기를 피웠겠지." 그러나 길목에는…' }, no:{ log:'길이 진흙탕이다. 병사들이 쓰러진다.', hp:-15 } }, { t:'큰길로', stat:'l', diff:85, ok:{ log:'큰길로 빠져나왔다.', skip:1 }, no:{ log:'큰길에 복병이 있었다!', hp:-25 } } ] },
+         { type:'choice', t:'관우가 길을 막았다', opts:[ { t:'옛 은혜를 떠올리게 한다', stat:'c', diff:60, ok:{ log:'관우가 말머리를 돌렸다. 길이 열렸다.' }, no:{ log:'관우의 눈빛이 흔들리지 않는다.', duel:1 } }, { t:'목숨을 걸고 맞선다', stat:'m', diff:95, ok:{ log:'허저와 함께 길을 뚫었다.', hp:-20 }, no:{ log:'청룡도 앞에 길이 막혔다.', duel:1 } } ], foe:'guanyu' } ],
+    win:[['cao','하하하! 다들 울상이로구나. 살아 있으면 다시 일어선다!']], lose:[[null, '화용도가 조조의 무덤이 되었다.']] },
+  { id:'gn', n:'백 기의 야습', y:213, hero:'ganning', bg:'bg_camp', d:'유수구. 기병 백으로 조조의 진영 사십 리를 휩쓸고 한 명도 잃지 않고 돌아온다.',
+    intro:[['ganning','오늘 밤 술은 내가 산다. 백 명이 나가서 백 명이 돌아온다!']],
+    st:[ { type:'battle', t:'밤의 조조 진영을 휩쓴다', my:100, foe:3000, morale:130, boost:'ambush', boostK:3, u:'cav', foeName:'조조 진영', foeId:'zhangliao', goal:'survive' },
+         { type:'timing', t:'횃불이 켜지기 전에 빠져나간다', d:'적 진영의 북이 울리기 전 순간', zone:[.3, .45], spd:900, stat:'l', tries:1, ok:{ log:'한 명도 잃지 않고 돌아왔다!' }, no:{ log:'몇 기가 뒤처졌다.', hp:-10 } } ],
+    win:[['sunquan','맹덕에게 장료가 있다면, 나에게는 흥패가 있다!']], lose:[[null, '조조 진영의 횃불이 길을 막았다.']] },
+  { id:'mz', n:'횃불 아래의 승부', y:214, hero:'machao', bg:'bg_field', d:'가맹관. 해가 졌지만 두 사람 모두 물러설 생각이 없다.',
+    intro:[['zhangfei','해가 졌다고 물러날 줄 아느냐! 횃불을 밝혀라!'], ['machao','바라던 바다!']],
+    st:[ { foe:'zhangfei', maxR:5, goal:'survive', t:'낮의 승부 다섯 합' },
+         { type:'choice', t:'횃불이 켜졌다', opts:[ { t:'말을 바꿔 탄다', stat:'l', diff:50, ok:{ log:'새 말의 숨이 고르다.', hp:12 }, no:{ log:'말을 바꿀 틈이 없다.' } }, { t:'그대로 나간다', stat:'m', diff:60, ok:{ log:'기세가 꺾이지 않았다.', hp:5 }, no:{ log:'' } } ] },
+         { foe:'zhangfei', carry:1, maxR:5, goal:'survive', t:'밤의 승부 다섯 합' } ],
+    win:[[null, '새벽까지 승부는 나지 않았다. 둘은 서로의 이름을 오래 기억했다.']], lose:[[null, '장팔사모가 창을 튕겨 냈다.']] },
+  { id:'zh', n:'한수의 빈 진영', y:219, hero:'zhaoyun', bg:'bg_camp', d:'황충을 구하고 돌아온 진영. 조조 대군이 뒤쫓아 온다. 문을 닫을까, 열까.',
+    intro:[['zhaoyun','진문을 활짝 열고 깃발을 눕혀라. 북도 치지 마라.']],
+    st:[ { type:'choice', t:'조조군이 진영 앞에 닿았다', opts:[ { t:'홀로 창을 들고 진문 앞에 선다', stat:'m', diff:75, ok:{ log:'조조가 복병을 의심해 머뭇거린다.' }, no:{ log:'조조군이 몰려든다!', hp:-15 } } ] },
+         { type:'battle', t:'물러나는 적에게 쇠뇌를 퍼붓는다', my:3000, foe:30000, morale:125, boost:'ambush', boostK:2.4, u:'bow', foeName:'조조군', foeId:'xuhuang', goal:'survive', view:'wall' } ],
+    win:[['liubei','자룡의 온몸이 담덩어리로구나!']], lose:[[null, '진영이 무너졌다.']] },
+  { id:'pd', n:'관을 메고 나간 장수', y:219, hero:'pangde', bg:'bg_field', d:'번성. 관을 앞세우고 관우와 맞선다. 그런데 가을비가 그치지 않는다.',
+    intro:[['pangde','이 관에 관우가 들어가든, 내가 들어가든!']],
+    st:[ { foe:'guanyu', maxR:5, goal:'survive', t:'관우와 백 합 (다섯 합 버티기)' },
+         { type:'timing', t:'화살 한 발', d:'물러나는 관우의 이마를 노린다', zone:[.5, .6], spd:800, stat:'m', tries:1, ok:{ log:'화살이 관우의 팔에 꽂혔다!', foeHp:25 }, no:{ log:'화살이 빗나갔다.' } },
+         { type:'choice', t:'한수가 넘쳐 진영이 잠긴다', opts:[ { t:'작은 배를 빼앗아 번성으로 간다', stat:'m', diff:85, ok:{ log:'배를 빼앗아 물살을 거슬렀다.' }, no:{ log:'배가 뒤집혔다.', fail:1 } } ] } ],
+    win:[[null, '물살을 거슬러 번성에 닿았다. 관을 멘 장수의 이름이 남았다.']], lose:[[null, '물에 빠진 방덕이 사로잡혔다.']] }
+);
+// 두 번째부터는 비틀린 역사: 같은 장면, 다른 적과 조건
+const TALE_ALT = {
+  hx:{ d:'화웅 대신 여포가 나왔다', st:[ { foe:'lvbu', maxR:3, goal:'survive', t:'세 합 동안 여포를 버틴다', pre:[['lvbu','술이 식든 말든, 네 목은 여기 두고 가라.']] } ] },
+  zy:{ d:'장합 대신 허저와 서황이 쫓는다', st:[ { foe:'xiahouen', goal:'win', t:'하후은이 길을 막는다' }, { foe:'xuchu', heal:5, goal:'survive', breakthru:1, t:'허저가 앞을 막는다' }, { foe:'xuhuang', heal:5, goal:'survive', breakthru:1, t:'서황이 큰 도끼를 들고 쫓는다' } ] },
+  gw:{ d:'마지막 나루에서 하후돈이 쫓아왔다', st:[ { foe:'kongxiu', goal:'win', t:'동령관 · 공수' }, { foe:'bianxi', heal:8, goal:'win', ambush:1, t:'사수관 · 변희의 절' }, { foe:'qinqi', heal:8, goal:'win', t:'황하 나루 · 진기' }, { foe:'xiahoudun', heal:5, maxR:4, goal:'survive', t:'하후돈이 말을 달려 쫓아왔다' } ] },
+  sy:{ d:'관우가 늦는다. 장비 혼자 더 버텨야 한다', st:[ { foe:'lvbu', maxR:5, goal:'survive', t:'다섯 합을 홀로 버틴다' }, { foe:'lvbu', carry:1, maxR:4, goal:'survive', boost:30, t:'관우와 유비가 함께 왔다 (무력 +30)' } ] },
+  hf:{ d:'감녕이 다리를 끊어 놓았다', st:[ { type:'battle', t:'새벽 돌격', my:800, foe:12000, morale:130, boost:'charge', u:'cav', foeName:'오군', foeId:'ganning', goal:'survive' }, { type:'timing', t:'끊어진 다리를 말로 뛰어넘는다', d:'말이 박차는 순간', zone:[.55, .65], spd:700, stat:'l', tries:1, ok:{ log:'말이 끊어진 다리를 날아 넘었다!' }, no:{ log:'말이 물에 빠졌다.', fail:1 } } ] },
+  kc:{ d:'사마의가 이번에는 의심하지 않는다. 시간을 끌어 조운의 원군을 기다린다', st:[ { type:'timing', t:'거문고로 시간을 끈다', d:'한 소절씩, 흔들림 없이', zone:[.42, .58], spd:700, stat:'i', tries:3, ok:{ log:'사마의가 아직 망설인다.' }, no:{ log:'음이 떨렸다.', hp:-15 } }, { type:'battle', t:'조운의 원군이 닿았다 · 성문에서 맞받아친다', my:5000, foe:30000, morale:120, boost:'ambush', boostK:2.2, u:'spear', foeName:'위군 선봉', foeId:'zhanghe', goal:'survive', view:'wall' } ] }
+};
 const taleById = id => TALES.find(t => t.id===id);
-function taleStart(id){
+const taleSt = (B) => { const T = taleById(B.tale.id); return B.tale.alt && TALE_ALT[T.id] ? TALE_ALT[T.id].st : T.st; };
+function taleStart(id, alt){
   const T = taleById(id), H = T && person(T.hero); if (!T || !H || G.battle || G.taleBack) return;
+  const S0 = (alt && TALE_ALT[id] ? TALE_ALT[id].st : T.st)[0], f0 = S0.foe || S0.foeId || T.hero;
   G.taleBack = { pid: G.pid, hp: G.hp, phase: G.phase };
   G.pid = T.hero; G.hp = 100;
-  const B = { kind:'tale', title:`열전 · ${T.n}`, to:G.city, att: mkSide(T.hero, 1000, 80, H.fac, true), def: mkSide(T.st[0].foe, 1000, 80, (person(T.st[0].foe)||{}).fac, false), round:1, log:[], ps:'att', stage:null, cmdPlayer:true,
-    tale:{ id, i:0, hp:100, fh:null, log:[] } };
+  const B = { kind:'tale', title:`열전 · ${T.n}`, to:G.city, att: mkSide(T.hero, 1000, 80, H.fac, true), def: mkSide(f0, 1000, 80, (person(f0)||{}).fac, false), round:1, log:[], ps:'att', stage:null, cmdPlayer:true,
+    tale:{ id, i:0, hp:100, fh:null, log:[], alt: !!(alt && TALE_ALT[id]) } };
   G.battle = B; G.phase = 'battle';
   talkQ({ title:`${T.y}년 · ${T.n}`, bg:T.bg, lines:T.intro });
 }
-function taleStage(B){ const T = taleById(B.tale.id); return T.st[B.tale.i]; }
+function taleStage(B){ return taleSt(B)[B.tale.i]; }
 function taleDuel(B, opt){
-  const st = taleStage(B), tl = B.tale, fp = person(st.foe);
-  B.def = mkSide(st.foe, 1000, 80, fp && fp.fac, false);
+  const st = taleStage(B), tl = B.tale, fid = st.foe || st.foeId, fp = person(fid);
+  B.def = mkSide(fid, 1000, 80, fp && fp.fac, false);
   B.att.duel = false;
   duelStart(B);
   const ds = B.ds; ds.mh = tl.hp; ds.maxR = st.maxR || 5;
   if (st.carry && tl.fh!=null) ds.fh = tl.fh;
-  ds.my += (st.boost||0) + (opt && opt.boost || 0);
+  if (tl.fdmg){ ds.fh = Math.max(10, ds.fh - tl.fdmg); tl.fdmg = 0; }
+  ds.my += (typeof st.boost==='number' ? st.boost : 0) + (opt && opt.boost || 0); ds.fm += st.foeBoost || 0;
   if (opt && opt.foeHp) ds.fh = Math.max(10, ds.fh - opt.foeHp);
   if (opt && opt.strip){ ds.my += 14; ds.fI = (ds.fI||1)*1.25; }
   if (opt && opt.weak) ds.my -= opt.weak;
@@ -3275,6 +3375,59 @@ function taleChoose(k){
     if (Math.random() < ch){ tl.log.push('함정을 간파했다! 먼저 들이쳐 적장의 기세를 꺾었다.'); Snd.sfx('skill'); return taleDuel(B, { foeHp:25 }); }
     tl.hp = Math.max(1, tl.hp - 15); Snd.sfx('fire'); tl.log.push('함정에 걸렸다 (체력 -15). 불길을 뚫고 적장과 맞선다.'); return taleDuel(B, { weak:4 }); }
   if (k==='quit') return taleEnd(B, false, true);
+  if (k.startsWith('opt')) return taleOpt(B, +k.slice(3));
+  if (k==='tap') return taleTap(B);
+  if (k.startsWith('tac:')) return taleFight(B, k.slice(4));
+}
+// 선택 단계: 능력 판정으로 갈린다
+const optCh = (o) => clamp(.5 + (me()[o.stat] - o.diff)/60, .08, .95);
+function taleOpt(B, i){
+  const st = taleStage(B), tl = B.tale, o = st.opts && st.opts[i]; if (!o) return;
+  const ok = Math.random() < optCh(o), r = ok ? o.ok : o.no;
+  if (r.hp) tl.hp = clamp(tl.hp + r.hp, 1, 100); if (r.foeHp) tl.fdmg = (tl.fdmg||0) + r.foeHp;
+  if (r.log) tl.log.push(r.log); Snd.sfx(ok ? 'skill' : 'bad');
+  if (r.fail) return taleEnd(B, false);
+  if (r.duel){ const save = st.foe; st.foe = st.foe || 'xuchu'; taleDuel(B, { weak:4 }); st.foe = save; return; }
+  if (r.skip) tl.i++;
+  return taleNext(B, true);
+}
+// 타이밍 단계: 움직이는 바늘이 목표 구간에 들어왔을 때 누른다
+function tnPos(st, e){ const P = st.spd || 900, ph = (e % (2*P))/P; return ph <= 1 ? ph : 2 - ph; }
+function taleTap(B){
+  const st = taleStage(B), tl = B.tale; if (st.type!=='timing') return;
+  const pos = tnPos(st, Date.now() - (tl.tm0 || Date.now())), pad = clamp((me()[st.stat||'m'] - 60)/600, -.02, .05);
+  const ok = pos >= st.zone[0] - pad && pos <= st.zone[1] + pad;
+  tl.tries = (tl.tries||0) + 1;
+  if (ok){ Snd.sfx('slash'); if (st.ok.hp) tl.hp = clamp(tl.hp + st.ok.hp, 1, 100); if (st.ok.foeHp) tl.fdmg = (tl.fdmg||0) + st.ok.foeHp; tl.log.push(st.ok.log); tl.tries = 0; tl.tm0 = null; return taleNext(B, true); }
+  Snd.sfx('bad'); tl.log.push(st.no.log + ` (${Math.round(pos*100)} — 목표 ${Math.round(st.zone[0]*100)}~${Math.round(st.zone[1]*100)})`);
+  if (st.no.hp) tl.hp = clamp(tl.hp + st.no.hp, 1, 100);
+  if (st.no.fail) return taleEnd(B, false);
+  if (tl.tries >= (st.tries||1)){ tl.tries = 0; tl.tm0 = null;  return taleNext(B, true); }
+  tl.tm0 = Date.now();
+}
+// 전투 단계: 병력을 이끌고 3합
+function taleBattleSetup(B){
+  const st = taleStage(B), tl = B.tale; if (tl.bs===tl.i) return; tl.bs = tl.i;
+  const H = me(), fp = person(st.foeId);
+  B.att = mkSide(G.pid, st.my, 90, H.fac, true); B.att.morale = st.morale || 100; setUnit(B.att, st.u || 'cav');
+  B.def = mkSide(st.foeId, st.foe, 70, fp && fp.fac, false); B.def.name = st.foeName || B.def.name; setUnit(B.def, 'spear');
+  B.att.support = Math.max(0, st.foe/st.my*.8 - 1); // 소수 정예: 영웅의 장면이니 병력 차이를 기세로 메운다
+  B.round = 1; B.done = false; B.winner = null; B.last = null; B.log = [];
+}
+function taleFight(B, t){
+  const st = taleStage(B), tl = B.tale; if (st.type!=='battle' || !TAC[t]) return;
+  taleBattleSetup(B);
+  if (st.boost && B.round===1) B.boost = { side:'att', tac:st.boost, k: st.boostK || 1.6 };
+  const before = [B.att.troops, B.def.troops];
+  fight(B, t, aiTac(B.def));
+  makeAnim('fight', B, before); if (st.view && B.anim){ B.anim.view = st.view; B.anim.wall = 60; }
+  if (B.done){
+    const ok = st.goal==='win' ? B.winner==='att' : (B.winner==='att' || B.att.troops > B.att.max*.25);
+    tl.log.push(`${st.t.split(' · ')[0]} — ${ok ? (B.winner==='att' ? '대승' : '버텨 냈다') : '패퇴'}`);
+    B.done = false; tl.bs = -1;
+    if (!ok) return taleEnd(B, false);
+    return taleNext(B, true);
+  }
 }
 function taleAfterDuel(B, out){
   const st = taleStage(B), tl = B.tale, ds = B.ds;
@@ -3288,13 +3441,14 @@ function taleAfterDuel(B, out){
 function taleNext(B, skipped){
   const T = taleById(B.tale.id), tl = B.tale;
   tl.i++; if (!(taleStage(B)||{}).carry) tl.fh = null;
-  if (tl.i >= T.st.length) return taleEnd(B, true);
+  if (tl.i >= taleSt(B).length) return taleEnd(B, true);
   const st = taleStage(B); if (st.heal) tl.hp = Math.min(100, tl.hp + st.heal);
 }
 function taleEnd(B, ok, quit){
   const T = taleById(B.tale.id), tl = B.tale;
   tl.done = ok ? 'win' : quit ? 'quit' : 'lose';
-  if (ok){ META.tales = META.tales || {}; const first = !META.tales[T.id]; META.tales[T.id] = (META.tales[T.id]||0) + 1;
+  if (ok && tl.alt){ META.taleAlt = META.taleAlt || {}; const first = !META.taleAlt[T.id]; META.taleAlt[T.id] = 1; if (first){ addJade(10); tl.reward = '비틀린 역사 첫 완수 · 옥 +10'; } saveMeta(); Snd.sfx('win'); }
+  else if (ok){ META.tales = META.tales || {}; const first = !META.tales[T.id]; META.tales[T.id] = (META.tales[T.id]||0) + 1;
     if (first){ addJade(8); tl.reward = '처음 완수 · 옥 +8'; } saveMeta(); Snd.sfx('win'); }
   else if (!quit) Snd.sfx('lose');
   talkQ({ title:`열전 · ${T.n}`, bg:T.bg, lines: ok ? T.win : T.lose });
@@ -3304,29 +3458,38 @@ function taleClose(){
   G.pid = back.pid; G.hp = back.hp; G.battle = null; G.phase = back.phase==='battle' ? 'act' : (back.phase || 'act'); G.taleBack = null; G.dead = null;
 }
 function taleHtml(B){
-  const T = taleById(B.tale.id), tl = B.tale, st = taleStage(B), fp = st && person(st.foe);
-  const steps = T.st.map((s, i) => `<span class="tstep ${i < tl.i ? 'done' : i===tl.i && !tl.done ? 'on' : ''}">${i+1}</span>`).join('');
+  const T = taleById(B.tale.id), tl = B.tale, st = taleStage(B), fp = st && person(st.foe || st.foeId);
+  const steps = taleSt(B).map((s, i) => `<span class="tstep ${i < tl.i ? 'done' : i===tl.i && !tl.done ? 'on' : ''}">${i+1}</span>`).join('');
   const log = tl.log.slice(-4).map(l => `<div>${esc(l)}</div>`).join('');
   if (tl.done) return `<div class="tale"><div class="row between"><h3>열전 · ${esc(T.n)}</h3><span class="tsteps">${steps}</span></div>
     <p class="result ${tl.done==='win' ? '' : 'bad'}">${tl.done==='win' ? '명장면을 완수했다!' : tl.done==='quit' ? '이야기를 접었다.' : '이번에는 역사를 따라가지 못했다.'}</p>${tl.reward ? `<p class="chips"><span class="chip up">${tl.reward}</span></p>` : ''}
     <div class="log">${log}</div><button class="btn" id="taleClose">본래 이야기로 돌아간다</button></div>`;
   const b = (k, t, d) => `<button class="tac" data-tale="${k}"><b>${t}</b><small>${d}</small></button>`;
+  const head = `<div class="row between"><h3>열전 · ${esc(T.n)}${tl.alt ? ' <span class="chip gold">비틀린 역사</span>' : ''}</h3><span class="tsteps">${steps}</span></div>
+    <div class="row" style="gap:10px;align-items:center">${pp(me(), 48)}<div class="grow"><b>${esc(me().n)}</b> <span class="chip ${tl.hp < 35 ? 'down' : ''}">체력 ${Math.round(tl.hp)}</span><div class="hpbar"><i style="width:${tl.hp}%"></i></div></div>${fp ? pp(fp, 48) : ''}</div>
+    <p class="small"><b>${tl.i+1}단계</b> · ${esc(st.t)}</p>`;
+  const foot = `${log ? `<div class="log">${log}</div>` : ''}<button class="btn2" data-tale="quit">이야기를 접는다</button></div>`;
+  if (st.type==='choice') return `<div class="tale">${head}<div class="tacs jail">${st.opts.map((o, i) => b('opt' + i, esc(o.t), `${({m:'무력',i:'지략',l:'통솔',c:'인덕'})[o.stat]} 판정 · 성공 ${Math.round(optCh(o)*100)}%`)).join('')}</div>${foot}`;
+  if (st.type==='timing'){ if (!tl.tm0) tl.tm0 = Date.now(); const e = Date.now() - tl.tm0, P = st.spd || 900;
+    return `<div class="tale">${head}<p class="small muted">${esc(st.d)}</p><div class="tbar" style="--spd:${P}ms"><i class="tz" style="left:${st.zone[0]*100}%;width:${(st.zone[1]-st.zone[0])*100}%"></i><i class="tn" style="animation-delay:-${e}ms"></i></div>
+      <button class="btn tap" data-tale="tap">지금!</button><p class="tiny muted">남은 기회 ${(st.tries||1) - (tl.tries||0)}번 · ${({m:'무력',i:'지략',l:'통솔',c:'인덕'})[st.stat||'m']}이 높을수록 목표가 넓어진다</p>${foot}`; }
+  if (st.type==='battle'){ taleBattleSetup(B); const M = B.att, F = B.def;
+    return `<div class="tale">${head}<div class="intel"><span>아군 <b>${fmt(M.troops)}</b> · 사기 ${Math.round(M.morale)}</span><span>${esc(F.name)} <b>${fmt(F.troops)}</b> · 사기 ${Math.round(F.morale)}</span><span>${Math.min(B.round, 3)} / 3합</span>${st.boost ? `<span>준비된 계책: <b>${TAC[st.boost][0]}</b></span>` : ''}</div>
+      <div class="tacs">${['charge','fire','ambush','wall'].map(k => b('tac:' + k, `<span class="gl">${TGL[k]}</span>${TAC[k][0]}${st.boost===k && B.round===1 ? ' <span class="chip up">계책</span>' : ''}`, '')).join('')}</div>
+      <p class="tiny muted">목표: ${st.goal==='win' ? '적을 무너뜨린다' : '병력의 4분의 1 이상을 지킨다'} · 상성 돌격›화공›방진›기습›돌격</p>${foot}`; }
   const opts = [b('duel', '일기토', fp ? `${esc(fp.n)}과(와) 맞붙는다 · 목표: ${st.goal==='win' ? '이긴다' : '쓰러지지 않는다'}${st.maxR ? ` (${st.maxR}합)` : ''}` : '맞붙는다')];
   if (st.breakthru) opts.push(b('break', '돌파한다', '무력·기마술로 적진을 뚫는다. 실패하면 다치고 싸워야 한다'));
   if (st.shout) opts.push(b('shout', '호통친다', `기세로 적을 물린다${st.shout===2 ? ' (복병 먼지 덕에 잘 통한다)' : ''}. 실패하면 불리하게 싸운다`));
   if (st.ambush) opts.unshift(b('detect', '함정을 살핀다', '지략으로 계략을 꿰뚫는다. 통하면 먼저 친다, 아니면 다친 채 싸운다'));
   if (st.strip) opts.push(b('strip', '갑옷을 벗고 나간다', '무력 +14, 대신 받는 피해가 1.25배'));
-  return `<div class="tale"><div class="row between"><h3>열전 · ${esc(T.n)}</h3><span class="tsteps">${steps}</span></div>
-    <div class="row" style="gap:10px;align-items:center">${pp(me(), 48)}<div class="grow"><b>${esc(me().n)}</b> <span class="chip ${tl.hp < 35 ? 'down' : ''}">체력 ${Math.round(tl.hp)}</span>${st.carry && tl.fh!=null ? ` <span class="chip">${esc(fp.n)} 체력 ${Math.round(tl.fh)}</span>` : ''}<div class="hpbar"><i style="width:${tl.hp}%"></i></div></div>${fp ? pp(fp, 48) : ''}</div>
-    <p class="small"><b>${tl.i+1}단계</b> · ${esc(st.t)}</p>
-    <div class="tacs jail">${opts.join('')}</div>${log ? `<div class="log">${log}</div>` : ''}
-    <button class="btn2" data-tale="quit">이야기를 접는다</button></div>`;
+  return `<div class="tale">${head}${st.carry && tl.fh!=null && fp ? `<p class="tiny">${esc(fp.n)} 체력 ${Math.round(tl.fh)}</p>` : ''}
+    <div class="tacs jail">${opts.join('')}</div>${foot}`;
 }
 function openTales(){
   const done = META.tales || {};
-  const rows = TALES.map(T => { const H = person(T.hero); return `<button class="tale-row" data-tl="${T.id}">${H ? pp(H, 44) : ''}<span class="grow"><b>${esc(T.n)}</b> <small class="muted">${T.y}년 · ${H ? esc(H.n) : ''}</small><small class="d">${esc(T.d)}</small></span>${done[T.id] ? '<span class="chip up">완수</span>' : ''}</button>`; }).join('');
+  const rows = TALES.slice().sort((a, b) => a.y - b.y).map(T => { const H = person(T.hero), alt = done[T.id] && TALE_ALT[T.id]; return `<button class="tale-row" data-tl="${T.id}">${H ? pp(H, 44) : ''}<span class="grow"><b>${esc(T.n)}</b> <small class="muted">${T.y}년 · ${H ? esc(H.n) : ''}</small><small class="d">${esc(T.d)}</small></span>${done[T.id] ? '<span class="chip up">완수</span>' : ''}</button>${alt ? `<button class="tale-row alt" data-tl="${T.id}" data-alt="1"><span class="grow"><b>↳ 비틀린 역사</b><small class="d">${esc(TALE_ALT[T.id].d)}</small></span>${(META.taleAlt||{})[T.id] ? '<span class="chip up">완수</span>' : ''}</button>` : ''}`; }).join('');
   const bg = sheet(`<h3>열전 · 명장면 도전</h3><p class="small muted">그 장수가 되어 원작의 장면을 직접 치른다. 지금 이야기에는 영향이 없고, 처음 완수하면 옥을 받는다.</p>${rows}<button class="btn2" data-close>닫기</button>`);
-  bg.querySelectorAll('[data-tl]').forEach(b => b.onclick = () => { if (G.battle || G.phase!=='act' || G.jail) return toast('지금은 열전을 열 수 없다. 하던 일을 마치고 오자.', [], true), render(); bg.remove(); taleStart(b.dataset.tl); render(); });
+  bg.querySelectorAll('[data-tl]').forEach(b => b.onclick = () => { if (G.battle || G.phase!=='act' || G.jail) return toast('지금은 열전을 열 수 없다. 하던 일을 마치고 오자.', [], true), render(); bg.remove(); taleStart(b.dataset.tl, !!b.dataset.alt); render(); });
 }
 /* ---------------- 원작의 일기토: 일기토만 하는 짧은 싸움 ---------------- */
 function beginHDuel(o){
@@ -4211,9 +4374,12 @@ const EVENTS = [
   { id:'hduel', s:'鬪', t:'원작의 일기토', rep:true, forced:()=>!!G.hduelOffer,
     x:()=>{ const o = G.hduelOffer, f = person(o.foe); return `「${o.n}」 ${J(f.n,'이')} 홀로 진 앞으로 나와 외친다. ${o.sub ? `원작에서는 ${J(person(o.sub).n,'이')} 맞섰던 자리다.` : `원작에서 이 싸움은 이렇게 끝났다: ${o.r}.`}`; },
     c:()=>[ { t:'말을 달려 맞붙는다', ok:{ hduel:1, msg:'병기를 꼬나쥐고 진 앞으로 나섰다.' } }, { t:'물러선다', ok:{ hduel:0, msg:'그대는 나서지 않았다. 병사들 사이에 수군거림이 돈다.' } } ] },
-  { id:'histfate', s:'憶', t:'기억 속 그날', rep:true, forced:()=>!!G.histOffer,
-    x:()=>{ const o = G.histOffer; return `기억이 또렷하게 떠오른다. 「${o.n}」. ${o.t} ${o.v.map(i=>person(i).n).join('·')}의 운명이 바로 이 달에 갈린다.`; },
+  { id:'histfate', s:'憶', t:'운명의 갈림길', rep:true, forced:()=>!!G.histOffer,
+    x:()=>{ const o = G.histOffer; return G.reg ? `기억이 또렷하게 떠오른다. 「${o.n}」. ${o.t} ${o.v.map(i=>person(i).n).join('·')}의 운명이 바로 이 달에 갈린다.` : `역사의 갈림길. 「${o.n}」. ${o.t} 이대로라면 ${o.v.map(i=>person(i).n).join('·')}의 명이 이번 달에 다한다. 막아설 것인가?`; },
     c:()=>{ const o = G.histOffer, names = o.v.map(i=>person(i).n).join('·');
+      if (!G.reg) return [ { t:`직접 달려가 막아선다 (무력)`, chk:['m', 72], ok:{ fate:1, mer:25, msg:'창끝 하나 차이로 운명이 비껴갔다.' }, no:{ fate:0, hp:-12, msg:'달려갔지만 한발 늦었다.' } },
+        { t:`계책으로 화를 피하게 한다 (지략)`, chk:['i', 72], ok:{ fate:1, mer:20, msg:'미리 보낸 서신 한 통이 운명을 바꾸었다.' }, no:{ fate:0, msg:'서신은 끝내 닿지 않았다.' } },
+        { t:'역사대로 흘러가게 둔다', ok:{ fate:-1, msg:'하늘의 뜻이라 여기고 눈을 감았다.' } } ];
       return [ { t:`역사를 바꾼다: ${names}을(를) 구한다`, chk:[o.st, 65], ok:{ fate:1, mer:20, msg:'그대가 아는 그날과 다른 하루가 지나갔다.' }, no:{ fate:0, hp:-8, msg:'손을 썼지만 역사의 물살은 거셌다.' } },
         { t:'역사대로 흘러가게 둔다', ok:{ fate:-1, msg:'그대는 알면서도 지켜보았다. 기억은 아직 선명하다.' } } ]; } },
   { id:'quiet', s:'练', t:'고요한 달', x:()=>'모처럼 전선이 조용하다. 이번 달을 어떻게 보낼까.', c:()=>[
@@ -4397,9 +4563,9 @@ function applyEff(e){
       case 'hduel': { const o = G.hduelOffer; G.hduelOffer = null; if (!o) break; if (v===1) G.hduelGo = o; else { if (G.pfac) trustAdd(-3); const f = person(o.foe); if (f && f.d===G.year && f.alive && G.mode!=='virtual') killNpc(f, '전사'); } break; }
       case 'fate': { const o = G.histOffer; G.histOffer = null; if (!o) break;
         if (v===1){ const saved = []; for (const id of o.v){ const p = person(id); if (p && p.alive){ p.d = Math.max(p.d, G.year + ri(8,20)); addBond(id, 25); saved.push(p.n); } }
-          G.reg.hist = Math.max(0, G.reg.hist - 8); G.reg.changed = (G.reg.changed||0) + 1; G.flags.fate = (G.flags.fate||0) + 1;
-          extra += ` ${saved.join('·')}의 운명이 바뀌었다.`; chips.push(['역사 일치도 -8', false]); news(`${saved.join('·')}이(가) 원작과 달리 살아남았다.`, true, true); }
-        else { if (v===0) G.reg.hist = Math.max(0, G.reg.hist - 3); for (const id of o.v){ const p = person(id); if (p && p.alive) killNpc(p, '전사'); } }
+          if (G.reg){ G.reg.hist = Math.max(0, G.reg.hist - 8); G.reg.changed = (G.reg.changed||0) + 1; chips.push(['역사 일치도 -8', false]); } G.flags.fate = (G.flags.fate||0) + 1;
+          extra += ` ${saved.join('·')}의 운명이 바뀌었다.`; news(`${saved.join('·')}이(가) 원작과 달리 살아남았다.`, true, true); }
+        else { if (v===0 && G.reg) G.reg.hist = Math.max(0, G.reg.hist - 3); for (const id of o.v){ const p = person(id); if (p && p.alive) killNpc(p, '전사'); } }
         break; }
       case 'tr': add(G.role==='ruler'?'민심':'신뢰', trustAdd(v)); break;
       case 'trSet': G.trust = v; chips.push([`신뢰 ${v}`, true]); break;
@@ -4629,7 +4795,33 @@ function battleIntro(B){
 }
 function duelIntro(B, fp){
   if (SIM || !fp) return;
+  const r = rivalOf(fp.id);
+  if (r && (r.w + r.l + r.d) > 0){ const L = rivalLines(fp, r); talkQ({ title:`일기토 · ${rivalTitle(r)}`, bg:'bg_field', lines: L }); return; }
   talkQ({ title:'일기토', bg:'bg_field', lines:[[fp.id, lnP('duel', fp)], ['me', lnP('duel', me())]] });
+}
+/* 숙적 기록: 한 번 맞붙은 장수는 다음에 만나면 그 승부를 기억한다 */
+function rivalOf(id){ G.rivals = G.rivals || {}; return G.rivals[id] || null; }
+function rivalNote(id, out){
+  if (!id || SIM) return; G.rivals = G.rivals || {};
+  const r = G.rivals[id] || (G.rivals[id] = { w:0, l:0, d:0, y:G.year });
+  if (out==='win') r.w++; else if (out==='lose') r.l++; else if (out==='draw') r.d++; else return;
+  r.last = out; r.y = G.year; r.me = G.pid;
+  META.codex = META.codex || {}; const c = META.codex[id] || (META.codex[id] = { w:0, l:0, d:0 }); if (out==='win') c.w++; else if (out==='lose') c.l++; else c.d++; saveMeta();
+}
+const rivalTitle = r => r.w + r.l + r.d >= 3 && Math.abs(r.w - r.l) <= 1 ? '숙명의 맞수' : r.l > r.w ? '설욕전' : r.w > r.l ? '다시 만난 적' : '끝나지 않은 승부';
+function rivalLines(fp, r){
+  const n = r.w + r.l + r.d, ago = G.year - (r.y||G.year), mn = me().n, cnt = ['','두','세','네','다섯','여섯'][Math.min(5, n)] || '여러';
+  const ten = ago >= 3 ? `${ago}년 만이군. ` : '';
+  if (r.me && r.me!==G.pid) return [[fp.id, `…${mn}이라. 네 선대와 칼을 맞댄 적이 있지. 그 피가 흐르는지 보자.`], ['me', '선대의 빚까지 오늘 갚겠다.']];
+  if (n >= 3 && Math.abs(r.w - r.l) <= 1) return [[fp.id, `${ten}또 너냐, ${mn}! 이번이 ${cnt}번째다. 오늘은 끝을 보자!`], ['me', pick(['천하에 너만 한 적수는 없었다. 오늘도 즐겁게 싸우자.', '몇 번을 만나도 같다. 이긴 쪽이 이긴 거다.'])]];
+  if (r.last==='lose') return [[fp.id, pick([`${ten}지난번에 목숨을 살려 준 걸 잊었나?`, `${ten}또 지러 왔느냐, ${mn}.`, `상처는 다 아물었느냐? 이번엔 그리 운이 좋지 않을 거다.`])], ['me', pick(['그날의 빚, 오늘 갚아 주마!', '그때의 내가 아니다.', '이번엔 다르다. 각오해라!'])]];
+  if (r.last==='win') return [[fp.id, pick([`${ten}${mn}! 그날의 치욕, 하루도 잊은 적 없다!`, `네놈에게 진 뒤로 창을 놓은 날이 없다. 덤벼라!`, `${ten}이번엔 쉽지 않을 거다.`])], ['me', pick(['한 번 진 자는 또 진다.', '같은 결과가 날 거다.', '좋다, 더 강해졌는지 보자.'])]];
+  return [[fp.id, `${ten}그날은 승부를 내지 못했지. 오늘은 결판을 내자, ${mn}.`], ['me', '바라던 바다.']];
+}
+function openCodex(){
+  const C = META.codex || {}, ids = Object.keys(C).filter(id => G.people[id]).sort((a, b) => (C[b].w + C[b].l + C[b].d) - (C[a].w + C[a].l + C[a].d));
+  const rows = ids.map(id => { const p = person(id), c = C[id], r = (G.rivals||{})[id]; return `<div class="cdx">${pp(p, 40)}<div class="grow"><b>${esc(p.n)}</b> <small class="muted">무 ${SV(p.m)}</small><div class="tiny">${c.w}승 ${c.l}패 ${c.d}무${r ? ` · 이번 천하 ${r.w}승 ${r.l}패` : ''}</div></div>${c.w + c.l + c.d >= 3 && Math.abs(c.w - c.l) <= 1 ? '<span class="chip gold">숙명</span>' : c.w > c.l ? '<span class="chip up">우세</span>' : c.l > c.w ? '<span class="chip down">열세</span>' : ''}</div>`; }).join('');
+  sheet(`<h3>명장 도감 · 숙적 기록</h3><p class="small muted">일기토로 맞붙은 장수가 모든 판에 걸쳐 쌓인다. 다시 만나면 그날의 승부를 기억하고 말이 달라진다.</p>${rows || '<p class="small">아직 맞붙은 장수가 없다.</p>'}<button class="btn2" data-close>닫기</button>`);
 }
 
 /* 교류 · 등용의 대화 */
@@ -4802,7 +4994,7 @@ function viewTop(){
   return `<header class="top">
     <div class="r1">
       <button class="ptwrap" data-person="${p.id}" aria-label="내 정보">${pp(p,44)}<span class="seal">${facSeal(G.pfac)}</span></button>
-      <div class="id"><b>${esc(p.n)}</b><span>${G.pfac?esc(facName(G.pfac))+' · ':''}${roleText()} · ${ageOf(p)}세 · ${G.surname}씨 ${G.gen}대</span></div>
+      <div class="id"><b>${esc(p.n)}</b><span>${G.taleBack ? '열전 · 명장면 도전 중' : `${G.pfac?esc(facName(G.pfac))+' · ':''}${roleText()} · ${ageOf(p)}세 · ${G.surname}씨 ${G.gen}대`}</span></div>
       <button class="date" data-tome="1" style="border:0;background:none;padding:0"><b>${dateStr()}</b><span style="color:var(--red);font-weight:800">◉ ${G.inArmy && armyById(G.inArmy) ? esc(city(armyById(G.inArmy).to).n)+' 원정' : esc(city(G.city).n)}</span></button>
       ${G.reg?`<button class="icon" id="memBtn" aria-label="회귀자의 기억" style="font-family:var(--seal)">憶</button>`:''}
       ${G.pfac && G.role!=='ronin' && G.phase==='act' ? `<button class="icon" id="cnBtn" aria-label="평정" style="font-family:var(--seal)">評</button>` : ''}
@@ -5766,13 +5958,14 @@ function openHelp(){
 }
 function openMenu(){
   const bg = sheet(`<h3>메뉴</h3>
-    <button class="btn2" id="mCu">내 장수 부르기</button><button class="btn2" id="mChron">연대기</button><button class="btn2" id="mHelp">게임 방법</button><button class="btn2" id="mAch">업적</button><button class="btn2" id="mTale">열전 · 명장면 도전</button>
+    <button class="btn2" id="mCu">내 장수 부르기</button><button class="btn2" id="mChron">연대기</button><button class="btn2" id="mHelp">게임 방법</button><button class="btn2" id="mAch">업적</button><button class="btn2" id="mTale">열전 · 명장면 도전</button><button class="btn2" id="mCodex">명장 도감 · 숙적</button>
     <button class="btn2" id="mSet">설정 (소리·진동)</button><button class="btn2" id="mAd" ${adLeft()>0?'':'disabled'}>▶ 광고 보고 군자금 +${fmt(adGold())} (오늘 ${adLeft()}/${adCapNow()})</button><button class="btn2" id="mCopy">💾 저장 칸에 저장하기</button><button class="btn2" id="mTitle">처음 화면으로</button><button class="btn2" data-close>닫기</button>`);
   bg.querySelector('#mCu').onclick = () => { bg.remove(); openSummon(); };
   bg.querySelector('#mChron').onclick = () => { bg.remove(); sheet(`<h3>연대기</h3><div class="news">${G.chron.slice(-80).reverse().map(c=>`<div><b>${c.y}.${c.m||1}</b> ${esc(c.t)}</div>`).join('')}</div><button class="btn2" data-close>닫기</button>`); };
   bg.querySelector('#mHelp').onclick = () => { bg.remove(); openHelp(); };
   bg.querySelector('#mAch').onclick = () => { bg.remove(); openAch(); };
   bg.querySelector('#mTale').onclick = () => { bg.remove(); openTales(); };
+  bg.querySelector('#mCodex').onclick = () => { bg.remove(); openCodex(); };
   bg.querySelector('#mSet').onclick = () => { bg.remove(); openSettings(); };
   bg.querySelector('#mAd').onclick = () => { bg.remove(); showAd('gold', () => { if (adLeft()<=0) return; const g = adGold(); adDay().n++; saveMeta(); G.gold += g; toast('후원자가 군자금을 보내왔다.', [[`금 +${fmt(g)}`,true]]); save(); render(); }); };
   bg.querySelector('#mCopy').onclick = () => { bg.remove(); save();
