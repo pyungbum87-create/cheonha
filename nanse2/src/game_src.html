@@ -323,6 +323,9 @@ p{margin:0}
 .mlist{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}.mrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:#fffaf0;font:inherit;color:inherit;text-align:left;min-height:56px}.mrow:last-child{border-bottom:0}.mrow b{display:block;font-size:14.5px}.mrow small{display:block;font-size:11.5px;color:var(--muted)}.mi{width:30px;height:30px;border-radius:9px;background:#efe5cf;display:grid;place-items:center;font-size:15px;color:#6f6356}.mch{font-size:22px;color:#b7a789}.mrow.dim b{color:var(--muted)}.mrow.danger b{color:var(--red)}.mrow.danger .mi{background:#f6dcd6;color:var(--red)}
 .tgl{width:46px;height:28px;border-radius:14px;background:#cfc3a9;position:relative;flex:0 0 46px;transition:background .2s}.tgl i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}.tgl.on{background:#3d7a52}.tgl.on i{transform:translateX(18px)}
 .mapview.th{display:flex;flex-direction:column;gap:8px;padding:8px 10px 10px;overflow-y:auto}.mseg{display:flex;gap:4px;background:#e6dcc6;border-radius:12px;padding:3px;align-self:center;position:relative;z-index:3}.mapview:not(.th) .mseg{position:absolute;bottom:14px;left:12px;box-shadow:0 2px 8px rgba(40,25,10,.25)}.mseg button{border:0;background:none;font:inherit;font-size:13px;font-weight:700;padding:6px 18px;border-radius:9px;color:#6f6356;min-height:36px}.mseg button.on{background:#2a1f16;color:#f4ecdc}
+.phase{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e6dcc6;color:#6f6356;margin-left:4px;vertical-align:2px}.phase.good{background:#dcefdf;color:#2f6b3a}.phase.hot{background:#2f6b3a;color:#fff}.phase.warn{background:#f6e3c4;color:#8a5a12}.phase.bad{background:#a3322a;color:#fff}
+.thslots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.thslot{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;border:1px dashed #c8b48a;background:#fbf6ea;font:inherit;color:inherit;min-height:96px;position:relative}.thslot.on{border-style:solid;background:#fff}.thslot .gl{position:absolute;top:4px;left:6px;font-family:var(--seal);color:var(--red);font-size:14px}.thslot .empty{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#efe5cf;color:#a89a7c;font-style:normal;font-size:18px}.thslot .nm{display:flex;flex-direction:column;align-items:center;line-height:1.2}.thslot .nm b{font-size:12.5px}.thslot .nm small{font-size:10.5px;color:var(--muted)}
+.thsup{display:flex;align-items:center;gap:8px;font-size:12.5px}.thsup .sb{display:flex;gap:3px}.thsup .sb i{width:14px;height:10px;border-radius:3px;background:#e6dcc6}.thsup .sb i.on{background:#c9932a}.thsup .sb i.half{background:linear-gradient(90deg,#c9932a 50%,#e6dcc6 50%)}.thsup button{margin-left:auto;border:1px solid #c8b48a;background:#fff;border-radius:10px;font:inherit;font-size:12px;padding:6px 10px;min-height:40px}.thhelp summary{font-size:12px;color:var(--muted);min-height:32px;display:flex;align-items:center}.pv{font-family:var(--display);font-size:18px;color:var(--red)}
 .theater{display:flex;flex-direction:column;gap:8px}.thtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.thtab{flex:0 0 auto;border:0;border-bottom:3px solid transparent;background:#f4ecdc;border-radius:10px 10px 4px 4px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;min-height:40px;color:#6f6356}.thtab small{margin-left:4px;font-size:11px;opacity:.7}.thtab.on{border-bottom-color:var(--fc);background:#fffaf0;color:#2a1f16}
 .thmap{border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(40,25,10,.16);background:#f4ecdc}.thsvg{display:block;width:100%;height:auto}.thl{cursor:pointer}.thc{cursor:pointer}
 .thcard{background:#fffaf0;border-radius:16px;padding:12px;box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:8px}.thcard .bad{color:var(--red)}.thcard .good{color:var(--good)}.thinfo{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12.5px}.thinfo span{background:#f1e8d6;border-radius:10px;padding:7px 9px}.thgens{display:flex;flex-wrap:wrap;gap:5px}
@@ -2153,10 +2156,20 @@ function frontsOf(fid){
   }
   return out;
 }
-function frState(id){ G.fronts = G.fronts || {}; return G.fronts[id] || (G.fronts[id] = { p:0, gens:[], st:'hold', bonus:0 }); }
+function frState(id){ G.fronts = G.fronts || {}; const S = G.fronts[id] || (G.fronts[id] = { p:0, gens:[], st:'hold', bonus:0 }); if (!S.r){ S.r = { van:S.gens[0]||null, adv:S.gens[1]||null, rear:S.gens[2]||null }; } if (S.sup==null) S.sup = 3; return S; }
+/* 전선 체계
+   단계: 위기(-100~-70) · 열세 · 대치(-30~30) · 우세 · 돌파 직전(70~100)
+   장수 세 자리: 선봉(무력·통솔 → 미는 힘) · 군사(지략 → 적의 공세를 꺾고 원정길 판정) · 후방(정치 → 군량 소모를 줄임)
+   군량: 공세 한 달에 1개월분. 버티면 조금 찬다. 바닥나면 공세가 약해진다. 큰길로 가면 +1, 산길은 -1 */
+const FR_ROLES = { van:['선봉','先','m','무력·통솔이 높을수록 세게 민다'], adv:['군사','謀','i','지략이 높을수록 적의 공세를 꺾고 원정길 판정이 좋아진다'], rear:['후방','糧','g','정치가 높을수록 군량을 아낀다'] };
+function frPhase(p){ return p <= -70 ? ['위기','bad'] : p < -30 ? ['열세','warn'] : p <= 30 ? ['대치',''] : p < 70 ? ['우세','good'] : ['돌파 직전','hot']; }
+function frRoleP(F, S, k){ const p = person(S.r[k]); if (!p || !active(p) || p.fac!==G.pfac || p.army) return null; if (p.id===G.pid ? !(F.my.includes(G.city) && !G.inArmy) : !F.my.includes(p.city)) return null; return p; }
+function frSetRole(id, k, gid){ const S = frState(id); for (const o of Object.values(G.fronts)) for (const r of Object.keys(o.r||{})) if (o.r[r]===gid) o.r[r] = null; S.r[k] = gid || null; S.gens = Object.values(S.r).filter(Boolean); }
+const frSupCost = (F, S) => Math.round(frEval(F).me_.t/1000*6 + 40);
 const frPow = (ids, gens, fid) => { const t = ids.reduce((s, id) => s + (city(id).troops||0), 0); const g = (gens && gens.length ? gens.map(person).filter(Boolean) : ids.map(id => bestGen(id, fid)).filter(Boolean)); const best = g.sort((a, b) => (b.m + b.l) - (a.m + a.l))[0]; return { t, k: genFactor(best), best }; };
 function frEval(F){
-  const S = frState(F.id), me_ = frPow(F.my, S.gens.filter(id => { const p = person(id); return p && active(p) && p.fac===G.pfac && !p.army; }), G.pfac), en = frPow(F.foe, null, F.ef);
+  const S = frState(F.id), van = frRoleP(F, S, 'van'), me_ = frPow(F.my, van ? [van.id] : [], G.pfac), en = frPow(F.foe, null, F.ef);
+  if (van) me_.k = .6 + (van.m*1.2 + van.l*.8)/500;
   const a = me_.t*me_.k, b = en.t*en.k;
   return { S, me_, en, ratio: a/(a + b || 1) };
 }
@@ -2164,22 +2177,28 @@ function frontStep(ff){
   if (ff || G.role!=='ruler' || !G.pfac) return;
   const FS = frontsOf(G.pfac), live = new Set(FS.map(F => F.id));
   for (const k of Object.keys(G.fronts||{})) if (!live.has(k)) delete G.fronts[k];
+  const rep = [];
   for (const F of FS){
-    const { S, me_, en, ratio } = frEval(F);
+    const { S, me_, en, ratio } = frEval(F), adv = frRoleP(F, S, 'adv'), rear = frRoleP(F, S, 'rear'), ph0 = frPhase(S.p)[0];
     const br = brain(F.ef), foePush = Math.random() < .35 + (br ? br.a*.4 : .2) + (ratio < .4 ? .2 : 0);
-    const mk = S.st==='push' ? 1.25 : .8, fk = foePush ? 1.15 : .8;
-    let d = ((ratio*mk) - ((1 - ratio)*fk))*34 + (S.st==='push' ? S.bonus : 0) + rnd(-6, 6);
+    const cons = S.st==='push' ? (rear ? clamp(1.3 - (rear.g||rear.i)/110, .4, 1) : 1) : 0, starve = S.st==='push' && S.sup < cons;
+    if (S.st==='push') S.sup = Math.max(0, S.sup - cons); else S.sup = Math.min(6, S.sup + .5);
+    const mk = S.st==='push' ? (starve ? 1 : 1.25) : .8, fk = (foePush ? 1.15 : .8)*(adv ? 1 - clamp((adv.i - 50)/250, 0, .2) : 1);
+    let d = ((ratio*mk) - ((1 - ratio)*fk))*34 + (S.st==='push' ? S.bonus*(starve ? .5 : 1) : 0) + rnd(-6, 6);
     if (S.st==='hold' && d < 0) d *= .6;
+    S.starve = starve;
     S.p = clamp(Math.round(S.p + d), -100, 100);
     // 소모: 미는 쪽이 더 잃는다
     const lossMy = (S.st==='push' ? .03 : .015) + (foePush ? .01 : 0), lossEn = (foePush ? .03 : .015) + (S.st==='push' ? .015 : 0);
     for (const id of F.my) city(id).troops = Math.round(city(id).troops*(1 - lossMy));
     for (const id of F.foe) city(id).troops = Math.round(city(id).troops*(1 - lossEn));
     S.last = Math.round(d); S.foePush = foePush; S.bonus = 0;
+    const ph1 = frPhase(S.p)[0]; if (Math.abs(S.last) >= 8 || ph1!==ph0) rep.push(`${F.name.replace(' 전선', '')} ${S.last >= 0 ? '+' : ''}${S.last}${ph1!==ph0 ? `(${ph1})` : ''}${starve ? ' 군량 부족' : ''}`);
     if (S.p >= 100) frBreak(F, S, true);
     else if (S.p <= -100) frBreak(F, S, false);
     S.st = S.auto ? S.st : 'hold';
   }
+  if (rep.length) news(`전선 보고: ${rep.join(', ')}`, false, true);
 }
 // 전선이 무너지면 결전이 벌어진다
 function frBreak(F, S, ours){
@@ -2196,6 +2215,7 @@ function frBreak(F, S, ours){
     G.queue.push({ kind:'siege', to:tgt.id, fac:G.pfac, front:1 });
     news(`${F.name}이 무너졌다! 아군이 ${J(tgt.n,'을')} 향해 결전에 나선다.`, true, true);
     S.p = 35;
+    for (const o of frontsOf(G.pfac)) if (o.ef===F.ef && o.id!==F.id){ const So = frState(o.id); So.p = clamp(So.p + 12, -100, 100); }
   } else {
     const tgt = F.my.map(city).sort((a, b) => a.troops - b.troops)[0], src = F.foe.map(city).filter(c => c.adj.includes(tgt.id)).sort((a, b) => b.troops - a.troops)[0];
     if (!tgt || !src) return;
@@ -2224,7 +2244,8 @@ function frBonusFromTrek(T){
   let b = (A.surprise||0)*.6 + (A.intel||0)*60 + (A.morale||0)*.5 - (A.eta||0)*8 + (A.recruit||0)/150 + (A.food||0)*2;
   if (A.troops){ for (const id of F.my) city(id).troops = Math.max(500, Math.round(city(id).troops*(1 + A.troops))); b += A.troops*80; }
   if (A.recruit){ const c = F.my.map(city).sort((a, b) => b.troops - a.troops)[0]; if (c) c.troops += A.recruit; }
-  S.bonus = Math.round(clamp(b, -12, 25)) + ({ main:0, hill:4, water:3 })[T.road]||0;
+  S.bonus = Math.round(clamp(b, -12, 25)) + (({ main:0, hill:4, water:3 })[T.road]||0);
+  S.sup = clamp(S.sup + (A.food||0) + (({ main:1, hill:-1, water:0 })[T.road]||0), 0, 6);
   S.road = T.road;
 }
 function frGens(id, gid){
@@ -2310,16 +2331,29 @@ function viewTheater(){
   // 아래 카드: 고른 전선
   const { S, me_, en, ratio } = frEval(selF), near = selF.foe.map(city).sort((a, b) => a.troops - b.troops)[0], mineW = selF.my.map(city).sort((a, b) => a.troops - b.troops)[0];
   const hint = S.p >= 60 ? `조금만 더 밀면 ${near.n}이(가) 무너진다` : S.p <= -60 ? `더 밀리면 ${mineW.n}이(가) 위험하다` : S.p >= 20 ? '아군이 조금씩 밀고 있다' : S.p <= -20 ? '적이 조금씩 밀고 있다' : '팽팽하다';
-  const gens = S.gens.map(person).filter(Boolean), pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && selF.my.includes(p.city)).concat(selF.my.includes(G.city) && !G.inArmy ? [me()] : []);
+  const ph = frPhase(S.p), cost = frSupCost(selF, S);
   const tabs = efs.length > 1 ? `<div class="thtabs">${efs.map(f => `<button class="thtab ${f===ef ? 'on' : ''}" data-thf="${f}" style="--fc:${facColor(f)}">${esc(facName(f))}<small>${by[f].length}</small></button>`).join('')}</div>` : '';
-  const card = `<div class="thcard"><div class="row between"><b>${esc(selF.sec)} 전선</b><span class="small ${S.p <= -60 ? 'bad' : S.p >= 60 ? 'good' : 'muted'}">${hint}</span></div>${frBar(S.p)}
-    <div class="thinfo"><span>투입: <b>${gens.length ? gens.map(p => esc(p.n)).join('·') : '장수 없음'}</b> · ${fmt(me_.t)}</span><span>적: <b>${fmt(en.t)}</b> · 힘 ${Math.round(ratio*100)}:${100 - Math.round(ratio*100)}</span></div>
-    ${pool.length ? `<div class="thgens">${pool.map(p => `<button class="chip ${S.gens.includes(p.id) ? 'gold' : ''}" data-fg="${p.id}" data-fgf="${selF.id}" style="border:0">${esc(p.n)}</button>`).join('')}</div>` : ''}
+  const slot = k => { const R = FR_ROLES[k], g = frRoleP(selF, S, k); return `<button class="thslot ${g ? 'on' : ''}" data-role="${k}" data-rf="${selF.id}"><span class="gl">${R[1]}</span>${g ? pp(g, 30) : '<i class="empty">+</i>'}<span class="nm"><small>${R[0]}</small><b>${g ? esc(g.n) : '비어 있음'}</b>${g ? `<small>${({m:'무',i:'지',g:'정'})[R[2]]} ${SV(R[2]==='g' ? (g.g||g.i) : g[R[2]])}</small>` : ''}</span></button>`; };
+  const supBar = `<div class="thsup"><span>군량</span><div class="sb">${[0,1,2,3,4,5].map(q => `<i class="${q < Math.floor(S.sup) ? 'on' : q < S.sup ? 'half' : ''}"></i>`).join('')}</div><b>${(Math.round(S.sup*2)/2)}개월</b><button data-tho="supply" ${S.sup >= 6 ? 'disabled' : ''}>보내기 · 금 ${fmt(cost)}</button></div>`;
+  const card = `<div class="thcard"><div class="row between"><b>${esc(selF.sec)} 전선 <span class="phase ${ph[1]}">${ph[0]}</span></b><span class="small ${S.p <= -60 ? 'bad' : S.p >= 60 ? 'good' : 'muted'}">${hint}</span></div>${frBar(S.p)}
+    <div class="thinfo"><span>아군 <b>${fmt(me_.t)}</b> · 힘 ${Math.round(ratio*100)}</span><span>적 <b>${fmt(en.t)}</b>${en.best ? ` · ${esc(en.best.n)}` : ''}</span></div>
+    <div class="thslots">${['van','adv','rear'].map(slot).join('')}</div>
+    ${supBar}${S.starve ? '<p class="tiny bad" style="margin:0">지난달 군량이 모자라 공세가 약했다.</p>' : ''}
     <div class="thbtns"><button class="${S.st==='push' ? 'on' : ''}" data-tho="push">밀어붙인다</button><button class="${S.st==='hold' ? 'on' : ''}" data-tho="hold">버틴다</button><button data-tho="shift">병력을 돌린다</button></div>
-    <button class="thauto" data-tho="auto"><span class="tgl ${S.auto ? 'on' : ''}"><i></i></span>다음 달에도 이 명령 유지</button></div>`;
+    <button class="thauto" data-tho="auto"><span class="tgl ${S.auto ? 'on' : ''}"><i></i></span>다음 달에도 이 명령 유지</button>
+    <details class="thhelp"><summary>전선 규칙</summary><p class="tiny">· 밀어붙이면 원정길(큰길·산길·물길 → 고비 셋)을 거쳐 이번 달 미는 힘이 정해진다. 큰길은 군량 +1, 산길은 군량 -1 대신 기습.<br>· 공세 한 달에 군량 1개월분. 후방 장수의 정치가 높으면 덜 든다. 버티면 반 달분씩 찬다.<br>· 선봉은 미는 힘, 군사는 적의 공세를 꺾고 원정길 판정을 맡는다.<br>· 막대가 끝에 닿으면 결전. 이기면 같은 적의 다른 전선도 +12.</p></details></div>`;
   return `<div class="theater">${tabs}<div class="thmap">${svg}</div>${card}</div>`;
 }
 // 병력을 돌린다: 이 전선의 병력 일부를 가장 위태로운 다른 전선으로
+function openRolePick(id, k){
+  const F = frontsOf(G.pfac).find(f => f.id===id); if (!F) return; const S = frState(id), R = FR_ROLES[k];
+  const pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).concat(F.my.includes(G.city) && !G.inArmy ? [me()] : []);
+  const val = p => R[2]==='g' ? (p.g||p.i) : R[2]==='m' ? (p.m*1.2 + p.l*.8)/2 : p[R[2]];
+  const where = p => { for (const [fid, o] of Object.entries(G.fronts||{})) for (const [r, g] of Object.entries(o.r||{})) if (g===p.id && !(fid===id && r===k)) return FR_ROLES[r][0]; return ''; };
+  const rows = pool.sort((a, b) => val(b) - val(a)).map(p => `<button class="mrow" data-pk="${p.id}"><span>${pp(p, 36)}</span><span class="grow"><b>${esc(p.n)}${S.r[k]===p.id ? ' ✓' : ''}</b><small>무 ${SV(p.m)} · 지 ${SV(p.i)} · 통 ${SV(p.l)} · 정 ${SV(p.g||p.i)}${where(p) ? ` · 지금 ${where(p)}` : ''}</small></span><b class="pv">${Math.round(val(p))}</b></button>`).join('');
+  const bg = sheet(`<div class="cu-head"><h3>${esc(F.sec)} 전선 · ${R[0]}</h3><button class="icon" data-close aria-label="닫기">✕</button></div><p class="small muted">${R[3]}. 이 전선의 성에 있는 장수만 맡을 수 있다.</p><div class="mlist">${rows || '<p class="small" style="padding:12px">이 전선의 성에 장수가 없다. 군단 화면에서 장수를 옮기자.</p>'}</div>${S.r[k] ? '<button class="btn2" data-pk="" style="margin-top:8px">자리 비우기</button>' : ''}`);
+  bg.querySelectorAll('[data-pk]').forEach(b => b.onclick = () => { frSetRole(id, k, b.dataset.pk || null); bg.remove(); save(); render(); });
+}
 function frShift(id){
   const FS = frontsOf(G.pfac), F = FS.find(f => f.id===id); if (!F) return;
   const T = FS.filter(f => f.id!==id).sort((a, b) => frState(a.id).p - frState(b.id).p)[0];
@@ -2356,7 +2390,7 @@ const TREK = {
   current:{ t:'물살이 거꾸로 흐른다', o:[ { t:'밧줄로 배를 끈다', stat:'m', diff:45, ok:{ morale:-3, log:'땀으로 거슬러 올랐다.' }, no:{ eta:1, log:'한 달이 걸렸다.' } }, { t:'물이 바뀔 때를 기다린다', stat:'i', diff:40, ok:{ log:'때를 맞춰 나아갔다.' }, no:{ eta:1, log:'기다림이 길었다.' } } ] },
   pirates:{ t:'수적 떼가 배를 노린다', o:[ { t:'활로 쫓는다', stat:'l', diff:45, ok:{ morale:4, log:'수적이 달아났다.' }, no:{ food:-1, log:'군량선 하나를 빼앗겼다.' } }, { t:'수적을 끌어들인다', stat:'c', diff:60, ok:{ recruit:700, log:'수적들이 우리 수군이 되었다.' }, no:{ troops:-.03, log:'싸움이 났다.' } } ] }
 };
-function trekLead(ids){ if (G.trek && G.trek.front){ const S = frState(G.trek.front), g = S.gens.map(person).filter(Boolean); if (g.length) return g.sort((a, b) => (b.m + b.i + b.l) - (a.m + a.i + a.l))[0]; return me(); } const as = ids.map(armyById).filter(Boolean); const g = as.flatMap(a => a.gens).map(person).filter(Boolean); return g.find(p => p.id===G.pid) || g.sort((a, b) => (b.m + b.i + b.l) - (a.m + a.i + a.l))[0] || me(); }
+function trekLead(ids){ if (G.trek && G.trek.front){ const F = frontsOf(G.pfac).find(f => f.id===G.trek.front), S = frState(G.trek.front); return (F && (frRoleP(F, S, 'adv') || frRoleP(F, S, 'van'))) || me(); } const as = ids.map(armyById).filter(Boolean); const g = as.flatMap(a => a.gens).map(person).filter(Boolean); return g.find(p => p.id===G.pid) || g.sort((a, b) => (b.m + b.i + b.l) - (a.m + a.i + a.l))[0] || me(); }
 function trekStart(ids, to){
   if (SIM || !ids.length) return;
   const from = armyById(ids[0]).from, riv = TERRAIN[to]==='river' || TERRAIN[from]==='river';
@@ -6632,9 +6666,11 @@ function bind(){
   on('[data-mm]', b => { G.mapMode = b.dataset.mm; save(); render(); });
   on('[data-thf]', b => { G.thEf = b.dataset.thf; G.thSel = null; render(); });
   on('[data-ths]', b => { G.thSel = b.dataset.ths; render(); });
+  on('[data-role]', b => openRolePick(b.dataset.rf, b.dataset.role));
   on('[data-fgf]', b => { frGens(b.dataset.fgf, b.dataset.fg); save(); render(); });
   on('[data-tho]', b => { const id = G.thSel || (document.querySelector('.thl rect[stroke-width="2"]') && document.querySelector('.thl rect[stroke-width="2"]').closest('[data-ths]').dataset.ths); const F = id && frontsOf(G.pfac).find(f => f.id===id) || frontsOf(G.pfac).filter(f => f.ef===G.thEf).sort((a, b) => Math.abs(frState(b.id).p) - Math.abs(frState(a.id).p))[0]; if (!F) return;
-    const k = b.dataset.tho; if (k==='push') frPush(F.id); else if (k==='hold') frHold(F.id); else if (k==='shift') frShift(F.id); else if (k==='auto'){ const S = frState(F.id); S.auto = !S.auto; }
+    const k = b.dataset.tho; if (k==='supply'){ const S = frState(F.id), c = frSupCost(F, S); if (G.gold < c) return toast('금이 모자란다.', [], true); G.gold -= c; S.sup = Math.min(6, S.sup + 2); Snd.sfx('coin'); toast(`${F.name}에 군량 2개월분을 보냈다.`, [[`금 -${fmt(c)}`, false]]); }
+    else if (k==='push') frPush(F.id); else if (k==='hold') frHold(F.id); else if (k==='shift') frShift(F.id); else if (k==='auto'){ const S = frState(F.id); S.auto = !S.auto; }
     G.thSel = F.id; save(); render(); });
   on('[data-trek]', b => { const k = b.dataset.trek; if (k==='close'){ G.trek = null; } else if (k==='auto') trekAuto(); else if (k.startsWith('road:')) trekRoad(k.slice(5)); else if (k.startsWith('pick:')) trekPick(+k.slice(5)); save(); render(); });
   on('[data-plan]', b => { planDo(b.dataset.plan); save(); render(); });
