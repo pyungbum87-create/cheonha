@@ -16,7 +16,7 @@ if(API){const dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2}}
 else{c.width=W;c.height=H}
 function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('canvas');cv.width=w;cv.height=h;return cv}
-const BUILD='1120-0100';
+const BUILD='1125-0100';
 // 안전장치: 음수 반지름이면 그리기 전체가 멈추므로 보정
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
  if(oa)P.arc=function(x,y,r,a0,a1,ccw){return oa.call(this,x,y,r>0&&isFinite(r)?r:0,a0,a1,ccw)};
@@ -268,9 +268,10 @@ function drawTown(){const night=isNight(),dusk=R.t>DUSK&&!night,hb=R.hb;
  drawFleet();drawSurv();for(const s2 of R.surv){const ps=survPos(s2.id);hotspot(ps.x-30,ps.y-80,60,90,()=>{const J=JOB[s2.id],S=SURV[s2.id];popTip({head:LL(S.n)+' · '+LL(S.job),lines:[s2.fed?[J.e+' '+J.d[0],J.e+' '+J.d[1]]:['😩 배가 고파서 쉬고 있어요.','😩 饿着肚子在休息。'],S.d],t:0})},'ts'+s2.id)}
  drawFx();
  if(night||dusk||inStorm()){const a=night?.55:inStorm()?.35:(R.t-DUSK)/(NIGHT-DUSK)*.4;g.fillStyle=`rgba(2,6,14,${a})`;g.fillRect(0,150,W,910)}
- if(raid)drawRaid();else if(R.raid===R.day&&!isNight()){rr(430,196,300,40,12,'rgba(60,12,10,.86)','#ff7a6a',2);txt('🌙 '+L('오늘 밤 습격','今晚袭击'),580,216,18,'#ffd8d0','center',false)}
+ if(raid)drawRaid();else if(R.raid){const today=R.raid===R.day,lb='🌙 '+(today?L('오늘 밤 습격!','今晚袭击！'):L('다음 습격 ','下次袭击 ')+raidDays()+L('일 뒤','天后'))+'  ⓘ';rr(450,196,280,40,12,today?'rgba(80,12,10,.92)':'rgba(20,24,34,.88)',today?'#ff7a6a':'#8a94a4',2);txt(lb,590,216,17,today?'#ffd8d0':'#dfe6ee','center',false);hotspot(450,190,280,52,()=>{rgFrom='town';sc='raidguide'},'raid_badge')}
+ drawGuideFinger();
  if(R.anim){R.anim.t+=1/60;if(R.anim.t>2.6)R.anim=null}
- seaHud();if(townSel>=0&&!raid)zoneSheet();if(evCard)drawEvCard()}
+ seaHud();if(townSel>=0&&!raid)zoneSheet();if(evCard)drawEvCard();if(R.rgAsk&&!R.rgSeen&&!guideTip&&!raid&&townSel<0){R.rgAsk=0;rgFrom='town';sc='raidguide'}}
 function sheetBase(h){g.fillStyle='rgba(4,6,12,.55)';g.fillRect(0,0,W,H);hotspot(0,0,W,H,()=>{townSel=-1;worldSel=null},'sh_block');const y0=1060-h;rr(16,y0,718,h+250,24,'#141a28f8','#ffcf6a',3);return y0}
 function zoneSheet(){const i=townSel,d=R.hb.d[i],h=HB[i],open=!d.s&&regOpen('hb',i);const tbs=Object.keys(TB).filter(k=>TB[k].z===i);const y0=sheetBase(380+tbs.length*96);
  txt(LL(h.n),50,y0+44,30,'#ffe2a0','left');txt(d.s?L('되찾은 땅','已夺回'):open?(h.boss?L('감염됨 · 회색 심장이 뛰고 있다','感染中 · 灰色心脏在跳动'):L('감염됨 · 남은 둥지 ','感染中 · 剩余巢穴 ')+d.left):L('앞 구역을 먼저 되찾아야 해요','需先夺回前一个区域'),50,y0+88,19,'#c9d2de','left',false);
@@ -282,7 +283,7 @@ function zoneSheet(){const i=townSel,d=R.hb.d[i],h=HB[i],open=!d.s&&regOpen('hb'
  else if(d.s){txt(L('망루: 습격 때 다가오는 감염체를 쏴요','瞭望塔：袭击时射击靠近的丧尸'),50,y+30,18,'#ffe27a','left',false);y+=60}
  tbs.forEach(k=>{const b=TB[k],has=R.tb&&R.tb[k];if(has){rr(50,y,650,84,14,'#12261c','#7fe0a0',2);txt('✓ '+LL(b.n),74,y+28,20,'#dfffe8','left',false);txt(LL(b.d),74,y+60,15,'#a8c8b0','left',false)}
   else button(50,y,650,84,L('짓기: ','建造：')+LL(b.n)+' · '+costStr(b.cost),d.s&&canPayC(b.cost)?'green':'gray',21,()=>{if(!d.s){message(L('먼저 이 구역을 되찾아야 해요','需先夺回这个区域'),1.6);return}if(!canPayC(b.cost)){message(L('재료가 모자라요: ','材料不够：')+costStr(b.cost),1.6);return}payC(b.cost);R.tb=R.tb||{};R.tb[k]=1;track('town_build',{k,day:R.day});AudioFx.cue('build');vib('medium');popTip({head:LL(b.n),lines:[b.d],t:0});persist()},{id:'tb_'+k});y+=96});
- button(50,y,650,70,L('닫기','关闭'),'dark',22,()=>{townSel=-1},{id:'tz_close'})}
+ button(50,y,318,70,L('습격이란?','什么是夜袭？'),'blue',20,()=>{townSel=-1;rgFrom='town';sc='raidguide'},{id:'tz_rg'});button(382,y,318,70,L('닫기','关闭'),'dark',22,()=>{townSel=-1},{id:'tz_close'})}
 function drawWorld(){g.fillStyle='#1e2620';g.fillRect(0,0,W,H);for(let i=0;i<80;i++){g.fillStyle='rgba(120,140,100,.06)';circ((i*137)%W,(i*89)%H,10+(i%5)*6,'rgba(120,140,100,.06)')}
  const sg=g.createLinearGradient(0,1040,0,H);sg.addColorStop(0,'#1d6f7c');sg.addColorStop(1,'#0c3440');g.fillStyle=sg;g.beginPath();g.moveTo(0,1080);for(let x=0;x<=W;x+=50)g.lineTo(x,1050+Math.sin(x*.02)*22);g.lineTo(W,H);g.lineTo(0,H);g.fill();
  const rvp=[[392,842]].concat(WN.rv).concat([[470,380],[430,250]]);g.strokeStyle='#2a6a7a';g.lineWidth=34;g.lineCap='round';g.lineJoin='round';g.beginPath();rvp.forEach((p,k)=>k?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke();g.strokeStyle=R.rv.d[3].s?'#4ab0c4':'#5a6a66';g.lineWidth=18;g.stroke();
@@ -297,6 +298,7 @@ function drawWorld(){g.fillStyle='#1e2620';g.fillRect(0,0,W,H);for(let i=0;i<80;
   if(R.anim&&R.anim.rg===rg&&R.anim.i===i){const a=Math.min(1,R.anim.t/2.5);g.save();g.globalAlpha=1-a;for(let k=0;k<8;k++)circ(x+Math.cos(k*.8)*(30+a*80),y+Math.sin(k*.8)*(20+a*60),36*(1-a)+4,'#5a645c');g.restore();for(let k=0;k<6;k++)txt('✦',x+Math.cos(k+frame*2)*60*a,y+Math.sin(k+frame*2)*50*a,20,'#fff3c0','center',false)}
   g.font='bold 14px sans-serif';const lb=LL(h.n),tw=g.measureText(lb).width+14;rr(x-tw/2,y+34,tw,22,10,'rgba(8,12,18,.82)');txt(lb,x,y+45,14,d.s?'#bfffd0':open?'#ffe7a0':'#9aa4b2','center',false);
   hotspot(x-60,y-50,120,110,()=>{worldSel={rg,i};AudioFx.cue('ui')},'wn_'+rg+i)}));
+ if(R.raid&&ch2On()){const today=R.raid===R.day;rr(24,1076,330,36,12,today?'rgba(80,12,10,.92)':'rgba(14,18,28,.88)',today?'#ff7a6a':'#8a94a4',2);txt('🌙 '+L('항구 ','港口 ')+(today?L('오늘 밤 습격','今晚袭击'):L('다음 습격 ','下次袭击 ')+raidDays()+L('일 뒤','天后')),189,1094,16,today?'#ffd8d0':'#dfe6ee','center',false)}
  if(R.anim){R.anim.t+=1/60;if(R.anim.t>2.6)R.anim=null}
  const opts=[-1].concat(R.surv.filter(s2=>s2.id<3).map(s2=>s2.id));if(ch3On()&&opts.length>1)button(30,1200,330,84,L('동행 바꾸기','更换同行'),'blue',22,()=>{const c=opts.indexOf(R.comp===undefined?-1:R.comp);R.comp=opts[(c+1)%opts.length];persist()},{id:'w_comp'});
  button(ch3On()?390:150,1200,ch3On()?330:450,84,L('◀ 마을로','◀ 回村子'),'gold',24,()=>{sc='town'},{id:'w_close'});
@@ -319,12 +321,12 @@ function zCenter(i){const [x,y,w,h]=TZ[i];return {x:x+w/2,y:y+h*.62}}
 function towerPos(i){const [x,y,w,h]=TZ[i];return {x:x+w-48,y:y+h-26}}
 function raidTargets(){return R.hb.d.map((d,i)=>i).filter(i=>R.hb.d[i].s)}
 function raidDays(){return R.raid?Math.max(0,R.raid-R.day):-1}
-function raidMorning(){if(!ch2On()||!raidTargets().length)return;if(!R.raid){R.raid=R.day+2;return}if(R.raid<R.day)R.raid=R.day;
+function raidMorning(){if(!ch2On()||!raidTargets().length)return;if(!R.raid){R.raid=R.day+2;R.rgAsk=1;return}if(R.raid<R.day)R.raid=R.day;
  if(R.day===R.raid)popTip({head:'🌙 '+L('오늘 밤 습격','今晚袭击'),lines:[['해가 지면 회색 무리가 마을로 몰려온다. 습격은 밤이 되면 시작돼요.','天一黑，灰色尸群就会涌向村子。入夜后袭击开始。'],['방벽은 감염체를 붙잡아 두고, 망루와 동료는 다가오는 감염체를 쏴요. 구역을 탭해서 미리 지어 두세요.','路障能拖住丧尸，瞭望塔和伙伴会射击靠近的丧尸。点区域提前建好。'],['습격 중에는 감염체를 탭해서 쓰러뜨리고, 부서지는 방벽은 탭해서 판자로 고칠 수 있어요.','袭击时点丧尸可以击倒它们，点快坏的路障可以用木板修补。']],t:0});
  else if(R.day===R.raid-1)radioShow={l:['마루: 내일 밤 회색 무리가 움직일 것 같아요. 방벽과 망루를 점검해 두세요.','玛鲁：明晚灰色尸群可能会有动静。检查一下路障和瞭望塔。'],t:9}}
 function raidStart(){const tg=raidTargets();if(!tg.length){R.raid=R.day+2;return}
  const n=Math.min(26,4+tg.length*3+Math.floor(R.day/6));raid={t:0,n,spawned:0,zs:[],zhp:{},lost:[],killed:0,shots:[]};tg.forEach(i=>{raid.zhp[i]=ZONE_MAX;const d=R.hb.d[i];if(d.bar&&!(d.bhp>0))d.bhp=BAR_MAX});
- R.ff=false;sleeping=false;sc='town';townSel=-1;worldSel=null;evCard=null;AudioFx.cue('thunder');vib('long');shake(10,.5);track('raid_start',{day:R.day,n,tg:tg.length});
+ R.ff=false;sleeping=false;sc='town';townSel=-1;worldSel=null;evCard=null;raid.tut=!R.raidTut;raid.taps=0;AudioFx.cue('thunder');vib('long');shake(10,.5);track('raid_start',{day:R.day,n,tg:tg.length});
  message(L('습격이다! 감염체를 탭해서 쓰러뜨려요!','袭击来了！点丧尸击倒它们！'),2.6)}
 function raidSpawnPt(){const inf=R.hb.d.map((d,i)=>i).filter(i=>!R.hb.d[i].s);if(inf.length&&Math.random()<.45){const c=zCenter(inf[Math.floor(Math.random()*inf.length)]);return {x:c.x+(Math.random()-.5)*140,y:c.y-20}}
  const s=Math.random();if(s<.6)return {x:70+Math.random()*610,y:168};return {x:s<.8?-24:W+24,y:300+Math.random()*380}}
@@ -348,7 +350,7 @@ function raidEnd(){const r=raid;raid=null;R.raid=R.day+3+(R.day%2);const lost=r.
  else popTip({head:L('구역을 잃었다','失去了区域'),lines:[[lost.map(i=>'「'+HB[i].n[0]+'」').join(', ')+'이 다시 회색이 됐다. 원정을 가서 되찾아야 해요.',lost.map(i=>'「'+HB[i].n[1]+'」').join('、')+'又变灰了，需要远征夺回。'],['방벽은 감염체를 붙잡고, 망루는 쏴서 쓰러뜨려요. 둘 다 있으면 훨씬 쉬워요.','路障拖住丧尸，瞭望塔负责射杀。两样都有会轻松很多。']],t:0});
  persist()}
 function raidTap(x,y){const r=raid;if(!r)return false;let best=null,bd=60;for(const z of r.zs){const d=Math.hypot(x-z.x,y-(z.y-30));if(d<bd){bd=d;best=z}}
- if(best){best.hp--;best.hit=.35;r.shots.push({x1:x,y1:y-6,x2:best.x,y2:best.y-30,t:.1,col:'#ffffff'});AudioFx.cue('hit');vib('light');shake(3,.08);if(best.hp<=0){r.killed++;fx.push({x:best.x,y:best.y-30,s:'✕',col:'#ffcf6a',t:0})}return true}
+ if(best){r.taps=(r.taps||0)+1;if(r.tut&&r.taps>=3){r.tut=false;R.raidTut=1}best.hp--;best.hit=.35;r.shots.push({x1:x,y1:y-6,x2:best.x,y2:best.y-30,t:.1,col:'#ffffff'});AudioFx.cue('hit');vib('light');shake(3,.08);if(best.hp<=0){r.killed++;fx.push({x:best.x,y:best.y-30,s:'✕',col:'#ffcf6a',t:0})}return true}
  for(const k in r.zhp){const i=+k,d=R.hb.d[i],e=zEntry(i);if(d.bar&&d.bhp<BAR_MAX&&Math.hypot(x-e.x,y-e.y)<74){if(R.res.plank>0){R.res.plank--;d.bhp=Math.min(BAR_MAX,d.bhp+10);fxText(e.x,e.y-34,L('수리 +10 (판자 -1)','修补 +10（木板-1）'),'#c8ffc8');AudioFx.cue('build')}else message(L('판자가 없어요','没有木板了'),1.2);return true}}
  return false}
 function drawTower(i){const p=towerPos(i);g.fillStyle='#5a4028';g.fillRect(p.x-22,p.y-70,6,70);g.fillRect(p.x+16,p.y-70,6,70);g.strokeStyle='#3a2a18';g.lineWidth=3;g.beginPath();g.moveTo(p.x-19,p.y-10);g.lineTo(p.x+19,p.y-50);g.moveTo(p.x+19,p.y-10);g.lineTo(p.x-19,p.y-50);g.stroke();rr(p.x-30,p.y-84,60,16,4,'#7a5a3a','#2a1e14',2);g.fillStyle='#c84a3a';g.beginPath();g.moveTo(p.x,p.y-84);g.lineTo(p.x,p.y-112);g.lineTo(p.x+18,p.y-104);g.lineTo(p.x,p.y-98);g.fill();g.strokeStyle='#2a1e14';g.lineWidth=2;g.beginPath();g.moveTo(p.x,p.y-84);g.lineTo(p.x,p.y-112);g.stroke();if(isNight())drawGlow(p.x,p.y-92,40,'o',.6)}
@@ -357,7 +359,34 @@ function drawRaid(){const r=raid;for(const k in r.zhp){const i=+k,d=R.hb.d[i],e=
   if(lost){g.save();g.globalAlpha=.45;const [x,y,w,h]=TZ[i];rr(x,y,w,h,18,'#3c463f');g.restore()}else{const f=r.zhp[i]/ZONE_MAX;if(f<1){rr(c.x-40,c.y-70,80,8,4,'#1a1010');rr(c.x-40,c.y-70,80*f,8,4,'#ff8a6a')}}}
  for(const z of r.zs.slice().sort((a,b)=>a.y-b.y)){g.save();if(z.hit>0)g.globalAlpha=.6+.4*Math.sin(frame*40);if(!sprite(z.run?'inf_runner':'inf_walker',z.atk?'attack':'walk',frame+z.ph,z.x,z.y,74,z.face,z.run?10:6))circ(z.x,z.y-30,18,'#6a7a6a','#111',3);g.restore();for(let k=0;k<z.mx;k++)circ(z.x-(z.mx-1)*6+k*12,z.y-82,4,k<z.hp?'#ff7a6a':'#3a4450','#111',1.5)}
  for(const s of r.shots){g.save();g.globalAlpha=Math.min(1,s.t/.12);g.strokeStyle=s.col;g.lineWidth=3;g.beginPath();g.moveTo(s.x1,s.y1);g.lineTo(s.x2,s.y2);g.stroke();g.restore()}
- rr(170,198,410,48,14,'rgba(70,10,8,.9)','#ff7a6a',2);txt('🌙 '+L('습격! 남은 감염체 ','袭击！剩余丧尸 ')+Math.max(0,r.n-r.killed),375,222,21,'#ffe0d8','center')}
+ rr(170,198,410,48,14,'rgba(70,10,8,.9)','#ff7a6a',2);txt('🌙 '+L('습격! 남은 감염체 ','袭击！剩余丧尸 ')+Math.max(0,r.n-r.killed),375,222,21,'#ffe0d8','center');
+ if(r.tut&&r.zs.length){const z=r.zs.slice().sort((a,b)=>b.y-a.y)[0];g.font='bold 17px sans-serif';const cap=L('감염체를 탭해서 쓰러뜨려요!','点丧尸把它击倒！'),tw=g.measureText(cap).width+28;rr(z.x-tw/2,z.y-150,tw,40,14,'rgba(255,214,110,.95)','#5a3a10',2);txt(cap,z.x,z.y-130,17,'#2a1a06','center',false);drawFinger(z.x,z.y-40)}}
+// ---- 마을 길잡이 · 습격 안내서
+let rgFrom='town';
+function guideTarget(){if(!ch2On())return null;const hb=R.hb;
+ if(R.q2<CH2.length){const q=R.q2,zi={0:0,2:1,4:2,6:3}[q];
+  if(zi!==undefined&&!hb.d[zi].s){const [x,y,w,h]=TZ[zi];return {x:x+w/2,y:y+h*.55,t:L('여기를 탭 → [원정 떠나기]','点这里 → [出发远征]')}}
+  if(q===1){const i=hb.d.findIndex(d=>d.s&&!d.bar);if(i>=0){const [x,y,w,h]=TZ[i];return {x:x+w/2,y:y+h*.55,t:L('되찾은 구역을 탭 → [방벽 세우기]','点已夺回的区域 → [建路障]')}}}
+  if(q===3){const i=hb.d.findIndex((d,k)=>d.s&&!(R.tw&&R.tw[k]));if(i>=0){const [x,y,w,h]=TZ[i];return {x:x+w/2,y:y+h*.55,t:L('탭 → [망루 세우기] · 밤 습격 대비','点击 → [建瞭望塔] · 防备夜袭')}}return null}
+  if(q===5)return {x:129,y:1180,t:L('뗏목으로 가서 갑판 넓히기','去木筏上扩建甲板'),up:1}
+  return null}
+ if(ch3On()&&!ch4On()&&R.q3<2&&!R.rv.d[0].s)return {x:374,y:1180,t:L('[지도]에서 강으로 올라가요','在[地图]里沿河而上'),up:1};
+ if(ch4On()&&R.q4<1)return {x:374,y:1180,t:L('[지도]에서 도시로 가요','在[地图]里前往城市'),up:1};return null}
+function drawGuideFinger(){if(townSel>=0||raid||guideTip||evCard)return;const t=guideTarget();if(!t)return;
+ g.font='bold 17px sans-serif';const tw=g.measureText(t.t).width+28,by=t.up?t.y-96:t.y-112;rr(t.x-tw/2,by,tw,40,14,'rgba(255,214,110,.95)','#5a3a10',2);txt(t.t,t.x,by+20,17,'#2a1a06','center',false);drawFinger(t.x,t.up?t.y-28:t.y-30)}
+function drawTowerAt(px,py,s){g.save();g.translate(px,py);g.scale(s,s);g.fillStyle='#5a4028';g.fillRect(-22,-70,6,70);g.fillRect(16,-70,6,70);g.strokeStyle='#3a2a18';g.lineWidth=3;g.beginPath();g.moveTo(-19,-10);g.lineTo(19,-50);g.moveTo(19,-10);g.lineTo(-19,-50);g.stroke();rr(-30,-84,60,16,4,'#7a5a3a','#2a1e14',2);g.fillStyle='#c84a3a';g.beginPath();g.moveTo(0,-84);g.lineTo(0,-112);g.lineTo(18,-104);g.lineTo(0,-98);g.fill();g.restore()}
+function raidGuideScreen(){bannerT=0;g.fillStyle='rgba(6,8,14,.96)';g.fillRect(0,0,W,H);txt('🌙 '+L('밤 습격이란?','什么是夜袭？'),375,66,32,'#ffe2a0','center');
+ para(L('되찾은 땅은 며칠마다 밤에 회색 무리의 습격을 받아요. 다음 습격 날짜는 마을 화면 위에 표시돼요.','夺回的土地每隔几天就会在夜里遭到灰色尸群袭击。下次袭击日期显示在村子画面上方。'),375,120,18,'#c9d2de',660,28,'center');
+ const P=[[L('① 방벽이 입구에서 붙잡아요','① 路障在入口拖住丧尸'),L('방벽이 버티는 동안 감염체는 안으로 못 들어와요. 무너지면 구역 안으로 쏟아져요.','路障撑住时丧尸进不来，一旦攻破就会涌入区域。')],
+  [L('② 망루와 동료가 자동으로 쏴요','② 瞭望塔和伙伴会自动射击'),L('구역마다 망루를 하나씩 세울 수 있어요. 배부른 동료도 함께 싸워요.','每个区域可建一座瞭望塔。吃饱的伙伴也会一起战斗。')],
+  [L('③ 나는 탭해서 도와요','③ 我点击来帮忙'),L('감염체를 탭하면 공격, 금 간 방벽을 탭하면 판자 1개로 수리해요.','点丧尸就能攻击，点快坏的路障用1块木板修补。')]];
+ P.forEach((p,k)=>{const y=180+k*300;rr(30,y,690,280,18,'#141a28','#3a4458',2);txt(p[0],56,y+34,22,'#ffe7a0','left');para(p[1],56,y+232,16,'#b8c4d4',640,24,'left');
+  const cy=y+150,t=frame;
+  if(k===0){if(!wsp('barricade',375,cy+20,170))rr(300,cy,150,26,4,'#6a5038');rr(325,cy-46,100,10,5,'#1a1010');rr(325,cy-46,100*(.55+.2*Math.sin(t)),10,5,'#7fe0a0');for(let j=0;j<3;j++){const zx=250+j*120,zy=cy-10+Math.sin(t*3+j)*3;sprite('inf_walker','attack',t+j,zx,zy,62,zx<375?1:-1,6)}}
+  if(k===1){drawTowerAt(150,cy+60,.9);for(let j=0;j<3;j++){const zx=430+j*90,zy=cy+30;sprite('inf_walker','walk',t+j,zx,zy,60,-1,6);if(Math.sin(t*6+j*2)>.3){g.strokeStyle='#ffe27a';g.lineWidth=3;g.beginPath();g.moveTo(150,cy-20);g.lineTo(zx,zy-28);g.stroke()}}sprite('surv0','idle',t,260,cy+60,70,1,6)}
+  if(k===2){sprite('inf_walker','walk',t,300,cy+40,70,1,6);drawFinger(300,cy-10);if(!wsp('barricade',530,cy+40,130))rr(470,cy+20,120,22,4,'#6a5038');rr(480,cy-30,100,10,5,'#1a1010');rr(480,cy-30,100*(.3+.6*((t*.5)%1)),10,5,'#ffcf6a');txt('🔨',600,cy-20,26,'#fff','center',false)}});
+ para(L('방어가 무너진 구역은 다시 회색이 되어 원정을 가야 해요. 막아내면 고철·판자를 얻어요.','防线失守的区域会重新变灰，需要再去远征。守住就能获得废铁和木板。'),375,1110,18,'#ffd0c0',660,28,'center');
+ button(150,1190,450,84,L('알겠어요','明白了'),'gold',26,()=>{R.rgSeen=1;persist();sc=rgFrom},{id:'rg_ok'})}
 // ---- 3장 「강을 거슬러」
 const RV=[{n:['갈대 어촌','芦苇渔村'],nests:3,z:6,prod:{cooked:1,rope:1}},{n:['무너진 다리','断桥'],toll:true,prod:{}},{n:['강변 제재소','河边锯木厂'],nests:4,z:8,prod:{plank:3}},{n:['상류 정수장','上游净水厂'],nests:1,boss:true,z:7,prod:{water:3,med:1}}];
 const TOLL={cooked:3,rope:2},TOLL_CF={coffee:2};
@@ -938,7 +967,7 @@ function costTxt(k){const c2=costOf(k);return ' ('+Object.keys(c2).filter(r=>c2[
 function nextGoal(){if(stormDay()&&R.t<60&&!R.lashed&&R.ch>3)return L('폭풍 전에 밧줄로 배를 묶자','风暴来前用绳子加固船')+costTxt('lash');
  if(ch4On()){const q=CH4[R.q4];if(!q)return R.ended?L('엔딩 이후 · 땅을 지키며 살아가기 (생존 ','结局之后 · 守护土地继续生活（生存 ')+R.day+L('일)','天）'):'';const pr=q.p();let t2=L('4장 ','第四章 ')+(R.q4+1)+'/'+CH4.length+' · '+LL(q.t)+(pr[1]>1?' ('+Math.min(pr[0],pr[1])+'/'+pr[1]+')':'');if(R.q4===1)t2+=L(' — [지도] → 도시 → 만들기',' — [地图]→城市→制作');else t2+=L(' — [지도] → [도시]',' — [地图]→[城市]');return t2}
  if(ch3On()){const q=CH3[R.q3];if(!q)return L('강과 항구를 지키며 4장을 기다리자','守住河流与港口，等待第四章');const pr=q.p();let t2=L('3장 ','第三章 ')+(R.q3+1)+'/'+CH3.length+' · '+LL(q.t)+(pr[1]>1?' ('+Math.min(pr[0],pr[1])+'/'+pr[1]+')':'');if(q.b)t2+=costTxt(q.b);if(R.q3===2)t2+=L(' — 드리퍼 탭 → 아래 [커피] 탭',' — 点滤杯 → 点下方[咖啡]');if(R.q3===3||R.q3===4)t2+=L(' — [지도] → [강]',' — [地图] → [河流]');return t2}
- if(ch2On()){const q=CH2[R.q2];if(!q)return L('항구를 지키며 3장을 기다리자','守住港口，等待第三章');const pr=q.p();let t2=L('2장 ','第二章 ')+(R.q2+1)+'/'+CH2.length+' · '+LL(q.t)+(pr[1]>1?' ('+Math.min(pr[0],pr[1])+'/'+pr[1]+')':'');if(q.b)t2+=costTxt(q.b);if(R.q2===3&&R.raid)t2+=raidDays()===0?L(' — 오늘 밤!',' — 就在今晚！'):L(' — 습격까지 ',' — 距袭击 ')+raidDays()+L('일','天');return t2}
+ if(ch2On()){const q=CH2[R.q2];if(!q)return L('항구를 지키며 3장을 기다리자','守住港口，等待第三章');const pr=q.p();let t2=L('2장 ','第二章 ')+(R.q2+1)+'/'+CH2.length+' · '+LL(q.t)+(pr[1]>1?' ('+Math.min(pr[0],pr[1])+'/'+pr[1]+')':'');if(q.b)t2+=costTxt(q.b);if(R.q2===3&&R.raid)t2+=raidDays()===0?L(' — 오늘 밤!',' — 就在今晚！'):L(' — 습격까지 ',' — 距袭击 ')+raidDays()+L('일','天');else if([0,2,4,6].includes(R.q2))t2+=L(' — 마을에서 그 구역을 탭',' — 在村子里点那个区域');else if(R.q2===1)t2+=L(' — 되찾은 구역을 탭',' — 点已夺回的区域');return t2}
  const q=CH[R.ch],pr=q.p();let t2=L('목표 ','目标 ')+(R.ch+1)+'/'+CH.length+' · '+LL(q.t)+(pr[1]>1?' ('+Math.min(pr[0],pr[1])+'/'+pr[1]+')':'');
  if(q.b==='radio'&&!R.radioPart)return t2+L(' — 섬 오두막 상자에서 부품 찾기',' — 去岛上小屋的箱子里找零件');if(q.b)t2+=costTxt(q.b);
  if(R.ch===8)t2+=L(' — 구명보트가 떠내려오면 탭',' — 救生艇漂来时点击');if(R.ch===10)t2+=L(' — 섬에 상륙',' — 登岛');if(R.ch===11)t2+=L(' — [항구 원정]',' — [港口远征]');return t2}
@@ -1012,7 +1041,7 @@ function landAct(o){if(o.k==='nest'&&o.heart&&o.shell>0){const Ld=Land,d=R.ct.d[
  else if(o.k==='crate'){let got;if(o.first&&!R.radioPart){R.radioPart=true;message(L('오두막에서 무전기 부품을 찾았다!','在小屋里找到了电台零件！'),2.2);got=null}else{const q=Math.random();got=q<.3?['cloth',2]:q<.55?['rope',2]:q<.75?['can',1]:q<.9?['med',1]:['plastic',2]}if(got)add(got[0],got[1]);o.gone=1;Ld.target=null}
  else Ld.target=null}
 function landTap(x,y){const Ld=Land,wx=x,wy=y+camY;
- if(Math.hypot(wx-375,wy-1830)<110){Ld.goBoat=true;Ld.target=null;Ld.p.tx=375;Ld.p.ty=1830;return}
+ if(Math.abs(wx-375)<85&&Math.abs(wy-1822)<60){Ld.goBoat=true;Ld.target=null;Ld.p.tx=375;Ld.p.ty=1830;return}
  for(const z of Ld.zs)if(z.hp>0&&Math.hypot(wx-z.x,wy-z.y)<50){Ld.target={z};Ld.goBoat=false;return}
  let best=null,bd=70;for(const o of Ld.objs)if(!o.gone&&o.k!=='hut'&&!o.lit){const d=Math.hypot(wx-o.x,wy-(o.k==='light'?o.y-60:o.y));if(d<(o.k==='light'?130:bd)){bd=Math.min(bd,d);best=o}}
  Ld.goBoat=false;if(best){Ld.target={o:best};Ld.work=0;Ld.p.tx=best.x;Ld.p.ty=best.y+40}else{Ld.target=null;Ld.p.tx=wx;Ld.p.ty=Math.max(160,wy)}}
@@ -1043,7 +1072,7 @@ function drawLand(){const Ld=Land,p=Ld.p,night=isNight();g.fillStyle='#24301f';g
  rr(0,0,W,128,0,'#0b0f16e8');if(Ld.type==='city')txt(L('정화탄 ','净化弹 ')+(R.res.bomb||0),420,110,15,'#9ff0e0','left',false);txt(Ld.type==='city'?L(R.day+'일째 · 도시','第'+R.day+'天 · 城市'):Ld.type==='river'?L(R.day+'일째 · 강가','第'+R.day+'天 · 河岸'):Ld.type==='harbor'?L(R.day+'일째 · 항구','第'+R.day+'天 · 港口'):L(R.day+'일째 · 섬','第'+R.day+'天 · 岛'),24,32,24,'#ffe2a0','left',false);rr(240,24,370,16,8,'#1a2230');rr(240,24,370*Math.min(1,R.t/DAY),16,8,R.t>DUSK?'#c06040':'#e0b060');rr(240+370*DUSK/DAY-1,20,3,24,1,'#ff9a7a');
  button(646,12,82,56,'II','dark',24,()=>{paused=true});const v=R.vit;['thirst','hunger','temp','hp'].forEach((k,i)=>{const x=20+i*150;txt(LL(vitIcon(k))+' '+Math.round(v[k]),x,80,17,v[k]<25?'#ff8a7a':'#dfe6ee','left',false)});
  txt(L('짐 ','负重 ')+Ld.n+'/'+Ld.cap,620,80,18,'#ffe7a0','left',false);rr(20,104,300,12,6,'#1a2230');rr(20,104,300*Math.min(1,Ld.noise/100),12,6,Ld.noise>55?'#ff6a5a':'#8a94a4');txt(L('소음','噪音'),330,110,14,'#9fb0c4','left',false);
- button(430,1220,300,86,L('배로 돌아가기','回船上'),R.t>DUSK?'gold':'dark',24,()=>{Ld.goBoat=true;Ld.target=null;Ld.p.tx=375;Ld.p.ty=1830},{id:'btn_boat'})}
+ {const ask=Ld.boatAsk&&Date.now()-Ld.boatAsk<2500;button(430,1220,300,86,ask?L('한 번 더 누르면 출발','再点一次就出发'):L('배로 돌아가기','回船上'),ask?'red':R.t>DUSK?'gold':'dark',ask?20:24,()=>{if(!ask&&!autoBot){Ld.boatAsk=Date.now();return}Ld.boatAsk=0;Ld.goBoat=true;Ld.target=null;Ld.p.tx=375;Ld.p.ty=1830},{id:'btn_boat'})}}
 
 // ================================================================ 쓰러짐 · 부활
 function fail(where){failInfo={where,t:0};sc='fail';track('fail',{where,day:R?R.day:0});AudioFx.cue('hurt');vib('long')}
@@ -1138,7 +1167,7 @@ function joyMove(x,y){if(!joy)return;joy.x=x;joy.y=y;if(!joy.on&&Math.hypot(x-jo
 function joyEnd(x,y){const j=joy;joy=null;if(!j||!j.on)touch(x,y)}
 function joyTick(dt){if(!joy||!joy.on)return;if(!canJoy()){joy.on=false;return}const dx=joy.x-joy.sx,dy=joy.y-joy.sy,d=Math.hypot(dx,dy);if(d<6)return;const ux=dx/d,uy=dy/d,mag=Math.min(1,d/70);
  if(sc==='act1'){const p=A.p;A.target=null;p.tx=p.x+ux*60*mag;p.ty=p.y+uy*60*mag;tutStep=1}
- else if(sc==='land'){const p=Land.p;Land.target=null;Land.goBoat=false;p.tx=p.x+ux*60*mag;p.ty=Math.max(160,p.y+uy*60*mag);if(Math.hypot(p.x-375,p.y-1830)<70)Land.goBoat=true}
+ else if(sc==='land'){const p=Land.p;Land.target=null;Land.goBoat=false;p.tx=p.x+ux*60*mag;p.ty=Math.max(160,p.y+uy*60*mag);}
  else if(sc==='sea'){act=null;fishing=null;seaP.path=null;const sp=240*mag*dt;const tryMove=(nx,ny)=>{const cl=cellAt(nx,ny);if(cl&&tileAt(cl.x,cl.y)){seaP.x=nx;seaP.y=ny;R.p.gx=cl.x;R.p.gy=cl.y;return true}return false};
   if(!tryMove(seaP.x+ux*sp,seaP.y+uy*sp)){tryMove(seaP.x+ux*sp,seaP.y)||tryMove(seaP.x,seaP.y+uy*sp)}seaP.tx=seaP.x;seaP.ty=seaP.y}}
 function drawJoy(){if(!joy||!joy.on)return;const dx=joy.x-joy.sx,dy=joy.y-joy.sy,d=Math.hypot(dx,dy),k=d>70?70/d:1;g.save();g.globalAlpha=.55;circ(joy.sx,joy.sy,72,'rgba(10,14,20,.35)','rgba(255,230,170,.7)',3);circ(joy.sx+dx*k,joy.sy+dy*k,30,'rgba(255,214,140,.8)','#3a2a10',3);g.restore()}
@@ -1159,12 +1188,12 @@ function draw(dt){if(API){g.setTransform(1,0,0,1,0,0);g.fillStyle='#03060a';g.fi
  let sx=0,sy=0;if(shakeT>0){shakeT-=dt;sx=(Math.random()-.5)*shakeA;sy=(Math.random()-.5)*shakeA;if(shakeT<=0)shakeA=0}
  g.save();g.translate(sx,sy);
  if(sc==='loading')loadingScreen();else if(sc==='title')title();else if(sc==='act1')drawAct1();else if(sc==='zone')zoneScreen();else if(sc==='sea')drawSea();else if(sc==='build'){drawSea();btnsNext=[];buildScreen()}
- else if(sc==='land')drawLand();else if(sc==='dayend')dayendScreen();else if(sc==='g1done')g1Screen();else if(sc==='ch1end')ch1Screen();else if(sc==='hmap'){drawSea();btnsNext=[];hmapScreen()}else if(sc==='rmap'){drawSea();btnsNext=[];rmapScreen()}else if(sc==='cmap'){drawSea();btnsNext=[];cmapScreen()}else if(sc==='town')drawTown();else if(sc==='world')drawWorld();else if(sc==='talk'){drawSea();btnsNext=[];talkScreen()}else if(sc==='prologue')prologueScreen();else if(sc==='docs')docsScreen();else if(sc==='toll'){drawSea();btnsNext=[];tollScreen()}else if(sc==='fail')failScreen();else if(sc==='settings')settingsScreen();else if(sc==='privacy')privacyScreen();else if(sc==='guide')guideScreen();else if(sc==='reward')rewardScreen();
+ else if(sc==='land')drawLand();else if(sc==='dayend')dayendScreen();else if(sc==='g1done')g1Screen();else if(sc==='ch1end')ch1Screen();else if(sc==='hmap'){drawSea();btnsNext=[];hmapScreen()}else if(sc==='rmap'){drawSea();btnsNext=[];rmapScreen()}else if(sc==='cmap'){drawSea();btnsNext=[];cmapScreen()}else if(sc==='town')drawTown();else if(sc==='raidguide'){if(R.hb)drawTown();btnsNext=[];raidGuideScreen()}else if(sc==='world')drawWorld();else if(sc==='talk'){drawSea();btnsNext=[];talkScreen()}else if(sc==='prologue')prologueScreen();else if(sc==='docs')docsScreen();else if(sc==='toll'){drawSea();btnsNext=[];tollScreen()}else if(sc==='fail')failScreen();else if(sc==='settings')settingsScreen();else if(sc==='privacy')privacyScreen();else if(sc==='guide')guideScreen();else if(sc==='reward')rewardScreen();
  g.restore();
  if(paused&&isPlay()){btnsNext=[];pauseOverlay()}
  drawJoy();if(guideTip)drawGuideTip();if(adShow)drawAd();drawBanner();btns=btnsNext;wantMusic()}
 // 디버그: ?debug=1 일 때만
-function botStep(dt){botT-=dt;if(botT>0)return;botT=.25;if(raid){const z=raid.zs[0];if(z)raidTap(z.x,z.y-30);return}if(sc==='town'||sc==='world'){townSel=-1;worldSel=null;sc='sea';return}
+function botStep(dt){botT-=dt;if(botT>0)return;botT=.25;if(sc==='raidguide'){R.rgSeen=1;sc='town';return}if(raid){const z=raid.zs[0];if(z)raidTap(z.x,z.y-30);return}if(sc==='town'||sc==='world'){townSel=-1;worldSel=null;sc='sea';return}
  if(sc==='title'){if(save.run){R=save.run;enterSea()}else startAct1();return}
  if(sc==='act1'){const p=A.p;const near=A.zs.find(z=>Math.hypot(z.x-p.x,z.y-p.y)<150);if(near){p.tx=p.x+(p.x<375?90:-90);p.ty=p.y-120;A.target=null;return}
   if(A.bag.length<8){const it=A.items.filter(i=>!i.got&&i.y<p.y+60&&i.y>p.y-700).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];if(it&&!A.zs.some(z=>Math.hypot(z.x-it.x,z.y-it.y)<110)){A.target=it;p.tx=it.x;p.ty=it.y+8;return}}
@@ -1203,7 +1232,7 @@ function botStep(dt){botT-=dt;if(botT>0)return;botT=.25;if(raid){const z=raid.zs
 let botT=0,botZone=0,botBuilt=null;
 function botCell(k){if(k==='deck'){for(let r=1;r<5;r++)for(let gy=-r;gy<=r;gy++)for(let gx=-r;gx<=r;gx++)if(!tileAt(gx,gy)&&adjacentEmpty(gx,gy)&&gx>=-3&&gx<=3&&gy>=-3&&gy<=4)return {x:gx,y:gy};return null}const t=R.deck.find(d=>!d.m);return t?{x:t.x,y:t.y}:null}
 if(!API&&typeof location!=='undefined'&&location.search.indexOf('debug=1')>=0){globalThis.__bepaDebug={get sc(){return sc},set sc(v){sc=v},get R(){return R},get A(){return A},get Land(){return Land},save,persist,touch,startAct1,startSea,startLand,enterSea,nextDay,fail,revive,showAd,
- get btns(){return btns},get debrisList(){return debris},startHarborD,reclaim,harborMorning,startRiverD,reclaimR,startCityD,reclaimC,bombMake,get raid(){return raid},raidStart,raidEnd,raidTap,get townSel(){return townSel},set townSel(v){townSel=v},get worldSel(){return worldSel},set worldSel(v){worldSel=v},fleetN,seaEvent,tilePos,cellAt,tileAt,get seaP(){return seaP},backToSea,get evCard(){return evCard},get shark(){return shark},get school(){return school},canLand,gotDoc,talkNext,get talk(){return talk},set talk(v){talk=v},tollPay,tradeDo,drinkCoffee,useTile,chooseBuild,get Music(){return Music},toCh(n){R.ch=CH.length;R.lit=true;migrate();if(n>=4){R.q3=CH3.length;R.rv.d.forEach(d=>{d.s=2;d.left=0});R.rv.max=3;if(!R.surv.some(s2=>s2.id===3))R.surv.push({id:3,fed:true,ct:0})}if(n>=3){R.q2=CH2.length;R.hb.d.forEach(d=>{d.s=2;d.bar=1;d.left=0});R.hb.max=3;[0,1,2].forEach(i=>{if(!R.surv.some(s2=>s2.id===i))R.surv.push({id:i,fed:true,ct:0})})}},set bot(v){autoBot=v},set botZone(v){botZone=v},set freeze(v){dbgFreeze=v},spawnDebris,stormDamage,shadowBump,
+ get btns(){return btns},get debrisList(){return debris},startHarborD,reclaim,harborMorning,startRiverD,reclaimR,startCityD,reclaimC,bombMake,get raid(){return raid},guideTarget,raidStart,raidEnd,raidTap,get townSel(){return townSel},set townSel(v){townSel=v},get worldSel(){return worldSel},set worldSel(v){worldSel=v},fleetN,seaEvent,tilePos,cellAt,tileAt,get seaP(){return seaP},backToSea,get evCard(){return evCard},get shark(){return shark},get school(){return school},canLand,gotDoc,talkNext,get talk(){return talk},set talk(v){talk=v},tollPay,tradeDo,drinkCoffee,useTile,chooseBuild,get Music(){return Music},toCh(n){R.ch=CH.length;R.lit=true;migrate();if(n>=4){R.q3=CH3.length;R.rv.d.forEach(d=>{d.s=2;d.left=0});R.rv.max=3;if(!R.surv.some(s2=>s2.id===3))R.surv.push({id:3,fed:true,ct:0})}if(n>=3){R.q2=CH2.length;R.hb.d.forEach(d=>{d.s=2;d.bar=1;d.left=0});R.hb.max=3;[0,1,2].forEach(i=>{if(!R.surv.some(s2=>s2.id===i))R.surv.push({id:i,fed:true,ct:0})})}},set bot(v){autoBot=v},set botZone(v){botZone=v},set freeze(v){dbgFreeze=v},spawnDebris,stormDamage,shadowBump,
  setT(t){if(R)R.t=t},setRes(o){Object.assign(R.res,o)},setVit(o){Object.assign(R.vit,o)},get guideTip(){return guideTip},set guideTip(v){guideTip=v},set guidePage(v){guidePage=v},get paused(){return paused},set paused(v){paused=v},
  step(n,dt=1/60){dbgFreeze=false;for(let i=0;i<n;i++){guideTip=null;tipQ.length=0;btnsNext=[];tick(dt)}dbgFreeze=true},drawNow(){draw(0)},get drawErr(){return drawErr},get stats(){return STAT_LOG},forceStorm(){if(R){R.zone=0;R.day=Z().storm;R.t=61}},joyStart,joyMove,joyEnd,get joy(){return joy},get seaP(){return seaP}}}
 let drawErr=0;function loop(now){let dt=last?(now-last)/1000:0;last=now;perf(Math.min(dt,.25));try{draw(Math.min(dt,.1))}catch(e){drawErr++;try{g.restore();g.restore();g.restore()}catch(e2){}if(drawErr<5&&typeof console!=='undefined')console.error('draw error',e);if(drawErr===1)track('draw_error',{m:String(e&&e.message||e).slice(0,80),sc})}
