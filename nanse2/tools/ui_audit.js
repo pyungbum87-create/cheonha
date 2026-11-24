@@ -57,6 +57,8 @@ const SCENES = [
   ['계략', prep(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); const c = Object.values(D.G.cities).find(c => c.owner && c.owner!==D.G.pfac); D.openSheet('plot', c.id); })],
   ['내정 방침', prep(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); D.openSheet('policy'); })],
   ['메뉴', async p => { await p.evaluate(() => document.querySelectorAll('.sheet-bg').forEach(x => x.remove())); await p.locator('#menuBtn').click(); await p.waitForTimeout(250); }],
+  ['설정', async p => { await p.evaluate(() => document.querySelectorAll('.sheet-bg').forEach(x => x.remove())); await p.locator('#menuBtn').click(); await p.waitForTimeout(200); await p.locator('#mSet').click(); await p.waitForTimeout(250); }],
+  ['전선', async p => { await p.evaluate(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); D.G.view = 'map'; D.render(); }); const f = p.locator('[data-front]').first(); if (await f.count()) { await f.click(); await p.waitForTimeout(250); } }],
   ['전투 포진', prep(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); const t = Object.values(D.G.cities).find(c => c.owner && c.owner!==D.G.pfac && D.city(D.G.city).adj.includes(c.id)); D.G.troops = 9000; D.beginRaise(t.id); D.G.talks = []; D.render(); })],
   ['전장 지휘', prep(() => { D.tbStart(); D.G.talks = []; D.render(); })],
   ['일기토', prep(() => { const B = D.G.battle; if (!B) return; B.tb = null; B.done = false; B.stage = null; const t = D.city(B.to); B.def.gid = B.def.gid || 'xuchu'; D.duelStart(B); D.G.talks = []; D.render(); document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); })],

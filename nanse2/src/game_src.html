@@ -313,6 +313,18 @@ p{margin:0}
 .tbar{position:relative;height:30px;border-radius:15px;background:#3a2a1a;overflow:hidden;margin:6px 0}.tbar .tz{position:absolute;top:0;bottom:0;background:rgba(217,176,74,.75);border-left:2px solid #ffe27a;border-right:2px solid #ffe27a}.tbar .tn{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#fff;box-shadow:0 0 8px #fff;animation:tneedle var(--spd) linear infinite alternate}
 @keyframes tneedle{from{left:0}to{left:100%}}.btn.tap{font-size:20px;min-height:56px}
 .cdx{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #e6dcc6}
+.sheet.menu{padding-top:12px}.mhero{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;background:linear-gradient(135deg,var(--fc),color-mix(in srgb,var(--fc) 55%,#1a120a));color:#fff;margin-bottom:10px}.mhero b{display:block;font-family:var(--display);font-size:20px}.mhero small{display:block;font-size:12px;opacity:.88}.mhero .pt{border:2px solid rgba(255,255,255,.7)!important;border-radius:12px!important}.mclose{background:rgba(255,255,255,.18)!important;color:#fff!important;border:0!important}
+.mad{display:flex;gap:10px;align-items:center;width:100%;padding:12px 14px;border-radius:14px;border:0;background:linear-gradient(135deg,#f3c95a,#d99a1e);color:#3a2606;font:inherit;text-align:left;box-shadow:0 4px 14px rgba(217,154,30,.35);min-height:56px}.mad b{display:block;font-size:15px}.mad small{display:block;font-size:12px;opacity:.85}.mad .mg{background:#fff6dc;color:#a8740c}.mad:disabled{filter:grayscale(.7);opacity:.6;box-shadow:none}.mplay{width:32px;height:32px;border-radius:50%;background:#3a2606;color:#f3c95a;display:grid;place-items:center;font-size:13px}
+.tstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.tstats div{background:#fffaf0;border-radius:14px;padding:10px 8px;text-align:center;box-shadow:inset 0 0 0 1px var(--line)}.tstats span{font-family:var(--seal);color:var(--red);font-size:16px}.tstats b{display:block;font-family:var(--display);font-size:22px;font-weight:400;line-height:1.1}.tstats small{font-size:11px;color:var(--muted)}
+.mgrid.t4{grid-template-columns:repeat(3,1fr);margin-bottom:10px}.mt.sm{min-height:76px;align-items:center;text-align:center;padding:10px 6px}.mt.sm b{font-size:13px;margin-top:4px}.mt .dot{position:absolute;top:8px;right:8px;width:10px;height:10px;border-radius:50%;background:var(--red);z-index:1}
+.msec{margin:14px 2px 6px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px;border-radius:14px;border:0;background:color-mix(in srgb,var(--c) 10%,#fffaf0);font:inherit;color:inherit;text-align:left;min-height:88px;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 22%,transparent)}.mt::after{content:"";position:absolute;right:-18px;bottom:-18px;width:64px;height:64px;border-radius:50%;background:color-mix(in srgb,var(--c) 12%,transparent)}.mt b{font-size:15px;margin-top:6px}.mt small{font-size:11.5px;color:var(--muted)}.mt:active,.mrow:active,.mad:active{transform:scale(.98)}
+.mg{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-family:var(--seal);font-size:19px;background:var(--c);color:#fff;flex:0 0 34px}
+.mlist{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}.mrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:#fffaf0;font:inherit;color:inherit;text-align:left;min-height:56px}.mrow:last-child{border-bottom:0}.mrow b{display:block;font-size:14.5px}.mrow small{display:block;font-size:11.5px;color:var(--muted)}.mi{width:30px;height:30px;border-radius:9px;background:#efe5cf;display:grid;place-items:center;font-size:15px;color:#6f6356}.mch{font-size:22px;color:#b7a789}.mrow.dim b{color:var(--muted)}.mrow.danger b{color:var(--red)}.mrow.danger .mi{background:#f6dcd6;color:var(--red)}
+.tgl{width:46px;height:28px;border-radius:14px;background:#cfc3a9;position:relative;flex:0 0 46px;transition:background .2s}.tgl i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}.tgl.on{background:#3d7a52}.tgl.on i{transform:translateX(18px)}
+.frstrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;pointer-events:auto}.frstrip::-webkit-scrollbar{display:none}.frmini{flex:0 0 128px;display:flex;flex-direction:column;gap:5px;text-align:left;padding:7px 9px;border-radius:12px;border:0;border-top:3px solid var(--fc);background:rgba(251,246,234,.96);box-shadow:0 2px 8px rgba(40,25,10,.18);font:inherit;color:inherit;min-height:48px}.frn{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;white-space:nowrap}.frn i{font-style:normal;font-size:10.5px;padding:1px 6px;border-radius:8px}.frn .push{background:#2f6b3a;color:#fff}.frn .hot{background:#d4a01f;color:#fff}.frn .bad{background:#a3322a;color:#fff}
+.frbar{position:relative;display:flex;height:12px;border-radius:6px;overflow:hidden;background:#ddd}.frbar .m{background:linear-gradient(90deg,#2f6b3a,#4f9a5c)}.frbar .f{background:linear-gradient(90deg,#c2452f,#8e2a1c)}.frbar b{position:absolute;top:-2px;bottom:-2px;width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 0 1px #3a2a1a}
+.frhead{display:flex;justify-content:space-between;align-items:center}.intel b.good{color:var(--good)}
 .trek-strip{display:flex;align-items:center;gap:0;margin:4px 0 2px}.tk-c{font-size:12px;font-weight:700;padding:4px 8px;border-radius:8px;background:#2f6b3a;color:#fff;white-space:nowrap}.tk-c.foe{background:#a3322a}.tk-ln{flex:1;height:3px;background:#c8b48a;min-width:8px}.tk-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#e6dcc6;color:#7a6d5a;font-family:var(--seal,serif);flex:0 0 30px}.tk-n.on{background:#d4a01f;color:#fff}.tk-n.done{background:#7a6d5a;color:#fff}
 .plan{display:flex;flex-direction:column;gap:8px}.intel{display:flex;flex-wrap:wrap;gap:6px;font-size:12.5px}.intel span{background:#efe6d2;border-radius:8px;padding:4px 8px}.intel b.bad{color:var(--red)}
 .tale{display:flex;flex-direction:column;gap:8px}.tsteps{display:flex;gap:4px}.tstep{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:#e6dcc6;color:#7a6d5a}.tstep.on{background:#a3322a;color:#fff}.tstep.done{background:#d4a01f;color:#fff}.hpbar{height:6px;background:#3a1410;border-radius:3px;overflow:hidden;margin-top:4px}.hpbar i{display:block;height:100%;background:#d9b04a}
@@ -1587,8 +1599,7 @@ function newRegressor(o){
   const sc = o.sc;
   G = baseG(sc, o.mode || 'real', 'reg');
   initWorld(sc);
-  const fk = FOCUS[o.focus] ? o.focus : 'ji', st = { m:50, i:55, l:50, c:50, g:50 };
-  st[FOCUS[fk][2]] += 20;
+  const fk = FOCUS[o.focus] ? o.focus : 'ji', st = { m:70, i:70, l:70, c:70, g:70 };
   const id = 'reg', b = sc - 21;
   G.people[id] = { id, n:o.name || '이현', fac:'free', city:o.city || 'ly', b, d:b+72, m:st.m, i:st.i, l:st.l, c:st.c, g:st.g, tr:'지장', tr2:[], ap:sc, alive:true, active:true, loy:100, army:null, reg:1 };
   if (FACES.includes(o.face)){ G.people[id].look = { img:o.face, skin:'a', hat:'none', hc:'', beard:'none', bc:'', eye:'calm', extra:'' }; G.people[id].female = +o.face.slice(4) >= 13; }
@@ -1786,6 +1797,7 @@ function monthStep(ff){
     aiPlot(f, ff);
   }
   aiDiplomacy(ff);
+  frontStep(ff);
   armiesStep(ff);
   for (const p of Object.values(G.people)){
     if (!active(p) || p.id===G.pid || p.id===G.protect) continue;
@@ -2035,11 +2047,11 @@ function histTerr(ff){
 
 /* ---------------- AI 전쟁 ---------------- */
 let AI_SEND = .65, AI_THRESH = 1.0, AI_RATE = .10;
-const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { rate:.55, thr:1.05, grow:.8, inc:1.3, plot:.10, ai:.1, adMul:1.2, adCap:5 }],
-  normal:['보통','기본 균형. 적도 가끔 계략을 쓴다', { rate:1, thr:1, grow:1, inc:1, plot:0, ai:.35, adMul:1, adCap:4 }],
-  hard:['어려움','적이 약한 곳을 노리고 동맹을 맺는다', { rate:1.5, thr:.85, grow:1.2, inc:.85, plot:-.05, ai:.6, adMul:.85, adCap:3 }],
-  nanse:['난세','모두가 그대를 노린다. 계략도 잘 안 통한다', { rate:2.2, thr:.7, grow:1.5, inc:.7, plot:-.10, ai:.8, adMul:.7, adCap:3 }],
-  tianming:['천명','천하의 영웅들이 명장처럼 싸운다. 계략·동맹·배신이 쉴 새 없다', { rate:2.6, thr:.62, grow:1.7, inc:.6, plot:-.15, ai:1, adMul:.6, adCap:2 }] };
+const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { rate:.55, thr:1.05, grow:.8, inc:1.3, plot:.10, ai:.1, adMul:1.2, adCap:5, pg:1 }],
+  normal:['보통','기본 균형. 적도 가끔 계략을 쓴다', { rate:1, thr:1, grow:1, inc:1, plot:0, ai:.35, adMul:1, adCap:4, pg:.8 }],
+  hard:['어려움','적이 약한 곳을 노리고 동맹을 맺는다', { rate:1.5, thr:.85, grow:1.2, inc:.85, plot:-.05, ai:.6, adMul:.85, adCap:3, pg:.6 }],
+  nanse:['난세','모두가 그대를 노린다. 계략도 잘 안 통한다', { rate:2.2, thr:.7, grow:1.5, inc:.7, plot:-.10, ai:.8, adMul:.7, adCap:3, pg:.45 }],
+  tianming:['천명','천하의 영웅들이 명장처럼 싸운다. 계략·동맹·배신이 쉴 새 없다', { rate:2.6, thr:.62, grow:1.7, inc:.6, plot:-.15, ai:1, adMul:.6, adCap:2, pg:.35 }] };
 const dif = () => (DIFF[(G && G.diff) || 'normal'] || DIFF.normal)[2];
 function aiWar(f, ff){
   const cs = citiesOf(f.id);
@@ -2104,6 +2116,139 @@ function createArmy(o){
   return a;
 }
 
+
+/* =====================================================================
+   전선: 성 하나하나가 아니라 적과 맞닿은 지역 전선을 밀고 당긴다.
+   매달 전선마다 밀어붙일지 버틸지 정하고, 밀어붙일 때는 원정길(길 고르기·고비 셋)을 거친다.
+   막대가 끝까지 밀리면 그 전선의 성을 두고 결전(공성/수성)이 벌어진다.
+   ===================================================================== */
+const FR_DIR = { n:'북부', s:'남부', w:'서부', e:'동부', c:'' };
+function frontsOf(fid){
+  if (!fid || !G.facs[fid]) return [];
+  const mine = citiesOf(fid), groups = {};
+  for (const c of mine) for (const nid of c.adj){ const n = city(nid); if (!n.owner || n.owner===fid || !hostile(fid, n.owner)) continue; (groups[n.owner] = groups[n.owner] || { my:new Set(), foe:new Set() }); groups[n.owner].my.add(c.id); groups[n.owner].foe.add(n.id); }
+  const out = [];
+  for (const [ef, g] of Object.entries(groups)){
+    const foe = [...g.foe].map(city);
+    let parts = [['c', foe]];
+    if (foe.length >= 3){ const xs = foe.map(c => c.x), ys = foe.map(c => c.y), wide = Math.max(...xs) - Math.min(...xs) > Math.max(...ys) - Math.min(...ys);
+      const k = wide ? 'x' : 'y', med = foe.map(c => c[k]).sort((a, b) => a - b)[Math.floor(foe.length/2)];
+      parts = wide ? [['w', foe.filter(c => c.x < med)], ['e', foe.filter(c => c.x >= med)]] : [['n', foe.filter(c => c.y < med)], ['s', foe.filter(c => c.y >= med)]];
+      parts = parts.filter(([, l]) => l.length); }
+    for (const [dk, fl] of parts){
+      const fset = new Set(fl.map(c => c.id)), my = [...g.my].filter(id => city(id).adj.some(a => fset.has(a)));
+      const id = ef + '|' + dk; out.push({ id, ef, dk, foe: fl.map(c => c.id), my, name: `${facName(ef)}${FR_DIR[dk] ? ' · ' + FR_DIR[dk] : ''} 전선` });
+    }
+  }
+  return out;
+}
+function frState(id){ G.fronts = G.fronts || {}; return G.fronts[id] || (G.fronts[id] = { p:0, gens:[], st:'hold', bonus:0 }); }
+const frPow = (ids, gens, fid) => { const t = ids.reduce((s, id) => s + (city(id).troops||0), 0); const g = (gens && gens.length ? gens.map(person).filter(Boolean) : ids.map(id => bestGen(id, fid)).filter(Boolean)); const best = g.sort((a, b) => (b.m + b.l) - (a.m + a.l))[0]; return { t, k: genFactor(best), best }; };
+function frEval(F){
+  const S = frState(F.id), me_ = frPow(F.my, S.gens.filter(id => { const p = person(id); return p && active(p) && p.fac===G.pfac && !p.army; }), G.pfac), en = frPow(F.foe, null, F.ef);
+  const a = me_.t*me_.k, b = en.t*en.k;
+  return { S, me_, en, ratio: a/(a + b || 1) };
+}
+function frontStep(ff){
+  if (ff || G.role!=='ruler' || !G.pfac) return;
+  const FS = frontsOf(G.pfac), live = new Set(FS.map(F => F.id));
+  for (const k of Object.keys(G.fronts||{})) if (!live.has(k)) delete G.fronts[k];
+  for (const F of FS){
+    const { S, me_, en, ratio } = frEval(F);
+    const br = brain(F.ef), foePush = Math.random() < .35 + (br ? br.a*.4 : .2) + (ratio < .4 ? .2 : 0);
+    const mk = S.st==='push' ? 1.25 : .8, fk = foePush ? 1.15 : .8;
+    let d = ((ratio*mk) - ((1 - ratio)*fk))*34 + (S.st==='push' ? S.bonus : 0) + rnd(-6, 6);
+    if (S.st==='hold' && d < 0) d *= .6;
+    S.p = clamp(Math.round(S.p + d), -100, 100);
+    // 소모: 미는 쪽이 더 잃는다
+    const lossMy = (S.st==='push' ? .03 : .015) + (foePush ? .01 : 0), lossEn = (foePush ? .03 : .015) + (S.st==='push' ? .015 : 0);
+    for (const id of F.my) city(id).troops = Math.round(city(id).troops*(1 - lossMy));
+    for (const id of F.foe) city(id).troops = Math.round(city(id).troops*(1 - lossEn));
+    S.last = Math.round(d); S.foePush = foePush; S.bonus = 0;
+    if (S.p >= 100) frBreak(F, S, true);
+    else if (S.p <= -100) frBreak(F, S, false);
+    S.st = S.auto ? S.st : 'hold';
+  }
+}
+// 전선이 무너지면 결전이 벌어진다
+function frBreak(F, S, ours){
+  if (ours){
+    const tgt = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0], src = F.my.map(city).filter(c => c.adj.includes(tgt.id)).sort((a, b) => b.troops - a.troops)[0];
+    if (!tgt || !src) return;
+    const n = Math.round(src.troops*.6); if (n < 800) return;
+    src.troops -= n;
+    const gens = S.gens.filter(id => { const p = person(id); return p && active(p) && p.fac===G.pfac && !p.army; }).slice(0, 3);
+    if (!gens.length){ const g = bestGen(src.id, G.pfac); if (g && g.id!==G.pid) gens.push(g.id); }
+    const pl = gens.includes(G.pid);
+    const a = createArmy({ fac:G.pfac, gens, troops:n, from:src.id, to:tgt.id, kind:'attack', food:4, train:G.train, player:pl });
+    a.state = 'siege'; a.eta = 0; a.bonus = { surprise:15, intel:.1 }; a.frontBreak = 1;
+    G.queue.push({ kind:'siege', to:tgt.id, fac:G.pfac, front:1 });
+    news(`${F.name}이 무너졌다! 아군이 ${J(tgt.n,'을')} 향해 결전에 나선다.`, true, true);
+    S.p = 35;
+  } else {
+    const tgt = F.my.map(city).sort((a, b) => a.troops - b.troops)[0], src = F.foe.map(city).filter(c => c.adj.includes(tgt.id)).sort((a, b) => b.troops - a.troops)[0];
+    if (!tgt || !src) return;
+    const n = Math.round(src.troops*.6); if (n < 800) return;
+    src.troops -= n;
+    const g = bestGen(src.id, F.ef);
+    const a = createArmy({ fac:F.ef, gens: g ? [g.id] : [], troops:n, from:src.id, to:tgt.id, kind:'attack', food:4 });
+    a.state = 'siege'; a.eta = 0; a.frontBreak = 1;
+    news(`${F.name}이 밀렸다! ${facName(F.ef)}의 대군이 ${J(tgt.n,'을')} 에워쌌다.`, true, true);
+    S.p = -35;
+  }
+}
+// 밀어붙이기: 원정길을 거쳐 이번 달 전선에 더할 힘을 얻는다
+function frPush(id){
+  const F = frontsOf(G.pfac).find(f => f.id===id); if (!F || G.role!=='ruler') return;
+  const S = frState(id); if (S.st==='push') return;
+  if (!spend(0)) return toast('이번 달 행동력이 없다.', [], true);
+  S.st = 'push';
+  const from = F.my.map(city).sort((a, b) => b.troops - a.troops)[0], to = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0];
+  G.trek = { front:id, ids:[], to:to.id, from:from.id, road:null, nodes:[], i:0, log:[], riv: TERRAIN[to.id]==='river' || TERRAIN[from.id]==='river', acc:{} };
+}
+function frHold(id){ const S = frState(id); S.st = 'hold'; S.bonus = 0; }
+function frBonusFromTrek(T){
+  const A = T.acc, F = frontsOf(G.pfac).find(f => f.id===T.front); if (!F) return;
+  const S = frState(T.front);
+  let b = (A.surprise||0)*.6 + (A.intel||0)*60 + (A.morale||0)*.5 - (A.eta||0)*8 + (A.recruit||0)/150 + (A.food||0)*2;
+  if (A.troops){ for (const id of F.my) city(id).troops = Math.max(500, Math.round(city(id).troops*(1 + A.troops))); b += A.troops*80; }
+  if (A.recruit){ const c = F.my.map(city).sort((a, b) => b.troops - a.troops)[0]; if (c) c.troops += A.recruit; }
+  S.bonus = Math.round(clamp(b, -12, 25)) + ({ main:0, hill:4, water:3 })[T.road]||0;
+  S.road = T.road;
+}
+function frGens(id, gid){
+  const S = frState(id), k = S.gens.indexOf(gid);
+  if (k >= 0) S.gens.splice(k, 1); else { for (const o of Object.values(G.fronts)) { const j = o.gens.indexOf(gid); if (j >= 0) o.gens.splice(j, 1); } if (S.gens.length < 3) S.gens.push(gid); }
+}
+function frBar(p){ const me_ = clamp(50 + p/2, 0, 100); return `<div class="frbar"><i class="m" style="width:${me_}%"></i><i class="f" style="width:${100 - me_}%"></i><b style="left:${me_}%"></b></div>`; }
+function viewFronts(){
+  const FS = frontsOf(G.pfac);
+  if (!FS.length) return '';
+  const sorted = FS.map(F => [F, frState(F.id)]).sort((a, b) => Math.abs(b[1].p) - Math.abs(a[1].p));
+  return `<div class="frstrip">${sorted.map(([F, S]) => `<button class="frmini" data-front="${F.id}" style="--fc:${facColor(F.ef)}"><span class="frn"><b>${esc(facName(F.ef).replace(/군$/, ''))}${FR_DIR[F.dk] ? ' ' + FR_DIR[F.dk] : ''}</b>${S.st==='push' ? '<i class="push">공세</i>' : S.p >= 70 ? '<i class="hot">결전</i>' : S.p <= -70 ? '<i class="bad">위기</i>' : ''}</span>${frBar(S.p)}</button>`).join('')}</div>`;
+}
+function openFront(id){
+  const F = frontsOf(G.pfac).find(f => f.id===id); if (!F) return;
+  const { S, me_, en, ratio } = frEval(F), ef = fac(F.ef);
+  const pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).concat(G.city && F.my.includes(G.city) && !G.inArmy ? [me()] : []);
+  const gchips = pool.map(p => `<button class="chip ${S.gens.includes(p.id) ? 'gold' : ''}" data-fg="${p.id}" style="border:0">${esc(p.n)} <small>무${SV(p.m)}·통${SV(p.l)}</small></button>`).join('');
+  const lastTxt = S.last != null ? `<p class="tiny muted">지난달 ${S.last >= 0 ? '+' : ''}${S.last}${S.foePush ? ' · 적이 공세를 폈다' : ''}${S.road ? ` · ${ROADS[S.road].n}으로 밀었다` : ''}</p>` : '';
+  const bg = sheet(`<div class="frhead"><h3>${esc(F.name)}</h3><span class="chip" style="background:${facColor(F.ef)}26">${esc(facName(F.ef))}</span></div>
+    ${frBar(S.p)}<div class="row between tiny"><span>아군 ${S.p >= 0 ? '우세' : ''}</span><span>${S.p >= 100 ? '' : S.p >= 0 ? `결전까지 ${100 - S.p}` : `위기까지 ${100 + S.p}`}</span><span>${S.p < 0 ? '적 우세' : ''}</span></div>${lastTxt}
+    <div class="intel"><span>아군 성 <b>${F.my.map(i => city(i).n).join('·')}</b></span><span>병력 <b>${fmt(me_.t)}</b></span><span>적 성 <b>${F.foe.map(i => city(i).n).join('·')}</b></span><span>적 병력 <b>${fmt(en.t)}</b></span><span>힘의 비 <b class="${ratio >= .5 ? 'good' : 'bad'}">${Math.round(ratio*100)} : ${100 - Math.round(ratio*100)}</b></span></div>
+    <span class="lbl">맡은 장수 (최대 3명 · 이 전선의 성에 있는 장수)</span><div class="chips">${gchips || '<span class="small muted">이 전선의 성에 장수가 없다.</span>'}</div>
+    <span class="lbl">이번 달 명령</span>
+    <div class="tacs jail">
+      <button class="tac ${S.st==='push' ? 'on' : ''}" data-fo="push"><b><span class="gl">攻</span>밀어붙인다</b><small>원정길(큰길·산길·물길)을 골라 고비를 넘고 전선을 민다. 행동력 1. 양쪽 모두 병력을 더 잃는다.</small></button>
+      <button class="tac ${S.st==='hold' ? 'on' : ''}" data-fo="hold"><b><span class="gl">守</span>버틴다</b><small>적이 밀어도 덜 밀린다. 병력 소모가 적다.</small></button>
+    </div>
+    <button class="mrow" id="frAuto" role="switch" aria-checked="${!!S.auto}"><span class="grow"><b>다음 달에도 이 명령 유지</b><small>매달 다시 고르지 않아도 된다</small></span><span class="tgl ${S.auto?'on':''}"><i></i></span></button>
+    <p class="tiny muted">막대가 끝까지 밀리면 결전이 벌어진다: 우리가 밀면 적의 가장 약한 성을 치고, 밀리면 우리의 가장 약한 성이 에워싸인다.</p>
+    <button class="btn2" data-close>닫기</button>`);
+  bg.querySelectorAll('[data-fg]').forEach(b => b.onclick = () => { frGens(id, b.dataset.fg); bg.remove(); openFront(id); });
+  bg.querySelectorAll('[data-fo]').forEach(b => b.onclick = () => { bg.remove(); if (b.dataset.fo==='push') frPush(id); else frHold(id); save(); render(); });
+  bg.querySelector('#frAuto').onclick = e => { S.auto = !S.auto; save(); const t = e.currentTarget.querySelector('.tgl'); t.classList.toggle('on', !!S.auto); e.currentTarget.setAttribute('aria-checked', !!S.auto); };
+}
 /* ---------------- 원정길: 출진하면 길을 고르고, 길 위의 세 고비를 넘어 목적지에 닿는다 ----------------
    큰길은 느리지만 안전하고, 산길은 빠르고 적의 허를 찌르지만 험하고, 물길은 강을 낀 곳에서만 열린다. */
 const ROADS = {
@@ -2129,7 +2274,7 @@ const TREK = {
   current:{ t:'물살이 거꾸로 흐른다', o:[ { t:'밧줄로 배를 끈다', stat:'m', diff:45, ok:{ morale:-3, log:'땀으로 거슬러 올랐다.' }, no:{ eta:1, log:'한 달이 걸렸다.' } }, { t:'물이 바뀔 때를 기다린다', stat:'i', diff:40, ok:{ log:'때를 맞춰 나아갔다.' }, no:{ eta:1, log:'기다림이 길었다.' } } ] },
   pirates:{ t:'수적 떼가 배를 노린다', o:[ { t:'활로 쫓는다', stat:'l', diff:45, ok:{ morale:4, log:'수적이 달아났다.' }, no:{ food:-1, log:'군량선 하나를 빼앗겼다.' } }, { t:'수적을 끌어들인다', stat:'c', diff:60, ok:{ recruit:700, log:'수적들이 우리 수군이 되었다.' }, no:{ troops:-.03, log:'싸움이 났다.' } } ] }
 };
-function trekLead(ids){ const as = ids.map(armyById).filter(Boolean); const g = as.flatMap(a => a.gens).map(person).filter(Boolean); return g.find(p => p.id===G.pid) || g.sort((a, b) => (b.m + b.i + b.l) - (a.m + a.i + a.l))[0] || me(); }
+function trekLead(ids){ if (G.trek && G.trek.front){ const S = frState(G.trek.front), g = S.gens.map(person).filter(Boolean); if (g.length) return g.sort((a, b) => (b.m + b.i + b.l) - (a.m + a.i + a.l))[0]; return me(); } const as = ids.map(armyById).filter(Boolean); const g = as.flatMap(a => a.gens).map(person).filter(Boolean); return g.find(p => p.id===G.pid) || g.sort((a, b) => (b.m + b.i + b.l) - (a.m + a.i + a.l))[0] || me(); }
 function trekStart(ids, to){
   if (SIM || !ids.length) return;
   const from = armyById(ids[0]).from, riv = TERRAIN[to]==='river' || TERRAIN[from]==='river';
@@ -2144,6 +2289,7 @@ function trekRoad(k){
 }
 function trekApply(r){
   const T = G.trek, as = T.ids.map(armyById).filter(Boolean), A = T.acc;
+  if (T.front){ for (const k of ['morale','troops','eta','recruit','food']) if (r[k]) A[k] = (A[k]||0) + r[k]; if (r.gold) G.gold = Math.max(0, G.gold - r.gold); }
   for (const a of as){
     if (r.food) a.food = Math.max(0, a.food + r.food);
     if (r.morale) a.morale = clamp(a.morale + r.morale, 5, 100);
@@ -2173,20 +2319,22 @@ function trekAuto(){ const T = G.trek; if (!T) return; if (!T.road) trekRoad('ma
 function trekEnd(){
   const T = G.trek, as = T.ids.map(armyById).filter(Boolean);
   for (const a of as) a.bonus = Object.assign({}, T.acc);
+  if (T.front) frBonusFromTrek(T);
   T.done = true;
 }
 function viewTrek(){
   const T = G.trek, t = city(T.to), f = city(T.from), L = trekLead(T.ids), as = T.ids.map(armyById).filter(Boolean), a0 = as[0];
   const strip = `<div class="trek-strip"><span class="tk-c">${esc(f.n)}</span>${[0,1,2].map(k => `<i class="tk-ln"></i><span class="tk-n ${T.road ? (k < T.i ? 'done' : k===T.i && !T.done ? 'on' : '') : ''}">${T.road ? ROADS[T.road].gl : '?'}</span>`).join('')}<i class="tk-ln"></i><span class="tk-c foe">${esc(t.n)}</span></div>`;
-  const stat = a0 ? `<div class="intel"><span>병력 <b>${fmt(as.reduce((s, a) => s + a.troops, 0))}</b></span><span>사기 <b>${Math.round(a0.morale)}</b></span><span>군량 <b>${a0.food}개월</b></span><span>도착 <b>${a0.eta}달 뒤</b></span>${T.acc.surprise ? `<span>기습 <b>${T.acc.surprise > 0 ? '+' : ''}${T.acc.surprise}</b></span>` : ''}${T.acc.intel ? `<span>정보 <b>+${Math.round(T.acc.intel*100)}%</b></span>` : ''}</div>` : '';
+  const stat = T.front ? `<div class="intel"><span>전선 <b>${esc((frontsOf(G.pfac).find(f => f.id===T.front)||{}).name||'')}</b></span>${T.acc.surprise ? `<span>기습 <b>${T.acc.surprise}</b></span>` : ''}${T.acc.intel ? `<span>정보 <b>+${Math.round(T.acc.intel*100)}%</b></span>` : ''}</div>` : a0 ? `<div class="intel"><span>병력 <b>${fmt(as.reduce((s, a) => s + a.troops, 0))}</b></span><span>사기 <b>${Math.round(a0.morale)}</b></span><span>군량 <b>${a0.food}개월</b></span><span>도착 <b>${a0.eta}달 뒤</b></span>${T.acc.surprise ? `<span>기습 <b>${T.acc.surprise > 0 ? '+' : ''}${T.acc.surprise}</b></span>` : ''}${T.acc.intel ? `<span>정보 <b>+${Math.round(T.acc.intel*100)}%</b></span>` : ''}</div>` : '';
   const log = T.log.length ? `<div class="log">${T.log.map(l => `<div>${esc(l)}</div>`).join('')}</div>` : '';
   const b = (k, t, d, dis) => `<button class="tac" data-trek="${k}" ${dis ? 'disabled' : ''}><b>${t}</b><small>${d}</small></button>`;
   let body;
   if (!T.road) body = `<p class="small">${esc(L.n)}: "${esc(t.n)}까지 어느 길로 가시겠습니까?"</p><div class="tacs jail">${Object.keys(ROADS).map(k => b('road:' + k, `<span class="gl">${ROADS[k].gl}</span>${ROADS[k].n}`, ROADS[k].d + (k==='water' && !T.riv ? ' (이 길에는 강이 없다)' : ''), k==='water' && !T.riv)).join('')}</div><button class="btn2" data-trek="auto">큰길로, 장수에게 맡긴다</button>`;
   else if (!T.done){ const E = TREK[T.nodes[T.i]];
     body = `<p class="small"><b>${T.i+1}번째 고비</b> · ${esc(E.t)}</p><div class="tacs jail">${E.o.map((o, j) => { const c = trekCh(o, L); return b('pick:' + j, esc(o.t), c >= 1 ? '반드시 된다' : `${({m:'무력',i:'지략',l:'통솔',c:'인덕'})[o.stat]} 판정 · 성공 ${Math.round(c*100)}%`, o.gold && G.gold < o.gold); }).join('')}</div><button class="btn2" data-trek="auto">남은 고비는 ${esc(L.n)}에게 맡긴다</button>`; }
+  else if (T.front){ const S = frState(T.front); body = `<p class="result">이번 달 공세에 힘 <b>${S.bonus >= 0 ? '+' : ''}${S.bonus}</b>을 더한다. 달이 넘어가면 전선이 움직인다.</p><button class="btn" data-trek="close">진군한다</button>`; }
   else body = `<p class="result">${esc(t.n)}까지 ${a0 ? a0.eta : '?'}달. ${T.acc.surprise > 0 ? '적은 우리가 오는 줄 모른다.' : T.acc.surprise < 0 ? '적이 우리 진군을 알아챘다.' : ''}</p><button class="btn" data-trek="close">진군한다</button>`;
-  return `<div class="modal trek"><div class="row between"><h3>원정길 · ${esc(t.n)}</h3>${T.road ? `<span class="chip gold">${ROADS[T.road].n}</span>` : ''}</div>${strip}${stat}${body}${log}</div>`;
+  return `<div class="modal trek"><div class="row between"><h3>${T.front ? '공세' : '원정길'} · ${esc(t.n)}</h3>${T.road ? `<span class="chip gold">${ROADS[T.road].n}</span>` : ''}</div>${strip}${stat}${body}${log}</div>`;
 }
 function involves(a){ return a.fac===G.pfac || city(a.to).owner===G.pfac; }
 function armiesStep(ff){
@@ -2278,6 +2426,7 @@ function surrender(tid, fid, list, ff){
 }
 function siegeInvolvesPlayer(list, t){
   if (list.some(a => a.player)) return true;
+  if (G.role==='ruler' && list.some(a => a.frontBreak) && (list[0].fac===G.pfac || t.owner===G.pfac)) return true;
   return t.owner===G.pfac && G.city===t.id && !G.inArmy && G.role!=='ronin' && !!G.pfac;
 }
 function arrive(a, ff){
@@ -2413,9 +2562,11 @@ function buildSiege(tid, fid, list, interactive){
   const def = mkSide(dg, dTroops, pDef ? G.train : 55, t.owner, pDef);
   def.morale = t.morale ?? 100;
   if (pDef){ def.name = me().n; supportFor(tid, def); }
-  const ps = list.some(a => a.player) ? 'att' : pDef ? 'def' : null;
+  let ps = list.some(a => a.player) ? 'att' : pDef ? 'def' : null, remote = false;
+  if (!ps && interactive && G.role==='ruler' && list.some(a => a.frontBreak)){ ps = fid===G.pfac ? 'att' : t.owner===G.pfac ? 'def' : null; remote = !!ps; }
   const B = { kind:'siege', to:tid, fid, armies:list.map(a => a.id), att, def, round:1, log:[], ps, cmdPlayer:!!ps,
-    share: pDef && G.role!=='ruler' && dTroops ? G.troops/dTroops : 0, months: Math.max(...list.map(a => a.siege)) };
+    share: pDef && G.role!=='ruler' && dTroops ? G.troops/dTroops : 0, months: Math.max(...list.map(a => a.siege)), remote };
+  if (remote){ B[ps].duel = true; B.log.push('전선 결전: 그대는 본영에서 전령을 통해 지휘한다.'); }
   const ls = t.owner!==G.pfac ? lastStand(t.owner) : 1; if (ls > 1){ def.support += (ls-1)*.5; def.morale = Math.min(100, def.morale + 15); }
   if (!(interactive && ps==='def')) setUnit(def, aiUnit(def, tid));
   if (!(interactive && ps==='att')) setUnit(att, aiUnit(att, tid, def.u));
@@ -2448,7 +2599,7 @@ function resolveSiege(B, ff){
       res.chips.push([`공적 +${mer}`, true]); res.lines.push(`${J(t.n,'을')} 함락했다!${old ? ' '+facName(old)+'의 깃발이 내려갔다.' : ''}`);
       if (G.role==='officer'){ trustAdd(5); res.chips.push(['신뢰 +5', true]);
         if (G.rank>=2 && !G.gov && t.owner===G.pfac && Math.random()<.6){ G.gov = t.id; t.gov = G.pid; res.lines.push(`주공께서 그대를 ${t.n} 태수로 임명하셨다.`); res.chips.push(['태수 임명', true]); } } }
-    if (pDef){ res.lines.push(`${J(t.n,'을')} 잃었다.`); if (!G.dead){ G.hp = clamp(G.hp-10); res.chips.push(['체력 -10', false]);
+    if (pDef){ res.lines.push(`${J(t.n,'을')} 잃었다.`); if (!G.dead && !B.remote){ G.hp = clamp(G.hp-10); res.chips.push(['체력 -10', false]);
       if (!SIM && !ff && Math.random() < (G.role==='ruler' ? .15 : .3)){ B.pCap = B.fid; res.lines.push('성문이 열리는 혼란 속에 그대는 사로잡히고 말았다.'); res.chips.push(['포로', false]); } } }
   } else {
     let dt = D.troops;
@@ -3752,7 +3903,7 @@ const ACT = {
     c.pool -= n; G.troops += n;
     toast(G.role==='ronin' ? '그대의 이름을 듣고 의병들이 모여들었다.' : '새 병사들이 부대에 들어왔다.', [[`병력 +${fmt(n)}`,true],[`금 -${cost}`,false]]);
   },
-  study(stat){ if (!spend(0)) return; if (me()[stat]==null) me()[stat] = me().i; const v0 = me()[stat], up = Math.random() < clamp(.75 - v0/160, .12, .6), gain = up ? (v0<60 ? ri(1,3) : v0<80 ? ri(1,2) : 1) : 0; if (up) me()[stat] = clamp(v0+gain, 1, 100); G.hp = clamp(G.hp-1);
+  study(stat){ if (!spend(0)) return; if (me()[stat]==null) me()[stat] = me().i; const v0 = me()[stat], up = Math.random() < (clamp(.75 - v0/160, .12, .6)*(dif().pg ?? 1) + (G.reg && FOCUS[G.reg.focus] && FOCUS[G.reg.focus][2]===stat ? .15 : 0)), gain = up ? (v0<60 ? ri(1,3) : v0<80 ? ri(1,2) : 1) : 0; if (up) me()[stat] = clamp(v0+gain, 1, 100); G.hp = clamp(G.hp-1);
     toast(up ? `${ST[stat]} 수련이 결실을 맺었다. (${v0} → ${me()[stat]})` : `${ST[stat]} 수련에 매진했다. 아직 큰 변화는 없다.`, up ? [[`${ST[stat]} +${gain}`,true]] : []); },
   rest(){ if (!spend(0)) return; G.hp = clamp(G.hp+8); toast('푹 쉬며 몸을 추슬렀다.', [['체력 +8',true]]); },
   develop(cid){
@@ -4440,6 +4591,7 @@ if (!SIM) try { const old = localStorage.getItem(SAVE_KEY); if (old){ if (!local
 function save(){
   watch();
   if (SIM || !G || G.phase==='over' || G.taleBack) return;
+  cuKeepGrowth();
   if (G.rank>=5) G.flags.grand = 1;
   if (G.slot==null) return;
   try { const t = G.toast; G.toast = null; localStorage.setItem(slotKey(G.slot), JSON.stringify(G)); G.toast = t; } catch(e) {}
@@ -4674,7 +4826,7 @@ function applyEff(e){
       case 'insideC': G.plots[G.ev.city] = mi()+3; chips.push(['내응 준비', true]); break;
       case 'hp': if (v<0 && me().tr==='강철') v = Math.round(v*.6); G.hp = clamp(G.hp+v); add('체력', v); break;
       case 'train': G.train = clamp(G.train+v); add('훈련', v); break;
-      case 'm': case 'i': case 'l': case 'c': me()[k] = clamp(me()[k]+v); add(ST[k], v); break;
+      case 'm': case 'i': case 'l': case 'c': { const vv = v > 0 && Math.random() > (dif().pg ?? 1) ? 0 : v; if (vv){ me()[k] = clamp(me()[k]+vv); add(ST[k], vv); } break; }
       case 'dev': { const c = city(G.city); if (c.owner===G.pfac){ c.dev = clamp(c.dev+v, 1, 10); add('개발', v); } break; }
       case 'bondN': if (G.ev.npc){ addBond(G.ev.npc, v); add(`${N()} 인연`, v); } break;
       case 'bondAll': mates().forEach(p => addBond(p.id, v)); add('동료 인연', v); break;
@@ -5166,6 +5318,9 @@ function mapSvg(){
   o += brush(HAN_PTS, .7, 'flat', '#7f9fae', .75);
   const seen = new Set();
   for (const c of allCities()) for (const a of c.adj){ const k = [c.id,a].sort().join(); if (seen.has(k)) continue; seen.add(k); const d = city(a); o += `<line x1="${c.x}" y1="${c.y}" x2="${d.x}" y2="${d.y}" stroke="${INK}" stroke-opacity=".3" stroke-width=".22" stroke-dasharray=".7 .7"/>`; }
+  if (G.role==='ruler' && G.pfac) for (const F of frontsOf(G.pfac)){ const S = frState(F.id), col = S.p >= 0 ? '#2f8a46' : '#c2452f';
+    for (const m of F.my) for (const f of F.foe){ if (!city(m).adj.includes(f)) continue; const A = city(m), Bc = city(f), t = clamp(.5 + S.p/250, .15, .85), mx = A.x + (Bc.x - A.x)*t, my = A.y + (Bc.y - A.y)*t, dx = Bc.x - A.x, dy = Bc.y - A.y, L = Math.hypot(dx, dy) || 1, nx = -dy/L*2.6, ny = dx/L*2.6;
+      o += `<line x1="${f1(A.x)}" y1="${f1(A.y)}" x2="${f1(Bc.x)}" y2="${f1(Bc.y)}" stroke="${col}" stroke-opacity=".28" stroke-width="1.3"/><line x1="${f1(mx-nx)}" y1="${f1(my-ny)}" x2="${f1(mx+nx)}" y2="${f1(my+ny)}" stroke="#a3322a" stroke-width=".9" stroke-linecap="round"/>`; } }
   const adj = new Set(here ? city(here).adj : []);
   for (const c of allCities()) o += `<g class="citybtn" data-city="${c.id}" role="button" tabindex="0" aria-label="${c.n}">${icoS(c.x, c.y, `<rect x="${c.x-6}" y="${c.y-9}" width="12" height="15" fill="transparent"/>${castleIcon(c, c.id===sel, adj.has(c.id), c.id===here, !visible(c.id))}`)}</g>`;
   for (const c of allCities()){
@@ -5190,7 +5345,7 @@ function viewMap(){
     const m = G.mission, pr = missionProg();
     const prog = m.t==='capture'||m.t==='defend' ? (pr?'완료':'') : `${fmt(Math.max(0,pr))}/${fmt(m.goal)}`;
     notes.push(`<button class="note" data-view="army"><span class="lbl">주공의 명 · ${m.months}개월</span><span class="grow"><b>${esc(missionText(m))}</b> <span class="small muted">${prog}</span></span></button>`);
-  } else if (G.role==='ruler') notes.push(`<div class="note"><span class="lbl">천하통일</span><span class="grow"><b>${citiesOf(G.pfac).length} / ${UNIFY_N}성</b> <span class="small muted">성을 눌러 출진·계략·배치</span></span></div>`);
+  } else if (G.role==='ruler'){ const fs = viewFronts(); if (fs) notes.push(fs); notes.push(`<div class="note"><span class="lbl">천하통일</span><span class="grow"><b>${citiesOf(G.pfac).length} / ${UNIFY_N}성</b> <span class="small muted">전선을 눌러 공세·수비</span></span></div>`); }
   else if (G.role==='ronin') notes.push(`<div class="note"><span class="lbl">재야</span><span class="grow"><b>주군을 찾거나 스스로 일어서라</b></span></div>`);
   const legend = aliveFacs().filter(f => citiesOf(f.id).length).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length)
     .map(f => `<span class="chip" style="background:${f.color}26;color:${mix(f.color,'#000000',.25)}">${esc(facName(f.id))} ${citiesOf(f.id).length}</span>`).join('');
@@ -5684,15 +5839,18 @@ function showAd(spot, reward){
   let n = 2; const iv = setInterval(() => { n--; const el = bg.querySelector('#adN'); if (el) el.textContent = Math.max(n,0); if (n<=0){ clearInterval(iv); bg.remove(); done(); } }, 1000);
 }
 function openSettings(){
-  const o = opt(), row = (k, t) => `<button class="btn2" data-opt="${k}" style="display:flex;justify-content:space-between"><span>${t}</span><b>${o[k]?'켜짐':'꺼짐'}</b></button>`;
-  const bg = sheet(`<h3>설정</h3>${row('music','배경 음악')}${row('sfx','효과음')}${row('vib','진동')}${row('council','평정 (매달 정청 회의)')}
-    <button class="btn2" id="sBk">백업 · 내 장수 코드</button><button class="btn2" id="sPriv">개인정보 안내</button><button class="btn2" id="sReset">모든 기록 지우기</button>
-    <p class="tiny muted" style="text-align:center">버전 ${BUILD}</p><button class="btn2" data-close>닫기</button>`);
+  const o = opt(), row = (k, ic, t, sub) => `<button class="mrow" data-opt="${k}" role="switch" aria-checked="${!!o[k]}"><span class="mi">${ic}</span><span class="grow"><b>${t}</b><small>${sub}</small></span><span class="tgl ${o[k]?'on':''}"><i></i></span></button>`;
+  const lnk = (id, ic, t, sub, cls) => `<button class="mrow ${cls||''}" id="${id}"><span class="mi">${ic}</span><span class="grow"><b>${t}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="mch">›</span></button>`;
+  const bg = sheet(`<div class="cu-head"><h3>설정</h3><button class="icon" data-close aria-label="닫기">✕</button></div>
+    <p class="msec">소리와 손맛</p><div class="mlist">${row('music','♪','배경 음악','평시와 전시에 따라 곡이 바뀐다')}${row('sfx','♫','효과음','칼 부딪침, 말발굽, 북소리')}${row('vib','≋','진동','전투와 결과에 맞춰 짧게')}</div>
+    <p class="msec">진행</p><div class="mlist">${row('council','評','평정','매달 정청 회의를 연다')}</div>
+    <p class="msec">기록</p><div class="mlist">${lnk('sBk','⧉','백업 · 내 장수 코드','파일로 내보내기와 불러오기')}${lnk('sPriv','ⓘ','개인정보 안내','')}${lnk('sReset','⚠','모든 기록 지우기','저장 칸 · 명성 · 업적 · 내 장수','danger')}</div>
+    <p class="tiny muted" style="text-align:center;margin-top:12px">버전 ${BUILD}</p>`);
   bg.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => { const k = b.dataset.opt; o[k] = o[k] ? 0 : 1; saveMeta(); bg.remove(); if (k==='music' && o[k]) Snd.resume(); openSettings(); });
   bg.querySelector('#sBk').onclick = () => { bg.remove(); openBackup(); };
   bg.querySelector('#sPriv').onclick = () => { bg.remove(); sheet(`<h3>개인정보 안내</h3><p class="small">이 게임은 이름·연락처·위치 같은 개인정보를 모으지 않는다. 진행 상황과 설정은 이 기기의 브라우저 안에만 저장되며 밖으로 보내지 않는다. 브라우저 기록을 지우면 저장도 함께 사라진다.</p><p class="small muted">광고나 통계 도구가 연결되면 그 도구의 방침이 이 안내에 추가된다.</p><button class="btn2" data-close>닫기</button>`); };
   let armed = false; const rs = bg.querySelector('#sReset');
-  rs.onclick = () => { if (!armed){ armed = true; rs.textContent = '정말 지운다 (한 번 더 누르기) · 저장 칸·명성·업적 모두 삭제'; return; }
+  rs.onclick = () => { if (!armed){ armed = true; rs.querySelector('b').textContent = '한 번 더 누르면 모두 지운다'; rs.classList.add('armed'); return; }
     try { for (let i=0;i<SLOTS;i++) localStorage.removeItem(slotKey(i)); localStorage.removeItem('nanse5-meta'); } catch(e) {} location.reload(); };
 }
 const TIPS = { army:'<b>군사</b> 화면이다. 내 병력과 훈련도를 보고, 출진 중인 부대의 행군을 확인한다. 훈련도가 높을수록 같은 병력으로 더 세게 싸운다.', people:'<b>인물</b> 화면이다. 인연을 쌓으면 의형제·혼인·등용 길이 열린다. 인연 50부터 혼담, 75부터는 하야할 때 따라나설 수도 있다.', family:'<b>가문</b> 화면이다. 혼인해 자식을 얻고, 자식을 가르쳐 장수로 출사시키거나 다른 가문과 혼인시킨다. 내가 죽으면 후계가 가문을 잇는다.', battle:'<b>전투</b>는 두 가지로 치른다. <b>전장 지휘</b>는 부대를 하나씩 움직이는 싸움이고, <b>빠른 결판</b>은 병종 상성(기병›궁병›창병›기병)으로 3합에 끝낸다.', tb:'<b>전장 지휘</b><br>· 아군을 누르면 푸른 칸으로 이동, 붉은 칸의 적을 <b>한 번 누르면 예상 피해</b>, 한 번 더 누르면 공격한다.<br>· 적을 누르면 다음 차례에 그 부대가 닿는 <b>위협 범위</b>가 붉게 보인다.<br>· 장수마다 <b>전법</b>(돌격·일제사격·철벽·혼란·고무·화계)이 있다. 기력이 70 모이면 금빛으로 빛난다.<br>· 별 세 개: 이기기, 5턴 안에, 무너진 부대 없이. 별마다 공적이 붙는다.', duel:'<b>일기토</b><br>강타›받아치기›속공›강타. 이길 때마다 기세(●)가 쌓이고, 두 번 연달아 이기면 <b>필살</b>을 쓸 수 있다. 적의 기세가 넘치면 받아치기로 필살을 절반만 맞는다. 지략이 높으면 적의 수가 미리 보인다.<br>· <b>책략</b>(도발·거짓 패주·숨 고르기)은 하나씩 한 번 쓸 수 있다. 무력 차이가 작을수록 잘 통하고, 크게 밀리면 거의 안 통한다.' };
@@ -5806,7 +5964,7 @@ function regForm(sc){
     ${d.role!=='officer' && cities.length ? `<span class="lbl">${d.role==='ruler'?'일어설 성 (주인 없는 성)':'눈을 뜬 곳'}</span><select id="rgCity" style="font:inherit;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--paper2)">${cities.map(c => `<option value="${c}" ${c===d.city?'selected':''}>${cityName(c)}</option>`).join('')}</select>` : ''}
     <span class="lbl">얼굴</span>${facePick(d.face, false, true)}
     <span class="lbl">회귀 전에 잘하던 것</span>
-    <div class="three">${Object.entries(FOCUS).map(([k,[t,sub,st]]) => seg('focus', k, t, ST[st]+' +4')).join('')}</div>
+    <div class="three">${Object.entries(FOCUS).map(([k,[t,sub,st]]) => seg('focus', k, t, ST[st]+' 성장 빠름')).join('')}</div>
     <p class="small muted">${FOCUS[d.focus][1]}. 다른 인물들은 역사 속 수명대로 세상을 떠나지만, 그대의 기억으로 그 운명을 바꿀 수 있다.</p>
     <button class="btn" id="rgGo" ${d.role==='ruler' && !cities.length ? 'disabled' : ''}>난세로 들어간다</button>
   </div>`;
@@ -5864,6 +6022,7 @@ function openCuEdit(c, isNew){
     <div class="chips">${CU_TRAITS.map(([k,n]) => `<button class="chip${c.tr.includes(k)?' gold':''}" data-tr="${k}" style="border:0">${n}</button>`).join('')}</div>
     <span class="lbl">성격</span><div class="three">${CU_PERS.map(([k,n]) => seg('ps',k,n,c.pers===k)).join('')}</div>
     <span class="lbl">무기</span><div class="three">${CU_W.map(([k,n]) => seg('wp',k,n,c.w===k)).join('')}</div>
+    ${!isNew && grTxt(c) ? `<div class="card" style="background:#eef6ea"><b class="small">판에서 쌓은 성장</b> <span class="small">${grTxt(c)}</span><p class="tiny muted" style="margin:2px 0 4px">다음 판에 불러도 그대로 남는다.</p><button class="btn2" id="cuGrReset">성장 초기화</button></div>` : ''}
     ${isNew?'':'<div class="row"><button class="btn2 grow" id="cuCopy">공유 코드 복사</button><button class="btn2 grow" id="cuDel">이 장수 지우기</button></div>'}
     <div class="cu-foot"><button class="btn" id="cuSave">${left<0?'포인트를 넘었다':left>0?`저장 (남은 포인트 ${left*5})`:'저장'}</button></div>`);
   bg.querySelector('.sheet').classList.add('tall');
@@ -5883,13 +6042,26 @@ function openCuEdit(c, isNew){
     const L = cuList(), i = L.findIndex(x => x.id===c.id); if (i>=0) L[i] = c; else if (L.length < CU_MAX) L.push(c);
     saveMeta(); track('custom_save'); bg.remove(); openCustom(); };
   const cp = bg.querySelector('#cuCopy'); if (cp) cp.onclick = () => { const code = cuCode(c); try { navigator.clipboard.writeText(code); note('공유 코드를 복사했다.', [['복사',true]]); } catch(e) { sheet(`<h3>공유 코드</h3><textarea style="width:100%;height:90px">${code}</textarea><button class="btn2" data-close>닫기</button>`); } };
+  const grr = bg.querySelector('#cuGrReset'); if (grr) grr.onclick = () => { delete c.gr; const L = cuList(), i = L.findIndex(x => x.id===c.id); if (i>=0){ delete L[i].gr; saveMeta(); } again(); };
   const del = bg.querySelector('#cuDel'); if (del) del.onclick = () => { META.custom = cuList().filter(x => x.id!==c.id); saveMeta(); bg.remove(); openCustom(); };
   return bg;
 }
+// 내 장수가 판 안에서 자란 만큼은 기기에 남는다 (초기화하기 전까지)
+function cuKeepGrowth(){
+  const L = META.custom; if (!L || !L.length || !G || !G.people) return;
+  let ch = false;
+  for (const c of L){ const p = G.people[c.id]; if (!p || !p.custom) continue;
+    const base = { m:c.st.mu*5, i:c.st.ji*5, l:c.st.yong*5, c:c.st.in*5, g:c.st.jeong*5 }, gr = {};
+    for (const k of Object.keys(base)) gr[k] = Math.max((c.gr||{})[k]||0, Math.round((p[k]||0) - base[k]));
+    if (JSON.stringify(gr)!==JSON.stringify(c.gr||{})){ c.gr = gr; ch = true; } }
+  if (ch) saveMeta();
+}
+const grTxt = c => c.gr ? Object.entries(c.gr).filter(([, v]) => v > 0).map(([k, v]) => `${({m:'무',i:'지',l:'용',c:'인',g:'정'})[k]}+${v}`).join(' ') : '';
 function cuSummon(c){
   if (!G || G.people[c.id]) return false;
   const b = G.year - c.age;
-  const p = { id:c.id, n:c.n, fac:'free', city:G.city, b, d:b+68, m:c.st.mu*5, i:c.st.ji*5, l:c.st.yong*5, c:c.st.in*5, g:c.st.jeong*5,
+  const gr = c.gr || {};
+  const p = { id:c.id, n:c.n, fac:'free', city:G.city, b, d:b+68, m:clamp(c.st.mu*5 + (gr.m||0)), i:clamp(c.st.ji*5 + (gr.i||0)), l:clamp(c.st.yong*5 + (gr.l||0)), c:clamp(c.st.in*5 + (gr.c||0)), g:clamp(c.st.jeong*5 + (gr.g||0)),
     tr: OLDT[c.tr.find(t => OLDT[t])] || '명장', tr2:c.tr.slice(), ap:G.year, alive:true, active:true, loy:95, army:null, look:{ ...c.look }, female:!!c.female, custom:1, wtype:c.w, pers:c.pers };
   if (G.pfac && (G.role==='ruler' || G.role==='officer')){ p.fac = G.pfac; if (city(p.city).owner!==G.pfac) p.city = capitalOf(G.pfac) || p.city; }
   G.people[p.id] = p; addBond(p.id, 70);
@@ -5965,10 +6137,15 @@ function renderTitle0(){
   $app.innerHTML = `<div class="page">
   <div class="thero"><div class="brand"><span class="seal">乱</span><div><h1>난세일생</h1><p class="small muted">장수로 태어나 군단을 이끌고, 가문을 일으켜 천하를 다투라</p></div></div></div>
   ${cont}
-  <div class="card" style="flex-direction:row;align-items:center;justify-content:space-between;gap:6px"><div><span class="lbl">玉 · 숙명의 별</span><br><b style="font-family:var(--display);font-size:20px;font-weight:400">玉 ${jade()} · ★ ${starTotal()}</b></div>
-    <div class="row"><button class="ghost" id="btnDaily" style="position:relative">매일 과제${dailyDot()?'<i style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--red)"></i>':''}</button><button class="ghost" id="btnHeir">가보</button><button class="ghost" id="btnCu">내 장수</button></div></div>
-  <div class="card" style="flex-direction:row;align-items:center;justify-content:space-between"><div><span class="lbl">누적 명성</span><br><b style="font-family:var(--display);font-size:22px;font-weight:400">${fmt(META.fame)}</b></div>
-    <div class="row"><button class="ghost" id="btnSet">설정</button><button class="ghost" id="btnHelp">게임 방법</button><button class="ghost" id="btnAch">업적 ${Object.keys(META.ach).length}/${ACH.length}</button></div></div>
+  <div class="tstats"><div><span>玉</span><b>${jade()}</b><small>옥</small></div><div><span>★</span><b>${starTotal()}</b><small>숙명의 별</small></div><div><span>名</span><b>${fmt(META.fame)}</b><small>누적 명성</small></div></div>
+  <div class="mgrid t4">
+    <button class="mt sm" id="btnDaily" style="--c:#b3352a">${dailyDot()?'<i class="dot"></i>':''}<span class="mg">日</span><b>매일 과제</b></button>
+    <button class="mt sm" id="btnCu" style="--c:#6b4a8a"><span class="mg">將</span><b>내 장수</b></button>
+    <button class="mt sm" id="btnHeir" style="--c:#a8822a"><span class="mg">寶</span><b>가보</b></button>
+    <button class="mt sm" id="btnAch" style="--c:#2f6b5a"><span class="mg">功</span><b>업적 ${Object.keys(META.ach).length}/${ACH.length}</b></button>
+    <button class="mt sm" id="btnHelp" style="--c:#3b4f8a"><span class="mg">書</span><b>게임 방법</b></button>
+    <button class="mt sm" id="btnSet" style="--c:#5a6470"><span class="mg">⚙</span><b>설정</b></button>
+  </div>
   <div class="card">
     <span class="lbl">시작 시점</span>
     <div class="three">${SCEN_YEARS.map(y=>`<button class="segb" aria-pressed="${sc===y}" data-scen="${y}"><b>${y}년</b><small>${SCEN[y].short}</small></button>`).join('')}</div>
@@ -6048,9 +6225,18 @@ function openHelp(){
   <button class="btn2" data-close>닫기</button>`);
 }
 function openMenu(){
-  const bg = sheet(`<h3>메뉴</h3>
-    <button class="btn2" id="mCu">내 장수 부르기</button><button class="btn2" id="mChron">연대기</button><button class="btn2" id="mHelp">게임 방법</button><button class="btn2" id="mAch">업적</button><button class="btn2" id="mTale">열전 · 명장면 도전</button><button class="btn2" id="mCodex">명장 도감 · 숙적</button>
-    <button class="btn2" id="mSet">설정 (소리·진동)</button><button class="btn2" id="mAd" ${adLeft()>0?'':'disabled'}>▶ 광고 보고 군자금 +${fmt(adGold())} (오늘 ${adLeft()}/${adCapNow()})</button><button class="btn2" id="mCopy">💾 저장 칸에 저장하기</button><button class="btn2" id="mTitle">처음 화면으로</button><button class="btn2" data-close>닫기</button>`);
+  const p = me(), fc = G.pfac ? facColor(G.pfac) : '#8f8574', tl = Object.keys(META.tales||{}).length, cdx = Object.keys(META.codex||{}).length, ach = Object.keys(META.ach||{}).length;
+  const tile = (id, gl, t, sub, c) => `<button class="mt" id="${id}" style="--c:${c}"><span class="mg">${gl}</span><b>${t}</b><small>${sub}</small></button>`;
+  const row = (id, ic, t, sub, cls) => `<button class="mrow ${cls||''}" id="${id}"><span class="mi">${ic}</span><span class="grow"><b>${t}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="mch">›</span></button>`;
+  const bg = sheet(`<div class="mhero" style="--fc:${fc}">${pp(p, 56)}<div class="grow"><b>${esc(p.n)}</b><small>${G.pfac ? esc(facName(G.pfac)) + ' · ' : ''}${roleText()}</small><small>${dateStr()} · ${G.gen}대째</small></div><button class="icon mclose" data-close aria-label="닫기">✕</button></div>
+    <button class="mad" id="mAd" ${adLeft()>0?'':'disabled'}><span class="mg">金</span><span class="grow"><b>군자금 +${fmt(adGold())}</b><small>광고를 보고 후원을 받는다 · 오늘 ${adLeft()}/${adCapNow()}</small></span><span class="mplay">▶</span></button>
+    <p class="msec">이야기</p>
+    <div class="mgrid">${tile('mTale','傳','열전','명장면 ' + TALES.length + '편 · 완수 ' + tl,'#b3352a')}${tile('mCodex','將','명장 도감','숙적 ' + cdx + '명','#3b4f8a')}${tile('mAch','功','업적','달성 ' + ach,'#a8822a')}${tile('mChron','史','연대기','이번 천하의 기록','#2f6b5a')}</div>
+    <p class="msec">장수</p>
+    <div class="mgrid">${tile('mCu','招','내 장수 부르기','만든 장수를 휘하에','#6b4a8a')}${tile('mHelp','書','게임 방법','처음이라면','#5a6470')}</div>
+    <p class="msec">시스템</p>
+    <div class="mlist">${row('mSet','⚙','설정','소리 · 진동 · 평정')}${row('mCopy','⧉','저장 칸','다른 칸에 따로 저장')}${row('mTitle','⌂','처음 화면으로','진행은 자동 저장된다','dim')}</div>`);
+  bg.querySelector('.sheet').classList.add('menu');
   bg.querySelector('#mCu').onclick = () => { bg.remove(); openSummon(); };
   bg.querySelector('#mChron').onclick = () => { bg.remove(); sheet(`<h3>연대기</h3><div class="news">${G.chron.slice(-80).reverse().map(c=>`<div><b>${c.y}.${c.m||1}</b> ${esc(c.t)}</div>`).join('')}</div><button class="btn2" data-close>닫기</button>`); };
   bg.querySelector('#mHelp').onclick = () => { bg.remove(); openHelp(); };
@@ -6301,6 +6487,7 @@ function bind(){
   on('#blockade', () => { blockade(); save(); render(); });
   on('#retreat', () => { retreat(); save(); render(); });
   on('[data-cap]', b => { captiveDo(b.dataset.cap); save(); render(); });
+  on('[data-front]', b => openFront(b.dataset.front));
   on('[data-trek]', b => { const k = b.dataset.trek; if (k==='close'){ G.trek = null; } else if (k==='auto') trekAuto(); else if (k.startsWith('road:')) trekRoad(k.slice(5)); else if (k.startsWith('pick:')) trekPick(+k.slice(5)); save(); render(); });
   on('[data-plan]', b => { planDo(b.dataset.plan); save(); render(); });
   on('[data-tale]', b => { taleChoose(b.dataset.tale); render(); });
