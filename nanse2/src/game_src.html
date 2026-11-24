@@ -309,6 +309,9 @@ p{margin:0}
 .dhp b{position:absolute;right:6px;top:-2px;font-size:10px;color:#fff;text-shadow:0 0 2px #000}
 .dlog{margin:4px 0;font-size:13px;color:#4a3a22;font-weight:700}
 .tacs.three{grid-template-columns:repeat(3,1fr)}
+.tacs.jail{grid-template-columns:1fr}
+.tale{display:flex;flex-direction:column;gap:8px}.tsteps{display:flex;gap:4px}.tstep{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:#e6dcc6;color:#7a6d5a}.tstep.on{background:#a3322a;color:#fff}.tstep.done{background:#d4a01f;color:#fff}.hpbar{height:6px;background:#3a1410;border-radius:3px;overflow:hidden;margin-top:4px}.hpbar i{display:block;height:100%;background:#d9b04a}
+.tale-row{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px;margin:0 0 6px;border-radius:12px;border:1px solid #c8b48a;background:#f7f0e1;font:inherit;color:inherit;min-height:56px}.tale-row small{display:block;font-size:11.5px}.tale-row small.d{color:#5a4e3c;margin-top:2px}.tacs.jail .tac:disabled{opacity:.45}
 .tacs.three .tac small{font-size:10.5px}
 button.stat{border:0;font:inherit;cursor:pointer}
 button.stat.pol{background:#e4d3a2;color:#3b2c14}
@@ -2342,7 +2345,8 @@ function resolveSiege(B, ff){
       res.chips.push([`공적 +${mer}`, true]); res.lines.push(`${J(t.n,'을')} 함락했다!${old ? ' '+facName(old)+'의 깃발이 내려갔다.' : ''}`);
       if (G.role==='officer'){ trustAdd(5); res.chips.push(['신뢰 +5', true]);
         if (G.rank>=2 && !G.gov && t.owner===G.pfac && Math.random()<.6){ G.gov = t.id; t.gov = G.pid; res.lines.push(`주공께서 그대를 ${t.n} 태수로 임명하셨다.`); res.chips.push(['태수 임명', true]); } } }
-    if (pDef){ res.lines.push(`${J(t.n,'을')} 잃었다.`); if (!G.dead){ G.hp = clamp(G.hp-10); res.chips.push(['체력 -10', false]); } }
+    if (pDef){ res.lines.push(`${J(t.n,'을')} 잃었다.`); if (!G.dead){ G.hp = clamp(G.hp-10); res.chips.push(['체력 -10', false]);
+      if (!SIM && !ff && Math.random() < (G.role==='ruler' ? .15 : .3)){ B.pCap = B.fid; res.lines.push('성문이 열리는 혼란 속에 그대는 사로잡히고 말았다.'); res.chips.push(['포로', false]); } } }
   } else {
     let dt = D.troops;
     if (pDef && G.role!=='ruler'){ const mine = Math.round(dt*B.share); G.troops = mine; dt -= mine; }
@@ -2624,6 +2628,7 @@ function duelFinish(B, out){
   const ds = B.ds, mine = B[B.ps], foe = B.ps==='att' ? B.def : B.att;
   const lr = ds.rounds[ds.rounds.length-1];
   mine.duel = true; B.lastDuel = { win: out==='win', draw: out==='draw', fled: out==='fled', cap:false, rounds: lr ? [lr] : [], hp0: lr ? lr.h0 : ds.h0 };
+  if (B.tale) return taleAfterDuel(B, out);
   if (out==='win'){
     const ko = ds.fh <= 0;
     foe.morale = Math.max(0, foe.morale - (ko ? 42 : 30)); mine.morale = Math.min(130, mine.morale + 20); G.duels++;
@@ -2635,6 +2640,7 @@ function duelFinish(B, out){
     G.hp = clamp(G.hp - h);
     B.log = [`${foe.name}의 창끝이 그대를 스쳤다. 체력 -${h}`];
     if (ds.mh<=0 && (G.hp<=0 || (me().tr!=='강철' && Math.random()<.06))){ G.dead = '전사'; B.lastDuel.died = true; B.log.push('그대는 말에서 떨어져 다시 일어나지 못했다.'); endB(B, B.ps==='att' ? 'def' : 'att'); }
+    else if (ds.mh<=0 && foe.fid && foe.fid!==G.pfac && !SIM && Math.random() < .3){ B.pCap = foe.fid; B.log.push(`말에서 떨어진 그대를 ${foe.name}의 병사들이 에워쌌다…`); endB(B, B.ps==='att' ? 'def' : 'att'); }
   } else if (out==='draw'){
     mine.morale = Math.max(0, mine.morale - 8); foe.morale = Math.max(0, foe.morale - 8);
     G.hp = clamp(G.hp - 4);
@@ -3099,6 +3105,144 @@ function tbHtml(B){
       ${tb.busy ? '<div class="tbbusy">적의 차례…</div>' : `<div class="row"><button class="btn grow" data-tba="end">턴 종료${left ? ` (남은 부대 ${left})` : ''}</button><button class="btn2" data-tba="auto">맡긴다</button></div>`}</div></div>`;
 }
 
+
+/* ---------------- 열전: 원작의 명장면을 그 장수가 되어 직접 치른다 ----------------
+   단계마다 일기토·돌파·호통·간파·갑옷 벗기 같은 선택이 있고, 체력은 다음 단계로 이어진다. */
+const TALES = [
+  { id:'hx', n:'술이 식기 전에', y:190, hero:'guanyu', bg:'bg_camp', d:'사수관 앞. 화웅이 연합군 장수를 잇달아 베었다. 따라 둔 술이 식기 전에 그 목을 가져와야 한다.',
+    intro:[['cao','이 술을 들고 나가시오.'], ['guanyu','술은 따라 두시오. 다녀와서 마시겠소.']],
+    st:[ { foe:'huaxiong', maxR:3, goal:'win', t:'세 합 안에 화웅을 꺾는다', pre:[['huaxiong','이름도 없는 마궁수가 감히!']] } ],
+    win:[['cao','술이 아직 따뜻하구려!']], lose:[[null, '술은 식었고, 화웅의 웃음소리만 남았다.']] },
+  { id:'sy', n:'호뢰관 삼영전', y:190, hero:'zhangfei', bg:'bg_field', d:'천하무쌍 여포. 혼자서는 버틸 수 없다. 버티다 보면 형님들이 온다.',
+    intro:[['lvbu','덤빌 놈이 고작 너 하나냐!'], ['zhangfei','연인 장익덕이 여기 있다! 성 셋 가진 종놈아, 덤벼라!']],
+    st:[ { foe:'lvbu', maxR:4, goal:'survive', t:'네 합을 버틴다 (무승부도 좋다)' },
+         { foe:'lvbu', carry:1, maxR:3, goal:'survive', boost:22, t:'관우가 청룡도를 들고 합세했다 (무력 +22)', pre:[['guanyu','셋째야, 내가 왔다!']] },
+         { foe:'lvbu', carry:1, maxR:3, goal:'survive', boost:34, t:'유비까지 쌍고검을 뽑았다 (무력 +34). 버티면 여포가 물러난다', pre:[['liubei','두 아우와 함께라면 두려울 것 없다!']] } ],
+    win:[['lvbu','…오늘은 이만 하자!'], [null, '여포가 말머리를 돌려 관으로 달아났다. 세 영웅의 이름이 천하에 퍼진다.']], lose:[[null, '방천화극 앞에 끝내 무릎을 꿇었다.']] },
+  { id:'ts', n:'신정의 맞수', y:195, hero:'taishici', bg:'bg_field', d:'정찰 나온 손책과 단기로 마주쳤다. 서로의 투구와 단극을 빼앗을 만큼의 승부.',
+    intro:[['taishici','네가 손책이냐! 동래 태사자가 상대해 주마!'], ['sunce','좋다, 오랜만에 피가 끓는구나!']],
+    st:[ { foe:'sunce', maxR:6, goal:'survive', t:'여섯 합 동안 쓰러지지 않는다' } ],
+    win:[['sunce','훗날 그대와 함께 천하를 달리고 싶구나.']], lose:[[null, '손책의 창끝이 투구를 날려 보냈다.']] },
+  { id:'gw', n:'다섯 관문 여섯 장수', y:200, hero:'guanyu', bg:'bg_field', d:'형님에게 돌아가는 길. 통행증은 없다. 관문마다 막아서는 장수를 지나야 한다.',
+    intro:[['guanyu','형님께서 계신 곳이라면 천 리라도 간다.']],
+    st:[ { foe:'kongxiu', goal:'win', t:'동령관 · 공수를 넘는다', pre:[['kongxiu','승상의 문서가 없으면 한 발짝도 못 지나간다!']] },
+         { foe:'mengtan', heal:8, goal:'win', t:'낙양 · 맹탄을 넘는다' },
+         { foe:'bianxi', heal:8, goal:'win', ambush:1, t:'사수관 · 절에서 잔치를 연다는 변희. 수상하다', pre:[['bianxi','장군, 먼 길 오셨으니 절에서 한잔하시지요.']] },
+         { foe:'wangzhi', heal:8, goal:'win', ambush:1, t:'형양 · 숙소에 장작이 쌓여 있다', pre:[['wangzhi','편히 쉬다 가시오. (밤이 되면 불을 놓아라…)']] },
+         { foe:'qinqi', heal:8, goal:'win', t:'황하 나루 · 진기를 넘으면 강을 건넌다' } ],
+    win:[['guanyu','형님, 운장이 돌아왔습니다.'], [null, '다섯 관문을 지나 여섯 장수를 넘었다.']], lose:[[null, '관문 앞에서 발이 묶였다.']] },
+  { id:'zy', n:'장판 단기구출', y:208, hero:'zhaoyun', bg:'bg_field', d:'백만 대군 한가운데. 품에는 어린 주군이 있다. 장판교까지 살아서 가야 한다.',
+    intro:[[null, '무너진 담 아래, 미부인이 아두를 건넨다.'], ['zhaoyun','주군의 핏줄은 이 조자룡이 지킨다!']],
+    st:[ { foe:'xiahouen', goal:'win', t:'청강검을 찬 하후은이 길을 막는다', pre:[['xiahouen','어린애를 안고 어딜 가느냐!']] },
+         { foe:'caochun', heal:5, goal:'survive', breakthru:1, t:'호표기가 에워싼다 · 맞서거나, 뚫고 지나간다' },
+         { foe:'zhanghe', heal:5, goal:'survive', breakthru:1, t:'장합이 뒤를 쫓는다 · 버티거나, 흙구덩이를 박차고 뛰어넘는다', pre:[['zhanghe','거기 서라, 백마의 장수!']] } ],
+    win:[['zhangfei','자룡! 어서 다리를 건너라, 뒤는 내가 맡는다!'], [null, '품 안의 아두는 곤히 잠들어 있었다.']], lose:[[null, '포위가 끝내 좁혀 들었다.']] },
+  { id:'zb', n:'장판교의 호통', y:208, hero:'zhangfei', bg:'bg_field', d:'다리 위에 홀로 섰다. 뒤에는 피난민과 형님. 앞에는 조조의 대군.',
+    intro:[['zhangfei','(뒤 숲에 말꼬리에 나뭇가지를 매달아 먼지를 일으켜라. 복병이 있는 듯 보이게.)']],
+    st:[ { foe:'caochun', shout:1, goal:'win', t:'선봉이 다리 앞에 닿았다 · 호통으로 물리치거나 맞붙는다' },
+         { foe:'zhanghe', shout:1, goal:'survive', t:'장합이 창을 겨눈다 · 호통이냐 일기토냐' },
+         { foe:'xuchu', shout:2, goal:'survive', t:'조조 본대가 멈췄다 · 마지막 호통', pre:[['cao','저자가 장익덕인가… 함부로 다가가지 마라.']] } ],
+    win:[['zhangfei','연인 장익덕이 여기 있다! 누가 나와 죽기로 싸우겠느냐!'], [null, '조조군이 물러갔다. 장비는 다리를 끊고 돌아섰다.']], lose:[[null, '다리가 뚫렸다.']] },
+  { id:'xm', n:'웃통 벗은 호치', y:211, hero:'xuchu', bg:'bg_field', d:'동관. 서량의 금마초가 조조를 노린다. 백 합이 넘도록 끝나지 않는 승부.',
+    intro:[['machao','조조의 호치가 누구냐! 나와라!'], ['xuchu','내가 허중강이다!']],
+    st:[ { foe:'machao', maxR:5, goal:'survive', t:'다섯 합을 버틴다' },
+         { foe:'machao', carry:1, maxR:5, goal:'survive', strip:1, t:'진으로 돌아와 숨을 돌렸다 · 갑옷을 벗고 다시 나갈 수도 있다' } ],
+    win:[['machao','…호치라는 이름, 헛말이 아니구나.'], [null, '날이 저물도록 승부는 나지 않았다.']], lose:[[null, '마초의 창이 어깨를 꿰뚫었다.']] }
+];
+const taleById = id => TALES.find(t => t.id===id);
+function taleStart(id){
+  const T = taleById(id), H = T && person(T.hero); if (!T || !H || G.battle || G.taleBack) return;
+  G.taleBack = { pid: G.pid, hp: G.hp, phase: G.phase };
+  G.pid = T.hero; G.hp = 100;
+  const B = { kind:'tale', title:`열전 · ${T.n}`, to:G.city, att: mkSide(T.hero, 1000, 80, H.fac, true), def: mkSide(T.st[0].foe, 1000, 80, (person(T.st[0].foe)||{}).fac, false), round:1, log:[], ps:'att', stage:null, cmdPlayer:true,
+    tale:{ id, i:0, hp:100, fh:null, log:[] } };
+  G.battle = B; G.phase = 'battle';
+  talkQ({ title:`${T.y}년 · ${T.n}`, bg:T.bg, lines:T.intro });
+}
+function taleStage(B){ const T = taleById(B.tale.id); return T.st[B.tale.i]; }
+function taleDuel(B, opt){
+  const st = taleStage(B), tl = B.tale, fp = person(st.foe);
+  B.def = mkSide(st.foe, 1000, 80, fp && fp.fac, false);
+  B.att.duel = false;
+  duelStart(B);
+  const ds = B.ds; ds.mh = tl.hp; ds.maxR = st.maxR || 5;
+  if (st.carry && tl.fh!=null) ds.fh = tl.fh;
+  ds.my += (st.boost||0) + (opt && opt.boost || 0);
+  if (opt && opt.foeHp) ds.fh = Math.max(10, ds.fh - opt.foeHp);
+  if (opt && opt.strip){ ds.my += 14; ds.fI = (ds.fI||1)*1.25; }
+  if (opt && opt.weak) ds.my -= opt.weak;
+  ds.h0 = [ds.mh, ds.fh];
+  if (st.pre && !opt) talkQ({ title: st.t, bg: taleById(tl.id).bg, lines: st.pre });
+}
+function taleChoose(k){
+  const B = G.battle; if (!B || !B.tale || B.ds) return;
+  const st = taleStage(B), tl = B.tale, p = me(), fp = person(st.foe), fm = fp ? fp.m : 60;
+  if (k==='duel') return taleDuel(B);
+  if (k==='strip') return taleDuel(B, { strip:1 });
+  if (k==='break'){ const ch = clamp(.35 + (p.m - fm)/120 + (hasT(p,'gima') ? .12 : 0) + tl.hp/400, .15, .9);
+    if (Math.random() < ch){ tl.hp = Math.max(1, tl.hp - 12); Snd.sfx('hooves'); tl.log.push(`${st.t.split(' · ')[0]} — 적진을 뚫고 지나갔다 (체력 -12)`); return taleNext(B, true); }
+    tl.hp = Math.max(1, tl.hp - 18); Snd.sfx('bad'); tl.log.push('돌파하다 가로막혔다 (체력 -18). 맞서 싸울 수밖에 없다.'); return taleDuel(B, { weak:5 }); }
+  if (k==='shout'){ const ch = clamp(.3 + (p.m - fm)/90 + (st.shout===2 ? .25 : 0) + (hasT(p,'yongmaeng') ? .1 : 0), .1, .92);
+    Snd.sfx('taunt');
+    if (Math.random() < ch){ tl.log.push(`호통 한 번에 ${fp ? fp.n : '적'}의 말이 뒷걸음질쳤다!`); talkQ({ title:'호통', bg:taleById(tl.id).bg, lines:[[G.pid, pick(['연인 장익덕이 여기 있다! 덤빌 놈은 나와라!', '싸우려거든 싸우고, 물러가려거든 썩 물러가라!'])], [st.foe, '…!']] }); return taleNext(B, true); }
+    tl.log.push('호통이 먹히지 않았다. 적이 달려든다!'); return taleDuel(B, { weak:6 }); }
+  if (k==='detect'){ const ch = clamp(.35 + (p.i - (fp ? fp.i : 50))/90, .15, .9);
+    if (Math.random() < ch){ tl.log.push('함정을 간파했다! 먼저 들이쳐 적장의 기세를 꺾었다.'); Snd.sfx('skill'); return taleDuel(B, { foeHp:25 }); }
+    tl.hp = Math.max(1, tl.hp - 15); Snd.sfx('fire'); tl.log.push('함정에 걸렸다 (체력 -15). 불길을 뚫고 적장과 맞선다.'); return taleDuel(B, { weak:4 }); }
+  if (k==='quit') return taleEnd(B, false, true);
+}
+function taleAfterDuel(B, out){
+  const st = taleStage(B), tl = B.tale, ds = B.ds;
+  tl.hp = Math.max(0, ds.mh); tl.fh = ds.fh;
+  const ok = out==='win' || (st.goal==='survive' && out==='draw') || (st.goal==='survive' && out!=='fled' && ds.mh > 0 && ds.r > ds.maxR);
+  tl.log.push(`${st.t.split(' · ')[0]} — ${out==='win' ? '승리' : ok ? '버텨 냈다' : out==='fled' ? '물러섰다' : '패배'}`);
+  B.ds = null;
+  if (!ok) return taleEnd(B, false);
+  taleNext(B, false);
+}
+function taleNext(B, skipped){
+  const T = taleById(B.tale.id), tl = B.tale;
+  tl.i++; if (!(taleStage(B)||{}).carry) tl.fh = null;
+  if (tl.i >= T.st.length) return taleEnd(B, true);
+  const st = taleStage(B); if (st.heal) tl.hp = Math.min(100, tl.hp + st.heal);
+}
+function taleEnd(B, ok, quit){
+  const T = taleById(B.tale.id), tl = B.tale;
+  tl.done = ok ? 'win' : quit ? 'quit' : 'lose';
+  if (ok){ META.tales = META.tales || {}; const first = !META.tales[T.id]; META.tales[T.id] = (META.tales[T.id]||0) + 1;
+    if (first){ addJade(8); tl.reward = '처음 완수 · 옥 +8'; } saveMeta(); Snd.sfx('win'); }
+  else if (!quit) Snd.sfx('lose');
+  talkQ({ title:`열전 · ${T.n}`, bg:T.bg, lines: ok ? T.win : T.lose });
+}
+function taleClose(){
+  const back = G.taleBack; if (!back) return;
+  G.pid = back.pid; G.hp = back.hp; G.battle = null; G.phase = back.phase==='battle' ? 'act' : (back.phase || 'act'); G.taleBack = null; G.dead = null;
+}
+function taleHtml(B){
+  const T = taleById(B.tale.id), tl = B.tale, st = taleStage(B), fp = st && person(st.foe);
+  const steps = T.st.map((s, i) => `<span class="tstep ${i < tl.i ? 'done' : i===tl.i && !tl.done ? 'on' : ''}">${i+1}</span>`).join('');
+  const log = tl.log.slice(-4).map(l => `<div>${esc(l)}</div>`).join('');
+  if (tl.done) return `<div class="tale"><div class="row between"><h3>열전 · ${esc(T.n)}</h3><span class="tsteps">${steps}</span></div>
+    <p class="result ${tl.done==='win' ? '' : 'bad'}">${tl.done==='win' ? '명장면을 완수했다!' : tl.done==='quit' ? '이야기를 접었다.' : '이번에는 역사를 따라가지 못했다.'}</p>${tl.reward ? `<p class="chips"><span class="chip up">${tl.reward}</span></p>` : ''}
+    <div class="log">${log}</div><button class="btn" id="taleClose">본래 이야기로 돌아간다</button></div>`;
+  const b = (k, t, d) => `<button class="tac" data-tale="${k}"><b>${t}</b><small>${d}</small></button>`;
+  const opts = [b('duel', '일기토', fp ? `${esc(fp.n)}과(와) 맞붙는다 · 목표: ${st.goal==='win' ? '이긴다' : '쓰러지지 않는다'}${st.maxR ? ` (${st.maxR}합)` : ''}` : '맞붙는다')];
+  if (st.breakthru) opts.push(b('break', '돌파한다', '무력·기마술로 적진을 뚫는다. 실패하면 다치고 싸워야 한다'));
+  if (st.shout) opts.push(b('shout', '호통친다', `기세로 적을 물린다${st.shout===2 ? ' (복병 먼지 덕에 잘 통한다)' : ''}. 실패하면 불리하게 싸운다`));
+  if (st.ambush) opts.unshift(b('detect', '함정을 살핀다', '지략으로 계략을 꿰뚫는다. 통하면 먼저 친다, 아니면 다친 채 싸운다'));
+  if (st.strip) opts.push(b('strip', '갑옷을 벗고 나간다', '무력 +14, 대신 받는 피해가 1.25배'));
+  return `<div class="tale"><div class="row between"><h3>열전 · ${esc(T.n)}</h3><span class="tsteps">${steps}</span></div>
+    <div class="row" style="gap:10px;align-items:center">${pp(me(), 48)}<div class="grow"><b>${esc(me().n)}</b> <span class="chip ${tl.hp < 35 ? 'down' : ''}">체력 ${Math.round(tl.hp)}</span>${st.carry && tl.fh!=null ? ` <span class="chip">${esc(fp.n)} 체력 ${Math.round(tl.fh)}</span>` : ''}<div class="hpbar"><i style="width:${tl.hp}%"></i></div></div>${fp ? pp(fp, 48) : ''}</div>
+    <p class="small"><b>${tl.i+1}단계</b> · ${esc(st.t)}</p>
+    <div class="tacs jail">${opts.join('')}</div>${log ? `<div class="log">${log}</div>` : ''}
+    <button class="btn2" data-tale="quit">이야기를 접는다</button></div>`;
+}
+function openTales(){
+  const done = META.tales || {};
+  const rows = TALES.map(T => { const H = person(T.hero); return `<button class="tale-row" data-tl="${T.id}">${H ? pp(H, 44) : ''}<span class="grow"><b>${esc(T.n)}</b> <small class="muted">${T.y}년 · ${H ? esc(H.n) : ''}</small><small class="d">${esc(T.d)}</small></span>${done[T.id] ? '<span class="chip up">완수</span>' : ''}</button>`; }).join('');
+  const bg = sheet(`<h3>열전 · 명장면 도전</h3><p class="small muted">그 장수가 되어 원작의 장면을 직접 치른다. 지금 이야기에는 영향이 없고, 처음 완수하면 옥을 받는다.</p>${rows}<button class="btn2" data-close>닫기</button>`);
+  bg.querySelectorAll('[data-tl]').forEach(b => b.onclick = () => { if (G.battle || G.phase!=='act' || G.jail) return toast('지금은 열전을 열 수 없다. 하던 일을 마치고 오자.', [], true), render(); bg.remove(); taleStart(b.dataset.tl); render(); });
+}
 /* ---------------- 원작의 일기토: 일기토만 하는 짧은 싸움 ---------------- */
 function beginHDuel(o){
   const foe = person(o.foe); if (!foe || !active(foe)){ G.phase = 'act'; return; }
@@ -3702,6 +3846,7 @@ function endMonth(){
   if (!SIM && G.month===12 && hl('med')) G.hp = clamp(G.hp + hl('med')*4);
   if (G.phase!=='act') return;
   G.mnews = [];
+  if (G.jail) jailTick();
   if (G.role==='ruler'){
     // 땅이 넓어질수록 관리가 어려워 걷히는 몫이 줄어든다(6성 초과분마다 5%)
     const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05);
@@ -3755,9 +3900,92 @@ function afterReport(){
   save();
 }
 function afterBattle(){
+  const pc = G.battle && G.battle.pCap;
   G.battle = null;
   if (G.dead){ G.phase = 'succession'; G.deadAt = 'battle'; save(); return; }
+  if (pc && fac(pc) && fac(pc).alive && pc!==G.pfac) jailStart(pc);
   nextQueue();
+}
+
+/* ---------------- 포로: 싸움에서 사로잡히면 몸값·탈출·구출·협상으로 풀려나야 한다 ---------------- */
+function jailRansom(){ const base = 300 + G.rank*180 + Math.round((me().m + me().i)*3); return Math.round(base*(G.role==='ruler' ? 2.2 : 1)/50)*50; }
+function jailStart(cf){
+  if (G.jail || G.dead) return;
+  const caps = citiesOf(cf), from = city(G.city), jc = caps.sort((a,b) => dist(a.id, from.id) - dist(b.id, from.id))[0];
+  if (!jc) return;
+  if (G.inArmy){ const a = armyById(G.inArmy); if (a){ a.gens = a.gens.filter(g => g!==G.pid); a.player = false; if (!a.gens.length) sendHome(a); } G.inArmy = null; me().army = null; }
+  G.campaign = null; if (G.role!=='ruler') G.troops = 0;
+  if (G.gov){ const c = city(G.gov); if (c && c.gov===G.pid) c.gov = null; G.gov = null; }
+  G.jail = { fac: cf, city: jc.id, m: 0, guard: 0, ransom: jailRansom(), home: G.pfac && G.pfac!=='free' ? G.pfac : null, tried: 0 };
+  G.city = jc.id; me().city = jc.id; G.panel = false;
+  news(`${J(me().n,'이')} ${facName(cf)}에게 사로잡혀 ${jc.n}에 갇혔다.`, true, true);
+  const R = fac(cf).ruler;
+  talkQ({ title:`${dateStr()} · ${jc.n} 옥사`, bg:'bg_palace', lines:[[null, `쇠사슬 소리와 함께 ${jc.n}의 옥문이 닫혔다.`], [R, pick([`${me().n}, 그대 같은 인물을 그냥 베기는 아깝다. 내 밑에서 일할 생각은 없는가?`, `몸값이 오기 전까지는 여기서 지내라. 도망칠 생각은 말고.`, `네 주인이 그대를 얼마로 여기는지 보자꾸나.`])], ['me', pick(['(…반드시 살아서 돌아간다.)', '(옥창 너머로 별을 센다. 길은 어딘가 있다.)'])]] });
+  Snd.sfx('capture'); vib(200);
+}
+function jailFree(why){
+  const J0 = G.jail; if (!J0) return;
+  G.jail = null;
+  let dest = null;
+  if (G.pfac && fac(G.pfac) && fac(G.pfac).alive) dest = citiesOf(G.pfac).sort((a,b) => dist(a.id, J0.city) - dist(b.id, J0.city))[0];
+  if (!dest) dest = city(J0.city).adj.map(city).find(c => c.owner!==J0.fac) || city(J0.city);
+  G.city = dest.id; me().city = dest.id;
+  news(`${J(me().n,'이')} ${why} ${dest.n}(으)로 돌아왔다.`, true, true);
+  toast(`${why} ${dest.n}(으)로 돌아왔다.`, [['석방', true]]);
+  Snd.sfx('ok');
+}
+// 매달 감옥에서 일어나는 일: 주군의 몸값, 의형제의 구출, 포로 교환
+function jailTick(){
+  const Jl = G.jail; if (!Jl) return;
+  Jl.m++; Jl.guard = Math.max(0, Jl.guard - .5);
+  if (!fac(Jl.fac) || !fac(Jl.fac).alive || city(Jl.city).owner!==Jl.fac){ jailFree('지키던 군대가 흩어진 틈에 옥을 빠져나와'); return; }
+  const lord = G.role==='officer' && G.pfac && fac(G.pfac) && fac(G.pfac).alive && fac(G.pfac).ruler;
+  if (lord && Math.random() < clamp(.04 + G.trust/260 + Jl.m*.05 + G.rank*.03, .04, .6)){
+    talkQ({ title:'몸값', bg:'bg_palace', lines:[[lord, `${me().n}은(는) 내게 없어서는 안 될 사람이다. 금 ${fmt(Jl.ransom)}을 보내 데려와라.`]] });
+    trustAdd(5); jailFree(`주공 ${person(lord).n}이(가) 몸값을 치러 주어`); return;
+  }
+  const bro = npcs().find(p => active(p) && (G.bond[p.id]??0) >= 75 && p.fac===G.pfac && !p.army && (p.m||0) >= 70);
+  if (bro && Math.random() < .1 + Jl.m*.02){
+    talkQ({ title:'구출', bg:'bg_camp', lines:[[bro.id, `${me().n}! 내가 왔다. 옥문은 내가 막을 테니 어서 말에 올라라!`], ['me', `${bro.n}… 이 은혜는 잊지 않겠다.`]] });
+    G.bond[bro.id] = Math.min(100, (G.bond[bro.id]||0) + 10); jailFree(`${bro.n}이(가) 옥문을 부수고 구해 내어`); return;
+  }
+  if (Jl.m >= 8 && Math.random() < .25 + (Jl.m - 8)*.1){ jailFree('포로 교환으로 풀려나'); return; }
+  if (Jl.m % 3===0) news(`옥에 갇힌 지 ${Jl.m}달째. ${facName(Jl.fac)}이(가) 계속 항복을 권한다.`, false, true);
+}
+function jailAct(k){
+  const Jl = G.jail; if (!Jl) return;
+  const p = me();
+  if (k==='ransom'){ if (G.gold < Jl.ransom) return toast('금이 모자란다.', [], true); G.gold -= Jl.ransom; Snd.sfx('coin'); jailFree(`금 ${fmt(Jl.ransom)}을 치르고 풀려나`); return; }
+  if (k==='cede'){ const mine = citiesOf(G.pfac); if (G.role!=='ruler' || mine.length < 2) return; const c = mine.sort((a,b) => dist(a.id, Jl.city) - dist(b.id, Jl.city))[0]; transferCity(c, Jl.fac, Math.round(c.troops*.5)); news(`${J(c.n,'을')} 내주고 풀려났다.`, true, true); jailFree(`${c.n}을(를) 내주고 풀려나`); return; }
+  if (k==='bribe'){ const cost = Math.round(Jl.ransom*.35/10)*10; if (G.gold < cost) return toast('금이 모자란다.', [], true); G.gold -= cost; Snd.sfx('coin');
+    if (Math.random() < clamp(.5 - Jl.guard*.12 + p.c/400, .1, .8)){ jailFree(`간수에게 금 ${fmt(cost)}을 쥐여 주고 빠져나와`); return; }
+    Jl.guard += 1; toast('간수가 돈만 받고 입을 닫았다. 경계가 더 삼엄해졌다.', [[`금 -${fmt(cost)}`, false]], true); return; }
+  if (k==='escape'){ Jl.tried++;
+    const ch = clamp(.1 + (p.m + p.i)/700 + Jl.m*.03 - Jl.guard*.1 + (hasT(p,'sinsok') ? .08 : 0), .05, .7);
+    if (Math.random() < ch){ G.hp = clamp(G.hp - 5); Snd.sfx('hooves'); jailFree('밤을 틈타 옥을 부수고 말을 빼앗아'); return; }
+    G.hp = clamp(G.hp - 12); Jl.guard += 1.5; Snd.sfx('bad');
+    toast('탈출하다 붙잡혔다. 매질을 당했다.', [['체력 -12', false]], true);
+    if (G.hp <= 0){ G.dead = '옥사'; G.jail = null; }
+    return 'month'; }
+  if (k==='surrender'){ if (G.role==='ruler') return; const cf = Jl.fac; G.jail = null; joinFaction(cf, `${facName(cf)}에 항복해 출사했다.`, 0); G.city = Jl.city; me().city = Jl.city; return; }
+  if (k==='wait') return 'month';
+}
+function viewJail(){
+  const Jl = G.jail, c = city(Jl.city), F = fac(Jl.fac), R = F && person(F.ruler), p = me();
+  const esc_ = clamp(.1 + (p.m + p.i)/700 + Jl.m*.03 - Jl.guard*.1 + (hasT(p,'sinsok') ? .08 : 0), .05, .7), bribe = Math.round(Jl.ransom*.35/10)*10;
+  const pct = v => Math.round(v*100) + '%';
+  const b = (k, t, d, dis) => `<button class="tac" data-jail="${k}" ${dis ? 'disabled' : ''}><b>${t}</b><small>${d}</small></button>`;
+  const ruler = G.role==='ruler', canCede = ruler && citiesOf(G.pfac).length >= 2;
+  return `<div class="modal jailp"><div class="ehead">${R ? pp(R, 54) : '<span class="seal">獄</span>'}<div><h3>${esc(c.n)} 옥사 · ${Jl.m}달째</h3><div class="small muted">${esc(facName(Jl.fac))}에 사로잡혔다. 몸값 금 ${fmt(Jl.ransom)} · 가진 금 ${fmt(G.gold)}</div></div></div>
+    <p class="small">${ruler ? '군주가 없는 나라는 오래 버티지 못한다. 재물로 사든, 땅을 내주든, 스스로 빠져나가든 길을 찾아야 한다.' : '주공이 몸값을 치러 줄지, 의형제가 구하러 올지, 스스로 빠져나갈지. 달이 갈수록 기회가 늘어난다.'}</p>
+    <div class="tacs jail">
+      ${b('ransom', `몸값을 치른다 · 금 ${fmt(Jl.ransom)}`, ruler ? '나라 곳간에서 치르고 바로 풀려난다' : '가문 재산으로 치르고 바로 풀려난다', G.gold < Jl.ransom)}
+      ${ruler ? b('cede', '성 하나를 내준다', canCede ? '가장 가까운 성을 넘기고 풀려난다' : '내줄 성이 없다', !canCede) : ''}
+      ${b('escape', `탈출한다 · 성공 ${pct(esc_)}`, '무력·지략이 높을수록, 오래 갇힐수록 쉽다. 실패하면 매질과 경계 강화')}
+      ${b('bribe', `간수를 매수한다 · 금 ${fmt(bribe)}`, `통하면 바로 풀려난다 (경계 ${Jl.guard >= 2 ? '삼엄' : Jl.guard >= 1 ? '보통' : '느슨'})`, G.gold < bribe)}
+      ${ruler ? '' : b('surrender', `${esc(facName(Jl.fac))}에 항복한다`, '그 세력의 장수가 되어 새 길을 걷는다')}
+      ${b('wait', '때를 기다린다 (다음 달)', ruler ? '포로 교환은 여덟 달쯤부터 이야기가 나온다' : `주공의 몸값 · 의형제의 구출 · 포로 교환을 기다린다`)}
+    </div></div>`;
 }
 const MAXSP = () => G.role==='ruler' ? 3 : 2;
 function spList(){ if (!G.spouses) G.spouses = G.spouse ? [G.spouse] : []; G.spouse = G.spouses[0] || null; return G.spouses; }
@@ -3873,7 +4101,7 @@ function slotLabel(sv){ const q = sv && sv.people && sv.people[sv.pid]; return q
 if (!SIM) try { const old = localStorage.getItem(SAVE_KEY); if (old){ if (!localStorage.getItem(slotKey(0))) localStorage.setItem(slotKey(0), old); localStorage.removeItem(SAVE_KEY); } } catch(e) {}
 function save(){
   watch();
-  if (SIM || !G || G.phase==='over') return;
+  if (SIM || !G || G.phase==='over' || G.taleBack) return;
   if (G.rank>=5) G.flags.grand = 1;
   if (G.slot==null) return;
   try { const t = G.toast; G.toast = null; localStorage.setItem(slotKey(G.slot), JSON.stringify(G)); G.toast = t; } catch(e) {}
@@ -4841,6 +5069,7 @@ function viewModal(){
   if (G.phase==='event') return `<div class="modal-bg">${viewEvent()}</div>`;
   if (G.phase==='battle' || G.phase==='battleEnd') return `<div class="modal-bg">${viewBattle()}</div>`;
   if (G.phase==='report') return `<div class="modal-bg">${viewReport()}</div>`;
+  if (G.phase==='act' && G.jail && !G.dead) return `<div class="modal-bg">${viewJail()}</div>`;
   return '';
 }
 function viewEvent(){
@@ -4905,11 +5134,12 @@ function duelHtml(B, foe){
 }
 function viewBattle(){
   const B = G.battle, t = city(B.to);
-  const title = B.kind==='raise' ? `${t.n} 거병` : B.ps==='def' ? `${t.n} 수성전` : `${t.n} 공성전`;
+  const title = B.title ? B.title : B.kind==='raise' ? `${t.n} 거병` : B.ps==='def' ? `${t.n} 수성전` : `${t.n} 공성전`;
   const sub = `<span class="chip gold">${TERR_INFO[TERRAIN[B.to]][0]}</span>${B.kind==='siege'?`<span class="chip">성벽 ${t.wall}</span>`:''}`;
   if (B.anim) return `<div class="modal"><div class="row between"><h3>${title}</h3><span class="row">${sub}<span class="chip">${B.anim.kind==='duel'?'일기토':Math.min(B.round-1,3)+'합'}</span></span></div>
     <div class="stage px"><canvas id="bcv" width="${VW}" height="${VH}" aria-label="전투 장면"></canvas><div class="pxcap" id="pxCap"></div><div class="pxcut none" id="pxCut"></div><div class="pxbig" id="pxBig"></div>
     <div class="pxbtns"><button class="pxb" id="pxFast" aria-pressed="${!!(META.prefs||{}).fast}">2배속</button><button class="pxb" id="skipAnim">건너뛰기</button></div></div></div>`;
+  if (B.tale && !B.ds) return `<div class="modal">${taleHtml(B)}</div>`;
   const mine = B[B.ps], foe = B.ps==='att' ? B.def : B.att;
   let ctrl = '';
   if (G.phase==='battle' && B.ds){
@@ -5401,7 +5631,7 @@ function renderTitle0(){
   document.getElementById('btnDaily').onclick = openDaily; document.getElementById('btnHeir').onclick = openHeir;
   $app.querySelector('.page').insertAdjacentHTML('beforeend', `<p class="tiny muted" style="text-align:center">버전 ${BUILD}</p>`);
   Snd.mode('calm');
-  $app.querySelectorAll('[data-cont]').forEach(b => b.onclick = () => { const sv = loadSlot(+b.dataset.cont); if (!sv) return renderTitle(); G = sv; G.slot = +b.dataset.cont; if (G.battle){ G.battle.anim = null; if (G.battle.tb) G.battle.tb.busy = false; } G.panel = false; render(); });
+  $app.querySelectorAll('[data-cont]').forEach(b => b.onclick = () => { const sv = loadSlot(+b.dataset.cont); if (!sv) return renderTitle(); G = sv; G.slot = +b.dataset.cont; if (G.taleBack) taleClose(); if (G.battle){ G.battle.anim = null; if (G.battle.tb) G.battle.tb.busy = false; } G.panel = false; render(); });
   $app.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const i = +b.dataset.del, sv = loadSlot(i);
     const bg = sheet(`<h3>칸 ${i+1} 삭제</h3><p class="small muted">${esc(slotLabel(sv))}<br>이 기록은 되돌릴 수 없다.</p><button class="btn2" id="dOk">삭제한다</button><button class="btn2" data-close>취소</button>`);
     bg.querySelector('#dOk').onclick = () => { bg.remove(); try { localStorage.removeItem(slotKey(i)); } catch(e) {} renderTitle(); }; });
@@ -5449,12 +5679,13 @@ function openHelp(){
 }
 function openMenu(){
   const bg = sheet(`<h3>메뉴</h3>
-    <button class="btn2" id="mCu">내 장수 부르기</button><button class="btn2" id="mChron">연대기</button><button class="btn2" id="mHelp">게임 방법</button><button class="btn2" id="mAch">업적</button>
+    <button class="btn2" id="mCu">내 장수 부르기</button><button class="btn2" id="mChron">연대기</button><button class="btn2" id="mHelp">게임 방법</button><button class="btn2" id="mAch">업적</button><button class="btn2" id="mTale">열전 · 명장면 도전</button>
     <button class="btn2" id="mSet">설정 (소리·진동)</button><button class="btn2" id="mAd" ${adLeft()>0?'':'disabled'}>▶ 광고 보고 군자금 +${fmt(adGold())} (오늘 ${adLeft()}/${adCapNow()})</button><button class="btn2" id="mCopy">💾 저장 칸에 저장하기</button><button class="btn2" id="mTitle">처음 화면으로</button><button class="btn2" data-close>닫기</button>`);
   bg.querySelector('#mCu').onclick = () => { bg.remove(); openSummon(); };
   bg.querySelector('#mChron').onclick = () => { bg.remove(); sheet(`<h3>연대기</h3><div class="news">${G.chron.slice(-80).reverse().map(c=>`<div><b>${c.y}.${c.m||1}</b> ${esc(c.t)}</div>`).join('')}</div><button class="btn2" data-close>닫기</button>`); };
   bg.querySelector('#mHelp').onclick = () => { bg.remove(); openHelp(); };
   bg.querySelector('#mAch').onclick = () => { bg.remove(); openAch(); };
+  bg.querySelector('#mTale').onclick = () => { bg.remove(); openTales(); };
   bg.querySelector('#mSet').onclick = () => { bg.remove(); openSettings(); };
   bg.querySelector('#mAd').onclick = () => { bg.remove(); showAd('gold', () => { if (adLeft()<=0) return; const g = adGold(); adDay().n++; saveMeta(); G.gold += g; toast('후원자가 군자금을 보내왔다.', [[`금 +${fmt(g)}`,true]]); save(); render(); }); };
   bg.querySelector('#mCopy').onclick = () => { bg.remove(); save();
@@ -5699,6 +5930,9 @@ function bind(){
   on('#blockade', () => { blockade(); save(); render(); });
   on('#retreat', () => { retreat(); save(); render(); });
   on('[data-cap]', b => { captiveDo(b.dataset.cap); save(); render(); });
+  on('[data-tale]', b => { taleChoose(b.dataset.tale); render(); });
+  on('#taleClose', () => { taleClose(); save(); render(); });
+  on('[data-jail]', b => { const r = jailAct(b.dataset.jail); if (G.dead && G.phase==='act'){ G.phase = 'succession'; G.deadAt = 'act'; } else if (r==='month'){ G.panel = false; endMonth(); } save(); render(); });
   on('#bNext', () => { const B = G.battle; if (B && (B.kind==='raise' || B.kind==='hduel')){ G.battle = null; G.phase = G.dead ? 'succession' : 'act'; save(); render(); return; } afterBattle(); render(); });
   on('#skipAnim', () => { if (anim && anim.finish) anim.finish(); });
   on('#reportNext', () => { afterReport(); render(); });
@@ -5755,8 +5989,8 @@ function animCues(A){
   } else {
     q.push({ t:.01, k:'horn' });
     for (const T of [A.myT, A.foeT]){ if (T==='charge') q.push({ t:.1, k:'hooves' }); if (T==='fire') q.push({ t:.15, k:'arrow' }, { t:.22, k:'fire' }); if (T==='wall') q.push({ t:.3, k:'shield' }); if (T==='ambush') q.push({ t:.2, k:'drum' }); }
-    [.47, .53, .6, .68, .76].forEach((t, i) => q.push({ t, k: i%2 ? 'slash' : 'clash', v: i ? 0 : 40 }));
-    q.push({ t:.47, k:'hit' });
+    [.51, .57, .64, .71, .78].forEach((t, i) => q.push({ t, k: i%2 ? 'slash' : 'clash', v: i ? 0 : 40 }));
+    q.push({ t:.51, k:'hit' });
   }
   return q.sort((a, b) => a.t - b.t);
 }
@@ -5814,7 +6048,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
 /* =====================================================================
    BOOT
    ===================================================================== */
-if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person };
+if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
   globalThis.T = { tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,

@@ -50,18 +50,21 @@ function pxFight(ctx, A){
     const burn = S.bf ? S : O, cand = burn.men.filter(m => m.c < 6);
     for (let i=0;i<Math.min(12, cand.length);i++) zones.push({ fig: cand[(R()*cand.length)|0], tl: S.bf ? .44 + i*.02 : .20 + i*.022 + R()*.02, sz: .8 + R()*.5 });
   }
-  const gens = sides.map(S => { const h = hashStr(S.nm || 'x'); return { S, gen:true, y: laneY(3, 7) + 4, s: .9, weapon: ['spear','blade','spear','sword'][h%4], horse: ['#6a4326','#d9d3c4','#2c2420','#8a5a32'][(h>>3)%4], ph: (h%100)/16 }; });
+  const gens = sides.map(S => { const h = hashStr(S.nm || 'x'), rd = S.isMe ? A.myRider : A.foeRider; return { S, gen:true, y: laneY(3, 7) + 6, s: .9, weapon: rd ? rd.weapon : ['spear','blade','spear','sword'][h%4], horse: rd ? rd.horse : ['#6a4326','#d9d3c4','#2c2420','#8a5a32'][(h>>3)%4], look: rd, ph: (h%100)/16 }; });
+  // 시간 늘이기: 두 군대가 부딪치는 순간을 느리게 보여 준다
+  const warp = r => r < .42 ? r : r < .56 ? .42 + (r - .42)*.5 : .49 + (r - .56)*(.51/.44);
+  const bell = (t, c, w) => { const d = (t - c)/w; return Math.exp(-d*d); };
   const banners = []; for (const S of sides) [[2, 1], [Math.max(3, Math.floor(S.cols/2)), 5], [Math.max(4, S.cols-2), 2]].forEach(([c, r], i) => banners.push({ S, ban:true, c, r, y: laneY(r, 7) + 3, s: .85 + .6*(laneY(r, 7)-GY0)/(GY1-GY0), ph: i*1.7 }));
   const sparks = []; for (let i=0;i<44;i++) sparks.push({ ts: .47 + i/44*.37 + R()*.01, x: 320 + (R()-.5)*72, y: GY0 + 18 + R()*104, sd: 1 + (R()*9999|0) });
   const everyone = [...sides[0].men, ...sides[1].men, ...extras, ...gens, ...banners];
 
-  return (t, prev) => {
-    const tt = t*DUR;
+  return (t0, prev) => {
+    const t = warp(t0), tt = t0*DUR;
     ctx.save();
-    const z = 1.035 + .045*ease(cl01(t/.95));
+    const zc = .2*bell(t, .475, .05), z = 1.035 + .045*ease(cl01(t/.95)) + zc, cy0 = VH/2 + (GY0 + 70 - VH/2)*cl01(zc*5), cx0 = VW/2 + (contactX - VW/2)*cl01(zc*5);
     let sh = 0, shy = 0;
     if (t > .46 && t < .56){ const k = 1 - (t-.46)/.10; sh = Math.sin(t*900)*6*k; shy = Math.cos(t*770)*3*k; } else if (t >= .56 && t < .86){ sh = Math.sin(t*500)*1.1; shy = Math.cos(t*430)*.8; }
-    ctx.translate(VW/2 + sh, VH/2 + shy); ctx.scale(z, z); ctx.translate(-VW/2, -VH/2);
+    ctx.translate(cx0 + sh, cy0 + shy); ctx.scale(z, z); ctx.translate(-cx0, -cy0);
     ctx.drawImage(bg, 0, 0);
     if (A.terr==='river'){ ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.2; for (let i=0;i<22;i++){ const wx = (i*67 + tt*16*(1 + i%3))%(VW+30) - 15, wy = HZ + 20 + (i*7)%28, wl = 10 + (i%4)*5; ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + wl, wy); ctx.stroke(); } }
     const list = everyone.filter(m => !(m.fl && t < m.t0)).map(m => [m.gen ? m.y + 14 : m.y, m]).sort((a,b) => a[0]-b[0]);
@@ -73,9 +76,12 @@ function pxFight(ctx, A){
         drawBanner(ctx, x, m.y, 56*m.s, S.col, tt, -S.dir, m.ph, m.s*.95); continue;
       }
       if (m.gen){
-        const x = S.x0 + S.dir*(advAt(S, t) + 8), mv = Math.abs(advAt(S, t+.012) - advAt(S, t)) > .03;
+        const x = S.x0 + S.dir*(advAt(S, t) + 6), mv = Math.abs(advAt(S, t+.012) - advAt(S, t)) > .03;
         const sw = melee ? Math.sin(tt*10 + m.ph) : 0;
-        drawHorseman(ctx, x, m.y + 16, .5*m.s*1.15, !S.isMe, S.col, { t: tt + m.ph, g: tt*2.4, run: mv, wa: melee ? -.7 + sw*.8 : -1.0, lean: melee ? .12 : 0, weapon: m.weapon, horse: m.horse });
+        if (mv) for (let k = 0; k < 3; k++){ const ag = ((tt*3 + k/3) % 1); puff(ctx, x - S.dir*(26 + ag*30), m.y + 14 - ag*10, 6 + ag*18, .28*(1 - ag), '176,154,120'); }
+        drawHorseman(ctx, x, m.y + 16, .74, !S.isMe, S.col, { t: tt + m.ph, g: tt*2.4, run: mv, wa: melee ? -.7 + sw*.8 : -1.0, lean: melee ? .12 : 0, weapon: m.weapon, horse: m.horse, look: m.look });
+        ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; const nw = ctx.measureText(S.nm||'').width + 10;
+        ctx.fillStyle = 'rgba(12,8,4,.72)'; ctx.fillRect(x - nw/2, m.y - 58, nw, 15); ctx.fillStyle = S.col; ctx.fillRect(x - nw/2, m.y - 58, 3, 15); ctx.fillStyle = '#f4ecdc'; ctx.fillText(S.nm||'', x + 1, m.y - 47);
         continue;
       }
       const [x, y] = posOf(m, t), flip = !S.isMe, s = m.s;
@@ -119,6 +125,10 @@ function pxFight(ctx, A){
       for (let j=j0;j<=j1;j++){ const tj = .12 + j*.03, age = t - tj; if (age < 0 || age > .17) continue;
         for (const m of fronts){ const p = posOf(m, tj); puff(ctx, p[0] - S.dir*8, p[1] - 4 - age*40, 10 + age*120, .3*(1 - age/.17), '176,154,120'); } }
     }
+    for (const S of sides) if (S.cav && S.tac!=='charge' && t > .2 && t < .5){ for (const m of S.men) if (m.c===0 && m.r%2===1){ const p = posOf(m, t), ag = (tt*2.2 + m.r*.3) % 1; puff(ctx, p[0] - S.dir*(14 + ag*20), p[1] - 3 - ag*8, 6 + ag*16, .22*(1 - ag), '176,154,120'); } }
+    // 맞부딪치는 순간: 충격파와 먹물 튐
+    if (t > .462 && t < .53){ const k = (t - .462)/.068; ctx.strokeStyle = `rgba(255,244,210,${.85*(1-k)})`; ctx.lineWidth = 4*(1-k) + 1; ctx.beginPath(); ctx.ellipse(contactX, GY0 + 70, 12 + k*140, 8 + k*46, 0, 0, TWO_PI); ctx.stroke();
+      inkSplat(ctx, contactX, GY0 + 62, 40*(.5 + k), .5*(1 - k), '70,18,12', seeded(hashStr('c' + A.seed))); }
     if (t > .42 && t < .9){ const k = cl01((t - .42)/.45); for (let i=0;i<6;i++) puff(ctx, 320 + (i-2.5)*22, GY0 + 40 + (i%3)*34 - k*14, 30 + k*46, .22*(1 - k*.6), '170,150,120'); }
     // 방진 충격파
     for (const S of sides) if (S.tac==='wall' && t > .47 && t < .56){ const k = (t - .47)/.09; ctx.strokeStyle = `rgba(255,236,170,${.7*(1-k)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(S.isMe ? contactX - 6 : contactX + 6, GY0 + 70, 10 + k*60, 22 + k*80, 0, 0, TWO_PI); ctx.stroke(); }
@@ -128,12 +138,12 @@ function pxFight(ctx, A){
     for (const sp of sparks){ const age = t - sp.ts; if (age < 0 || age > .035) continue; sparkBurst(ctx, sp.x, sp.y, age/.035, seeded(sp.sd), 6); }
     ctx.restore();
     // 컷인 번쩍
-    const cutOn = t > .36 && t < .5 && (BEATS[A.myT]===A.foeT && !A.myBf || BEATS[A.foeT]===A.myT && !A.foeBf);
+    const cutOn = t > .27 && t < .42 && (BEATS[A.myT]===A.foeT && !A.myBf || BEATS[A.foeT]===A.myT && !A.foeBf);
     ctx.drawImage(vg, 0, 0);
-    if (t > .355 && t < .375 && cutOn){ ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, VW, VH); }
+    if (t > .27 && t < .285 && cutOn){ ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, VW, VH); }
     if (t > .465 && t < .49){ ctx.fillStyle = `rgba(255,248,220,${.5*(1 - (t-.465)/.025)})`; ctx.fillRect(0, 0, VW, VH); }
     if (t < .06){ ctx.fillStyle = `rgba(0,0,0,${1 - t/.06})`; ctx.fillRect(0, 0, VW, VH); }
-    const cut = document.getElementById('pxCut'); if (cut) cut.style.opacity = cutOn ? Math.min(1, (t-.36)*30, (.5-t)*30) : 0;
+    const cut = document.getElementById('pxCut'); if (cut) cut.style.opacity = cutOn ? Math.min(1, (t-.27)*30, (.42-t)*30) : 0;
     pxText('pxCap', `<b style="color:${A.myCol}">${esc(A.myName)}</b> ${TAC[A.myT][0]} <i>대</i> ${TAC[A.foeT][0]} <b style="color:${A.foeCol}">${esc(A.foeName)}</b>`, 'pxcap' + (t > .03 && t < .9 ? ' on' : ''));
     let big = '', bc = '';
     if ((A.myBf || A.foeBf) && t > .55 && t < .75){ big = A.myBf ? '역풍! 불길이 아군 쪽으로' : '역풍! 불길이 적진으로 번진다'; bc = A.myBf ? 'bad' : ''; }
