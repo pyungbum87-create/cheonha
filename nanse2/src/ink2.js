@@ -104,30 +104,41 @@ function drawHorseman(c, x, y, sc, flip, col, o){
   if (o.noRider){ c.restore(); return null; }
   // 기수
   c.save(); c.translate(0, -40); c.rotate(o.lean || 0);
-  c.fillStyle = shade(col, .5); c.globalAlpha = .9; c.strokeStyle = INK; c.lineWidth = 1.2;
+  const LK = o.look || null;
+  c.fillStyle = LK && LK.cape ? LK.cape : shade(col, .5); c.globalAlpha = .9; c.strokeStyle = INK; c.lineWidth = 1.2;
   const cf = Math.sin(t*11)*4;
   c.beginPath(); c.moveTo(-5, -22); c.quadraticCurveTo(-24, -18 + cf, -40, -8 + cf*1.6 + (run?-6:0)); c.quadraticCurveTo(-26, -4 + cf, -6, 6); c.closePath(); c.fill(); c.stroke(); c.globalAlpha = 1;
   c.fillStyle = col; c.strokeStyle = INK; c.lineWidth = 1.5;
   c.beginPath(); c.moveTo(-6, 8); c.lineTo(8, 8); c.lineTo(12, 1); c.lineTo(-8, 1); c.closePath(); c.fill(); c.stroke();
-  c.fillStyle = shade(col, .9); c.beginPath(); c.moveTo(-6, -21); c.lineTo(7, -21); c.lineTo(8, 2); c.lineTo(-7, 2); c.closePath(); c.fill(); c.stroke();
-  c.fillStyle = '#c9ccd2'; c.fillRect(-4.5, -17, 10, 7); c.strokeRect(-4.5, -17, 10, 7);
+  const fw = LK && LK.fat ? 1.25 : 1;
+  c.save(); c.scale(fw, 1);
+  c.fillStyle = LK && LK.robe ? LK.robe : shade(col, .9); c.beginPath(); c.moveTo(-6, -21); c.lineTo(7, -21); c.lineTo(8, 2); c.lineTo(-7, 2); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = LK && LK.armor ? LK.armor : '#c9ccd2'; c.fillRect(-4.5, -17, 10, 7); c.strokeRect(-4.5, -17, 10, 7);
   c.fillStyle = '#6a625a'; c.beginPath(); c.ellipse(-6, -20, 4.6, 3, 0, 0, TWO_PI); c.ellipse(7, -20, 4.6, 3, 0, 0, TWO_PI); c.fill();
-  c.fillStyle = '#dcb88e'; c.beginPath(); c.arc(1, -29, 5.2, 0, TWO_PI); c.fill(); c.lineWidth = 1.3; c.stroke();
-  c.fillStyle = '#2a251f'; c.beginPath(); c.arc(1, -30, 6, Math.PI, 0); c.closePath(); c.fill(); c.stroke();
-  c.fillStyle = '#2a251f'; c.fillRect(3.2, -29, 1.4, 1.4);
-  c.strokeStyle = col; c.lineWidth = 3.4; c.beginPath(); c.moveTo(1, -35); c.quadraticCurveTo(-8, -42 + cf*.6, -18 - (run?5:0), -36 + cf*1.4); c.stroke();
-  c.strokeStyle = INK; c.lineWidth = .8; c.beginPath(); c.moveTo(1, -35); c.quadraticCurveTo(-8, -42 + cf*.6, -18 - (run?5:0), -36 + cf*1.4); c.stroke();
+  c.restore();
+  if (LK) riderHead(c, LK, col, cf, run);
+  else {
+    c.fillStyle = '#dcb88e'; c.beginPath(); c.arc(1, -29, 5.2, 0, TWO_PI); c.fill(); c.lineWidth = 1.3; c.stroke();
+    c.fillStyle = '#2a251f'; c.beginPath(); c.arc(1, -30, 6, Math.PI, 0); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = '#2a251f'; c.fillRect(3.2, -29, 1.4, 1.4);
+    c.strokeStyle = col; c.lineWidth = 3.4; c.beginPath(); c.moveTo(1, -35); c.quadraticCurveTo(-8, -42 + cf*.6, -18 - (run?5:0), -36 + cf*1.4); c.stroke();
+    c.strokeStyle = INK; c.lineWidth = .8; c.beginPath(); c.moveTo(1, -35); c.quadraticCurveTo(-8, -42 + cf*.6, -18 - (run?5:0), -36 + cf*1.4); c.stroke();
+  }
   // 팔 + 무기
   const wa = o.wa == null ? -1.0 : o.wa, sx = 5, sy = -19, hx = sx + 14*Math.cos(wa*.4 + .2), hy = sy + 9 + 6*Math.sin(wa*.4);
-  const wt = o.weapon || 'spear', L = wt==='sword' ? 40 : wt==='blade' ? 64 : 76, back = wt==='sword' ? 6 : 16;
+  const wt = o.weapon || 'spear', L = { sword:40, bow:40, mace:46, blade:64, spear:76, halberd:78, snake:82 }[wt] || 76, back = wt==='sword' || wt==='bow' ? 6 : wt==='mace' ? 10 : 16;
+  if (wt==='bow'){ c.strokeStyle = INK; c.lineWidth = 2.6; c.beginPath(); c.arc(-8, -12, 13, -1.9, 1.2); c.stroke(); c.strokeStyle = '#7a5530'; c.lineWidth = 1.4; c.beginPath(); c.arc(-8, -12, 13, -1.9, 1.2); c.stroke(); }
   const bx = hx - back*Math.cos(wa), by = hy - back*Math.sin(wa), tx = hx + (L-back)*Math.cos(wa), ty = hy + (L-back)*Math.sin(wa);
   c.strokeStyle = INK; c.lineWidth = 3.4; c.beginPath(); c.moveTo(bx, by); c.lineTo(tx, ty); c.stroke();
-  c.strokeStyle = wt==='sword' ? '#dfe3e8' : '#7a5530'; c.lineWidth = 1.9; c.beginPath(); c.moveTo(bx, by); c.lineTo(tx, ty); c.stroke();
+  c.strokeStyle = wt==='sword' || wt==='bow' ? '#dfe3e8' : wt==='mace' ? '#4a4038' : '#7a5530'; c.lineWidth = 1.9; c.beginPath(); c.moveTo(bx, by); c.lineTo(tx, ty); c.stroke();
   const ca = Math.cos(wa), sa = Math.sin(wa);
   c.fillStyle = '#eef1f5'; c.strokeStyle = INK; c.lineWidth = 1;
   if (wt==='blade'){ c.beginPath(); c.moveTo(tx - 14*ca, ty - 14*sa); c.quadraticCurveTo(tx - 14*ca - 11*sa, ty - 14*sa + 11*ca, tx + 7*ca - 13*sa, ty + 7*sa + 13*ca); c.lineTo(tx + 6*ca, ty + 6*sa); c.lineTo(tx - 2*ca, ty - 2*sa); c.closePath(); c.fill(); c.stroke(); }
-  else if (wt==='spear'){ c.beginPath(); c.moveTo(tx + 10*ca, ty + 10*sa); c.lineTo(tx - 1*ca - 3*sa, ty - 1*sa + 3*ca); c.lineTo(tx - 1*ca + 3*sa, ty - 1*sa - 3*ca); c.closePath(); c.fill(); c.stroke(); }
-  if (wt!=='sword'){ c.fillStyle = '#c23a2a'; c.beginPath(); c.moveTo(tx - 7*ca, ty - 7*sa); c.quadraticCurveTo(tx - 12*ca - 5*sa + Math.sin(t*16)*2, ty - 12*sa + 5*ca + 4, tx - 17*ca + Math.sin(t*16 + 1)*3, ty - 17*sa + 8); c.lineTo(tx - 10*ca, ty - 10*sa + 2); c.closePath(); c.fill(); }
+  else if (wt==='spear' || wt==='halberd'){ c.beginPath(); c.moveTo(tx + 10*ca, ty + 10*sa); c.lineTo(tx - 1*ca - 3*sa, ty - 1*sa + 3*ca); c.lineTo(tx - 1*ca + 3*sa, ty - 1*sa - 3*ca); c.closePath(); c.fill(); c.stroke();
+    if (wt==='halberd'){ c.beginPath(); c.moveTo(tx - 4*ca, ty - 4*sa); c.quadraticCurveTo(tx - 1*ca + 12*sa, ty - 1*sa - 12*ca, tx - 12*ca + 9*sa, ty - 12*sa - 9*ca); c.quadraticCurveTo(tx - 8*ca + 4*sa, ty - 8*sa - 4*ca, tx - 10*ca, ty - 10*sa); c.closePath(); c.fill(); c.stroke(); } }
+  else if (wt==='snake'){ c.beginPath(); c.moveTo(tx - 2*ca, ty - 2*sa); for (let k = 0; k <= 5; k++){ const d = k*3.2, w = (k%2 ? 3.4 : -3.4)*(1 - k/7); c.lineTo(tx + d*ca - w*sa, ty + d*sa + w*ca); } c.lineTo(tx + 19*ca, ty + 19*sa); for (let k = 5; k >= 0; k--){ const d = k*3.2, w = (k%2 ? 3.4 : -3.4)*(1 - k/7) + (k%2 ? -2 : 2); c.lineTo(tx + d*ca - w*sa*.4, ty + d*sa + w*ca*.4); } c.closePath(); c.fill(); c.stroke(); }
+  else if (wt==='mace'){ c.fillStyle = '#5a524a'; c.beginPath(); c.arc(tx, ty, 5, 0, TWO_PI); c.fill(); c.stroke(); c.fillStyle = '#8a8278'; for (let k = 0; k < 6; k++){ const a = k*TWO_PI/6; c.beginPath(); c.arc(tx + Math.cos(a)*5, ty + Math.sin(a)*5, 1.6, 0, TWO_PI); c.fill(); } }
+  if (wt!=='sword' && wt!=='bow' && wt!=='mace'){ c.fillStyle = '#c23a2a'; c.beginPath(); c.moveTo(tx - 7*ca, ty - 7*sa); c.quadraticCurveTo(tx - 12*ca - 5*sa + Math.sin(t*16)*2, ty - 12*sa + 5*ca + 4, tx - 17*ca + Math.sin(t*16 + 1)*3, ty - 17*sa + 8); c.lineTo(tx - 10*ca, ty - 10*sa + 2); c.closePath(); c.fill(); }
   c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(sx, sy); c.lineTo(hx, hy); c.stroke();
   c.strokeStyle = col; c.lineWidth = 3.4; c.beginPath(); c.moveTo(sx, sy); c.lineTo(hx, hy); c.stroke();
   c.fillStyle = '#dcb88e'; c.beginPath(); c.arc(hx, hy, 2.3, 0, TWO_PI); c.fill();
@@ -137,6 +148,44 @@ function drawHorseman(c, x, y, sc, flip, col, o){
   const rl = o.lean || 0, cr = Math.cos(rl), sr = Math.sin(rl);
   const px0 = tx*cr - ty*sr, py0 = tx*sr + ty*cr - 40;
   return { x: x + px0*lx, y: y + py0*sc };
+}
+
+/* 기수의 얼굴·쓰개·수염: 장수 생김새 자료(피부, 쓰개, 수염, 소품)를 따른다 */
+const RSKIN = { a:'#e8c49a', b:'#d6a676', c:'#b04a32', d:'#a8724c', e:'#f2d6b6' };
+function riderHead(c, L, col, cf, run){
+  const sk = RSKIN[L.skin] || '#dcb88e', hc = L.hc || '#2a251f', bc = L.bc || '#1a140f', ex = L.extra || '', HAIR = '#1a140f';
+  c.lineCap = c.lineJoin = 'round';
+  if (L.beard==='long'){ c.fillStyle = bc; c.strokeStyle = INK; c.lineWidth = .8; c.beginPath(); c.moveTo(-2, -26); c.quadraticCurveTo(5 + cf*.15, -15, 3 + cf*.35, -4); c.quadraticCurveTo(-1, -12, -4, -25); c.closePath(); c.fill(); c.stroke(); }
+  if (ex.includes('pheasant')){ for (const [d, k] of [[-1, 0], [1, .5]]){ c.strokeStyle = '#7a1f16'; c.lineWidth = 2.6; c.beginPath(); c.moveTo(1 + d*2, -35); c.bezierCurveTo(-4 + d*3, -52 + cf*.4, -18 + d*3, -58 + cf*.8, -30 - (run?6:0) + d*2, -50 + cf*1.2 + k*4); c.stroke(); c.strokeStyle = '#e0b050'; c.lineWidth = .9; c.stroke(); } }
+  c.fillStyle = sk; c.strokeStyle = INK; c.lineWidth = 1.3; c.beginPath(); c.arc(1, -29, 5.2, 0, TWO_PI); c.fill(); c.stroke();
+  if (L.beard==='wild' || L.beard==='full'){ c.fillStyle = bc; c.beginPath(); c.arc(2, -27, 4.8, .05, Math.PI - .05); c.fill(); if (L.beard==='wild'){ c.strokeStyle = bc; c.lineWidth = 1.5; for (const a of [.35, 1.05, 1.75, 2.4]){ c.beginPath(); c.moveTo(2 + Math.cos(a)*4, -27 + Math.sin(a)*4); c.lineTo(2 + Math.cos(a)*8, -27 + Math.sin(a)*8); c.stroke(); } } }
+  else if (L.beard==='long'){ c.fillStyle = bc; c.beginPath(); c.arc(2, -27, 4.6, .1, Math.PI - .1); c.fill(); }
+  else if (L.beard==='goatee' || L.beard==='mustache' || L.beard==='stub'){ c.strokeStyle = bc; c.lineWidth = L.beard==='stub' ? .8 : 1.3; c.beginPath(); c.moveTo(-.5, -26.8); c.quadraticCurveTo(2.5, -25.6, 5.6, -26.8); c.stroke(); if (L.beard==='goatee'){ c.beginPath(); c.moveTo(3, -25.4); c.lineTo(3.6, -21.5); c.stroke(); } }
+  c.fillStyle = HAIR; c.strokeStyle = INK; c.lineWidth = 1.1;
+  if (L.hat==='helmet'){
+    c.fillStyle = hc; c.beginPath(); c.arc(1, -30.5, 6.3, Math.PI, 0); c.lineTo(7.6, -28.5); c.lineTo(-5.6, -28.5); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = shade(hc, 1.4); c.fillRect(-4.2, -33.6, 9.8, 1.3);
+    c.strokeStyle = INK; c.lineWidth = 1.4; c.beginPath(); c.moveTo(1, -36.6); c.lineTo(1, -40); c.stroke();
+    if (ex.includes('plumeW') || ex.includes('plumeR')){ c.fillStyle = ex.includes('plumeW') ? '#f3f0e8' : '#c23a2a'; c.beginPath(); c.moveTo(1, -40); c.quadraticCurveTo(-6, -44 + cf*.4, -13 - (run?4:0), -36 + cf); c.quadraticCurveTo(-5, -38, 1, -38.5); c.closePath(); c.fill(); c.strokeStyle = INK; c.lineWidth = .6; c.stroke(); }
+  } else if (L.hat==='band'){
+    c.beginPath(); c.arc(1, -30.5, 5.8, Math.PI, 0); c.closePath(); c.fill();
+    c.fillStyle = hc; c.fillRect(-4.8, -33, 11.4, 2.8); c.strokeRect(-4.8, -33, 11.4, 2.8);
+    c.strokeStyle = hc; c.lineWidth = 2.2; c.beginPath(); c.moveTo(-4.5, -32); c.quadraticCurveTo(-10, -31 + cf*.5, -16 - (run?5:0), -28 + cf*1.2); c.stroke();
+  } else if (L.hat==='scholar'){
+    c.beginPath(); c.arc(1, -30.5, 5.8, Math.PI, 0); c.closePath(); c.fill();
+    c.fillStyle = hc; c.beginPath(); c.moveTo(-4, -33); c.lineTo(-3, -41); c.lineTo(6, -41); c.lineTo(6.5, -33); c.closePath(); c.fill(); c.stroke();
+  } else if (L.hat==='crown'){
+    c.beginPath(); c.arc(1, -30.5, 5.8, Math.PI, 0); c.closePath(); c.fill();
+    c.fillStyle = hc; c.fillRect(-1, -38, 5, 4); c.strokeRect(-1, -38, 5, 4); c.fillRect(-6, -39.5, 15, 1.8); c.strokeRect(-6, -39.5, 15, 1.8);
+    c.strokeStyle = '#c23a2a'; c.lineWidth = .8; for (const x of [-5, 8]){ c.beginPath(); c.moveTo(x, -38); c.lineTo(x, -33); c.stroke(); }
+  } else if (L.hat==='cap'){
+    c.beginPath(); c.arc(1, -30.5, 5.8, Math.PI, 0); c.closePath(); c.fill();
+    c.fillStyle = hc; c.beginPath(); c.moveTo(-3, -34); c.lineTo(-2, -39); c.lineTo(5, -39); c.lineTo(6, -34); c.closePath(); c.fill(); c.stroke();
+  } else {
+    c.beginPath(); c.arc(1, -30.5, 5.8, Math.PI, 0); c.closePath(); c.fill(); c.beginPath(); c.arc(-.5, -36.5, 2.6, 0, TWO_PI); c.fill();
+  }
+  c.fillStyle = '#1a140f'; c.fillRect(3.3, -29.6, 1.5, 1.3);
+  if (ex.includes('patch')){ c.fillStyle = '#1a140f'; c.beginPath(); c.ellipse(4, -29.2, 1.9, 1.5, 0, 0, TWO_PI); c.fill(); c.strokeStyle = '#1a140f'; c.lineWidth = .6; c.beginPath(); c.moveTo(-3, -31.5); c.lineTo(5.5, -28.4); c.stroke(); }
 }
 /* 깃발 (펄럭임) */
 function drawBanner(c, x, y, h, col, t, dir, ph, s){

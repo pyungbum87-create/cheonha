@@ -148,24 +148,27 @@ function pxDuel(ctx, A){
   let rounds = A.rounds && A.rounds.length ? A.rounds : (A.win ? [{ k:'w', mh:100, fh:55 }, { k:'d', mh:90, fh:45 }, { k:'w', mh:90, fh:0 }] : [{ k:'l', mh:60, fh:100 }, { k:'d', mh:50, fh:90 }, { k:'l', mh:0, fh:90 }]);
   const N = rounds.length, T0 = .17, slot = (.80 - T0)/N, FY = 300, SC = 1.5;
   const wOf = nm => ['spear','blade','spear','sword'][hashStr(nm||'x')%4], hOf = nm => ['#6a4326','#d9d3c4','#2c2420','#8a5a32'][(hashStr(nm||'x')>>3)%4];
-  const wMe = wOf(A.myName), wFoe = wOf(A.foeName), hMe = hOf(A.myName), hFoe = hOf(A.foeName);
+  const rMe = A.myRider, rFoe = A.foeRider;
+  const wMe = rMe ? rMe.weapon : wOf(A.myName), wFoe = rFoe ? rFoe.weapon : wOf(A.foeName), hMe = rMe ? rMe.horse : hOf(A.myName), hFoe = rFoe ? rFoe.horse : hOf(A.foeName);
+  const H0 = A.hp0 || [100, 100], LIVE = !!A.live;
   const loserMe = !A.win && !A.draw, winnerMe = !!A.win;
   const crowd = []; for (let i=0;i<9;i++){ const isMe = i < 5, y = GY0 + 60 + (i%3)*26 + R()*6; crowd.push({ isMe, x: isMe ? 30 + (i%3)*34 + R()*10 : VW - 30 - ((i-5)%3)*34 - R()*10, y, s: .62 + .45*(y-GY0)/(GY1-GY0), ph: R()*6 }); }
   const OFF0 = 168, OFFC = 64;
   const offOf = u => u < .34 ? lerp(OFF0, OFFC, ease(u/.34)) : u < .42 ? OFFC : lerp(OFFC, OFF0, ease((u-.42)/.58));
   return (t, prev) => {
-    const tt = t*5.4;
+    const tt = A.clk != null ? A.clk : t*5.4;
     let i = -1, u = 0;
     if (t >= T0){ i = Math.min(N-1, Math.floor((t - T0)/slot)); u = cl01((t - T0 - i*slot)/slot); if (t >= .80){ i = N-1; u = 1; } }
     const rd = i >= 0 ? rounds[i] : null;
     const imp = i >= 0 && u > .36 && t < .80 ? Math.exp(-(u - .36)*6.5) : (t >= .80 ? 0 : 0);
     const clash = i >= 0 && u >= .335 && u < .46 && t < .80;
     let off = t < T0 ? OFF0 : t >= .80 ? OFF0 : offOf(u);
-    if (t < T0) off = OFF0 - 18*ease(t/T0);
+    if (t < T0) off = LIVE ? OFF0 : OFF0 - 18*ease(t/T0);
     // 카메라
     const z = 1.03 + (clash ? .05 : 0) + .04*imp + .03*ease(cl01(t/.9));
+    const zl = LIVE ? 1.28 : 1;
     let sh = 0, shy = 0; if (i >= 0 && u > .34 && u < .52){ const k = Math.exp(-(u - .34)*9); sh = Math.sin(t*1100)*7*k; shy = Math.cos(t*900)*4*k; }
-    ctx.save(); ctx.translate(VW/2 + sh, 230 + shy); ctx.scale(z, z); ctx.translate(-VW/2, -230);
+    ctx.save(); ctx.translate(VW/2 + sh, (LIVE ? 262 : 230) + shy); ctx.scale(z*zl, z*zl); ctx.translate(-VW/2, LIVE ? -250 : -230);
     ctx.drawImage(bg, 0, 0);
     // 관중 + 깃발
     const finished = t >= .84;
@@ -197,13 +200,15 @@ function pxDuel(ctx, A){
         blitFig(ctx, figSprite(isMe ? 'spear' : 'spear', col, 'idle'), rx, ry + 38*1.3, 1.5, !isMe, 12, 37); ctx.restore();
         continue;
       }
-      const tip = drawHorseman(ctx, x, FY, SC, !isMe, col, { t: tt + (isMe?0:1), g, run: moving, wa, lean: lean*(isMe?1:1), rear, weapon: isMe ? wMe : wFoe, horse: isMe ? hMe : hFoe });
+      const tip = drawHorseman(ctx, x, FY, SC, !isMe, col, { t: tt + (isMe?0:1), g, run: moving, wa, lean: lean*(isMe?1:1), rear, weapon: isMe ? wMe : wFoe, horse: isMe ? hMe : hFoe, look: isMe ? rMe : rFoe });
       tips.push(tip);
     }
     // 충돌 연출
     if (rd && u > .335 && u < .62 && t < .80){
       const k = cl01((u - .335)/.2), cx = 320, cy = 190;
       glow(ctx, cx, cy, 120*(1 - k*.5), .75*(1 - k), '255,230,170');
+      if (rd.sp){ glow(ctx, cx, cy, 220*(1 - k*.3), .9*(1 - k), rd.sp==='me' ? '255,200,80' : '255,90,60'); for (let q = 0; q < 3; q++) slashArc(ctx, cx, cy + 6, 70 + q*16, -2.8 + q*.4, .9, k, rd.sp!=='me'); }
+      if (rd.tac){ glow(ctx, rd.tac==='me' ? 320 - off : 320 + off, 200, 90, .6*(1 - k), '140,200,255'); }
       if (rd.k==='w'){ slashArc(ctx, cx, cy + 6, 66, -2.5, .6, k, false); }
       else if (rd.k==='l'){ slashArc(ctx, cx, cy + 6, 66, -2.5, .6, k, true); }
       else { slashArc(ctx, cx, cy + 6, 62, -2.6, .3, k, false); slashArc(ctx, cx, cy + 6, 62, -2.6, .3, k, true); }
@@ -214,9 +219,10 @@ function pxDuel(ctx, A){
     ctx.restore();
     ctx.drawImage(vg, 0, 0);
     // 체력 막대
-    const hpAt = side => { const prevR = i > 0 ? rounds[i-1] : null, base = prevR ? (side ? prevR.mh : prevR.fh) : 100; if (i < 0) return 100; const cur = side ? rd.mh : rd.fh; return t >= .80 ? (side ? rounds[N-1].mh : rounds[N-1].fh) : lerp(base, cur, cl01((u - .36)/.12)); };
+    const hpAt = side => { const prevR = i > 0 ? rounds[i-1] : null, base = prevR ? (side ? prevR.mh : prevR.fh) : H0[side ? 0 : 1]; if (i < 0) return H0[side ? 0 : 1]; const cur = side ? rd.mh : rd.fh; return t >= .80 ? (side ? rounds[N-1].mh : rounds[N-1].fh) : lerp(base, cur, cl01((u - .36)/.12)); };
     const bar = (x0, w, hp, col, rt) => { ctx.fillStyle = 'rgba(8,5,2,.7)'; ctx.fillRect(x0 - 2, 38, w + 4, 11); ctx.fillStyle = '#3a1410'; ctx.fillRect(x0, 40, w, 7); ctx.fillStyle = col; const ww = w*cl01(hp/100); ctx.fillRect(rt ? x0 + w - ww : x0, 40, ww, 7); ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(rt ? x0 + w - ww : x0, 40, ww, 2); };
-    bar(18, 252, hpAt(true), '#d9b04a', false); bar(VW - 18 - 252, 252, hpAt(false), '#c2452f', true);
+    if (!LIVE){ bar(18, 252, hpAt(true), '#d9b04a', false); bar(VW - 18 - 252, 252, hpAt(false), '#c2452f', true); }
+    if (LIVE) return;
     if (t < .02){ ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
     if (t > .80 && A.died){ ctx.fillStyle = `rgba(0,0,0,${.55*cl01((t - .86)/.1)})`; ctx.fillRect(0, 0, VW, VH); }
     const cut = document.getElementById('pxCut'); if (cut) cut.style.opacity = t > .02 && t < .19 ? Math.min(1, (t-.02)*30, (.19-t)*30) : 0;
