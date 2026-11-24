@@ -127,7 +127,7 @@ window.update.__v31=1;
 window.render=(o=>function(){o.apply(this,arguments);if(!tutOn()||G.paused||G.choice)return;const st=TUT[G.tut||0];if(!st)return;
   const c=ctx,pulse=.5+.5*Math.sin(G.t*6);c.save();
   // 안내 상자
-  const bw=330,bx=(W-bw)/2-40,by=58;c.fillStyle='rgba(20,12,6,.86)';c.strokeStyle='#f2c14e';c.lineWidth=1.5;rr(c,bx,by,bw,46,8);c.fill();c.stroke();
+  const bw=Math.min(330,W-16),bx=(W-bw)/2,by=54;c.fillStyle='rgba(20,12,6,.86)';c.strokeStyle='#f2c14e';c.lineWidth=1.5;rr(c,bx,by,bw,46,8);c.fill();c.stroke();
   txt(st.t,bx+bw/2,by+19,14,'#ffe7a8','center');txt(st.s,bx+bw/2,by+37,11,'#f6ead2','center');
   // 가리키기
   let x=st.x,y=st.y;if(st.pick&&!(G.sel>=0&&mergeOptions(G.sel))){const i=G.slots.findIndex((u,k)=>u&&mergeOptions(k));if(i>=0){[x,y]=slotXY(i);}else x=null;}

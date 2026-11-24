@@ -4,7 +4,7 @@
   "start_url": "./zh.html",
   "scope": "./",
   "display": "fullscreen",
-  "orientation": "landscape",
+  "orientation": "portrait",
   "background_color": "#1d120d",
   "theme_color": "#1d120d",
   "icons": [
