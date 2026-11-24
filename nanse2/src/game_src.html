@@ -322,6 +322,8 @@ p{margin:0}
 .mg{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-family:var(--seal);font-size:19px;background:var(--c);color:#fff;flex:0 0 34px}
 .mlist{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}.mrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:#fffaf0;font:inherit;color:inherit;text-align:left;min-height:56px}.mrow:last-child{border-bottom:0}.mrow b{display:block;font-size:14.5px}.mrow small{display:block;font-size:11.5px;color:var(--muted)}.mi{width:30px;height:30px;border-radius:9px;background:#efe5cf;display:grid;place-items:center;font-size:15px;color:#6f6356}.mch{font-size:22px;color:#b7a789}.mrow.dim b{color:var(--muted)}.mrow.danger b{color:var(--red)}.mrow.danger .mi{background:#f6dcd6;color:var(--red)}
 .tgl{width:46px;height:28px;border-radius:14px;background:#cfc3a9;position:relative;flex:0 0 46px;transition:background .2s}.tgl i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}.tgl.on{background:#3d7a52}.tgl.on i{transform:translateX(18px)}
+.frsum{margin-left:auto;border:0;border-radius:10px;background:#2a1f16;color:#f4ecdc;font:inherit;font-size:12.5px;padding:6px 10px;min-height:40px;white-space:nowrap;display:flex;align-items:center;gap:4px}.frsum i{font-style:normal}.frsum .g{color:#8fd19e}.frsum .y{color:#f3c95a}.frsum .r{color:#ff9a8a}.frsum .seal.sm{width:22px;height:22px;font-size:13px}
+.frmini.wide{flex:none;width:100%;margin-bottom:8px;min-height:56px}.frlab{cursor:pointer}
 .frstrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;pointer-events:auto}.frstrip::-webkit-scrollbar{display:none}.frmini{flex:0 0 128px;display:flex;flex-direction:column;gap:5px;text-align:left;padding:7px 9px;border-radius:12px;border:0;border-top:3px solid var(--fc);background:rgba(251,246,234,.96);box-shadow:0 2px 8px rgba(40,25,10,.18);font:inherit;color:inherit;min-height:48px}.frn{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;white-space:nowrap}.frn i{font-style:normal;font-size:10.5px;padding:1px 6px;border-radius:8px}.frn .push{background:#2f6b3a;color:#fff}.frn .hot{background:#d4a01f;color:#fff}.frn .bad{background:#a3322a;color:#fff}
 .frbar{position:relative;display:flex;height:12px;border-radius:6px;overflow:hidden;background:#ddd}.frbar .m{background:linear-gradient(90deg,#2f6b3a,#4f9a5c)}.frbar .f{background:linear-gradient(90deg,#c2452f,#8e2a1c)}.frbar b{position:absolute;top:-2px;bottom:-2px;width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 0 1px #3a2a1a}
 .frhead{display:flex;justify-content:space-between;align-items:center}.intel b.good{color:var(--good)}
@@ -2226,6 +2228,14 @@ function viewFronts(){
   if (!FS.length) return '';
   const sorted = FS.map(F => [F, frState(F.id)]).sort((a, b) => Math.abs(b[1].p) - Math.abs(a[1].p));
   return `<div class="frstrip">${sorted.map(([F, S]) => `<button class="frmini" data-front="${F.id}" style="--fc:${facColor(F.ef)}"><span class="frn"><b>${esc(facName(F.ef).replace(/군$/, ''))}${FR_DIR[F.dk] ? ' ' + FR_DIR[F.dk] : ''}</b>${S.st==='push' ? '<i class="push">공세</i>' : S.p >= 70 ? '<i class="hot">결전</i>' : S.p <= -70 ? '<i class="bad">위기</i>' : ''}</span>${frBar(S.p)}</button>`).join('')}</div>`;
+}
+function frSummary(){ const FS = frontsOf(G.pfac).map(F => frState(F.id)); const hot = FS.filter(S => S.p >= 70).length, bad = FS.filter(S => S.p <= -70).length, push = FS.filter(S => S.st==='push').length;
+  return `<span class="seal sm">戰</span>전선 ${FS.length}${push ? ` · <i class="g">공세 ${push}</i>` : ''}${hot ? ` · <i class="y">결전 ${hot}</i>` : ''}${bad ? ` · <i class="r">위기 ${bad}</i>` : ''} ›`; }
+function openFrontList(){
+  const FS = frontsOf(G.pfac).map(F => [F, frState(F.id)]).sort((a, b) => Math.abs(b[1].p) - Math.abs(a[1].p));
+  const bg = sheet(`<div class="cu-head"><h3>전선</h3><button class="icon" data-close aria-label="닫기">✕</button></div><p class="small muted">지도 위 붉은 점선이 전선이다. 이름표를 눌러도 열린다.</p>
+    ${FS.map(([F, S]) => `<button class="frmini wide" data-fl="${F.id}" style="--fc:${facColor(F.ef)}"><span class="frn"><b>${esc(F.name)}</b>${S.st==='push' ? '<i class="push">공세</i>' : S.p >= 70 ? '<i class="hot">결전 임박</i>' : S.p <= -70 ? '<i class="bad">위기</i>' : ''}</span>${frBar(S.p)}</button>`).join('')}`);
+  bg.querySelectorAll('[data-fl]').forEach(b => b.onclick = () => { bg.remove(); openFront(b.dataset.fl); });
 }
 function openFront(id){
   const F = frontsOf(G.pfac).find(f => f.id===id); if (!F) return;
@@ -5306,6 +5316,61 @@ function armyMark(a){
   return o + '</g>';
 }
 function mePos(){ const a = G.inArmy && armyById(G.inArmy); if (a){ const q = armyPos(a); return { x:q.x, y:q.y, army:true }; } const c = city(G.city); return { x:c.x, y:c.y, army:false }; }
+
+/* ---------------- 영토와 전선: 성마다 땅을 나눠 칠하고(가중 보로노이), 적과 맞닿은 경계를 전선으로 긋는다 ----------------
+   전선을 밀수록 우리 성의 몫이 커져 선이 실제로 적 쪽으로 옮겨 간다. */
+function powerCells(sites){
+  const B = [[0,0],[MAP_W,0],[MAP_W,MAP_H],[0,MAP_H]];
+  return sites.map((si, i) => {
+    let poly = B.map(v => ({ v, t:null }));
+    for (let j = 0; j < sites.length && poly.length; j++){ if (j===i) continue; const sj = sites[j];
+      const dx = sj.x - si.x, dy = sj.y - si.y; if (dx*dx + dy*dy > 2500) continue;
+      const ax = 2*dx, ay = 2*dy, c = (sj.x*sj.x + sj.y*sj.y) - (si.x*si.x + si.y*si.y) - sj.w + si.w;
+      const ins = v => ax*v[0] + ay*v[1] <= c, out = [];
+      for (let k = 0; k < poly.length; k++){ const P = poly[k], Q = poly[(k + 1) % poly.length], iP = ins(P.v), iQ = ins(Q.v);
+        if (iP) out.push(P);
+        if (iP !== iQ){ const fp = ax*P.v[0] + ay*P.v[1] - c, fq = ax*Q.v[0] + ay*Q.v[1] - c, t = fp/(fp - fq), I = [P.v[0] + (Q.v[0] - P.v[0])*t, P.v[1] + (Q.v[1] - P.v[1])*t]; out.push({ v:I, t: iP ? j : P.t }); } }
+      poly = out; }
+    // 너무 먼 땅은 자르지 않고 둥글게 줄인다 (반지름 22)
+    return poly;
+  });
+}
+let TERR_CACHE = { k:'', v:null };
+function terrSvg(){
+  const cs = allCities(), fr = G.role==='ruler' && G.pfac ? frontsOf(G.pfac) : [];
+  const w = {}; for (const c of cs) w[c.id] = 0;
+  for (const F of fr){ const S = frState(F.id), k = S.p*.9; for (const id of F.my) w[id] += k/F.my.length*1.5; for (const id of F.foe) w[id] -= k/F.foe.length*1.5; }
+  const key = cs.map(c => c.owner + ':' + Math.round(w[c.id])).join(',') + '|' + fr.map(F => F.id + frState(F.id).st + (frState(F.id).last||0)).join(',');
+  if (TERR_CACHE.k===key) return TERR_CACHE.v;
+  const sites = cs.map(c => ({ x:c.x, y:c.y, w:w[c.id], c })), cells = powerCells(sites);
+  const path = poly => 'M' + poly.map(p => f1(p.v[0]) + ' ' + f1(p.v[1])).join('L') + 'Z';
+  let fill = `<defs><mask id="landm"><rect width="${MAP_W}" height="${MAP_H}" fill="#fff"/><path d="${SEA}" fill="#000"/></mask></defs><g mask="url(#landm)" pointer-events="none">`;
+  cells.forEach((poly, i) => { const c = cs[i]; if (!c.owner || poly.length < 3) return; fill += `<path d="${path(poly)}" fill="${facColor(c.owner)}" fill-opacity="${c.owner===G.pfac ? .2 : .14}"/>`; });
+  // 세력 경계 (얇게)
+  let border = '';
+  const frontOf = {}; for (const F of fr) for (const a of F.my) for (const b of F.foe) frontOf[a + '|' + b] = F;
+  const segs = {};
+  cells.forEach((poly, i) => { const ci = cs[i]; for (let k = 0; k < poly.length; k++){ const P = poly[k], Q = poly[(k + 1) % poly.length]; if (P.t==null) continue; const cj = cs[P.t]; if (!ci.owner || !cj.owner || ci.owner===cj.owner) continue;
+    const F = frontOf[ci.id + '|' + cj.id];
+    if (F){ (segs[F.id] = segs[F.id] || []).push([P.v, Q.v]); continue; }
+    if (i < P.t && !frontOf[cj.id + '|' + ci.id]) border += `<line x1="${f1(P.v[0])}" y1="${f1(P.v[1])}" x2="${f1(Q.v[0])}" y2="${f1(Q.v[1])}" stroke="${INK}" stroke-opacity=".28" stroke-width=".35" stroke-dasharray="1 .8"/>`; } });
+  fill += border + '</g>';
+  // 전선: 굵은 붉은 점선 + 이름표 + 화살표
+  let front = '<g pointer-events="none">', labels = '';
+  for (const F of fr){ const L = segs[F.id]; if (!L || !L.length) continue; const S = frState(F.id);
+    for (const [a, b] of L){ front += `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="#fff6e6" stroke-width="1.6" stroke-linecap="round" stroke-opacity=".8"/><line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="#a3322a" stroke-width=".9" stroke-dasharray="2 1.3" stroke-linecap="round"/>`; }
+    // 이름표 위치: 전선 조각들의 가운데
+    let mx = 0, my = 0, n = 0; for (const [a, b] of L){ mx += a[0] + b[0]; my += a[1] + b[1]; n += 2; } mx /= n; my /= n;
+    const myC = F.my.map(city), foC = F.foe.map(city), ax = foC.reduce((s, c) => s + c.x, 0)/foC.length - myC.reduce((s, c) => s + c.x, 0)/myC.length, ay = foC.reduce((s, c) => s + c.y, 0)/foC.length - myC.reduce((s, c) => s + c.y, 0)/myC.length, al = Math.hypot(ax, ay) || 1, ux = ax/al, uy = ay/al;
+    const r = Math.round(clamp(50 + S.p/2, 0, 100)), push = S.st==='push' || (S.last||0) >= 8, back = S.foePush && (S.last||0) <= -8;
+    if (push){ const x0 = mx - ux*6, y0 = my - uy*6, x1 = mx - ux*2.4, y1 = my - uy*2.4; front += `<line x1="${f1(x0)}" y1="${f1(y0)}" x2="${f1(x1)}" y2="${f1(y1)}" stroke="#2f7a4a" stroke-width="1.1" stroke-linecap="round"/><path d="M${f1(x1 + ux*2)} ${f1(y1 + uy*2)} L${f1(x1 - uy*1.3)} ${f1(y1 + ux*1.3)} L${f1(x1 + uy*1.3)} ${f1(y1 - ux*1.3)}Z" fill="#2f7a4a"/>`; }
+    if (back){ const x0 = mx + ux*6, y0 = my + uy*6, x1 = mx + ux*2.4, y1 = my + uy*2.4; front += `<line x1="${f1(x0)}" y1="${f1(y0)}" x2="${f1(x1)}" y2="${f1(y1)}" stroke="#b3452a" stroke-width="1.1" stroke-linecap="round"/><path d="M${f1(x1 - ux*2)} ${f1(y1 - uy*2)} L${f1(x1 - uy*1.6)} ${f1(y1 + ux*1.6)} L${f1(x1 + uy*1.6)} ${f1(y1 - ux*1.6)}Z" fill="#b3452a"/>`; }
+    const name = `${facName(F.ef).replace(/군$/, '')}${FR_DIR[F.dk] ? ' ' + FR_DIR[F.dk] : ''}`, txt = `${name} ${r}:${100 - r}`, wpx = txt.length*1.75 + 4, hot = S.p >= 70 || S.p <= -70;
+    labels += `<g class="frlab" data-front="${F.id}" role="button" tabindex="0" aria-label="${esc(F.name)}">${icoS(mx, my, `<rect x="${f1(mx - wpx/2)}" y="${f1(my - 2.9)}" width="${f1(wpx)}" height="5.8" rx="1.4" fill="${hot ? (S.p > 0 ? '#2f6b3a' : '#8e2a1c') : '#fffaf0'}" stroke="${S.p <= -70 ? '#8e2a1c' : '#a3322a'}" stroke-width=".45"/><rect x="${f1(mx - wpx/2 + 1)}" y="${f1(my + 1.7)}" width="${f1((wpx - 2)*r/100)}" height=".7" fill="#2f8a46"/><rect x="${f1(mx - wpx/2 + 1 + (wpx - 2)*r/100)}" y="${f1(my + 1.7)}" width="${f1((wpx - 2)*(100 - r)/100)}" height=".7" fill="#c2452f"/><text x="${f1(mx)}" y="${f1(my + .7)}" text-anchor="middle" font-size="2.6" font-weight="800" fill="${hot ? '#fff' : '#3a2a1a'}" font-family="Gothic A1, sans-serif">${esc(txt)}</text>`)}</g>`;
+  }
+  front += '</g>';
+  return (TERR_CACHE = { k:key, v:{ fill, front, labels } }).v;
+}
 function mapSvg(){
   const sel = G.panel ? G.sel : null;
   const here = G.inArmy ? null : G.city;
@@ -5316,11 +5381,11 @@ function mapSvg(){
   for (const [x,y] of MOUNTS) o += icoS(x, y, `<path d="M${x-3.4} ${y+1.6} L${x-1} ${y-1.8} L${x+.4} ${y} L${x+1.6} ${y-1.2} L${x+3.6} ${y+1.6}Z" fill="${INK}" opacity=".07"/>` + brush([[x-3.4,y+1.6],[x-1,y-1.8],[x+.4,y],[x+1.6,y-1.2],[x+3.6,y+1.6]], .35, 'both', INK, .35));
   for (const pts of RIVER_PTS) o += brush(pts, 1.25, 'flat', '#7f9fae', .85) + brush(pts, .3, 'flat', '#d9e6ea', .7);
   o += brush(HAN_PTS, .7, 'flat', '#7f9fae', .75);
+  const terrLayer = terrSvg();
+  o += terrLayer.fill;
   const seen = new Set();
   for (const c of allCities()) for (const a of c.adj){ const k = [c.id,a].sort().join(); if (seen.has(k)) continue; seen.add(k); const d = city(a); o += `<line x1="${c.x}" y1="${c.y}" x2="${d.x}" y2="${d.y}" stroke="${INK}" stroke-opacity=".3" stroke-width=".22" stroke-dasharray=".7 .7"/>`; }
-  if (G.role==='ruler' && G.pfac) for (const F of frontsOf(G.pfac)){ const S = frState(F.id), col = S.p >= 0 ? '#2f8a46' : '#c2452f';
-    for (const m of F.my) for (const f of F.foe){ if (!city(m).adj.includes(f)) continue; const A = city(m), Bc = city(f), t = clamp(.5 + S.p/250, .15, .85), mx = A.x + (Bc.x - A.x)*t, my = A.y + (Bc.y - A.y)*t, dx = Bc.x - A.x, dy = Bc.y - A.y, L = Math.hypot(dx, dy) || 1, nx = -dy/L*2.6, ny = dx/L*2.6;
-      o += `<line x1="${f1(A.x)}" y1="${f1(A.y)}" x2="${f1(Bc.x)}" y2="${f1(Bc.y)}" stroke="${col}" stroke-opacity=".28" stroke-width="1.3"/><line x1="${f1(mx-nx)}" y1="${f1(my-ny)}" x2="${f1(mx+nx)}" y2="${f1(my+ny)}" stroke="#a3322a" stroke-width=".9" stroke-linecap="round"/>`; } }
+  o += terrLayer.front;
   const adj = new Set(here ? city(here).adj : []);
   for (const c of allCities()) o += `<g class="citybtn" data-city="${c.id}" role="button" tabindex="0" aria-label="${c.n}">${icoS(c.x, c.y, `<rect x="${c.x-6}" y="${c.y-9}" width="12" height="15" fill="transparent"/>${castleIcon(c, c.id===sel, adj.has(c.id), c.id===here, !visible(c.id))}`)}</g>`;
   for (const c of allCities()){
@@ -5331,6 +5396,7 @@ function mapSvg(){
     if (mk) o += icoS(c.x, c.y, mk);
   }
   for (const a of G.armies) if (armyVisible(a)) o += armyMark(a);
+  o += terrLayer.labels;
   const m = mePos(), lab = m.army ? '원정 중' : '내 위치';
   o += `<g pointer-events="none">` + icoS(m.x, m.y, `<circle class="meping" cx="${f1(m.x)}" cy="${f1(m.y)}" r="6.4" fill="none" stroke="#b3352a" stroke-width=".8"/>
     <rect x="${f1(m.x-7)}" y="${f1(m.y-15.6)}" width="14" height="4.6" rx="2.3" fill="#b3352a"/><path d="M${f1(m.x-1.2)} ${f1(m.y-11.1)} L${f1(m.x)} ${f1(m.y-9.6)} L${f1(m.x+1.2)} ${f1(m.y-11.1)}Z" fill="#b3352a"/>
@@ -5345,7 +5411,7 @@ function viewMap(){
     const m = G.mission, pr = missionProg();
     const prog = m.t==='capture'||m.t==='defend' ? (pr?'완료':'') : `${fmt(Math.max(0,pr))}/${fmt(m.goal)}`;
     notes.push(`<button class="note" data-view="army"><span class="lbl">주공의 명 · ${m.months}개월</span><span class="grow"><b>${esc(missionText(m))}</b> <span class="small muted">${prog}</span></span></button>`);
-  } else if (G.role==='ruler'){ const fs = viewFronts(); if (fs) notes.push(fs); notes.push(`<div class="note"><span class="lbl">천하통일</span><span class="grow"><b>${citiesOf(G.pfac).length} / ${UNIFY_N}성</b> <span class="small muted">전선을 눌러 공세·수비</span></span></div>`); }
+  } else if (G.role==='ruler'){ notes.push(`<div class="note"><span class="lbl">천하통일</span><span class="grow"><b>${citiesOf(G.pfac).length} / ${UNIFY_N}성</b> <span class="small muted">${frontsOf(G.pfac).length ? '' : '성을 눌러 출진·계략'}</span></span>${frontsOf(G.pfac).length ? `<button class="frsum" id="frList">${frSummary()}</button>` : ''}</div>`); }
   else if (G.role==='ronin') notes.push(`<div class="note"><span class="lbl">재야</span><span class="grow"><b>주군을 찾거나 스스로 일어서라</b></span></div>`);
   const legend = aliveFacs().filter(f => citiesOf(f.id).length).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length)
     .map(f => `<span class="chip" style="background:${f.color}26;color:${mix(f.color,'#000000',.25)}">${esc(facName(f.id))} ${citiesOf(f.id).length}</span>`).join('');
@@ -6488,6 +6554,7 @@ function bind(){
   on('#retreat', () => { retreat(); save(); render(); });
   on('[data-cap]', b => { captiveDo(b.dataset.cap); save(); render(); });
   on('[data-front]', b => openFront(b.dataset.front));
+  on('#frList', () => openFrontList());
   on('[data-trek]', b => { const k = b.dataset.trek; if (k==='close'){ G.trek = null; } else if (k==='auto') trekAuto(); else if (k.startsWith('road:')) trekRoad(k.slice(5)); else if (k.startsWith('pick:')) trekPick(+k.slice(5)); save(); render(); });
   on('[data-plan]', b => { planDo(b.dataset.plan); save(); render(); });
   on('[data-tale]', b => { taleChoose(b.dataset.tale); render(); });
