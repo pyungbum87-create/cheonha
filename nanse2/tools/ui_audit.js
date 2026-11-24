@@ -59,6 +59,7 @@ const SCENES = [
   ['메뉴', async p => { await p.evaluate(() => document.querySelectorAll('.sheet-bg').forEach(x => x.remove())); await p.locator('#menuBtn').click(); await p.waitForTimeout(250); }],
   ['전투 포진', prep(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); const t = Object.values(D.G.cities).find(c => c.owner && c.owner!==D.G.pfac && D.city(D.G.city).adj.includes(c.id)); D.G.troops = 9000; D.beginRaise(t.id); D.G.talks = []; D.render(); })],
   ['전장 지휘', prep(() => { D.tbStart(); D.G.talks = []; D.render(); })],
+  ['일기토', prep(() => { const B = D.G.battle; if (!B) return; B.tb = null; B.done = false; B.stage = null; const t = D.city(B.to); B.def.gid = B.def.gid || 'xuchu'; D.duelStart(B); D.G.talks = []; D.render(); document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); })],
   ['월간 보고', prep(() => { D.G.battle = null; D.G.phase = 'report'; D.G.scene = 'b200_guandu'; D.G.talks = []; D.render(); })],
   ['지도(장수)', async p => { await newGame(p, 200, 'shu', 'zhaoyun'); await p.evaluate(() => { D.G.talks = []; D.render(); }); }],
   ['평정(장수)', prep(() => { D.G.talks = []; D.queueCouncil(true); const T = D.G.talks[0]; if (T) T.i = T.lines.length - 1; D.render(); })],

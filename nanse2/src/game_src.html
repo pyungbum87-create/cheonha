@@ -445,6 +445,64 @@ input,select{min-height:44px;box-sizing:border-box}
   .cpanel .scene{display:none}
   .cpanel{max-height:92%}
 }
+
+/* 전장 지휘 연출 */
+.tbgridw{position:relative}
+.tbc.ht{box-shadow:inset 0 0 0 999px rgba(190,40,30,.16)}
+.tbc.hs{box-shadow:inset 0 0 0 999px rgba(212,160,31,.34);outline:2px solid #d4a01f;outline-offset:-2px}
+.tbc.aim{outline:3px solid var(--red);outline-offset:-3px;animation:tbaim .8s infinite}
+@keyframes tbaim{50%{outline-color:#f6c}}
+.tbu u{position:absolute;left:2px;bottom:0;height:2px;background:#d4a01f;border-radius:1px;text-decoration:none}
+.tbu.ready{box-shadow:0 0 0 2px #d4a01f,0 0 10px 2px #d4a01f99;animation:tbrd 1.4s infinite}
+@keyframes tbrd{50%{box-shadow:0 0 0 2px #f3d26a,0 0 14px 4px #d4a01fcc}}
+.tbst{position:absolute;right:1px;top:1px;font-style:normal;font-size:10px;background:#7b2a7b;color:#fff;border-radius:3px;padding:0 2px;line-height:1.3}.tbst.w{background:#3d5a7a}
+.tbfx{position:absolute;left:50%;top:30%;transform:translate(-50%,0);font-weight:900;font-size:14px;color:#fff;text-shadow:0 0 3px #a3322a,0 0 2px #000;pointer-events:none;white-space:nowrap;animation:tbfx 1.2s ease-out forwards;z-index:3}
+.tbfx.big{font-size:18px;color:#ffe27a;text-shadow:0 0 4px #a3322a,0 0 2px #000}
+.tbfx.back{color:#ffd0c8;font-size:12px}.tbfx.buff{color:#d4ffd8;text-shadow:0 0 3px #2c6b3a,0 0 2px #000;font-size:12px}.tbfx.debuff{color:#f3d0ff;text-shadow:0 0 3px #6b2c6b,0 0 2px #000}.tbfx.miss{color:#ddd;font-size:12px}
+@keyframes tbfx{0%{opacity:0;transform:translate(-50%,8px) scale(.6)}15%{opacity:1;transform:translate(-50%,0) scale(1.15)}30%{transform:translate(-50%,-4px) scale(1)}100%{opacity:0;transform:translate(-50%,-26px)}}
+.tbcut{position:absolute;left:0;right:0;top:38%;display:flex;align-items:center;gap:10px;padding:8px 14px;background:linear-gradient(90deg,rgba(20,15,10,.92),rgba(20,15,10,.75) 70%,rgba(20,15,10,0));color:#f3ead6;pointer-events:none;animation:tbcut 1.5s ease forwards;z-index:5}
+.tbcut.foe{flex-direction:row-reverse;text-align:right;background:linear-gradient(270deg,rgba(90,20,15,.92),rgba(90,20,15,.75) 70%,rgba(90,20,15,0));animation-name:tbcutr}
+.tbcut .pt{width:84px!important;height:84px!important;border-radius:10px;border:2px solid #d4a01f;flex:none}
+.tbcut small{display:block;font-size:12px;opacity:.8}.tbcut b{font-size:26px;letter-spacing:.08em;color:#ffe27a;font-family:var(--seal,serif)}
+@keyframes tbcut{0%{opacity:0;transform:translateX(-40%)}14%{opacity:1;transform:translateX(0)}78%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(10%)}}
+@keyframes tbcutr{0%{opacity:0;transform:translateX(40%)}14%{opacity:1;transform:translateX(0)}78%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(-10%)}}
+.tbfc{background:#26201c0b;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:3px}
+.fcrow{display:flex;gap:8px;align-items:center}.fcrow span{width:3.5em;color:var(--muted,#7a6d5a);font-size:12px}.fcrow b{font-variant-numeric:tabular-nums}.fcrow b.neg{color:var(--red);font-size:16px}
+.chip.down{background:#a3322a22;color:#a3322a}
+.tbacts.aim{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.tbbusy{text-align:center;padding:12px;border-radius:10px;background:#a3322a18;color:#a3322a;font-weight:800;animation:tkb 1s infinite}
+.tbstar{display:flex;gap:6px;flex-wrap:wrap;font-size:11.5px}.tbstar span{padding:2px 8px;border-radius:999px;background:#d4a01f22;color:#8a6410;font-weight:700}.tbstar span.off{background:#26201c0d;color:#a89a80;text-decoration:line-through}
+.btn2.skb{display:inline-flex;flex-direction:column;align-items:center;line-height:1.1;padding:4px 12px}.btn2.skb small{font-size:10px;font-weight:400;opacity:.8}.btn2.skb.on{background:#d4a01f;color:#2a1d05;border-color:#a8740c;box-shadow:0 0 10px #d4a01f88}
+
+/* 일기토: 두 장수가 마주 선다 */
+.duelp.vs{display:flex;flex-direction:column;gap:8px}
+.vhead{display:flex;align-items:center;gap:8px}.vhead b{font-size:17px}.vhead .chip{margin-left:auto}
+.vbars{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end}.vbars .r{text-align:right}.vbars .r .vname{flex-direction:row-reverse}
+.vname{display:flex;align-items:baseline;gap:6px;margin-bottom:3px}.vname b{font-size:15px}.vname small{font-size:11px;color:var(--muted,#7a6d5a)}
+.vvs{font-family:var(--seal,serif);font-size:22px;color:var(--red);padding-bottom:2px}
+.vhp{position:relative;height:14px;border-radius:7px;background:#3a1410;overflow:hidden}.vhp i{position:absolute;top:0;bottom:0;left:0;background:linear-gradient(90deg,#c9971c,#f0cf62);transition:width .5s}
+.vhp.foe i{left:auto;right:0;background:linear-gradient(270deg,#a3322a,#d8574c)}.vhp b{position:absolute;top:-1px;font-size:11px;color:#fff;text-shadow:0 0 2px #000;left:6px}.vhp.foe b{left:auto;right:6px}
+.vpip{display:inline-flex;gap:3px;margin-left:4px}.vpip i{width:8px;height:8px;border-radius:50%;background:#26201c22;display:block}.vpip i.on{background:#d4a01f;box-shadow:0 0 6px #d4a01f}
+.varena{position:relative;height:min(52vw,230px);border-radius:14px;overflow:hidden;background:linear-gradient(180deg,rgba(20,15,10,.15),rgba(20,15,10,.45)),url(art/duel.webp) center 45%/cover;display:flex;justify-content:space-between;align-items:flex-end;padding:0 4%}
+.vfig{width:42%;max-width:190px;position:relative;z-index:2}.vfig .pt{width:100%!important;height:auto!important;aspect-ratio:1;border-radius:14px;border:2px solid #d4a01f;box-shadow:0 8px 20px rgba(0,0,0,.5)}
+.vfig.r .pt{border-color:#a3322a}
+.vfig.l.lunge{animation:vlungeR .7s ease}.vfig.r.lunge{animation:vlungeL .7s ease}
+.vfig.hit{animation:vhit .7s ease}.vfig.clash{animation:vclash .6s ease}
+@keyframes vlungeR{0%{transform:none}35%{transform:translateX(38%) scale(1.06)}60%{transform:translateX(30%)}100%{transform:none}}
+@keyframes vlungeL{0%{transform:none}35%{transform:translateX(-38%) scale(1.06)}60%{transform:translateX(-30%)}100%{transform:none}}
+@keyframes vhit{0%,30%{transform:none;filter:none}40%{transform:translateX(-6px) rotate(-2deg);filter:brightness(1.6) sepia(1) hue-rotate(-30deg) saturate(4)}55%{transform:translateX(6px) rotate(2deg)}70%{transform:translateX(-3px);filter:none}100%{transform:none}}
+@keyframes vclash{0%{transform:none}40%{transform:scale(1.05)}100%{transform:none}}
+.vspark{position:absolute;left:50%;top:45%;width:10px;height:10px;transform:translate(-50%,-50%);z-index:3;pointer-events:none}
+.vspark.on{animation:vspark .7s ease-out forwards}
+@keyframes vspark{0%,25%{opacity:0;box-shadow:none}35%{opacity:1;box-shadow:0 0 0 6px #fff8,0 0 30px 18px #ffe27a,0 0 60px 30px #ff9b3a99}100%{opacity:0;box-shadow:0 0 0 40px #fff0,0 0 80px 50px #ffe27a00}}
+.vpop{position:absolute;top:18%;font-weight:900;font-size:26px;color:#ffe27a;text-shadow:0 0 4px #a3322a,0 2px 2px #000;z-index:4;animation:tbfx 1.3s ease-out forwards;pointer-events:none}.vpop.r{right:14%}.vpop.l{left:14%;color:#ffd0c8}.vpop.c{left:50%;transform:translateX(-50%);font-size:18px;color:#fff}
+.vcut{position:absolute;left:0;right:0;top:34%;text-align:center;z-index:5;pointer-events:none;animation:vcut 1.4s ease forwards}
+.vcut b{display:inline-block;font-family:var(--seal,serif);font-size:34px;letter-spacing:.12em;color:#ffe27a;padding:4px 18px;background:rgba(20,15,10,.82);border-top:2px solid #d4a01f;border-bottom:2px solid #d4a01f;text-shadow:0 0 10px #ff9b3a}
+.vcut.foe b{color:#ffd0c8;border-color:#a3322a;text-shadow:0 0 10px #a3322a}
+@keyframes vcut{0%{opacity:0;transform:scale(1.8)}15%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(.96)}}
+.vwarn{margin:0;font-size:12.5px;font-weight:700;color:var(--red);background:#a3322a14;border-radius:8px;padding:6px 10px}
+@media (orientation:landscape) and (max-height:520px){.varena{height:40vh}.vfig{width:30%}}
+.tac.dm.sp{width:100%}.tac.dm.sp.on{background:linear-gradient(90deg,#d4a01f,#f0cf62);color:#2a1d05;border-color:#a8740c;box-shadow:0 0 12px #d4a01f99;animation:tbrd 1.4s infinite}
 </style>
 <div id="app"></div>
 
@@ -2430,6 +2488,8 @@ function autoBattle(){
 }
 /* ---------------- 일기토 (5합 승부: 강타 › 받아치기 › 속공 › 강타) ---------------- */
 const DMOVE = { heavy:['강타','내려찍어 방어를 깨뜨린다','強'], quick:['속공','재빨리 파고들어 강타를 끊는다','速'], guard:['받아치기','자세를 낮추고 속공을 되받는다','守'] };
+// 필살: 연달아 두 번 이기면(기세 2) 쓸 수 있다. 무엇으로 막든 꿰뚫지만, 받아치기에는 절반만 들어간다
+const DSP = { do:'일도양단', mo:'용린창', geuk:'천극난무', geom:'섬광일섬', gung:'연환시', pyeon:'철편격' };
 const DBEATS = { heavy:'guard', quick:'heavy', guard:'quick' };
 const DHINT = { heavy:'적이 병기를 높이 치켜든다. 강타가 올 듯하다.', quick:'적이 말 배를 박찰 채비를 한다. 속공이 올 듯하다.', guard:'적이 고삐를 당기며 자세를 낮춘다. 받아칠 듯하다.' };
 function duelStart(B){
@@ -2442,9 +2502,11 @@ function duelStart(B){
   if (B.ds.fw==='gung' || hasT(fp,'gung')){ B.ds.mh -= 8; pre.push('적장의 화살이 날아들었다 (그대 -8)'); }
   if (pre.length) B.ds.last = pre.join(' · ');
   duelIntro(B, fp);
+  if (!SIM) setTimeout(() => tipOnce('duel'), 300);
   duelNext(B.ds);
 }
 function duelFoePick(ds){
+  if (ds.fs >= 2 && Math.random() < .55 + ds.fm/400) return 'sp';
   const w = { heavy: 1 + ds.fm/60, quick: 1 + (100-ds.fm)/70 + ds.fi/150, guard: 1 + ds.fi/80 };
   const last = ds.hist[ds.hist.length-1];
   if (last){
@@ -2465,7 +2527,7 @@ function duelNext(ds){
   const p = clamp(.25 + (ds.mi - ds.fi)/110 + ds.mi/500, .1, .85);
   if (Math.random() < p){
     const truth = Math.random() < clamp(.78 + (ds.mi - ds.fi)/250, .55, .95);
-    ds.hint = truth ? ds.foeNext : pick(Object.keys(DMOVE).filter(k => k!==ds.foeNext));
+    ds.hint = ds.foeNext==='sp' ? null : truth ? ds.foeNext : pick(Object.keys(DMOVE).filter(k => k!==ds.foeNext));
   } else ds.hint = null;
 }
 const DTXT = {
@@ -2473,17 +2535,27 @@ const DTXT = {
   foe: { heavy:'적의 강타가 방어를 깨뜨렸다.', quick:'적의 속공이 강타의 틈을 파고들었다.', guard:'적이 속공을 받아쳤다.' }
 };
 function duelPick(m){
-  const B = G.battle; if (!B || B.done || !B.ds || !DMOVE[m]) return;
-  const ds = B.ds, f = ds.foeNext, base = { heavy:28, quick:18, guard:22 };
+  const B = G.battle; if (!B || B.done || !B.ds || !(DMOVE[m] || m==='sp')) return;
+  const ds = B.ds; if (m==='sp' && ds.ms < 2) m = 'heavy';
+  const f = ds.foeNext, base = { heavy:28, quick:18, guard:22, sp:40 };
   const WD = { do:{ heavy:1.15 }, mo:{ quick:1.08, guard:1.08 }, geuk:{ quick:1.15 }, geom:{ guard:1.15 }, gung:{}, pyeon:{ heavy:1.1, guard:1.05 } };
   const myK = (1 + (ds.my - ds.fm)/160) * (ds.mI||1) * ((WD[ds.mw]||{})[m]||1), foK = (1 - (ds.my - ds.fm)/160) * (ds.fI||1) * ((WD[ds.fw]||{})[f]||1);
   let res, dm = 0, df = 0, line;
-  if (m===f){ res = 'draw'; const h = m==='guard' ? 0 : Math.round(base[m]*.35); df = Math.round(h*myK); dm = Math.round(h*foK); line = m==='guard' ? '서로 자세를 지키며 맴돈다.' : '칼과 창이 맞부딪쳐 불꽃이 튀었다.'; ds.ms = 0; ds.fs = 0; }
+  const nm = k => k==='sp' ? '필살' : DMOVE[k][0];
+  if (m==='sp' || f==='sp'){
+    if (m==='sp' && f==='sp'){ res = 'draw'; df = Math.round(20*myK); dm = Math.round(20*foK); line = '두 필살이 정면으로 부딪쳤다! 병기가 튕겨 나간다.'; }
+    else if (m==='sp'){ res = 'me'; df = Math.round(base.sp*myK*(1 + ds.ms*.12)*(f==='guard' ? .5 : 1)*rnd(.92,1.08)); line = f==='guard' ? `${DSP[ds.mw]||'필살'}! 적장이 겨우 받아냈지만 크게 흔들린다.` : `${DSP[ds.mw]||'필살'}! 막을 틈도 없이 꿰뚫었다!`; }
+    else { res = 'foe'; dm = Math.round(base.sp*foK*(1 + ds.fs*.12)*(m==='guard' ? .5 : 1)*rnd(.92,1.08)); line = m==='guard' ? `적장의 ${DSP[ds.fw]||'필살'}! 받아치기로 절반은 막았다.` : `적장의 ${DSP[ds.fw]||'필살'}! 정통으로 맞았다.`; }
+    if (m==='sp') ds.ms = 0; if (f==='sp') ds.fs = 0;
+    if (res==='me' && f!=='sp') ds.fs = 0; if (res==='foe' && m!=='sp') ds.ms = 0;
+  }
+  else if (m===f){ res = 'draw'; const h = m==='guard' ? 0 : Math.round(base[m]*.35); df = Math.round(h*myK); dm = Math.round(h*foK); line = m==='guard' ? '서로 자세를 지키며 맴돈다.' : '칼과 창이 맞부딪쳐 불꽃이 튀었다.'; ds.ms = 0; ds.fs = 0; }
   else if (DBEATS[m]===f){ res = 'me'; df = Math.round(base[m]*myK*(1 + ds.ms*.12)*rnd(.88,1.12)); line = DTXT.me[m]; ds.ms++; ds.fs = 0; }
   else { res = 'foe'; dm = Math.round(base[f]*foK*(1 + ds.fs*.12)*rnd(.88,1.12)); line = DTXT.foe[f]; ds.fs++; ds.ms = 0; }
   ds.mh = Math.max(0, ds.mh - dm); ds.fh = Math.max(0, ds.fh - df);
-  ds.hist.push({ m, f, res }); ds.rounds.push({ k: res==='me' ? 'w' : res==='foe' ? 'l' : 'd', mh: ds.mh, fh: ds.fh });
-  ds.last = `${DMOVE[m][0]} 대 ${DMOVE[f][0]}. ${line}${df ? ` (적 -${df})` : ''}${dm ? ` (그대 -${dm})` : ''}`;
+  if (m!=='sp' && f!=='sp') ds.hist.push({ m, f, res }); ds.rounds.push({ k: res==='me' ? 'w' : res==='foe' ? 'l' : 'd', mh: ds.mh, fh: ds.fh });
+  ds.last = `${nm(m)} 대 ${nm(f)}. ${line}${df ? ` (적 -${df})` : ''}${dm ? ` (그대 -${dm})` : ''}`;
+  ds.fx = { res, m, f, dm, df, t: Date.now() };
   ds.r++;
   let out = null;
   if (ds.mh<=0 && ds.fh<=0) out = ds.rounds[ds.rounds.length-1].k==='w' ? 'win' : 'lose';
@@ -2524,7 +2596,7 @@ function duelFinish(B, out){
 function duelAuto(B){
   while (B && B.ds && !B.done){
     const ds = B.ds, p = ds.hint && Math.random() < .7 ? ds.hint : null;
-    const m = p ? Object.keys(DBEATS).find(k => DBEATS[k]===p) : pick(Object.keys(DMOVE));
+    const m = ds.ms >= 2 ? 'sp' : ds.fs >= 2 && Math.random() < .6 ? 'guard' : p ? Object.keys(DBEATS).find(k => DBEATS[k]===p) : pick(Object.keys(DMOVE));
     if (duelPick(m)==='end') return true;
   }
 }
@@ -2581,6 +2653,75 @@ const tbT = (tb, x, y) => (x<0 || y<0 || x>=TBW || y>=TBH) ? null : tb.g[y][x];
 const tbDist = (a, b) => Math.abs(a.x-b.x) + Math.abs(a.y-b.y);
 const tbRange = (tb, u, x, y) => u.type==='bow' ? (tbT(tb, x??u.x, y??u.y)==='w' ? 3 : 2) : 1;
 const tbById = (tb, id) => tb.units.find(u => u.id===id);
+let rndFix = 0;
+/* 장수 전법: 기력이 70 이상 모이면 쓸 수 있다. 장수의 능력·특성으로 정해진다. */
+const TB_SK = {
+  charge:{ n:'돌격', d:'붙어 있는 적에게 1.7배 공격. 반격을 받지 않고 적 사기 -15.', need:'melee' },
+  volley:{ n:'일제사격', d:'사거리 안 적과 그 옆 적까지 화살비. 옆 적은 절반 피해.', need:'range' },
+  wall:{ n:'철벽', d:'이 부대와 붙어 있는 아군이 다음 차례까지 받는 피해 40% 감소.', need:'self' },
+  confuse:{ n:'혼란', d:'3칸 안의 적 하나를 어지럽혀 다음 차례를 쉬게 한다. 지략 차이로 성공률이 정해진다.', need:'r3' },
+  rally:{ n:'고무', d:'2칸 안 아군 사기 +20, 병력 5% 회복.', need:'self' },
+  blaze:{ n:'화계', d:'2칸 안 한 칸과 그 주변 숲에 반드시 불을 놓는다. 비가 오면 쓸 수 없다.', need:'r2' },
+};
+const TB_SP_COST = 70;
+function tbSkillOf(p, type){
+  if (!p) return type==='cav' ? 'charge' : type==='bow' ? 'volley' : 'wall';
+  const t = p.tr2 || [], c = [];
+  if (t.includes('hwagye') || p.i >= 90) c.push(['blaze', p.i]);
+  if (t.includes('gangye') || t.includes('ganpa') || p.i >= 85) c.push(['confuse', p.i - 2]);
+  if (t.includes('dukmang') || p.c >= 90) c.push(['rally', p.c - 4]);
+  if (t.includes('ilgi') || t.includes('yongmaeng') || type==='cav' && p.m >= 80) c.push(['charge', p.m]);
+  if (type==='bow' || t.includes('gung')) c.push(['volley', (p.l + p.m)/2]);
+  if (t.includes('susung') || type==='spear' && p.l >= 75) c.push(['wall', p.l - 3]);
+  if (!c.length) return type==='cav' ? 'charge' : type==='bow' ? 'volley' : 'wall';
+  return c.sort((a,b) => b[1]-a[1])[0][0];
+}
+function tbFx(tb, u, txt, cls){ (tb.fx = tb.fx || []).push({ x:u.x, y:u.y, txt, cls, t:Date.now() }); if (tb.fx.length > 12) tb.fx = tb.fx.slice(-12); }
+function tbCut(tb, u){ tb.cut = { gid:u.gid, name:u.name, sk:TB_SK[u.sk].n, side:u.side, t:Date.now() }; }
+// 전법 대상 칸: 어디를 누르면 쓸 수 있는지
+function tbSkTargets(tb, u){
+  const foes = tb.units.filter(o => !o.out && o.side!==u.side && !o.hidden), out = [];
+  const need = TB_SK[u.sk].need;
+  if (need==='melee') for (const f of foes) if (tbDist(u, f)===1) out.push([f.x, f.y]);
+  if (need==='range') for (const f of foes) if (tbDist(u, f) <= tbRange(tb, u)) out.push([f.x, f.y]);
+  if (need==='r3') for (const f of foes) if (tbDist(u, f) <= 3) out.push([f.x, f.y]);
+  if (need==='r2') for (let y=0;y<TBH;y++) for (let x=0;x<TBW;x++){ const d = Math.abs(x-u.x)+Math.abs(y-u.y), t = tbT(tb, x, y); if (d>=1 && d<=2 && 'pfbk'.includes(t)) out.push([x, y]); }
+  if (need==='self') out.push([u.x, u.y]);
+  return out;
+}
+function tbSkill(B, u, x, y){
+  const tb = B.tb, k = u.sk; if (!k || u.sp < TB_SP_COST || u.out) return false;
+  const d = tbU(tb, x, y);
+  if (!tbSkTargets(tb, u).some(([a,b]) => a===x && b===y)) return false;
+  if (k==='blaze' && tb.rain) return false;
+  u.sp -= TB_SP_COST; u.hidden = false; tbCut(tb, u);
+  if (k==='charge'){ const dm = tbHit(tb, d, tbPow(tb, u, d, true)*1.7); d.morale = clamp(d.morale-15, 0, 130); tbFx(tb, d, '-'+fmt(dm), 'big'); tb.log.push(`${u.name}의 돌격! ${d.name} -${fmt(dm)}, 반격 없음`); tbCheckRout(B, d); }
+  else if (k==='volley'){ const dm = tbHit(tb, d, tbPow(tb, u, d, false)*1.15); tbFx(tb, d, '-'+fmt(dm), 'big'); let line = `${u.name}의 일제사격! ${d.name} -${fmt(dm)}`;
+    for (const o of tb.units.filter(o => !o.out && o.side===d.side && o!==d && tbDist(o, d)===1)){ const s = tbHit(tb, o, tbPow(tb, u, o, false)*.5); tbFx(tb, o, '-'+fmt(s)); line += ` · ${o.name} -${fmt(s)}`; tbCheckRout(B, o); }
+    tb.log.push(line); tbCheckRout(B, d); }
+  else if (k==='wall'){ for (const o of tb.units.filter(o => !o.out && o.side===u.side && tbDist(o, u)<=1)){ o.wallT = tb.turn + 1; tbFx(tb, o, '철벽', 'buff'); } tb.log.push(`${u.name}의 철벽! 주변 아군이 방패를 세웠다.`); }
+  else if (k==='confuse'){ const ch = clamp(.55 + (u.i - d.i)/100, .15, .92);
+    if (Math.random() < ch){ d.stun = 1; d.morale = clamp(d.morale-10, 0, 130); tbFx(tb, d, '혼란', 'debuff'); tb.log.push(`${u.name}의 계략! ${d.name} 부대가 혼란에 빠졌다.`); }
+    else { tbFx(tb, d, '간파', 'miss'); tb.log.push(`${d.name}이(가) ${u.name}의 계략을 꿰뚫어 보았다.`); } }
+  else if (k==='rally'){ for (const o of tb.units.filter(o => !o.out && o.side===u.side && tbDist(o, u)<=2)){ o.morale = clamp(o.morale+20, 0, 130); o.troops = Math.min(o.max, o.troops + Math.round(o.max*.05)); tbFx(tb, o, '사기↑', 'buff'); } tb.log.push(`${u.name}이(가) 병사들을 북돋웠다!`); }
+  else if (k==='blaze'){ tb.fire[x+','+y] = 3; for (const [dx,dy] of WIND){ const nx = x+dx, ny = y+dy; if (tbT(tb, nx, ny)==='f') tb.fire[nx+','+ny] = 2; }
+    if (d && d.side!==u.side){ const dm = tbHit(tb, d, d.troops*.18); tbFx(tb, d, '-'+fmt(dm), 'big'); d.hidden = false; tbCheckRout(B, d); } tb.log.push(`${u.name}의 화계! 불길이 번진다.`); }
+  return true;
+}
+// 예상: 공격하면 얼마나 주고 받는가 (확률 없이 평균값)
+function tbForecast(tb, a, d){
+  const melee = tbDist(a, d)===1, avg = (x, y, m) => { rndFix = 1; const v = tbPow(tb, x, y, m); rndFix = 0; return v; };
+  const dmg = Math.min(d.troops, Math.round(avg(a, d, melee)*(a.hidden ? 1.5 : 1)));
+  const back = melee && !a.hidden ? Math.min(a.troops, Math.round(avg(d, Object.assign({}, a), true)*(d.type==='bow' ? .45 : .6)*((d.troops-dmg)/Math.max(1, d.troops)))) : 0;
+  const adv = UBEATS[a.type]===d.type ? 1 : UBEATS[d.type]===a.type ? -1 : 0;
+  return { dmg, back, adv, rout: d.troops - dmg <= d.max*.15 };
+}
+// 별 세 개: 이기기 · 5턴 안에 · 아군 부대가 하나도 무너지지 않기
+function tbStars(B, w){
+  const tb = B.tb; if (!tb || w!==B.ps) return 0;
+  return 1 + (tb.turn <= 5 ? 1 : 0) + (tb.units.some(u => u.side===B.ps && u.out) ? 0 : 1);
+}
+
 function tbStart(){
   const B = G.battle; if (!B || B.done || B.tb || B.kind==='hduel') return;
   const t = city(B.to), terr = TERRAIN[B.to] || 'plain', siege = B.kind==='siege' && t.wall > 0;
@@ -2602,7 +2743,7 @@ function tbStart(){
       let type = ['spear','bow','spear','cav','bow'][i];
       if (p){ const sc = u => APT_MUL[aptOf(p,u)] + (u==='cav' ? (p.m-60)/400 : u==='bow' ? (p.i-60)/400 : (p.l-60)/400); type = ['cav','spear','bow'].sort((a,b) => sc(b)-sc(a))[0]; }
       return { id:side[0]+i, side, gid: p ? p.id : null, name: p ? p.n : (i===0 ? s.name : '부장'), m: p ? p.m : 45, i: p ? p.i : 40, l: p ? p.l : 48, t2: p ? (p.tr2||[]).slice() : [],
-        type, troops:tr, max:tr, morale:clamp(Math.round(s.morale), 30, 120), train:s.train||50, cmd:i===0, x:0, y:0, done:false, moved:false, hidden:false, out:false, dueled:false }; });
+        type, troops:tr, max:tr, morale:clamp(Math.round(s.morale), 30, 120), train:s.train||50, cmd:i===0, x:0, y:0, done:false, moved:false, hidden:false, out:false, dueled:false, sk: tbSkillOf(p, type), sp: 40 + (p && p.i >= 80 ? 10 : 0), stun:0 }; });
   };
   const att = build('att', B.att, attPool), def = build('def', B.def, defPool);
   [[3,8],[2,7],[4,7],[1,8],[5,8]].forEach(([x,y], i) => { if (att[i]){ att[i].x = x; att[i].y = y; g[y][x] = 'p'; } });
@@ -2611,6 +2752,7 @@ function tbStart(){
   B.tb = { g, units:[...att, ...def], turn:1, wind:ri(0,3), rain:Math.random()<.12, fire:{}, gate, gate0:gate, siege, sel:null, act:null,
     log:[siege ? '성문을 부수고 본영을 점령하라.' : '적 부대를 무너뜨리거나 본영을 점령하라.'].slice(0, B.ps==='att' ? 1 : 0).concat(B.ps==='def' ? [`${TB_TURNS}턴 동안 버텨 내면 이긴다.`] : []) };
   B.stage = null; B.scout = null; B.moment = null;
+  if (!SIM) setTimeout(() => tipOnce('tb'), 300);
   if (B.ps==='def') tbAi(B, 'att');
 }
 function tbPass(tb, u, x, y){ const t = tbT(tb, x, y); if (!t) return false; if (t==='w') return u.side==='def'; if (t==='g') return u.side==='def' || tb.gate<=0; return true; }
@@ -2637,7 +2779,8 @@ function tbPow(tb, a, d, melee){
   if (a.type==='cav' && a.t2.includes('gima')) k *= 1.1;
   if (d.t2.includes('susung') && 'wk'.includes(tbT(tb, d.x, d.y))) k *= .85;
   const flank = tb.units.filter(o => !o.out && o.side===a.side && o!==a && tbDist(o, d)===1).length;
-  return a.troops * k * (1 + Math.min(2, flank)*.12) * rnd(.85, 1.15);
+  if (d.wallT >= tb.turn) k *= .6;
+  return a.troops * k * (1 + Math.min(2, flank)*.12) * (rndFix ? 1 : rnd(.85, 1.15));
 }
 function tbHit(tb, d, dmg){ dmg = Math.min(d.troops, Math.round(dmg)); d.troops -= dmg; d.morale = clamp(d.morale - dmg/d.max*70, 0, 130); return dmg; }
 function tbCheckRout(B, u){
@@ -2648,7 +2791,8 @@ function tbCheckRout(B, u){
 function tbAttack(B, a, d){
   const tb = B.tb, melee = tbDist(a, d)===1, amb = a.hidden ? 1.5 : 1; a.hidden = false;
   const dm = tbHit(tb, d, tbPow(tb, a, d, melee)*amb); let line = `${amb>1 ? '매복! ' : ''}${a.name} → ${d.name} -${fmt(dm)}`;
-  if (melee && d.troops>0 && amb===1){ const cm = tbHit(tb, a, tbPow(tb, d, a, true)*(d.type==='bow' ? .45 : .6)); line += ` · 반격 -${fmt(cm)}`; }
+  tbFx(tb, d, '-'+fmt(dm), amb>1 ? 'big' : ''); a.sp = Math.min(100, (a.sp||0) + 10); d.sp = Math.min(100, (d.sp||0) + 10);
+  if (melee && d.troops>0 && amb===1){ const cm = tbHit(tb, a, tbPow(tb, d, a, true)*(d.type==='bow' ? .45 : .6)); line += ` · 반격 -${fmt(cm)}`; tbFx(tb, a, '-'+fmt(cm), 'back'); }
   a.morale = clamp(a.morale+3, 0, 130); tb.log.push(line); tbCheckRout(B, d); tbCheckRout(B, a);
 }
 function tbGate(B, a){
@@ -2716,6 +2860,8 @@ function tbFinish(B, w){
   B.att.troops = sum('att'); B.def.troops = sum('def'); B.att.morale = clamp(mor('att'), 0, 130); B.def.morale = clamp(mor('def'), 0, 130);
   if (tb.siege && tb.gate0) t.wall = Math.round(t.wall * Math.max(0, tb.gate)/tb.gate0);
   B.log = [w===B.ps ? '전장을 제압했다!' : B.ps==='att' && tb.turn > TB_TURNS ? '날이 저물도록 성을 무너뜨리지 못했다.' : '전열이 무너졌다.', ...tb.log.slice(-2)];
+  const st = tbStars(B, w); B.tbStars = st;
+  if (st){ const bonus = st*8; G.merit += bonus; B.log.push(`별 ${'★'.repeat(st)}${'☆'.repeat(3-st)} · 공적 +${bonus}`); }
   B.tbTurns = tb.turn; B.tb = null; B.ds = null;
   endB(B, w); finishBattle();
   return true;
@@ -2729,7 +2875,7 @@ function tbRoundEnd(B){
   for (const k of Object.keys(tb.fire)) if (--tb.fire[k] <= 0) delete tb.fire[k];
   if (Math.random()<.3) tb.wind = ri(0,3);
   tb.turn++;
-  for (const u of tb.units){ u.done = false; u.moved = false; }
+  for (const u of tb.units){ u.done = false; u.moved = false; if (!u.out) u.sp = Math.min(100, (u.sp||0) + 25); if (u.stun > 0 && !u.out){ u.stun--; u.done = true; tb.log.push(`${u.name} 부대는 혼란에 빠져 움직이지 못한다.`); } }
   if (tb.log.length > 30) tb.log = tb.log.slice(-12);
   tbCheck(B);
 }
@@ -2756,6 +2902,14 @@ function tbAiUnit(B, u){
   if (!best){ u.done = true; return; }
   if (best.x!==u.x || best.y!==u.y) tbMove(B, u, best.x, best.y);
   if (u.out || B.done){ u.done = true; return; }
+  if (u.sk && u.sp >= TB_SP_COST && Math.random() < .55 + ai*.4){
+    const ts = tbSkTargets(tb, u), k = u.sk; let pickT = null;
+    if (k==='wall'){ if (foes.filter(f => tbDist(u, f)<=2).length >= 2) pickT = ts[0]; }
+    else if (k==='rally'){ const mine = tb.units.filter(o => !o.out && o.side===u.side); if (mine.reduce((a,o)=>a+o.morale,0)/mine.length < 75) pickT = ts[0]; }
+    else if (k==='blaze'){ if (!tb.rain) pickT = ts.filter(([x,y]) => { const o = tbU(tb, x, y); return o && o.side!==u.side; }).sort(() => Math.random()-.5)[0]; }
+    else pickT = ts.map(([x,y]) => [x, y, tbU(tb, x, y)]).filter(z => z[2]).sort((a,b) => (b[2].cmd - a[2].cmd) || (a[2].troops - b[2].troops))[0];
+    if (pickT && tbSkill(B, u, pickT[0], pickT[1])){ u.done = true; return; }
+  }
   const tgt = best.tgt && !best.tgt.out && tbDist(u, best.tgt) <= tbRange(tb, u) ? best.tgt : null;
   if (tgt && u.gid && tgt.gid && !u.dueled && !tgt.dueled && tbDist(u, tgt)===1 && u.m - tgt.m >= 12 && Math.random() < .35*ai) tbDuelAuto(B, u, tgt);
   else if (tgt && !tb.rain && u.i>=70 && tbDist(u, tgt)===2 && 'pf'.includes(tbT(tb, tgt.x, tgt.y)) && !tb.fire[tgt.x+','+tgt.y] && Math.random() < ai*.5) tbFire(B, u, tgt.x, tgt.y);
@@ -2769,33 +2923,58 @@ function tbAi(B, side){
   for (const u of tb.units.filter(o => o.side===side).sort((a,b) => (a.cmd?1:0)-(b.cmd?1:0))){ if (B.done || !B.tb) return; tbAiUnit(B, u); if (B.tb) tbCheck(B); }
 }
 function tbEndTurn(){
-  const B = G.battle; if (!B || !B.tb || B.done || B.ds) return;
-  B.tb.sel = null; B.tb.act = null;
-  if (B.ps==='att'){ tbAi(B, 'def'); if (B.tb && !B.done) tbRoundEnd(B); }
-  else { tbRoundEnd(B); if (B.tb && !B.done) tbAi(B, 'att'); }
+  const B = G.battle; if (!B || !B.tb || B.done || B.ds || B.tb.busy) return;
+  B.tb.sel = null; B.tb.act = null; B.tb.aim = null; B.tb.peek = null;
+  if (SIM){
+    if (B.ps==='att'){ tbAi(B, 'def'); if (B.tb && !B.done) tbRoundEnd(B); }
+    else { tbRoundEnd(B); if (B.tb && !B.done) tbAi(B, 'att'); }
+    return;
+  }
+  // 적의 차례: 부대 하나씩 움직이며 보여 준다
+  const run = (side, then) => {
+    const q = B.tb.units.filter(o => o.side===side).sort((a,b) => (a.cmd?1:0)-(b.cmd?1:0)).map(u => u.id); B.tb.busy = true;
+    const step = () => {
+      if (!B.tb || B.done || G.battle!==B){ if (B.tb) B.tb.busy = false; save(); render(); return; }
+      const id = q.shift();
+      if (id===undefined){ B.tb.busy = false; then(); return; }
+      const u = tbById(B.tb, id);
+      if (!u || u.out || u.done) return step();
+      tbAiUnit(B, u); if (B.tb) tbCheck(B); save(); render(); setTimeout(step, (META.prefs||{}).fast ? 260 : 560);
+    };
+    step();
+  };
+  if (B.ps==='att') run('def', () => { if (B.tb && !B.done) tbRoundEnd(B); save(); render(); });
+  else { tbRoundEnd(B); save(); render(); if (B.tb && !B.done) run('att', () => { save(); render(); }); }
 }
 function tbAuto(){
   const B = G.battle; let guard = 0;
   while (B && B.tb && !B.done && guard++ < 60){ if (B.ds){ duelAuto(B); continue; } tbAi(B, B.ps); if (B.tb && !B.done) tbEndTurn(); }
 }
 function tbTap(x, y){
-  const B = G.battle, tb = B && B.tb; if (!tb || B.done || B.ds) return;
+  const B = G.battle, tb = B && B.tb; if (!tb || B.done || B.ds || tb.busy) return;
   const u = tbU(tb, x, y), s = tb.sel ? tbById(tb, tb.sel) : null;
+  tb.peek = null;
   if (s && !s.done && !s.out){
     const d = Math.abs(x-s.x) + Math.abs(y-s.y);
     if (tb.act==='fire'){ if (d>=1 && d<=2){ tbFire(B, s, x, y); tbDoneUnit(B, s); } else tb.act = null; return; }
-    if (u && u.side!==s.side && !u.hidden && d <= tbRange(tb, s)){ tbAttack(B, s, u); tbDoneUnit(B, s); return; }
+    if (tb.act==='skill'){ if (tbSkill(B, s, x, y)) tbDoneUnit(B, s); else tb.act = null; return; }
+    // 적을 한 번 누르면 예상 피해를 보여 주고, 한 번 더 누르면 공격한다
+    if (u && u.side!==s.side && !u.hidden && d <= tbRange(tb, s)){ if (tb.aim===u.id){ tb.aim = null; tbAttack(B, s, u); tbDoneUnit(B, s); } else tb.aim = u.id; return; }
     if (!u && tbT(tb, x, y)==='g' && tb.gate>0 && s.side==='att' && d===1){ tbGate(B, s); tbDoneUnit(B, s); return; }
     if (!u && !s.moved && tbReach(tb, s)[x+','+y]!==undefined){ tbMove(B, s, x, y); if (s.out){ tb.sel = null; } tbCheck(B); return; }
   }
+  tb.aim = null;
   if (u && u.side===B.ps && !u.done) { tb.sel = u.id; tb.act = null; } else if (!u || u.side===B.ps){ tb.sel = null; tb.act = null; }
+  else if (u && u.side!==B.ps && !u.hidden){ tb.peek = u.id; tb.sel = null; tb.act = null; }
 }
 function tbAct(k){
-  const B = G.battle, tb = B && B.tb; if (!tb || B.done || B.ds) return;
+  const B = G.battle, tb = B && B.tb; if (!tb || B.done || B.ds || tb.busy) return;
   if (k==='end') return tbEndTurn();
   if (k==='auto') return tbAuto();
   const s = tb.sel ? tbById(tb, tb.sel) : null; if (!s || s.done || s.out) return;
   if (k==='fire'){ tb.act = tb.act==='fire' ? null : 'fire'; return; }
+  if (k==='skill'){ if (s.sp < TB_SP_COST) return; if (TB_SK[s.sk].need==='self'){ if (tbSkill(B, s, s.x, s.y)) tbDoneUnit(B, s); return; } tb.act = tb.act==='skill' ? null : 'skill'; tb.aim = null; return; }
+  if (k==='go' && tb.aim){ const e = tbById(tb, tb.aim); tb.aim = null; if (e && !e.out){ tbAttack(B, s, e); tbDoneUnit(B, s); } return; }
   if (k==='hide'){ if (tbT(tb, s.x, s.y)==='f'){ s.hidden = true; tb.log.push(`${s.name} 부대가 숲에 몸을 숨겼다.`); tbDoneUnit(B, s); } return; }
   if (k==='wait') return tbDoneUnit(B, s);
   if (k==='duel'){ const e = tb.units.filter(o => !o.out && !o.hidden && o.side!==s.side && o.gid && !o.dueled && tbDist(o, s)===1).sort((a,b) => b.m-a.m)[0];
@@ -2803,9 +2982,15 @@ function tbAct(k){
     if (s.gid===G.pid) tbDuelStart(B, s, e); else { tbDuelAuto(B, s, e); tbDoneUnit(B, s); } }
 }
 function tbHtml(B){
-  const tb = B.tb, flip = B.ps==='def', s = tb.sel ? tbById(tb, tb.sel) : null;
+  const tb = B.tb, flip = B.ps==='def', s = tb.sel ? tbById(tb, tb.sel) : null, now = Date.now();
   const reach = s && !s.moved && !s.done ? tbReach(tb, s) : {}, rg = s && !s.done ? tbRange(tb, s) : 0;
-  const GL = { cav:'騎', spear:'槍', bow:'弓' };
+  const aim = tb.aim ? tbById(tb, tb.aim) : null, peek = tb.peek ? tbById(tb, tb.peek) : null;
+  const skT = s && tb.act==='skill' ? new Set(tbSkTargets(tb, s).map(([x,y]) => x+','+y)) : null;
+  // 적 위협 범위: 적을 누르면 그 부대가 다음 차례에 닿을 수 있는 칸
+  let threat = null;
+  if (peek){ threat = new Set(); const r = tbReach(tb, peek); for (const k of Object.keys(r)){ const [x,y] = k.split(',').map(Number), rr = tbRange(tb, peek, x, y);
+    for (let yy=0; yy<TBH; yy++) for (let xx=0; xx<TBW; xx++) if (Math.abs(xx-x)+Math.abs(yy-y) <= rr) threat.add(xx+','+yy); } }
+  const GL = { cav:'騎', spear:'槍', bow:'弓' }, fx = (tb.fx||[]).filter(f => now - f.t < 1300);
   let cells = '';
   for (let ry=0; ry<TBH; ry++){ const y = flip ? TBH-1-ry : ry;
     for (let rx=0; rx<TBW; rx++){ const x = flip ? TBW-1-rx : rx, t = tb.g[y][x], k = x+','+y, u = tbU(tb, x, y), mine = u && u.side===B.ps;
@@ -2813,31 +2998,48 @@ function tbHtml(B){
       let cls = `tbc t-${t}`;
       if (tb.fire[k]) cls += ' fire';
       if (t==='g' && tb.gate<=0) cls += ' open';
-      if (s && tb.act==='fire'){ if (d>=1 && d<=2) cls += ' hf'; }
-      else if (s && show && !mine && d<=rg) cls += ' ha';
+      if (threat && threat.has(k)) cls += ' ht';
+      if (skT){ if (skT.has(k)) cls += ' hs'; }
+      else if (s && tb.act==='fire'){ if (d>=1 && d<=2) cls += ' hf'; }
+      else if (s && show && !mine && d<=rg) cls += aim===u ? ' ha aim' : ' ha';
       else if (s && !u && t==='g' && tb.gate>0 && s.side==='att' && d===1) cls += ' ha';
       else if (s && !u && reach[k]!==undefined) cls += ' hm';
       let inner = '';
-      if (show){ const p = u.gid ? person(u.gid) : null, pct = clamp(u.troops/u.max*100, 0, 100);
-        inner = `<span class="tbu ${mine?'me':'foe'}${u.done&&mine?' done':''}${s===u?' sel':''}${u.hidden?' hid':''}${u.cmd?' cmd':''}">${p ? pp(p, 30) : `<img loading="lazy" decoding="async" class="tbimg" src="art/u_${u.type}.webp" alt="">`}<i class="tbty">${GL[u.type]}</i><b>${u.troops>=1000 ? (u.troops/1000).toFixed(1)+'k' : u.troops}</b><em style="width:${pct}%"></em></span>`; }
+      if (show){ const p = u.gid ? person(u.gid) : null, pct = clamp(u.troops/u.max*100, 0, 100), ready = u.sk && u.sp >= TB_SP_COST;
+        inner = `<span class="tbu ${mine?'me':'foe'}${u.done&&mine?' done':''}${s===u?' sel':''}${u.hidden?' hid':''}${u.cmd?' cmd':''}${ready?' ready':''}">${p ? pp(p, 30) : `<img loading="lazy" decoding="async" class="tbimg" src="art/u_${u.type}.webp" alt="">`}<i class="tbty">${GL[u.type]}</i><b>${u.troops>=1000 ? (u.troops/1000).toFixed(1)+'k' : u.troops}</b>${u.stun?'<i class="tbst">亂</i>':u.wallT>=tb.turn?'<i class="tbst w">盾</i>':''}<em style="width:${pct}%"></em><u style="width:${clamp(u.sp||0,0,100)}%"></u></span>`; }
       else if (t==='g' && tb.gate>0) inner = `<span class="tbl">門 ${tb.gate}</span>`;
       else if (t==='k') inner = `<span class="tbl">本</span>`;
+      inner += fx.filter(f => f.x===x && f.y===y).map((f, i) => `<span class="tbfx ${f.cls||''}" style="animation-delay:${i*90 - (now - f.t)}ms">${esc(f.txt)}</span>`).join('');
       cells += `<button class="${cls}" data-tb="${k}" aria-label="${TB_TN[t]}">${inner}</button>`; } }
+  const cut = tb.cut && now - tb.cut.t < 1500 ? tb.cut : null, cp = cut && cut.gid ? person(cut.gid) : null;
+  const cutHtml = cut ? `<div class="tbcut ${cut.side===B.ps ? 'me' : 'foe'}" style="animation-delay:-${now - cut.t}ms">${cp ? pp(cp, 120) : ''}<div><small>${esc(cut.name)}</small><b>${esc(cut.sk)}</b></div></div>` : '';
   const w = WIND[tb.wind], wd = flip ? WIND[(tb.wind+2)%4][2] : w[2];
   const canDuel = s && s.gid && !s.dueled && tb.units.some(o => !o.out && !o.hidden && o.side!==s.side && o.gid && !o.dueled && tbDist(o, s)===1);
-  const info = s ? `<b>${esc(s.name)}</b> ${UNITS[s.type][0]} ${fmt(s.troops)} · 사기 ${Math.round(s.morale)} · ${TB_TN[tbT(tb, s.x, s.y)]}${s.moved?' · 이동함':''}` : '아군 부대를 눌러 고른다. 푸른 칸은 이동, 붉은 칸은 공격.';
-  const acts = s && !s.done ? `<div class="tbacts">
+  let info;
+  if (s && aim){ const f = tbForecast(tb, s, aim);
+    info = `<div class="tbfc"><div class="row between"><b>${esc(s.name)} → ${esc(aim.name)}</b>${f.adv>0?'<span class="chip up">상성 ▲</span>':f.adv<0?'<span class="chip down">상성 ▼</span>':''}</div>
+      <div class="fcrow"><span>적에게</span><b class="neg">-${fmt(f.dmg)}</b>${f.rout?'<span class="chip down">무너뜨림</span>':''}</div>
+      <div class="fcrow"><span>반격</span><b>${f.back ? '-'+fmt(f.back) : '없음'}</b></div>
+      <div class="fcrow"><span>지형</span><b>${TB_TN[tbT(tb, aim.x, aim.y)]}</b></div></div>`; }
+  else if (s) info = `<b>${esc(s.name)}</b> ${UNITS[s.type][0]} ${fmt(s.troops)} · 사기 ${Math.round(s.morale)} · ${TB_TN[tbT(tb, s.x, s.y)]}${s.moved?' · 이동함':''}<br><span class="tiny">전법 <b>${TB_SK[s.sk].n}</b> · 기력 ${Math.round(s.sp)}/${TB_SP_COST} — ${TB_SK[s.sk].d}</span>`;
+  else if (peek) info = `<b style="color:var(--red)">${esc(peek.name)}</b> ${UNITS[peek.type][0]} ${fmt(peek.troops)} · 사기 ${Math.round(peek.morale)}<br><span class="tiny">붉은 칸이 다음 차례에 이 부대가 닿을 수 있는 곳. 전법 <b>${TB_SK[peek.sk].n}</b>${peek.sp>=TB_SP_COST?' (준비됨!)':''}</span>`;
+  else info = '아군 부대를 눌러 고른다. 푸른 칸은 이동, 붉은 칸은 공격. 적을 누르면 위협 범위가 보인다.';
+  const ready = s && s.sp >= TB_SP_COST, skBtn = s ? `<button class="btn2 skb ${ready?'on':''}" data-tba="skill" aria-pressed="${tb.act==='skill'}" ${ready && !(s.sk==='blaze' && tb.rain) ? '' : 'disabled'}><b>${TB_SK[s.sk].n}</b><small>${ready ? '전법' : `기력 ${Math.round(s.sp)}/${TB_SP_COST}`}</small></button>` : '';
+  const acts = s && !s.done ? (aim ? `<div class="tbacts aim"><button class="btn" data-tba="go">공격한다</button><button class="btn2" data-tb="${s.x},${s.y}">취소</button></div>` : `<div class="tbacts">${skBtn}
       <button class="btn2" data-tba="fire" aria-pressed="${tb.act==='fire'}" ${tb.rain?'disabled':''}>화공</button>
       <button class="btn2" data-tba="hide" ${tbT(tb, s.x, s.y)==='f'?'':'disabled'}>매복</button>
       <button class="btn2" data-tba="duel" ${canDuel?'':'disabled'}>일기토</button>
-      <button class="btn2" data-tba="wait">대기</button></div>` : '';
+      <button class="btn2" data-tba="wait">대기</button></div>`) : '';
   const left = tb.units.filter(o => o.side===B.ps && !o.out && !o.done).length;
-  return `<div class="tbwrap"><div class="tbgrid">${cells}</div>
+  const lost = tb.units.some(u => u.side===B.ps && u.out);
+  const stars = `<div class="tbstar"><span class="on">★ 승리</span><span class="${tb.turn<=5?'on':'off'}">★ 5턴 안에</span><span class="${lost?'off':'on'}">★ 무너진 부대 없이</span></div>`;
+  return `<div class="tbwrap"><div class="tbgridw"><div class="tbgrid">${cells}</div>${cutHtml}</div>
     <div class="tbside"><div class="row between"><span class="chip">${Math.min(tb.turn, TB_TURNS)} / ${TB_TURNS}턴</span><span class="chip gold">바람 ${wd}${tb.rain?' · 비':''}</span>${tb.siege?`<span class="chip">성문 ${Math.max(0,tb.gate)}</span>`:''}</div>
-      <p class="small tbinfo">${info}</p>${tb.act==='fire' ? '<p class="tiny" style="color:var(--red)">불을 놓을 칸을 누른다 (2칸 안). 불은 바람을 타고 번진다.</p>' : ''}
+      ${stars}
+      <div class="small tbinfo">${info}</div>${tb.act==='fire' ? '<p class="tiny" style="color:var(--red)">불을 놓을 칸을 누른다 (2칸 안). 불은 바람을 타고 번진다.</p>' : tb.act==='skill' ? `<p class="tiny" style="color:#a8740c">${TB_SK[s.sk].n}: 노란 칸을 누른다.</p>` : ''}
       ${acts}
       <div class="log tblog">${tb.log.slice(-3).map(l => `<div>${esc(l)}</div>`).join('')}</div>
-      <div class="row"><button class="btn grow" data-tba="end">턴 종료${left ? ` (남은 부대 ${left})` : ''}</button><button class="btn2" data-tba="auto">맡긴다</button></div></div></div>`;
+      ${tb.busy ? '<div class="tbbusy">적의 차례…</div>' : `<div class="row"><button class="btn grow" data-tba="end">턴 종료${left ? ` (남은 부대 ${left})` : ''}</button><button class="btn2" data-tba="auto">맡긴다</button></div>`}</div></div>`;
 }
 
 /* ---------------- 원작의 일기토: 일기토만 하는 짧은 싸움 ---------------- */
@@ -4619,17 +4821,24 @@ function sideHtml(s, label){
 function tendency(s){ const m = Math.max(s.st.m, s.st.i, s.st.l); return m===s.st.m ? '성향: 돌격을 즐긴다' : m===s.st.i ? '성향: 화공을 노린다' : '성향: 기습과 방진에 능하다'; }
 const TGL = { charge:'突', fire:'火', ambush:'伏', wall:'陣' };
 function duelHtml(B, foe){
-  const ds = B.ds, fp = foe.gid && person(foe.gid);
-  const hp = (v, col) => `<div class="dhp"><i style="width:${clamp(v,0,100)}%;background:${col}"></i><b>${Math.round(v)}</b></div>`;
+  const ds = B.ds, fp = foe.gid && person(foe.gid), now = Date.now(), fx = ds.fx && now - ds.fx.t < 1400 ? ds.fx : null, dly = fx ? `animation-delay:-${now - fx.t}ms` : '';
+  const bar = (v, side) => `<div class="vhp ${side}"><i style="width:${clamp(v,0,100)}%"></i><b>${Math.round(Math.max(0,v))}</b></div>`;
+  const pips = n => `<span class="vpip">${[0,1,2].map(i => `<i class="${i<n?'on':''}"></i>`).join('')}</span>`;
   const card = k => `<button class="tac dm" data-dm="${k}"><b><span class="gl">${DMOVE[k][2]}</span>${DMOVE[k][0]}${ds.hint && DBEATS[k]===ds.hint ? ' <span class="chip up">간파 우위</span>' : ''}</b><small>${DMOVE[k][1]}</small></button>`;
-  return `<div class="duelp"><div class="mhead"><span class="seal">鬪</span><b>일기토 · ${Math.min(ds.r, ds.maxR)}합 / ${ds.maxR}</b></div>
-    <div class="dside"><div class="dm1">${pp(me(),64)}<div><b>${esc(me().n)}</b><small>무 ${ds.my}</small></div></div><div class="dvs">對</div><div class="dm1 r">${fp ? pp(fp,64) : ptHTML(DEFAULT_LOOK, 35, false, facColor(foe.fid), 64)}<div><b>${esc(foe.name)}</b><small>무 ${ds.fm}</small></div></div></div>
-    <div class="dbars">${hp(ds.mh,'var(--gold)')}${hp(ds.fh,'var(--red)')}</div>
-    ${ds.last ? `<p class="dlog">${esc(ds.last)}</p>` : ''}
+  const spOn = ds.ms >= 2;
+  const L = fx ? (fx.res==='me' ? 'lunge' : fx.res==='foe' ? 'hit' : 'clash') : '', R = fx ? (fx.res==='foe' ? 'lunge' : fx.res==='me' ? 'hit' : 'clash') : '';
+  const pop = fx ? `${fx.df ? `<span class="vpop r" style="${dly}">-${fx.df}</span>` : ''}${fx.dm ? `<span class="vpop l" style="${dly}">-${fx.dm}</span>` : ''}${fx.res==='draw' && !fx.df && !fx.dm ? `<span class="vpop c" style="${dly}">막았다</span>` : ''}` : '';
+  const spCut = fx && (fx.m==='sp' || fx.f==='sp') ? `<div class="vcut ${fx.m==='sp' ? 'me' : 'foe'}" style="${dly}"><b>${esc(fx.m==='sp' ? DSP[ds.mw]||'필살' : DSP[ds.fw]||'필살')}</b></div>` : '';
+  const warn = ds.fs >= 2 ? '<p class="vwarn">적장의 기세가 넘친다! 필살이 올 수 있다 — 받아치기면 절반만 맞는다.</p>' : '';
+  return `<div class="duelp vs"><div class="vhead"><span class="seal">鬪</span><b>일기토</b><span class="chip">${Math.min(ds.r, ds.maxR)}합 / ${ds.maxR}</span></div>
+    <div class="vbars"><div><div class="vname"><b>${esc(me().n)}</b><small>무 ${Math.round(me().m)}${ds.my > me().m ? '+'+Math.round(ds.my - me().m) : ''}</small>${pips(ds.ms)}</div>${bar(ds.mh,'me')}</div><div class="vvs">對</div><div class="r"><div class="vname"><b>${esc(foe.name)}</b><small>무 ${fp ? Math.round(fp.m) + (ds.fm > fp.m ? '+'+Math.round(ds.fm - fp.m) : '') : ds.fm}</small>${pips(ds.fs)}</div>${bar(ds.fh,'foe')}</div></div>
+    <div class="varena"><div class="vfig l ${L}" style="${dly}">${pp(me(), 150)}</div><div class="vspark ${fx ? 'on' : ''}" style="${dly}"></div><div class="vfig r ${R}" style="${dly}">${fp ? pp(fp, 150) : ptHTML(DEFAULT_LOOK, 35, false, facColor(foe.fid), 150)}</div>${pop}${spCut}</div>
+    ${ds.last ? `<p class="dlog">${esc(ds.last)}</p>` : ''}${warn}
     <p class="scout ${ds.hint ? '' : 'dim'}"><span class="seal sm ${ds.hint ? '' : 'dim'}">諜</span>${ds.hint ? esc(DHINT[ds.hint]) : `적의 수를 읽지 못했다. (지략 ${ds.mi} 대 ${ds.fi})`}</p>
     <div class="tacs three">${Object.keys(DMOVE).map(card).join('')}</div>
+    <button class="tac dm sp ${spOn ? 'on' : ''}" data-dm="sp" ${spOn ? '' : 'disabled'}><b><span class="gl">必</span>필살 · ${esc(DSP[ds.mw]||'필살')}</b><small>${spOn ? '기세가 찼다! 무엇이든 꿰뚫는다 (받아치기에는 절반)' : '두 번 연달아 이기면 쓸 수 있다'}</small></button>
     <div class="row"><button class="btn2 grow" id="duelAuto">알아서 겨룬다</button><button class="btn2" id="duelFlee">물러난다</button></div>
-    <p class="tiny muted">강타 › 받아치기 › 속공 › 강타. 같은 수를 내면 서로 상처 입는다. 이긴 수를 연달아 쓰면 기세가 오른다.</p></div>`;
+    <p class="tiny muted">강타 › 받아치기 › 속공 › 강타. 이길 때마다 기세(●)가 쌓이고, 두 번이면 필살.</p></div>`;
 }
 function viewBattle(){
   const B = G.battle, t = city(B.to);
@@ -4800,7 +5009,7 @@ function openSettings(){
   rs.onclick = () => { if (!armed){ armed = true; rs.textContent = '정말 지운다 (한 번 더 누르기) · 저장 칸·명성·업적 모두 삭제'; return; }
     try { for (let i=0;i<SLOTS;i++) localStorage.removeItem(slotKey(i)); localStorage.removeItem('nanse5-meta'); } catch(e) {} location.reload(); };
 }
-const TIPS = { army:'<b>군사</b> 화면이다. 내 병력과 훈련도를 보고, 출진 중인 부대의 행군을 확인한다. 훈련도가 높을수록 같은 병력으로 더 세게 싸운다.', people:'<b>인물</b> 화면이다. 인연을 쌓으면 의형제·혼인·등용 길이 열린다. 인연 50부터 혼담, 75부터는 하야할 때 따라나설 수도 있다.', family:'<b>가문</b> 화면이다. 혼인해 자식을 얻고, 자식을 가르쳐 장수로 출사시키거나 다른 가문과 혼인시킨다. 내가 죽으면 후계가 가문을 잇는다.', battle:'<b>전투</b>는 가위바위보다. 돌격›화공›방진›매복›돌격 순으로 이긴다. 지략이 높으면 적의 다음 수가 미리 보이니 "간파" 표시를 놓치지 말 것.' };
+const TIPS = { army:'<b>군사</b> 화면이다. 내 병력과 훈련도를 보고, 출진 중인 부대의 행군을 확인한다. 훈련도가 높을수록 같은 병력으로 더 세게 싸운다.', people:'<b>인물</b> 화면이다. 인연을 쌓으면 의형제·혼인·등용 길이 열린다. 인연 50부터 혼담, 75부터는 하야할 때 따라나설 수도 있다.', family:'<b>가문</b> 화면이다. 혼인해 자식을 얻고, 자식을 가르쳐 장수로 출사시키거나 다른 가문과 혼인시킨다. 내가 죽으면 후계가 가문을 잇는다.', battle:'<b>전투</b>는 두 가지로 치른다. <b>전장 지휘</b>는 부대를 하나씩 움직이는 싸움이고, <b>빠른 결판</b>은 병종 상성(기병›궁병›창병›기병)으로 3합에 끝낸다.', tb:'<b>전장 지휘</b><br>· 아군을 누르면 푸른 칸으로 이동, 붉은 칸의 적을 <b>한 번 누르면 예상 피해</b>, 한 번 더 누르면 공격한다.<br>· 적을 누르면 다음 차례에 그 부대가 닿는 <b>위협 범위</b>가 붉게 보인다.<br>· 장수마다 <b>전법</b>(돌격·일제사격·철벽·혼란·고무·화계)이 있다. 기력이 70 모이면 금빛으로 빛난다.<br>· 별 세 개: 이기기, 5턴 안에, 무너진 부대 없이. 별마다 공적이 붙는다.', duel:'<b>일기토</b><br>강타›받아치기›속공›강타. 이길 때마다 기세(●)가 쌓이고, 두 번 연달아 이기면 <b>필살</b>을 쓸 수 있다. 적의 기세가 넘치면 받아치기로 필살을 절반만 맞는다. 지략이 높으면 적의 수가 미리 보인다.' };
 function tipOnce(id){ if (SIM) return; if (!META.tips) META.tips = {}; if (META.tips[id] || !TIPS[id] || document.querySelector('.sheet-bg')) return; META.tips[id] = 1; saveMeta(); track('tip', { id }); sheet(`<h3>처음 온 곳</h3><p class="small">${TIPS[id]}</p><button class="btn2" data-close>알겠다</button>`); }
 function shareResult(text){ track('share'); try { if (navigator.share){ navigator.share({ title:'난세일생', text, url:location.href }).catch(()=>{}); return; } navigator.clipboard.writeText(text+' '+location.href).then(() => { const b = document.getElementById('shareBtn'); if (b) b.textContent = '복사했다 · 붙여넣어 자랑하기'; }); } catch(e) {} }
 function revive(){
@@ -5106,7 +5315,7 @@ function renderTitle0(){
   document.getElementById('btnDaily').onclick = openDaily; document.getElementById('btnHeir').onclick = openHeir;
   $app.querySelector('.page').insertAdjacentHTML('beforeend', `<p class="tiny muted" style="text-align:center">버전 ${BUILD}</p>`);
   Snd.mode('calm');
-  $app.querySelectorAll('[data-cont]').forEach(b => b.onclick = () => { const sv = loadSlot(+b.dataset.cont); if (!sv) return renderTitle(); G = sv; G.slot = +b.dataset.cont; if (G.battle) G.battle.anim = null; G.panel = false; render(); });
+  $app.querySelectorAll('[data-cont]').forEach(b => b.onclick = () => { const sv = loadSlot(+b.dataset.cont); if (!sv) return renderTitle(); G = sv; G.slot = +b.dataset.cont; if (G.battle){ G.battle.anim = null; if (G.battle.tb) G.battle.tb.busy = false; } G.panel = false; render(); });
   $app.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const i = +b.dataset.del, sv = loadSlot(i);
     const bg = sheet(`<h3>칸 ${i+1} 삭제</h3><p class="small muted">${esc(slotLabel(sv))}<br>이 기록은 되돌릴 수 없다.</p><button class="btn2" id="dOk">삭제한다</button><button class="btn2" data-close>취소</button>`);
     bg.querySelector('#dOk').onclick = () => { bg.remove(); try { localStorage.removeItem(slotKey(i)); } catch(e) {} renderTitle(); }; });
