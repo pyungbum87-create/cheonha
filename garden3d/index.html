@@ -4412,12 +4412,30 @@ function jzGround(name, routes, spots, mp) { return IMG[name]; }
 for (const m of MAPS) { if (!m.t3 || !m.hide || !m.hide.length) continue;
   for (const [ri, d0, d1] of m.hide) { const P = m.paths[ri]; let d = 0; const at = D => { let acc = 0; for (let i = 1; i < P.length; i++) { const sg = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); if (acc + sg >= D) { const q = (D - acc) / sg; return [P[i - 1][0] + (P[i][0] - P[i - 1][0]) * q, P[i - 1][1] + (P[i][1] - P[i - 1][1]) * q]; } acc += sg; } return P[P.length - 1]; };
     for (const D of [d0 + 30, d1 - 30]) { const [x, y] = at(D); m.decor.push(['mp_hole', x, y - 6, 0.42]); } } }
-// v41.1: combo pairs — no rope across the field (it hid the animals). Each partner gets a small pulsing ring at its foot in the combo colour.
+// v41.2: combo pairs — no rope, no hard ring: a soft light pool under each partner with a few slow motes rising from it
 function drawComboLinks() {
-  const T = performance.now() / 1000; COMBOS.forEach((c, i) => { if (!comboOn(i)) return; const col = ['#8fdc5a', '#ff8a2a', '#9fd0e8', '#ffd24a'][i];
-    for (const t of G.towers) { if (t.type !== c.a && t.type !== c.b) continue; const pu = 0.5 + 0.5 * Math.sin(T * 3 + i);
-      ctx.save(); ctx.globalAlpha = 0.55 + 0.3 * pu; ctx.strokeStyle = col; ctx.lineWidth = 5; ctx.shadowColor = col; ctx.shadowBlur = 12;
-      ctx.beginPath(); ctx.ellipse(t.x, t.y - 4, 36 + 3 * pu, 13 + pu, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); } });
+  const T = performance.now() / 1000; COMBOS.forEach((c, i) => { if (!comboOn(i)) return; const col = ['143,220,90', '255,150,60', '150,215,240', '255,214,90'][i];
+    for (const t of G.towers) { if (t.type !== c.a && t.type !== c.b) continue; const pu = 0.5 + 0.5 * Math.sin(T * 2.2 + t.x * 0.01), R = 46;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.translate(t.x, t.y - 4); ctx.scale(1, 0.38);
+      const g = ctx.createRadialGradient(0, 0, 4, 0, 0, R); g.addColorStop(0, `rgba(${col},${0.42 + 0.12 * pu})`); g.addColorStop(0.6, `rgba(${col},0.16)`); g.addColorStop(1, `rgba(${col},0)`);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fill(); ctx.restore();
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      for (let m = 0; m < 3; m++) { const q = (T * 0.45 + m / 3 + t.y * 0.003) % 1, an = m * 2.1 + t.x; ctx.globalAlpha = Math.sin(q * Math.PI) * 0.8; ctx.fillStyle = `rgb(${col})`;
+        ctx.beginPath(); ctx.arc(t.x + Math.cos(an) * 20, t.y - 6 - q * 46, 2.4 - q, 0, 7); ctx.fill(); }
+      ctx.restore(); } });
+}
+// v41.2: a beaten animal no longer runs across the screen (it pulled the eye away from the fight): it flashes, hops and pops into a dust puff where it stood
+function drawVWDead(d) {
+  const M = VWMETA[d.vk], C = VWK.conf[d.vk]; if (!M || !C) { d.gone = 1; return; }
+  const sc = C.size * d.k / M.h, a = G.time - d.t0, F = 0.09, D = 0.42;
+  if (a > F + D) { d.gone = 1; return; }
+  const y0 = d.y - (C.fly ? 34 * d.k : 0);
+  if (a >= F && !d.puff) { d.puff = 1; for (let i = 0; i < 6; i++) { const an = i / 6 * 6.28 + Math.random(); G.parts.push({ type: 'dust', x: d.x + Math.cos(an) * 10, y: y0 - C.size * 0.3 * d.k + Math.sin(an) * 6, vx: Math.cos(an) * 90, vy: Math.sin(an) * 50 - 30, life: 0, max: 0.45, size: 14 * d.k + 8, rot: 0 }); } }
+  ctx.save(); ctx.translate(d.x, y0);
+  if (a < F) { const q = a / F; ctx.scale(1 + 0.16 * q, 1 - 0.1 * q); vwBlit(d.vk, 'walkS', 0, d.flip, sc, 1); }
+  else { const q = (a - F) / D, e = 1 - (1 - q) * (1 - q); ctx.translate(0, -Math.sin(q * Math.PI) * 26 * d.k - C.size * 0.35 * d.k * 0); ctx.globalAlpha = 1 - q * q;
+    ctx.translate(0, -C.size * 0.4 * d.k); ctx.rotate((d.flip ? -1 : 1) * e * 0.9); ctx.scale(1 - e * 0.75, 1 - e * 0.75); ctx.translate(0, C.size * 0.4 * d.k); vwBlit(d.vk, 'walkS', 0, d.flip, sc, 0.5 * (1 - q)); }
+  ctx.restore();
 }
 // v41.1: plants stand further from the road (animals and plants no longer cover each other); every reach grows by the same distance, so coverage is unchanged
 const T3_BACK = 34;
