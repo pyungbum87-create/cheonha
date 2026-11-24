@@ -313,6 +313,7 @@ p{margin:0}
 .tbar{position:relative;height:30px;border-radius:15px;background:#3a2a1a;overflow:hidden;margin:6px 0}.tbar .tz{position:absolute;top:0;bottom:0;background:rgba(217,176,74,.75);border-left:2px solid #ffe27a;border-right:2px solid #ffe27a}.tbar .tn{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#fff;box-shadow:0 0 8px #fff;animation:tneedle var(--spd) linear infinite alternate}
 @keyframes tneedle{from{left:0}to{left:100%}}.btn.tap{font-size:20px;min-height:56px}
 .cdx{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #e6dcc6}
+.trek-strip{display:flex;align-items:center;gap:0;margin:4px 0 2px}.tk-c{font-size:12px;font-weight:700;padding:4px 8px;border-radius:8px;background:#2f6b3a;color:#fff;white-space:nowrap}.tk-c.foe{background:#a3322a}.tk-ln{flex:1;height:3px;background:#c8b48a;min-width:8px}.tk-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#e6dcc6;color:#7a6d5a;font-family:var(--seal,serif);flex:0 0 30px}.tk-n.on{background:#d4a01f;color:#fff}.tk-n.done{background:#7a6d5a;color:#fff}
 .plan{display:flex;flex-direction:column;gap:8px}.intel{display:flex;flex-wrap:wrap;gap:6px;font-size:12.5px}.intel span{background:#efe6d2;border-radius:8px;padding:4px 8px}.intel b.bad{color:var(--red)}
 .tale{display:flex;flex-direction:column;gap:8px}.tsteps{display:flex;gap:4px}.tstep{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:#e6dcc6;color:#7a6d5a}.tstep.on{background:#a3322a;color:#fff}.tstep.done{background:#d4a01f;color:#fff}.hpbar{height:6px;background:#3a1410;border-radius:3px;overflow:hidden;margin-top:4px}.hpbar i{display:block;height:100%;background:#d9b04a}
 .tale-row{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px;margin:0 0 6px;border-radius:12px;border:1px solid #c8b48a;background:#f7f0e1;font:inherit;color:inherit;min-height:56px}.tale-row.alt{margin-left:24px;width:calc(100% - 24px);min-height:44px;background:#efe3c8}.tale-row small{display:block;font-size:11.5px}.tale-row small.d{color:#5a4e3c;margin-top:2px}.tacs.jail .tac:disabled{opacity:.45}
@@ -2102,6 +2103,91 @@ function createArmy(o){
   G.armies.push(a);
   return a;
 }
+
+/* ---------------- 원정길: 출진하면 길을 고르고, 길 위의 세 고비를 넘어 목적지에 닿는다 ----------------
+   큰길은 느리지만 안전하고, 산길은 빠르고 적의 허를 찌르지만 험하고, 물길은 강을 낀 곳에서만 열린다. */
+const ROADS = {
+  main:{ n:'큰길', gl:'官', d:'느리지만 안전하다. 보급이 쉽고 백성의 도움을 받는다.', eta:0, pool:['supply','refugee','scout','toll','rain','inn'] },
+  hill:{ n:'산길', gl:'山', d:'한 달 빠르고 적의 허를 찌른다(기습 +6). 대신 험하고 위험하다.', eta:-1, pool:['ambushR','shortcut','bandit','hermit','cliff','fog'] },
+  water:{ n:'물길', gl:'水', d:'배로 한 달 빠르다. 바람과 물살에 운을 건다. 강을 낀 곳에서만.', eta:-1, pool:['storm','fisher','current','pirates','fog'] }
+};
+const TREK = {
+  supply:{ t:'길가 고을에서 군량을 내놓겠다고 한다', o:[ { t:'값을 치르고 받는다', stat:'c', diff:40, ok:{ food:1, morale:3, log:'군량 1개월분을 얻었다.' }, no:{ food:1, log:'값을 깎느라 시간이 걸렸지만 군량은 얻었다.' } }, { t:'징발한다', stat:'l', diff:50, ok:{ food:2, morale:-4, log:'군량 2개월분. 백성의 원성이 높다.' }, no:{ food:1, morale:-8, log:'고을 사람들이 반발했다.' } } ] },
+  refugee:{ t:'피난민 무리가 길을 막고 있다', o:[ { t:'군량을 나눠 준다', stat:'c', diff:30, ok:{ food:-1, recruit:600, log:'장정 수백이 따라나섰다.' }, no:{ food:-1, log:'고맙다는 인사만 남았다.' } }, { t:'길을 비키게 한다', stat:'l', diff:30, ok:{ log:'길을 비켰다.' }, no:{ eta:1, log:'길이 막혀 지체되었다.' } } ] },
+  scout:{ t:'적의 척후가 앞서 달린다', o:[ { t:'기병을 보내 잡는다', stat:'m', diff:55, ok:{ intel:.15, log:'척후를 사로잡아 성의 사정을 캐냈다. (작전 성공률 +15%)' }, no:{ surprise:-8, log:'척후가 달아났다. 적이 우리 진군을 안다.' } }, { t:'거짓 정보를 흘린다', stat:'i', diff:60, ok:{ surprise:10, log:'적이 엉뚱한 곳을 지킨다.' }, no:{ log:'통하지 않았다.' } } ] },
+  toll:{ t:'관문 수비대가 통행세를 요구한다', o:[ { t:'돈을 낸다 (금 80)', gold:80, stat:'c', diff:0, ok:{ log:'무사히 지났다.' }, no:{ log:'무사히 지났다.' } }, { t:'밀고 지나간다', stat:'m', diff:50, ok:{ morale:5, log:'수비대가 길을 비켰다.' }, no:{ troops:-.03, log:'작은 싸움이 벌어졌다.' } } ] },
+  rain:{ t:'장맛비에 길이 진흙탕이 되었다', o:[ { t:'비가 그칠 때까지 기다린다', stat:'l', diff:0, ok:{ eta:1, morale:4, log:'한 달 늦었지만 병사들이 쉬었다.' }, no:{ eta:1, log:'한 달 늦었다.' } }, { t:'강행군한다', stat:'l', diff:60, ok:{ morale:-3, log:'진흙을 헤치고 나아갔다.' }, no:{ morale:-10, troops:-.03, log:'낙오자가 생겼다.' } } ] },
+  inn:{ t:'객잔에서 이상한 서생이 말을 건다', o:[ { t:'이야기를 들어 본다', stat:'i', diff:45, ok:{ intel:.1, log:'성 안 사정을 들었다. (작전 성공률 +10%)' }, no:{ log:'허풍이었다.' } }, { t:'그냥 지나간다', stat:'l', diff:0, ok:{ log:'' }, no:{ log:'' } } ] },
+  ambushR:{ t:'골짜기 위에서 돌이 굴러 떨어진다! 매복이다', o:[ { t:'정면으로 돌파한다', stat:'m', diff:60, ok:{ morale:5, log:'매복을 뚫었다!' }, no:{ troops:-.08, morale:-8, log:'큰 피해를 입었다.' } }, { t:'우회해 뒤를 친다', stat:'l', diff:65, ok:{ morale:8, recruit:300, log:'매복병을 거꾸로 사로잡아 항복받았다.' }, no:{ troops:-.05, eta:1, log:'길을 잃고 피해를 입었다.' } } ] },
+  shortcut:{ t:'사냥꾼이 아무도 모르는 지름길을 안다고 한다', o:[ { t:'믿고 따라간다', stat:'i', diff:50, ok:{ eta:-1, surprise:12, log:'아무도 모르는 길로 성 뒤에 닿는다!' }, no:{ eta:1, log:'길을 잃었다.' } }, { t:'원래 길로 간다', stat:'l', diff:0, ok:{ log:'' }, no:{ log:'' } } ] },
+  bandit:{ t:'산적 무리가 길을 막고 통행료를 요구한다', o:[ { t:'토벌한다', stat:'m', diff:45, ok:{ food:1, log:'산적의 창고에서 군량을 얻었다.' }, no:{ troops:-.03, log:'산적이 달아났다.' } }, { t:'우리 편으로 끌어들인다', stat:'c', diff:60, ok:{ recruit:800, log:'산적 두목이 무리를 이끌고 합류했다.' }, no:{ morale:-5, log:'협상이 틀어졌다.' } } ] },
+  hermit:{ t:'초가에 사는 은자가 지나가는 군을 바라본다', o:[ { t:'예를 갖춰 찾아간다', stat:'c', diff:50, ok:{ intel:.2, log:'은자가 성의 약점을 일러 주었다. (작전 성공률 +20%)' }, no:{ log:'은자는 말없이 문을 닫았다.' } }, { t:'지나간다', stat:'l', diff:0, ok:{ log:'' }, no:{ log:'' } } ] },
+  cliff:{ t:'잔도가 끊어져 있다', o:[ { t:'나무를 베어 다시 놓는다', stat:'l', diff:50, ok:{ log:'다리를 놓고 건넜다.' }, no:{ eta:1, log:'한 달이 걸렸다.' } }, { t:'말을 버리고 기어 오른다', stat:'m', diff:55, ok:{ surprise:15, morale:-5, log:'아무도 예상 못 한 곳으로 내려선다!' }, no:{ troops:-.05, log:'벼랑에서 병사를 잃었다.' } } ] },
+  fog:{ t:'짙은 안개가 꼈다', o:[ { t:'안개를 틈타 나아간다', stat:'i', diff:55, ok:{ surprise:10, log:'적이 우리를 보지 못했다.' }, no:{ eta:1, log:'방향을 잃었다.' } }, { t:'멈춰서 기다린다', stat:'l', diff:0, ok:{ morale:3, log:'안개가 걷혔다.' }, no:{ morale:3, log:'안개가 걷혔다.' } } ] },
+  storm:{ t:'강 위에 폭풍이 몰려온다', o:[ { t:'포구에 배를 댄다', stat:'l', diff:40, ok:{ eta:1, log:'한 달 늦었지만 무사했다.' }, no:{ eta:1, troops:-.02, log:'배 몇 척을 잃었다.' } }, { t:'그대로 건넌다', stat:'l', diff:65, ok:{ surprise:10, log:'폭풍 속에 아무도 우리를 보지 못했다.' }, no:{ troops:-.08, log:'배가 뒤집혔다!' } } ] },
+  fisher:{ t:'어부들이 물길을 안내하겠다고 한다', o:[ { t:'안내를 받는다', stat:'c', diff:35, ok:{ eta:-1, log:'물살을 타고 빨리 내려갔다.' }, no:{ log:'어부들이 겁을 먹고 달아났다.' } }, { t:'적의 수채를 물어본다', stat:'i', diff:50, ok:{ intel:.15, log:'적 수군의 배치를 알아냈다. (작전 성공률 +15%)' }, no:{ log:'어부는 아는 게 없었다.' } } ] },
+  current:{ t:'물살이 거꾸로 흐른다', o:[ { t:'밧줄로 배를 끈다', stat:'m', diff:45, ok:{ morale:-3, log:'땀으로 거슬러 올랐다.' }, no:{ eta:1, log:'한 달이 걸렸다.' } }, { t:'물이 바뀔 때를 기다린다', stat:'i', diff:40, ok:{ log:'때를 맞춰 나아갔다.' }, no:{ eta:1, log:'기다림이 길었다.' } } ] },
+  pirates:{ t:'수적 떼가 배를 노린다', o:[ { t:'활로 쫓는다', stat:'l', diff:45, ok:{ morale:4, log:'수적이 달아났다.' }, no:{ food:-1, log:'군량선 하나를 빼앗겼다.' } }, { t:'수적을 끌어들인다', stat:'c', diff:60, ok:{ recruit:700, log:'수적들이 우리 수군이 되었다.' }, no:{ troops:-.03, log:'싸움이 났다.' } } ] }
+};
+function trekLead(ids){ const as = ids.map(armyById).filter(Boolean); const g = as.flatMap(a => a.gens).map(person).filter(Boolean); return g.find(p => p.id===G.pid) || g.sort((a, b) => (b.m + b.i + b.l) - (a.m + a.i + a.l))[0] || me(); }
+function trekStart(ids, to){
+  if (SIM || !ids.length) return;
+  const from = armyById(ids[0]).from, riv = TERRAIN[to]==='river' || TERRAIN[from]==='river';
+  G.trek = { ids, to, from, road:null, nodes:[], i:0, log:[], riv, acc:{} };
+}
+function trekRoad(k){
+  const T = G.trek; if (!T || T.road || !ROADS[k] || (k==='water' && !T.riv)) return;
+  T.road = k; const R = seeded(hashStr(T.to + G.year + G.month + k)), pool = ROADS[k].pool.slice().sort(() => R() - .5);
+  T.nodes = pool.slice(0, 3); T.i = 0;
+  trekApply({ eta: ROADS[k].eta, morale: k==='hill' ? -4 : 0, surprise: k==='hill' ? 6 : k==='water' ? 4 : 0 });
+  Snd.sfx(k==='water' ? 'step' : 'hooves');
+}
+function trekApply(r){
+  const T = G.trek, as = T.ids.map(armyById).filter(Boolean), A = T.acc;
+  for (const a of as){
+    if (r.food) a.food = Math.max(0, a.food + r.food);
+    if (r.morale) a.morale = clamp(a.morale + r.morale, 5, 100);
+    if (r.troops) a.troops = Math.max(100, Math.round(a.troops*(1 + r.troops)));
+    if (r.eta){ a.eta = Math.max(1, a.eta + r.eta); a.total = Math.max(a.total, a.eta); }
+  }
+  if (r.recruit && as[0]){ as[0].troops += r.recruit; as[0].max += r.recruit; }
+  if (r.surprise) A.surprise = clamp((A.surprise||0) + r.surprise, -20, 30);
+  if (r.intel) A.intel = Math.min(.35, (A.intel||0) + r.intel);
+  if (r.gold) G.gold = Math.max(0, G.gold - r.gold);
+}
+const trekCh = (o, L) => o.diff <= 0 ? 1 : clamp(.5 + (L[o.stat] - o.diff)/60, .1, .95);
+function trekPick(j, auto){
+  const T = G.trek; if (!T || !T.road || T.i >= T.nodes.length) return;
+  const E = TREK[T.nodes[T.i]], L = trekLead(T.ids);
+  if (auto) j = E.o.map((o, k) => [trekCh(o, L) - (o.gold && G.gold < o.gold ? 9 : 0), k]).sort((a, b) => b[0] - a[0])[0][1];
+  const o = E.o[j]; if (!o) return;
+  if (o.gold && G.gold < o.gold) return toast('금이 모자란다.', [], true);
+  const ok = Math.random() < trekCh(o, L), r = ok ? o.ok : o.no;
+  trekApply(Object.assign({}, r, o.gold ? { gold:o.gold } : {}));
+  if (r.log) T.log.push(`${T.i+1}. ${r.log}`);
+  if (!auto) Snd.sfx(ok ? 'ok' : 'bad');
+  T.i++;
+  if (T.i >= T.nodes.length) trekEnd();
+}
+function trekAuto(){ const T = G.trek; if (!T) return; if (!T.road) trekRoad('main'); while (G.trek && G.trek.i < G.trek.nodes.length) trekPick(0, true); }
+function trekEnd(){
+  const T = G.trek, as = T.ids.map(armyById).filter(Boolean);
+  for (const a of as) a.bonus = Object.assign({}, T.acc);
+  T.done = true;
+}
+function viewTrek(){
+  const T = G.trek, t = city(T.to), f = city(T.from), L = trekLead(T.ids), as = T.ids.map(armyById).filter(Boolean), a0 = as[0];
+  const strip = `<div class="trek-strip"><span class="tk-c">${esc(f.n)}</span>${[0,1,2].map(k => `<i class="tk-ln"></i><span class="tk-n ${T.road ? (k < T.i ? 'done' : k===T.i && !T.done ? 'on' : '') : ''}">${T.road ? ROADS[T.road].gl : '?'}</span>`).join('')}<i class="tk-ln"></i><span class="tk-c foe">${esc(t.n)}</span></div>`;
+  const stat = a0 ? `<div class="intel"><span>병력 <b>${fmt(as.reduce((s, a) => s + a.troops, 0))}</b></span><span>사기 <b>${Math.round(a0.morale)}</b></span><span>군량 <b>${a0.food}개월</b></span><span>도착 <b>${a0.eta}달 뒤</b></span>${T.acc.surprise ? `<span>기습 <b>${T.acc.surprise > 0 ? '+' : ''}${T.acc.surprise}</b></span>` : ''}${T.acc.intel ? `<span>정보 <b>+${Math.round(T.acc.intel*100)}%</b></span>` : ''}</div>` : '';
+  const log = T.log.length ? `<div class="log">${T.log.map(l => `<div>${esc(l)}</div>`).join('')}</div>` : '';
+  const b = (k, t, d, dis) => `<button class="tac" data-trek="${k}" ${dis ? 'disabled' : ''}><b>${t}</b><small>${d}</small></button>`;
+  let body;
+  if (!T.road) body = `<p class="small">${esc(L.n)}: "${esc(t.n)}까지 어느 길로 가시겠습니까?"</p><div class="tacs jail">${Object.keys(ROADS).map(k => b('road:' + k, `<span class="gl">${ROADS[k].gl}</span>${ROADS[k].n}`, ROADS[k].d + (k==='water' && !T.riv ? ' (이 길에는 강이 없다)' : ''), k==='water' && !T.riv)).join('')}</div><button class="btn2" data-trek="auto">큰길로, 장수에게 맡긴다</button>`;
+  else if (!T.done){ const E = TREK[T.nodes[T.i]];
+    body = `<p class="small"><b>${T.i+1}번째 고비</b> · ${esc(E.t)}</p><div class="tacs jail">${E.o.map((o, j) => { const c = trekCh(o, L); return b('pick:' + j, esc(o.t), c >= 1 ? '반드시 된다' : `${({m:'무력',i:'지략',l:'통솔',c:'인덕'})[o.stat]} 판정 · 성공 ${Math.round(c*100)}%`, o.gold && G.gold < o.gold); }).join('')}</div><button class="btn2" data-trek="auto">남은 고비는 ${esc(L.n)}에게 맡긴다</button>`; }
+  else body = `<p class="result">${esc(t.n)}까지 ${a0 ? a0.eta : '?'}달. ${T.acc.surprise > 0 ? '적은 우리가 오는 줄 모른다.' : T.acc.surprise < 0 ? '적이 우리 진군을 알아챘다.' : ''}</p><button class="btn" data-trek="close">진군한다</button>`;
+  return `<div class="modal trek"><div class="row between"><h3>원정길 · ${esc(t.n)}</h3>${T.road ? `<span class="chip gold">${ROADS[T.road].n}</span>` : ''}</div>${strip}${stat}${body}${log}</div>`;
+}
 function involves(a){ return a.fac===G.pfac || city(a.to).owner===G.pfac; }
 function armiesStep(ff){
   for (const a of G.armies.slice()){
@@ -2333,6 +2419,7 @@ function buildSiege(tid, fid, list, interactive){
   const ls = t.owner!==G.pfac ? lastStand(t.owner) : 1; if (ls > 1){ def.support += (ls-1)*.5; def.morale = Math.min(100, def.morale + 15); }
   if (!(interactive && ps==='def')) setUnit(def, aiUnit(def, tid));
   if (!(interactive && ps==='att')) setUnit(att, aiUnit(att, tid, def.u));
+  for (const a of list) if (a.bonus){ if (a.bonus.surprise){ def.morale = clamp(def.morale - a.bonus.surprise, 5, 130); B.log.push(a.bonus.surprise > 0 ? `원정길의 기습: 적이 미처 대비하지 못했다 (적 사기 -${a.bonus.surprise})` : `적이 진군을 알고 기다렸다 (적 사기 +${-a.bonus.surprise})`); } if (a.bonus.intel) B.intel = Math.max(B.intel||0, a.bonus.intel); a.bonus = null; }
   if (G.pfac && fid===G.pfac && G.plots[tid] >= mi()){ def.morale -= 30; delete G.plots[tid]; B.log.push('성 안에서 내응이 일어났다! 적의 사기가 무너진다.'); }
   if (G.pfac && t.owner===G.pfac && G.ambush[tid] >= mi()){ att.morale -= (G.ambushPow||25); delete G.ambush[tid]; B.log.push('숨겨둔 매복병이 적의 옆구리를 찔렀다!'); }
   if (interactive) B.stage = 'unit';
@@ -2523,7 +2610,7 @@ function planDo(k){
   const P = PLANS[k], t = city(B.to), m = B[B.ps], f = B.ps==='att' ? B.def : B.att, S = strategistFor(B);
   if (P.cost){ if (G.gold < P.cost){ B.planDone = 0; return toast('금이 모자란다.', [], true); } G.gold -= P.cost; }
   const mi = Math.max(me().i, S.i), fi = f.st.i;
-  const ok = Math.random() < P.ch(B, mi, fi, m, f);
+  const ok = Math.random() < Math.min(.95, P.ch(B, mi, fi, m, f) + (P.ch(B, mi, fi, m, f) < 1 ? (B.intel||0) : 0));
   const line = P.go(B, m, f, t, ok);
   m.morale = clamp(m.morale, 0, 130); f.morale = clamp(f.morale, 0, 130);
   B.plan = { k, ok }; B.log = [`${S.n}의 계책 「${P.n}」 — ${line}`];
@@ -2535,7 +2622,7 @@ function planHtml(B){
   const S = strategistFor(B), t = city(B.to), f = B.ps==='att' ? B.def : B.att, mi = Math.max(me().i, S.i);
   B_ = B;
   const intel = `<div class="intel"><span>적 병력 <b>${fmt(f.troops)}</b></span>${B.kind==='siege' ? `<span>성벽 <b>${t.wall}</b></span><span>성 안 군량 <b class="${grainOf(t) <= 2 ? 'bad' : ''}">${grainOf(t)}개월</b></span>` : ''}<span>적장 지략 <b>${SV(f.st.i)}</b></span></div>`;
-  const card = k => { const P = PLANS[k], ch = P.ch(B, mi, f.st.i, B[B.ps], f); return `<button class="tac" data-plan="${k}"><b><span class="gl">${P.gl}</span>${P.n}${ch >= 1 ? ' <span class="chip up">확실</span>' : ` <span class="chip ${ch >= .6 ? 'up' : ch < .35 ? 'down' : ''}">성공 ${Math.round(ch*100)}%</span>`}</b><small>${esc(P.d(B, t, f))}</small></button>`; };
+  const card = k => { const P = PLANS[k], c0 = P.ch(B, mi, f.st.i, B[B.ps], f), ch = c0 >= 1 ? 1 : Math.min(.95, c0 + (B.intel||0)); return `<button class="tac" data-plan="${k}"><b><span class="gl">${P.gl}</span>${P.n}${ch >= 1 ? ' <span class="chip up">확실</span>' : ` <span class="chip ${ch >= .6 ? 'up' : ch < .35 ? 'down' : ''}">성공 ${Math.round(ch*100)}%</span>`}</b><small>${esc(P.d(B, t, f))}</small></button>`; };
   return `<div class="plan"><div class="mhead"><span class="seal">策</span><b>작전 회의</b></div>
     <div class="row" style="gap:8px;align-items:flex-start">${pp(S, 44)}<p class="small" style="margin:0"><b>${esc(S.n)}</b>: ${S.id===G.pid ? '(스스로 계책을 짠다)' : ks.length ? `"${pick(['적의 약점이 보입니다.', '정면으로 부딪치기 전에 쓸 수가 있습니다.', '이렇게 해 보시지요.'])}"` : '"뾰족한 수가 보이지 않습니다. 정면으로 맞서시지요."'}</p></div>
     ${intel}<div class="tacs jail">${ks.map(card).join('')}</div>
@@ -3765,14 +3852,16 @@ const ACT = {
     const cost = foodCost(total, food);
     if (G.gold < cost) return toast(`군량을 대기에 금이 모자란다. (필요 금 ${fmt(cost)})`, [], true);
     if (!spend(cost)) return;
+    const tids = [];
     for (const p of plan){
       const c = city(p.from), n = Math.round(c.troops*p.pct); if (n<300) continue;
       c.troops -= n;
       const gens = (p.gens||[]).filter(g => g===G.pid ? (G.city===p.from && !G.inArmy) : (person(g) && person(g).fac===G.pfac && person(g).city===p.from && !person(g).army)).slice(0,3);
       const pl = gens.includes(G.pid);
       for (const g of gens) if (c.gov===g) c.gov = null;
-      createArmy({ fac:G.pfac, gens, troops:n, from:p.from, to:target, kind:'attack', food, train:G.train, player:pl });
+      tids.push(createArmy({ fac:G.pfac, gens, troops:n, from:p.from, to:target, kind:'attack', food, train:G.train, player:pl }).id);
     }
+    trekStart(tids, target);
     news(`${J(t.n,'을')} 향해 군단 ${plan.length}개, 병력 ${fmt(total)}이 출진했다.`, true, true);
     toast(`출진! ${plan.length>1?'합동 공격 · ':''}병력 ${fmt(total)} · 군량 ${food}개월`, [[`금 -${fmt(cost)}`,false]]);
   },
@@ -3790,7 +3879,8 @@ const ACT = {
     const ds = (deps||[]).filter(id => { const p = person(id); return p && active(p) && !p.army && p.city===G.city && p.fac===G.pfac && (pass || bond(id)>=40); }).slice(0, pass ? G.campaign.deps : 1);
     const share = G.troops/total;
     G.troops = 0;
-    createArmy({ fac:G.pfac, gens:[G.pid, ...ds], troops:total, from:G.city, to:target, kind:'attack', food: pass ? Math.max(food, 6) : food, train:G.train, player:true, share });
+    const na = createArmy({ fac:G.pfac, gens:[G.pid, ...ds], troops:total, from:G.city, to:target, kind:'attack', food: pass ? Math.max(food, 6) : food, train:G.train, player:true, share });
+    trekStart([na.id], target);
     if (pass) G.campaign.used = true;
     news(`${me().n}의 군단이 ${J(t.n,'을')} 향해 출진했다.`, true, true);
     toast(`출진! 병력 ${fmt(total)}${sup?` (지원군 ${fmt(sup)})`:''}${ds.length?` · 부장 ${ds.map(id=>person(id).n).join(', ')}`:''}`, cost?[[`금 -${cost}`,false]]:[]);
@@ -5347,6 +5437,7 @@ function viewModal(){
   if (G.phase==='battle' || G.phase==='battleEnd') return `<div class="modal-bg">${viewBattle()}</div>`;
   if (G.phase==='report') return `<div class="modal-bg">${viewReport()}</div>`;
   if (G.phase==='act' && G.jail && !G.dead) return `<div class="modal-bg">${viewJail()}</div>`;
+  if (G.phase==='act' && G.trek) return `<div class="modal-bg">${viewTrek()}</div>`;
   return '';
 }
 function viewEvent(){
@@ -6210,6 +6301,7 @@ function bind(){
   on('#blockade', () => { blockade(); save(); render(); });
   on('#retreat', () => { retreat(); save(); render(); });
   on('[data-cap]', b => { captiveDo(b.dataset.cap); save(); render(); });
+  on('[data-trek]', b => { const k = b.dataset.trek; if (k==='close'){ G.trek = null; } else if (k==='auto') trekAuto(); else if (k.startsWith('road:')) trekRoad(k.slice(5)); else if (k.startsWith('pick:')) trekPick(+k.slice(5)); save(); render(); });
   on('[data-plan]', b => { planDo(b.dataset.plan); save(); render(); });
   on('[data-tale]', b => { taleChoose(b.dataset.tale); render(); });
   on('#taleClose', () => { taleClose(); save(); render(); });
