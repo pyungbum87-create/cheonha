@@ -310,6 +310,7 @@ p{margin:0}
 .dlog{margin:4px 0;font-size:13px;color:#4a3a22;font-weight:700}
 .tacs.three{grid-template-columns:repeat(3,1fr)}
 .tacs.jail{grid-template-columns:1fr}
+.plan{display:flex;flex-direction:column;gap:8px}.intel{display:flex;flex-wrap:wrap;gap:6px;font-size:12.5px}.intel span{background:#efe6d2;border-radius:8px;padding:4px 8px}.intel b.bad{color:var(--red)}
 .tale{display:flex;flex-direction:column;gap:8px}.tsteps{display:flex;gap:4px}.tstep{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:#e6dcc6;color:#7a6d5a}.tstep.on{background:#a3322a;color:#fff}.tstep.done{background:#d4a01f;color:#fff}.hpbar{height:6px;background:#3a1410;border-radius:3px;overflow:hidden;margin-top:4px}.hpbar i{display:block;height:100%;background:#d9b04a}
 .tale-row{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px;margin:0 0 6px;border-radius:12px;border:1px solid #c8b48a;background:#f7f0e1;font:inherit;color:inherit;min-height:56px}.tale-row small{display:block;font-size:11.5px}.tale-row small.d{color:#5a4e3c;margin-top:2px}.tacs.jail .tac:disabled{opacity:.45}
 .tacs.three .tac small{font-size:10.5px}
@@ -2108,13 +2109,15 @@ function armiesStep(ff){
       if (a.eta<=0) arrive(a, ff);
     }
   }
-  const groups = {};
+  const groups = {}, besieged = new Set();
   for (const a of G.armies) if (a.state==='siege'){ const k = a.to+'|'+a.fac; (groups[k] = groups[k] || []).push(a); }
   for (const k of Object.keys(groups)){
     let list = groups[k].filter(a => G.armies.includes(a));
     const [tid, fid] = k.split('|');
     const t = city(tid);
     if (t.owner===fid || (t.owner && allied(fid, t.owner)) || !fac(fid) || !fac(fid).alive){ list.forEach(a => sendHome(a)); continue; }
+    t.grain = Math.max(0, grainOf(t) - 1); besieged.add(tid);
+    if (t.grain<=0){ t.morale = Math.max(0, (t.morale??100) - 12); if (!ff && (t.owner===G.pfac || fid===G.pfac)) news(`${t.n}: 성 안 군량이 바닥나 병사들이 굶주린다.`, false, true); }
     for (const a of list){ a.food--; a.siege++; if (a.food<0){ a.morale -= 25; if (!ff && involves(a)) news(`${armyName(a)}의 군량이 바닥났다.`, false, true); } }
     list = list.filter(a => { if (a.morale<=15 || a.troops<300){ sendHome(a, a.food<0 ? '군량이 떨어져' : '전의를 잃고', ff); return false; } return true; });
     if (!list.length) continue;
@@ -2129,7 +2132,12 @@ function armiesStep(ff){
     if (est < .75 && list.every(a => a.food>=2) && Math.random()<.8){ if (!ff && involves(list[0])) news(`${t.n}: ${facName(fid)}이(가) 포위를 굳히며 때를 기다린다. (성벽 ${t.wall})`, false, list[0].fac===G.pfac || t.owner===G.pfac); continue; }
     autoSiege(tid, fid, list, ff);
   }
+  grainRegen(besieged);
 }
+// 성 안 군량(개월): 개발도와 성벽이 클수록 많이 쌓아 둔다. 포위되면 달마다 줄고, 풀리면 다시 찬다
+const grainCap = c => 3 + Math.round((c.dev||3)*.6) + ((c.wall||0) >= 60 ? 1 : 0);
+const grainOf = c => c.grain ?? grainCap(c);
+function grainRegen(besieged){ for (const c of Object.values(G.cities)) if (c.grain!=null && !besieged.has(c.id)){ c.grain = Math.min(grainCap(c), c.grain + 1); if (c.grain >= grainCap(c)) delete c.grain; } }
 function genFactor(p){ return p ? .6 + (p.l+p.m)/400 : .55; }
 function siegeOdds(list, t){
   const gens = list.flatMap(a => a.gens).map(person).filter(p => p && p.alive);
@@ -2282,11 +2290,16 @@ function fight(B, tA, tD){
   if (boA || boD) lines.push('기다리던 때가 왔다! 준비한 계책이 들어맞는다.');
   if (tA==='fire'){ if (!boA && Math.random()<.12){ ka *= .3; selfA = A.troops*.08; bfA = true; lines.push('바람이 바뀌어 불길이 공격군 쪽으로 번졌다!'); } else { ka *= 1 + (A.st.i-D.st.i)/120; if (B.kind==='siege') city(B.to).wall = Math.max(0, city(B.to).wall - 6); } }
   if (tD==='fire'){ if (!boD && Math.random()<.12){ kd *= .3; selfD = D.troops*.08; bfD = true; lines.push('바람이 바뀌어 불길이 수비군 쪽으로 번졌다!'); } else kd *= 1 + (D.st.i-A.st.i)/120; }
-  const pa = sidePow(A, tA, false, B.to, D), pd = sidePow(D, tD, true, B.to, A);
+  let pa = sidePow(A, tA, false, B.to, D), pd = sidePow(D, tD, true, B.to, A);
+  if (B.kind==='siege' && (B.wallK != null || (B.lure && B.round===1))){ const w = city(B.to).wall, wk = B.lure && B.round===1 ? 0 : B.wallK; pd = pd/(1 + w/300)*(1 + w*wk/300); }
+  if (B.per){ if (B.per.def) D.morale = clamp(D.morale + B.per.def, 0, 130); if (B.per.att) A.morale = clamp(A.morale + B.per.att, 0, 130); }
   const K = B.kind==='siege' ? .12 : .17;
-  const toD = Math.round(pa*Math.max(.2,ka)*K*rnd(.85,1.15) + selfD), toA = Math.round(pd*Math.max(.2,kd)*K*rnd(.85,1.15) + selfA);
+  let toD = Math.round(pa*Math.max(.2,ka)*K*rnd(.85,1.15) + selfD), toA = Math.round(pd*Math.max(.2,kd)*K*rnd(.85,1.15) + selfA);
+  if (B.oil && B.round===1){ toA = Math.round(toA*1.35); lines.push('끓는 기름과 바위가 성벽을 오르던 적을 덮쳤다!'); }
+
   const bD = Math.min(D.troops, toD), bA = Math.min(A.troops, toA);
   D.troops -= bD; A.troops -= bA;
+  if (B.backwater && B.ps){ const S0 = B[B.ps]; if (S0.morale < 50){ S0.troops = Math.round(S0.troops*.93); lines.push('물러날 곳이 없는 병사들이 강물에 떠밀린다.'); } }
   D.morale = clamp(D.morale - bD/D.max*110 - (ka>1?10:0) + (kd>1?4:0), 0, 130);
   A.morale = clamp(A.morale - bA/A.max*110 - (kd>1?10:0) + (ka>1?4:0), 0, 130);
   lines.push(`공격군 -${fmt(bA)} · 수비군 -${fmt(bD)}`);
@@ -2452,6 +2465,78 @@ function playerTactic(t){
   if (B.ps==='att') fight(B, t, ft); else fight(B, ft, t);
   if (B.done) finishBattle();
   else { if (!B.auto) scoutRound(B); if (!B.auto) pickMoment(B); }
+}
+
+/* ---------------- 작전 회의: 싸우기 전에 군사가 처지에 맞는 계책을 올린다 ----------------
+   성 안 군량이 바닥이면 굶기고, 강가면 물을 끌어들이고, 지략이 앞서면 땅굴·내응을 노린다. */
+function strategistFor(B){
+  const pool = G.inArmy && armyById(G.inArmy) ? armyById(G.inArmy).gens.map(person) : peopleIn(B.ps==='def' ? B.to : G.city, G.pfac);
+  const best = pool.filter(p => p && p.alive && p.id!==G.pid).sort((a, b) => b.i - a.i)[0];
+  return best && best.i > me().i ? best : me();
+}
+const PLANS = {
+  starve: { n:'고사 작전', gl:'糧', side:'att', siege:1, ok:(B,t) => grainOf(t) <= 2, d:(B,t) => `성 안 군량이 ${grainOf(t)}개월뿐이다. 성을 에워싸고 굶주림이 무너뜨리게 한다. 적 사기가 합마다 크게 꺾인다.`, ch:() => 1,
+    go:(B,m,f,t,ok) => { f.morale -= 10*(3 - grainOf(t)); B.per = { def:-10 }; return '굶주린 수비병들이 성벽 위에서 비틀거린다.'; } },
+  tunnel: { n:'땅굴', gl:'穴', side:'att', siege:1, ok:(B,t) => TERRAIN[B.to]!=='river', d:() => '밤마다 성벽 밑으로 굴을 판다. 통하면 성벽이 쓸모없어진다. 들키면 굴이 무너져 병사를 잃는다.', ch:(B,mi,fi) => clamp(.4 + (mi - fi)/120, .15, .85),
+    go:(B,m,f,t,ok) => { if (ok){ B.wallK = 0; f.morale -= 10; return '땅굴이 성벽 밑을 꿰뚫었다! 성벽 한쪽이 무너져 내린다.'; } m.troops = Math.round(m.troops*.94); return '굴이 들켜 무너졌다. 파던 병사들이 묻혔다.'; } },
+  inside: { n:'내응', gl:'內', side:'att', siege:1, ok:() => true, d:(B,t) => `성 안의 불만 세력과 몰래 손을 잡는다. 통하면 싸움 중에 성문이 열린다.${G.plots[B.to] ? ' (미리 심어 둔 첩자가 있다)' : ''}`, ch:(B,mi,fi) => clamp(.25 + (mi - fi)/150 + (G.plots[B.to] ? .3 : 0), .1, .85),
+    go:(B,m,f,t,ok) => { if (ok){ f.morale -= 25; B.wallK = .5; return '약속한 밤, 성 안에서 성문이 열렸다!'; } m.morale -= 5; return '밀서가 들켜 내통한 자들이 처형되었다.'; } },
+  flood: { n:'수공', gl:'水', side:'att', siege:1, ok:() => TERRAIN[B_.to]==='river', d:() => '강둑을 터 물을 성으로 끌어들인다. 성벽이 무르고 수비군이 물에 잠긴다.', ch:(B,mi,fi) => clamp(.5 + (mi - fi)/150, .2, .9),
+    go:(B,m,f,t,ok) => { if (ok){ t.wall = Math.max(5, t.wall - 25); f.troops = Math.round(f.troops*.9); B.wallK = .6; return '강물이 성을 덮쳤다! 성벽이 무너지고 수비군이 떠내려간다.'; } m.troops = Math.round(m.troops*.96); return '물길을 잘못 잡아 아군 진영이 잠겼다.'; } },
+  rams: { n:'공성 병기', gl:'車', side:'att', siege:1, cost:150, ok:() => true, d:() => '충차와 운제를 만든다 (금 150). 성벽의 힘이 절반으로 준다. 반드시 통한다.', ch:() => 1,
+    go:(B) => { B.wallK = Math.min(B.wallK ?? 1, .5); return '충차가 성문을 두드리고 운제가 성벽에 걸렸다.'; } },
+  lure: { n:'유인', gl:'誘', side:'att', siege:1, ok:(B,t,f) => f.st.m > f.st.i, d:(B,t,f) => `${f.name}은(는) 용맹하나 꾀가 얕다. 거짓으로 물러나 성 밖으로 끌어낸다. 통하면 첫 합은 성벽 없이 싸운다.`, ch:(B,mi,fi) => clamp(.35 + (mi - fi)/100, .15, .85),
+    go:(B,m,f,t,ok) => { if (ok){ B.lure = 1; f.morale -= 8; return '적장이 성문을 열고 뛰쳐나왔다! 성벽 밖에서 맞붙는다.'; } m.morale -= 6; return '적장은 성문을 열지 않았다. 헛걸음이다.'; } },
+  rain: { n:'화살비', gl:'矢', side:'def', siege:1, ok:() => true, d:() => '성가퀴마다 궁수를 세운다. 성벽의 힘이 커지고 적 사기가 합마다 떨어진다.', ch:() => 1,
+    go:(B) => { B.wallK = 1.6; B.per = { att:-5 }; return '성벽 위에 궁수가 빽빽이 섰다.'; } },
+  scorch: { n:'청야', gl:'野', side:'def', siege:1, ok:() => true, d:() => '성 밖 들판의 곡식을 거두고 우물을 메운다. 적의 군량이 줄어 오래 버티지 못한다.', ch:() => 1,
+    go:(B,m,f) => { const L = (B.armies||[]).map(armyById).filter(Boolean); L.forEach(a => a.food = Math.max(0, a.food - 2)); const low = L.some(a => a.food <= 1); if (low){ f.morale -= 15; B.per = { att:-6 }; } return low ? '들판이 텅 비었다. 적의 군량이 바닥을 보인다.' : '들판을 비웠다. 적이 군량을 아끼기 시작한다.'; } },
+  oil: { n:'끓는 기름', gl:'油', side:'def', siege:1, ok:() => true, d:() => '성벽 위에 기름 솥과 바위를 올린다. 첫 합에 성벽을 오르는 적이 크게 다친다.', ch:() => 1,
+    go:(B) => { B.oil = 1; return '기름 솥이 끓기 시작했다.'; } },
+  empty: { n:'공성계', gl:'空', side:'def', siege:1, ok:(B,t,f,m) => m.troops < f.troops*.5 && Math.max(me().i, strategistFor(B).i) >= 75, d:(B,t,f) => `성문을 활짝 열고 성루에서 거문고를 탄다. ${f.name}이(가) 복병을 의심하면 그대로 물러간다. 들키면 사기가 무너진다.`, ch:(B,mi,fi) => clamp(.3 + (mi - fi)/80, .1, .85),
+    go:(B,m,f,t,ok) => { if (ok){ B.emptyWin = 1; return `${f.name}이(가) 성문 안을 한참 노려보더니 군을 돌렸다!`; } m.morale -= 20; return '적이 꿰뚫어 보고 활짝 열린 성문으로 몰려든다!'; } },
+  sally: { n:'결사대', gl:'死', side:'def', siege:1, ok:() => true, d:() => '밤에 성문을 열고 결사대를 내보낸다. 통하면 적 진영이 불타고, 실패하면 결사대를 잃는다.', ch:(B,mi,fi,m,f) => clamp(.4 + (m.st.m - f.st.l)/150, .15, .85),
+    go:(B,m,f,t,ok) => { if (ok){ f.morale -= 18; f.troops = Math.round(f.troops*.94); return '결사대가 적 진영에 불을 지르고 돌아왔다!'; } m.troops = Math.round(m.troops*.92); return '결사대가 매복에 걸려 돌아오지 못했다.'; } },
+  ambushF: { n:'매복', gl:'伏', side:'any', siege:0, ok:() => TERRAIN[B_.to]==='mountain', d:() => '산길 양쪽 숲에 병사를 숨긴다. 통하면 적 사기가 무너지고 기습이 잘 통한다.', ch:(B,mi,fi) => clamp(.45 + (mi - fi)/120, .2, .9),
+    go:(B,m,f,t,ok) => { if (ok){ f.morale -= 15; B.boost = { side:B.ps, tac:'ambush', k:1.5 }; return '숲에서 함성이 터졌다! 적의 대열이 흐트러진다.'; } return '적 척후가 복병을 찾아냈다.'; } },
+  fireF: { n:'화공 준비', gl:'火', side:'any', siege:0, ok:() => true, d:() => '바람을 기다려 섶과 기름을 쌓는다. 첫 화공이 1.6배, 역풍이 없다.', ch:() => 1,
+    go:(B) => { B.boost = { side:B.ps, tac:'fire', k:1.6 }; return '섶더미 위로 바람이 적진 쪽으로 분다.'; } },
+  backwater: { n:'배수진', gl:'背', side:'any', siege:0, ok:(B,t,f,m) => m.troops < f.troops, d:() => '강을 등지고 진을 친다. 물러날 곳이 없으니 사기가 크게 오르지만, 지면 더 크게 진다.', ch:() => 1,
+    go:(B,m) => { m.morale = Math.min(130, m.morale + 30); B.backwater = 1; return '병사들이 이를 악물었다. 살길은 앞에만 있다.'; } }
+};
+let B_ = null;
+function planOffers(B){
+  B_ = B;
+  const t = city(B.to), m = B[B.ps], f = B.ps==='att' ? B.def : B.att, siege = B.kind==='siege';
+  const ks = Object.keys(PLANS).filter(k => { const P = PLANS[k]; if (P.siege && !siege) return false; if (!P.siege && siege) return false; if (P.side!=='any' && P.side!==B.ps) return false; try { return P.ok(B, t, f, m); } catch(e) { return false; } });
+  const prio = k => (k==='starve' || k==='flood' || k==='empty' || k==='ambushF') ? 0 : 1;
+  const R = seeded(hashStr(B.to + G.year + G.month));
+  return ks.sort((a, b) => prio(a) - prio(b) || R() - .5).slice(0, 3);
+}
+function planDo(k){
+  const B = G.battle; if (!B || B.planDone) return;
+  B.planDone = 1; B_ = B;
+  if (!k || !PLANS[k]){ B.log = ['작전 없이 정면으로 맞선다.']; return; }
+  const P = PLANS[k], t = city(B.to), m = B[B.ps], f = B.ps==='att' ? B.def : B.att, S = strategistFor(B);
+  if (P.cost){ if (G.gold < P.cost){ B.planDone = 0; return toast('금이 모자란다.', [], true); } G.gold -= P.cost; }
+  const mi = Math.max(me().i, S.i), fi = f.st.i;
+  const ok = Math.random() < P.ch(B, mi, fi, m, f);
+  const line = P.go(B, m, f, t, ok);
+  m.morale = clamp(m.morale, 0, 130); f.morale = clamp(f.morale, 0, 130);
+  B.plan = { k, ok }; B.log = [`${S.n}의 계책 「${P.n}」 — ${line}`];
+  Snd.sfx(ok ? 'skill' : 'bad');
+  if (B.emptyWin){ B.done = true; B.winner = 'def'; B.planOnly = 1; finishBattle(); }
+}
+function planHtml(B){
+  const ks = B.planKs || (B.planKs = planOffers(B));
+  const S = strategistFor(B), t = city(B.to), f = B.ps==='att' ? B.def : B.att, mi = Math.max(me().i, S.i);
+  B_ = B;
+  const intel = `<div class="intel"><span>적 병력 <b>${fmt(f.troops)}</b></span>${B.kind==='siege' ? `<span>성벽 <b>${t.wall}</b></span><span>성 안 군량 <b class="${grainOf(t) <= 2 ? 'bad' : ''}">${grainOf(t)}개월</b></span>` : ''}<span>적장 지략 <b>${SV(f.st.i)}</b></span></div>`;
+  const card = k => { const P = PLANS[k], ch = P.ch(B, mi, f.st.i, B[B.ps], f); return `<button class="tac" data-plan="${k}"><b><span class="gl">${P.gl}</span>${P.n}${ch >= 1 ? ' <span class="chip up">확실</span>' : ` <span class="chip ${ch >= .6 ? 'up' : ch < .35 ? 'down' : ''}">성공 ${Math.round(ch*100)}%</span>`}</b><small>${esc(P.d(B, t, f))}</small></button>`; };
+  return `<div class="plan"><div class="mhead"><span class="seal">策</span><b>작전 회의</b></div>
+    <div class="row" style="gap:8px;align-items:flex-start">${pp(S, 44)}<p class="small" style="margin:0"><b>${esc(S.n)}</b>: ${S.id===G.pid ? '(스스로 계책을 짠다)' : ks.length ? `"${pick(['적의 약점이 보입니다.', '정면으로 부딪치기 전에 쓸 수가 있습니다.', '이렇게 해 보시지요.'])}"` : '"뾰족한 수가 보이지 않습니다. 정면으로 맞서시지요."'}</p></div>
+    ${intel}<div class="tacs jail">${ks.map(card).join('')}</div>
+    <button class="btn2" data-plan="">작전 없이 싸운다</button></div>`;
 }
 /* 결정적 순간: 합 사이에 가끔 찾아오는 선택 */
 const MOMENTS = {
@@ -5147,6 +5232,8 @@ function viewBattle(){
     ctrl = duelHtml(B, te ? { gid:te.gid, name:te.name, fid:foe.fid } : foe);
   } else if (G.phase==='battle' && B.tb){
     ctrl = tbHtml(B);
+  } else if (G.phase==='battle' && B.stage==='unit' && !B.planDone && !B.tale && B.ps){
+    ctrl = planHtml(B);
   } else if (G.phase==='battle' && B.stage==='unit'){
     const tr = TERRAIN[B.to];
     const card = u => {
@@ -5930,6 +6017,7 @@ function bind(){
   on('#blockade', () => { blockade(); save(); render(); });
   on('#retreat', () => { retreat(); save(); render(); });
   on('[data-cap]', b => { captiveDo(b.dataset.cap); save(); render(); });
+  on('[data-plan]', b => { planDo(b.dataset.plan); save(); render(); });
   on('[data-tale]', b => { taleChoose(b.dataset.tale); render(); });
   on('#taleClose', () => { taleClose(); save(); render(); });
   on('[data-jail]', b => { const r = jailAct(b.dataset.jail); if (G.dead && G.phase==='act'){ G.phase = 'succession'; G.deadAt = 'act'; } else if (r==='month'){ G.panel = false; endMonth(); } save(); render(); });
@@ -5948,7 +6036,8 @@ function makeAnim(kind, B, before){
   const A = { kind, myName:mine.name, foeName:foe.name, myCol:facColor(mine.fid), foeCol:facColor(foe.fid),
     myLook: lookOf(me()), foeLook: fp ? lookOf(fp) : DEFAULT_LOOK, myRider: riderOf(me()), foeRider: fp ? riderOf(fp) : null, myAge: ageOf(me()), foeAge: fp ? ageOf(fp) : 35,
     myFemale: !!me().female, foeFemale: !!(fp && fp.female), terr: TERRAIN[B.to] || 'plain',
-    castle: B.kind==='siege' ? (B.ps==='def' ? 'L' : 'R') : null, wall: B.kind==='siege' ? city(B.to).wall : 0, myU: mine.u, foeU: foe.u, seed: (B.round||1) + B.to };
+    castle: B.kind==='siege' ? (B.ps==='def' ? 'L' : 'R') : null, wall: B.kind==='siege' ? city(B.to).wall : 0,
+    view: B.kind==='siege' ? (B.ps==='def' ? 'wall' : 'assault') : null, plan: B.plan && B.round===2 ? B.plan.k : (B.plan && ['rams','rain','oil','starve'].includes(B.plan.k) ? B.plan.k : ''), ok: B.plan ? B.plan.ok : null, grainLow: B.kind==='siege' && grainOf(city(B.to)) <= 1, myU: mine.u, foeU: foe.u, seed: (B.round||1) + B.to };
   if (kind==='fight'){
     const L = B.last, att = B.ps==='att';
     Object.assign(A, { myT: att?L.tA:L.tD, foeT: att?L.tD:L.tA, myAdv: att?L.mA:L.mD, foeAdv: att?L.mD:L.mA, myBf: att?L.bfA:L.bfD, foeBf: att?L.bfD:L.bfA,
@@ -5968,7 +6057,7 @@ function runAnim(){
   me_.finish = finish; me_.stop = stop;
   pxOverlays(A);
   let reduce = false; try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e) {}
-  const draw = A.kind==='duel' ? pxDuel(ctx, A) : pxFight(ctx, A);
+  const draw = A.kind==='duel' ? pxDuel(ctx, A) : A.view ? pxSiege(ctx, A) : pxFight(ctx, A);
   if (reduce){ draw(1, 1); me_.timer = setTimeout(finish, 1200); return; }
   const dur = (A.kind==='duel' ? 6200 : 5200) / ((META.prefs||{}).fast ? 2 : 1), t0 = performance.now();
   let prev = 0;
