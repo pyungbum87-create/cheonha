@@ -2174,11 +2174,17 @@ function frEval(F){
   return { S, me_, en, ratio: a/(a + b || 1) };
 }
 function frontStep(ff){
-  if (ff || G.role!=='ruler' || !G.pfac) return;
+  if (ff || !G.pfac || !(G.role==='ruler' || G.role==='officer')) return;
+  const aiRun = G.role!=='ruler';
   const FS = frontsOf(G.pfac), live = new Set(FS.map(F => F.id));
   for (const k of Object.keys(G.fronts||{})) if (!live.has(k)) delete G.fronts[k];
   const rep = [];
   for (const F of FS){
+    if (aiRun){ // 장수로 있을 때는 주공이 전선을 지휘한다
+      const pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city));
+      for (const [k, f] of [['van', p => p.m*1.2 + p.l*.8], ['adv', p => p.i], ['rear', p => p.g||p.i]]) if (!frRoleP(F, S0(F), k)){ const c = pool.filter(p => !Object.values(S0(F).r).includes(p.id)).sort((a, b) => f(b) - f(a))[0]; if (c) frSetRole(F.id, k, c.id); }
+      const S1 = S0(F); if (!S1.sug){ const r0 = frEval(F).ratio; S1.st = (r0 > .55 || Math.random() < .25) && S1.sup >= 1 ? 'push' : 'hold'; if (S1.st==='push') S1.bonus = Math.round(rnd(0, 10)); } S1.sug = false;
+    }
     const { S, me_, en, ratio } = frEval(F), adv = frRoleP(F, S, 'adv'), rear = frRoleP(F, S, 'rear'), ph0 = frPhase(S.p)[0];
     const br = brain(F.ef), foePush = Math.random() < .35 + (br ? br.a*.4 : .2) + (ratio < .4 ? .2 : 0);
     const cons = S.st==='push' ? (rear ? clamp(1.3 - (rear.g||rear.i)/110, .4, 1) : 1) : 0, starve = S.st==='push' && S.sup < cons;
@@ -2199,7 +2205,14 @@ function frontStep(ff){
     S.st = S.auto ? S.st : 'hold';
   }
   if (rep.length) news(`전선 보고: ${rep.join(', ')}`, false, true);
+  // 적장의 도전: 대치 중인 전선에서 가끔 적 선봉이 진 앞으로 나온다
+  if (!G.frDuelOffer && !SIM && Math.random() < .22){
+    const cand = FS.filter(F => Math.abs(frState(F.id).p) < 70).map(F => [F, frEval(F)]).filter(([F, e]) => e.en.best && e.en.best.m >= 60 && active(e.en.best));
+    if (cand.length){ const [F, e] = pick(cand); G.frDuelOffer = { front:F.id, foe:e.en.best.id, at:F.foe[0], name:F.name }; }
+  }
 }
+const S0 = F => frState(F.id);
+const frVan = F => frRoleP(F, frState(F.id), 'van') || npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).sort((a, b) => b.m - a.m)[0] || null;
 // 전선이 무너지면 결전이 벌어진다
 function frBreak(F, S, ours){
   if (ours){
@@ -2214,6 +2227,7 @@ function frBreak(F, S, ours){
     a.state = 'siege'; a.eta = 0; a.bonus = { surprise:15, intel:.1 }; a.frontBreak = 1;
     G.queue.push({ kind:'siege', to:tgt.id, fac:G.pfac, front:1 });
     news(`${F.name}이 무너졌다! 아군이 ${J(tgt.n,'을')} 향해 결전에 나선다.`, true, true);
+    { const v = person(gens[0]); talkQ({ title:`${F.sec} 전선 돌파 · ${tgt.n}`, bg:'bg_field', lines:[[null, `${F.name}이 무너졌다. 적의 대열이 흩어지고 ${tgt.n}의 성문이 눈앞에 보인다.`], [v ? v.id : 'me', pick(['지금이다! 단숨에 성벽까지 밀어붙여라!', '흩어진 적을 쫓아 성 아래까지 간다!', '이 기세라면 성도 버티지 못한다!'])]] }); }
     S.p = 35;
     for (const o of frontsOf(G.pfac)) if (o.ef===F.ef && o.id!==F.id){ const So = frState(o.id); So.p = clamp(So.p + 12, -100, 100); }
   } else {
@@ -2225,6 +2239,7 @@ function frBreak(F, S, ours){
     const a = createArmy({ fac:F.ef, gens: g ? [g.id] : [], troops:n, from:src.id, to:tgt.id, kind:'attack', food:4 });
     a.state = 'siege'; a.eta = 0; a.frontBreak = 1;
     news(`${F.name}이 밀렸다! ${facName(F.ef)}의 대군이 ${J(tgt.n,'을')} 에워쌌다.`, true, true);
+    talkQ({ title:`${F.sec} 전선 붕괴 · ${tgt.n}`, bg:'bg_camp', lines:[[null, `${F.name}이 뚫렸다. ${facName(F.ef)}의 깃발이 ${tgt.n} 성벽 아래를 뒤덮는다.`], [g ? g.id : null, pick(['성을 에워싸라! 한 놈도 빠져나가지 못하게!', '이 성만 떨어뜨리면 길이 열린다!'])]] });
     S.p = -35;
   }
 }
@@ -2334,18 +2349,20 @@ function viewTheater(){
   const ph = frPhase(S.p), cost = frSupCost(selF, S);
   const tabs = efs.length > 1 ? `<div class="thtabs">${efs.map(f => `<button class="thtab ${f===ef ? 'on' : ''}" data-thf="${f}" style="--fc:${facColor(f)}">${esc(facName(f))}<small>${by[f].length}</small></button>`).join('')}</div>` : '';
   const slot = k => { const R = FR_ROLES[k], g = frRoleP(selF, S, k); return `<button class="thslot ${g ? 'on' : ''}" data-role="${k}" data-rf="${selF.id}"><span class="gl">${R[1]}</span>${g ? pp(g, 30) : '<i class="empty">+</i>'}<span class="nm"><small>${R[0]}</small><b>${g ? esc(g.n) : '비어 있음'}</b>${g ? `<small>${({m:'무',i:'지',g:'정'})[R[2]]} ${SV(R[2]==='g' ? (g.g||g.i) : g[R[2]])}</small>` : ''}</span></button>`; };
-  const supBar = `<div class="thsup"><span>군량</span><div class="sb">${[0,1,2,3,4,5].map(q => `<i class="${q < Math.floor(S.sup) ? 'on' : q < S.sup ? 'half' : ''}"></i>`).join('')}</div><b>${(Math.round(S.sup*2)/2)}개월</b><button data-tho="supply" ${S.sup >= 6 ? 'disabled' : ''}>보내기 · 금 ${fmt(cost)}</button></div>`;
+  const supBar = `<div class="thsup"><span>군량</span><div class="sb">${[0,1,2,3,4,5].map(q => `<i class="${q < Math.floor(S.sup) ? 'on' : q < S.sup ? 'half' : ''}"></i>`).join('')}</div><b>${(Math.round(S.sup*2)/2)}개월</b><button data-tho="supply" ${S.sup >= 6 || G.role!=='ruler' ? 'disabled' : ''}>보내기 · 금 ${fmt(cost)}</button></div>`;
   const card = `<div class="thcard"><div class="row between"><b>${esc(selF.sec)} 전선 <span class="phase ${ph[1]}">${ph[0]}</span></b><span class="small ${S.p <= -60 ? 'bad' : S.p >= 60 ? 'good' : 'muted'}">${hint}</span></div>${frBar(S.p)}
     <div class="thinfo"><span>아군 <b>${fmt(me_.t)}</b> · 힘 ${Math.round(ratio*100)}</span><span>적 <b>${fmt(en.t)}</b>${en.best ? ` · ${esc(en.best.n)}` : ''}</span></div>
     <div class="thslots">${['van','adv','rear'].map(slot).join('')}</div>
     ${supBar}${S.starve ? '<p class="tiny bad" style="margin:0">지난달 군량이 모자라 공세가 약했다.</p>' : ''}
-    <div class="thbtns"><button class="${S.st==='push' ? 'on' : ''}" data-tho="push">밀어붙인다</button><button class="${S.st==='hold' ? 'on' : ''}" data-tho="hold">버틴다</button><button data-tho="shift">병력을 돌린다</button></div>
-    <button class="thauto" data-tho="auto"><span class="tgl ${S.auto ? 'on' : ''}"><i></i></span>다음 달에도 이 명령 유지</button>
+    ${G.role==='ruler' ? `<div class="thbtns"><button class="${S.st==='push' ? 'on' : ''}" data-tho="push">밀어붙인다</button><button class="${S.st==='hold' ? 'on' : ''}" data-tho="hold">버틴다</button><button data-tho="shift">병력을 돌린다</button></div>
+    <button class="thauto" data-tho="auto"><span class="tgl ${S.auto ? 'on' : ''}"><i></i></span>다음 달에도 이 명령 유지</button>` : `<p class="tiny muted" style="margin:0">이 전선은 주공이 지휘한다. 그대는 건의하거나, 이 전선의 성에 있다면 선봉을 자원할 수 있다. (신뢰 ${G.trust})</p>
+    <div class="thbtns"><button data-tho="sugpush">공세를 건의한다</button><button data-tho="sughold">수비를 건의한다</button><button data-tho="vol" ${selF.my.includes(G.city) && !G.inArmy ? '' : 'disabled'}>선봉을 자원한다</button></div>`}
     <details class="thhelp"><summary>전선 규칙</summary><p class="tiny">· 밀어붙이면 원정길(큰길·산길·물길 → 고비 셋)을 거쳐 이번 달 미는 힘이 정해진다. 큰길은 군량 +1, 산길은 군량 -1 대신 기습.<br>· 공세 한 달에 군량 1개월분. 후방 장수의 정치가 높으면 덜 든다. 버티면 반 달분씩 찬다.<br>· 선봉은 미는 힘, 군사는 적의 공세를 꺾고 원정길 판정을 맡는다.<br>· 막대가 끝에 닿으면 결전. 이기면 같은 적의 다른 전선도 +12.</p></details></div>`;
   return `<div class="theater">${tabs}<div class="thmap">${svg}</div>${card}</div>`;
 }
 // 병력을 돌린다: 이 전선의 병력 일부를 가장 위태로운 다른 전선으로
 function openRolePick(id, k){
+  if (G.role!=='ruler') return toast('장수 배치는 주공이 정한다. 선봉은 자원할 수 있다.', [], true), render();
   const F = frontsOf(G.pfac).find(f => f.id===id); if (!F) return; const S = frState(id), R = FR_ROLES[k];
   const pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).concat(F.my.includes(G.city) && !G.inArmy ? [me()] : []);
   const val = p => R[2]==='g' ? (p.g||p.i) : R[2]==='m' ? (p.m*1.2 + p.l*.8)/2 : p[R[2]];
@@ -2355,6 +2372,7 @@ function openRolePick(id, k){
   bg.querySelectorAll('[data-pk]').forEach(b => b.onclick = () => { frSetRole(id, k, b.dataset.pk || null); bg.remove(); save(); render(); });
 }
 function frShift(id){
+  if (G.role!=='ruler') return;
   const FS = frontsOf(G.pfac), F = FS.find(f => f.id===id); if (!F) return;
   const T = FS.filter(f => f.id!==id).sort((a, b) => frState(a.id).p - frState(b.id).p)[0];
   if (!T) return toast('돌릴 다른 전선이 없다.', [], true);
@@ -3865,7 +3883,8 @@ function finishHDuel(B){
   } else if (L.draw) res.lines.push('승부를 가리지 못한 채 서로 물러났다.');
   else if (L.died) res.lines.push('그대는 끝내 일어나지 못했다.');
   else { res.lines.push(`${foe.n}의 무용을 당해내지 못했다.`); if (foe && foe.d===G.year) foe.d = G.year + ri(3,10); }
-  if (G.reg){ const histWin = o.sub || o.r.startsWith(me().n); if (!!L.win !== !!histWin){ G.reg.hist = Math.max(0, G.reg.hist - 4); res.chips.push(['역사 일치도 -4', false]); } }
+  if (o.front){ const S = frState(o.front); S.p = clamp(S.p + (L.win ? 18 : L.draw ? 0 : -12), -100, 100); res.chips.push([`전선 ${L.win ? '+18' : L.draw ? '±0' : '-12'}`, !!L.win]); }
+  if (G.reg && !o.front){ const histWin = o.sub || o.r.startsWith(me().n); if (!!L.win !== !!histWin){ G.reg.hist = Math.max(0, G.reg.hist - 4); res.chips.push(['역사 일치도 -4', false]); } }
   B.res = res;
 }
 function captiveDo(kind){
@@ -4732,6 +4751,13 @@ const EVENTS = [
   { id:'hduel', s:'鬪', t:'원작의 일기토', rep:true, forced:()=>!!G.hduelOffer,
     x:()=>{ const o = G.hduelOffer, f = person(o.foe); return `「${o.n}」 ${J(f.n,'이')} 홀로 진 앞으로 나와 외친다. ${o.sub ? `원작에서는 ${J(person(o.sub).n,'이')} 맞섰던 자리다.` : `원작에서 이 싸움은 이렇게 끝났다: ${o.r}.`}`; },
     c:()=>[ { t:'말을 달려 맞붙는다', ok:{ hduel:1, msg:'병기를 꼬나쥐고 진 앞으로 나섰다.' } }, { t:'물러선다', ok:{ hduel:0, msg:'그대는 나서지 않았다. 병사들 사이에 수군거림이 돈다.' } } ] },
+  { id:'frduel', s:'戰', t:'적장의 도전', rep:true, forced:()=>!!G.frDuelOffer && !!frontsOf(G.pfac).find(F => F.id===G.frDuelOffer.front),
+    x:()=>{ const o = G.frDuelOffer, f = person(o.foe), F = frontsOf(G.pfac).find(x => x.id===o.front), v = F && frVan(F); return `${o.name}. ${J(f.n,'이')} 홀로 진 앞으로 말을 몰고 나와 외친다. "${pick(['나와 겨룰 자 없느냐!', '쥐새끼처럼 숨어 있을 테냐!', '이 창을 받아 낼 자가 있다면 나와라!'])}" 이기면 전선이 크게 밀리고, 지면 우리 기세가 꺾인다.${v ? ` 우리 선봉은 ${v.n}(무 ${SV(v.m)})이다.` : ''}`; },
+    c:()=>{ const o = G.frDuelOffer, F = frontsOf(G.pfac).find(x => x.id===o.front), v = F && frVan(F), here = F && F.my.includes(G.city) && !G.inArmy, out = [];
+      if (here) out.push({ t:'직접 말을 달려 맞선다 (일기토)', ok:{ frd:2, msg:'병기를 꼬나쥐고 진 앞으로 나섰다.' } });
+      if (v && v.id!==G.pid) out.push({ t:`${frRoleP(F, frState(F.id), 'van') ? '선봉' : '장수'} ${v.n}에게 맡긴다 (무 ${SV(v.m)} 대 ${SV(person(o.foe).m)})`, ok:{ frd:1, msg:'' } });
+      out.push({ t:'화살 세례로 답한다', ok:{ frd:0, msg:'적장은 화살을 피해 돌아갔다. 병사들은 조금 실망한 눈치다.' } });
+      return out; } },
   { id:'histfate', s:'憶', t:'운명의 갈림길', rep:true, forced:()=>!!G.histOffer,
     x:()=>{ const o = G.histOffer; return G.reg ? `기억이 또렷하게 떠오른다. 「${o.n}」. ${o.t} ${o.v.map(i=>person(i).n).join('·')}의 운명이 바로 이 달에 갈린다.` : `역사의 갈림길. 「${o.n}」. ${o.t} 이대로라면 ${o.v.map(i=>person(i).n).join('·')}의 명이 이번 달에 다한다. 막아설 것인가?`; },
     c:()=>{ const o = G.histOffer, names = o.v.map(i=>person(i).n).join('·');
@@ -4918,6 +4944,14 @@ function applyEff(e){
     let v = e[k];
     switch (k){
       case 'mer': G.merit = Math.max(0, G.merit+v); add('공적', v); break;
+      case 'frd': { const o = G.frDuelOffer; G.frDuelOffer = null; if (!o) break; const S = frState(o.front), F = frontsOf(G.pfac).find(x => x.id===o.front), f = person(o.foe);
+        if (v===2){ G.hduelGo = { id:'fr', n:o.name + ' 일기토', foe:o.foe, at:o.at, r:'', front:o.front }; }
+        else if (v===1 && F && frVan(F)){ const van = frVan(F), ch = clamp(.5 + (van.m - f.m)/50, .1, .9), win = Math.random() < ch;
+          S.p = clamp(S.p + (win ? 15 : -10), -100, 100); rivalNote(o.foe, null);
+          extra += win ? ` ${van.n}의 창이 ${J(f.n,'을')} 말에서 떨어뜨렸다! 아군의 함성이 전선을 흔든다.` : ` ${van.n}이(가) ${f.n}에게 밀려 돌아왔다. 기세가 꺾였다.`;
+          chips.push([`${F.sec} 전선 ${win ? '+15' : '-10'}`, win]); }
+        else if (F){ S.p = clamp(S.p + 2, -100, 100); }
+        break; }
       case 'hduel': { const o = G.hduelOffer; G.hduelOffer = null; if (!o) break; if (v===1) G.hduelGo = o; else { if (G.pfac) trustAdd(-3); const f = person(o.foe); if (f && f.d===G.year && f.alive && G.mode!=='virtual') killNpc(f, '전사'); } break; }
       case 'fate': { const o = G.histOffer; G.histOffer = null; if (!o) break;
         if (v===1){ const saved = []; for (const id of o.v){ const p = person(id); if (p && p.alive){ p.d = Math.max(p.d, G.year + ri(8,20)); addBond(id, 25); saved.push(p.n); } }
@@ -5521,7 +5555,7 @@ function viewMap(){
   const legend = aliveFacs().filter(f => citiesOf(f.id).length).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length)
     .map(f => `<span class="chip" style="background:${f.color}26;color:${mix(f.color,'#000000',.25)}">${esc(facName(f.id))} ${citiesOf(f.id).length}</span>`).join('');
   if (MAPZ==null) MAPZ = ((typeof innerWidth!=='undefined' && innerWidth >= 700) ? 1.3 : 2.2) * MAP_K;
-  const hasTh = G.role==='ruler' && G.pfac && frontsOf(G.pfac).length;
+  const hasTh = (G.role==='ruler' || G.role==='officer') && G.pfac && frontsOf(G.pfac).length;
   const seg = hasTh ? `<div class="mseg"><button class="${G.mapMode!=='world' ? 'on' : ''}" data-mm="front">전선</button><button class="${G.mapMode==='world' ? 'on' : ''}" data-mm="world">천하</button></div>` : '';
   if (hasTh && G.mapMode!=='world') return `<div class="mapview th">${seg}${viewTheater()}</div>`;
   return `<div class="mapview">${seg}<div class="mapscroll" id="mapScroll"><div class="mapinner" id="mapInner" style="width:${Math.round(MAPZ*100)}%">${mapSvg()}</div></div>
@@ -6669,7 +6703,12 @@ function bind(){
   on('[data-role]', b => openRolePick(b.dataset.rf, b.dataset.role));
   on('[data-fgf]', b => { frGens(b.dataset.fgf, b.dataset.fg); save(); render(); });
   on('[data-tho]', b => { const id = G.thSel || (document.querySelector('.thl rect[stroke-width="2"]') && document.querySelector('.thl rect[stroke-width="2"]').closest('[data-ths]').dataset.ths); const F = id && frontsOf(G.pfac).find(f => f.id===id) || frontsOf(G.pfac).filter(f => f.ef===G.thEf).sort((a, b) => Math.abs(frState(b.id).p) - Math.abs(frState(a.id).p))[0]; if (!F) return;
-    const k = b.dataset.tho; if (k==='supply'){ const S = frState(F.id), c = frSupCost(F, S); if (G.gold < c) return toast('금이 모자란다.', [], true); G.gold -= c; S.sup = Math.min(6, S.sup + 2); Snd.sfx('coin'); toast(`${F.name}에 군량 2개월분을 보냈다.`, [[`금 -${fmt(c)}`, false]]); }
+    const k = b.dataset.tho;
+    if (k==='sugpush' || k==='sughold'){ const S = frState(F.id); if (!spend(0)) return toast('이번 달 행동력이 없다.', [], true); const ok = Math.random() < clamp(.3 + G.trust/200 + G.rank*.06 + (me().i - 50)/250, .1, .9);
+      if (ok){ S.st = k==='sugpush' ? 'push' : 'hold'; S.sug = true; if (k==='sugpush') S.bonus = Math.round(4 + me().i/12); trustAdd(2); toast(`주공께서 ${F.sec} 전선 ${k==='sugpush' ? '공세' : '수비'} 건의를 받아들이셨다.`, [['신뢰 +2', true]]); }
+      else { trustAdd(-1); toast('"아직 때가 아니다." 건의가 받아들여지지 않았다.', [['신뢰 -1', false]], true); } G.thSel = F.id; save(); render(); return; }
+    if (k==='vol'){ frSetRole(F.id, 'van', G.pid); toast(`${F.sec} 전선의 선봉을 맡았다. 결전이 나면 그대가 앞장선다.`, [['선봉', true]]); G.thSel = F.id; save(); render(); return; }
+    if (k==='supply'){ const S = frState(F.id), c = frSupCost(F, S); if (G.gold < c) return toast('금이 모자란다.', [], true); G.gold -= c; S.sup = Math.min(6, S.sup + 2); Snd.sfx('coin'); toast(`${F.name}에 군량 2개월분을 보냈다.`, [[`금 -${fmt(c)}`, false]]); }
     else if (k==='push') frPush(F.id); else if (k==='hold') frHold(F.id); else if (k==='shift') frShift(F.id); else if (k==='auto'){ const S = frState(F.id); S.auto = !S.auto; }
     G.thSel = F.id; save(); render(); });
   on('[data-trek]', b => { const k = b.dataset.trek; if (k==='close'){ G.trek = null; } else if (k==='auto') trekAuto(); else if (k.startsWith('road:')) trekRoad(k.slice(5)); else if (k.startsWith('pick:')) trekPick(+k.slice(5)); save(); render(); });
