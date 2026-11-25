@@ -16,7 +16,10 @@ const L={top:50,panel:566,infoY:572,rowY:642,rowH:48,row2Y:694,botY:742};   // �
 window.V33L=L;
 
 /* ---------------- 배경 ---------------- */
-window.buildBG=function(){const c=document.createElement('canvas');c.width=W*K;c.height=H*K;const g=c.getContext('2d');g.scale(K,K);
+/* 배경은 캔버스 하나를 계속 다시 써서 그린다(아이폰 캔버스 메모리 보호).
+   그린 배경이 비어 있으면(아이폰에서 캔버스 할당 실패 등) 매 프레임 화면에 직접 그린다. */
+let bgC=null;
+function paintBG(g){
   const th=activeTheme();const lin=(y0,y1,st)=>{const q=g.createLinearGradient(0,y0,0,y1);st.forEach(([t,col])=>q.addColorStop(t,col));return q;};
   g.fillStyle=lin(0,H,[[0,'#3a4a44'],[.3,'#7a6a48'],[1,'#4a3622']]);g.fillRect(0,0,W,H);
   // 시나리오 풍경: 위쪽에 높이를 맞춰 잘라 넣음
@@ -40,7 +43,17 @@ window.buildBG=function(){const c=document.createElement('canvas');c.width=W*K;c
   g.fillStyle=lin(0,L.top,[[0,'rgba(18,10,6,.96)'],[1,'rgba(18,10,6,.78)']]);g.fillRect(0,0,W,L.top);g.fillStyle='#d6a94a';g.fillRect(0,L.top,W,1);
   g.fillStyle=lin(L.panel,H,[[0,'rgba(30,18,10,.95)'],[1,'rgba(14,8,5,.98)']]);g.fillRect(0,L.panel,W,H-L.panel);g.fillStyle='#d6a94a';g.fillRect(0,L.panel,W,1.2);
   const v=g.createRadialGradient(W/2,320,140,W/2,320,440);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.3)');g.fillStyle=v;g.fillRect(0,0,W,L.panel);
-  return c;};
+}
+window.V33PaintBG=g=>{try{paintBG(g);}catch(e){}};
+window.buildBG=function(){
+  if(!bgC)bgC=document.createElement('canvas');
+  if(bgC.width!==W*K||bgC.height!==H*K){bgC.width=W*K;bgC.height=H*K;}
+  bgC.bad=0;const g=bgC.getContext('2d');
+  if(!g){bgC.bad=1;return bgC;}
+  g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,bgC.width,bgC.height);g.setTransform(K,0,0,K,0,0);
+  try{paintBG(g);}catch(e){bgC.bad=1;}
+  try{const p=g.getImageData((bgC.width/2)|0,(bgC.height/3)|0,1,1).data;if(p[3]<200)bgC.bad=1;}catch(e){}
+  return bgC;};
 
 /* ---------------- 위·아래 HUD ---------------- */
 function upBtn(f,x,y,w,h){const c=upCost(f),dis=G.gold<c,id='up'+f;BTN.push({id,x,y,w,h});

@@ -1,5 +1,5 @@
 // Offline support: online -> newest files first, offline -> saved copy.
-const CACHE='cheonha-main-11';
+const CACHE='cheonha-main-12';
 // 이 캐시는 /cheonha/ 루트의 천하등용 파일만 다룬다. 다른 게임 폴더(town, wolchuk 등)는 건드리지 않는다.
 const OWN=/^(?:[^/]*|(?:art|audio|sd)\/.*)$/;
 const OLD=['cheonha-','cheonhav30sd-','cheonhav28test-','cheonhav20test-'];

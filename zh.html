@@ -1404,7 +1404,7 @@ function button(id,x,y,w,h,label,sub,opt={}){
 function render(){
   ctx.setTransform(K,0,0,K,0,0);
   if(!bgCache||bgCacheTheme!==activeTheme()){bgCache=buildBG();bgCacheTheme=activeTheme();}
-  ctx.drawImage(bgCache,0,0,W,H);
+  ctx.fillStyle='#2a1c12';ctx.fillRect(0,0,W,H);if(bgCache&&bgCache.bad&&window.V33PaintBG)V33PaintBG(ctx);else if(bgCache)ctx.drawImage(bgCache,0,0,W,H);
   if(!G){return;}
   if(G.buffDirty)buffs();
   BTN=[];
@@ -2147,7 +2147,7 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
     else if(G.paused&&!anyOpen())showOnly('pause');},700);
   // 게임 중에 약관을 열면 판이 날아가지 않도록 새 창으로
   const lb=document.getElementById('optLegal');if(lb)lb.onclick=()=>{const u=V30ZH?'legal-zh.html':'legal.html';if(G&&!G.over){if(!window.open(u,'_blank'))flash(u);}else location.href=u;};
-  window.__verTxt='v37 · 1125';
+  window.__verTxt='v37.1 · 1125';
 })();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
