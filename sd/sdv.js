@@ -94,5 +94,5 @@ function unit(ctx,u,x,y){if(!on||!ready)return false;const id=ALIAS[u.d.id]||u.d
     ctx.drawImage(fx,hx+(c.move==='slash'?2:14),hy-fs/2-(c.move==='slash'?6:0),fs,fs);ctx.globalAlpha=1;}
   ctx.restore();
   return true;}
-window.SDV={pad,unit,progress:()=>on?[names.length-left,names.length]:[0,0],get on(){return on;},CH};
+window.SDV={alias:ALIAS,pad,unit,progress:()=>on?[names.length-left,names.length]:[0,0],get on(){return on;},CH};
 })();

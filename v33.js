@@ -65,7 +65,7 @@ window.drawHUD=function(){
   ctx.strokeStyle='#d6a94a';ctx.lineWidth=.8;ctx.strokeRect(bx,by,bw,12);
   txt(T(`성 밖 적 ${n} / 80`,`城外敌军 ${n} / 80`),bx+bw/2,by+9.5,10,'#fff2d8','center',FS,2);
   for(let i=0;i<Math.max(3,G.walls0||3);i++){const x=268+i*14;if(x>330)break;ctx.fillStyle=i<G.walls?'#c9a35a':'#3a2d24';ctx.fillRect(x,by,10,12);ctx.fillStyle=i<G.walls?'#8a6a34':'#2a2018';ctx.fillRect(x,by,10,3);ctx.fillRect(x+3,by+3,4,2);}
-  txt(T('성벽','城墙'),352,by+10,10,'#b9a582','right',FS);
+  if((G.walls0||3)<=4)txt(T('성벽','城墙'),352,by+10,10,'#b9a582','right',FS);
   // 아래 1단: 장수 정보 또는 인연
   const u=G.sel>=0?G.slots[G.sel]:null,mo=u?mergeOptions(G.sel):null,ho=u?hiddenOption(G.sel):null,Y=L.infoY;
   if(u){drawToken(ctx,u,30,Y+30,20,{});
@@ -74,6 +74,7 @@ window.drawHUD=function(){
     let st=T('공격 ','攻击 ')+Math.round(u.atk)+' · '+T('간격 ','间隔 ')+u.int.toFixed(2)+T('초','秒')+' · '+T('사거리 ','射程 ')+Math.round(u.range);
     if(u.d.g>=1)st+=' · '+SKILL[u.role][Math.min(3,u.d.g)-1]+' '+Math.round(u.sint)+T('초','秒');
     txt(st,60,Y+50,10.5,'#d8c8a8','left',FS,0);
+    if(u.d.d)txt('★ '+u.d.d,60,Y+65,10.5,'#ffb08a','left',FS,0);
   }else{const on=Object.keys(G.synOn).map(k=>{const S=SYN.find(s=>s.id===k);return S?S.n:k;});
     txt(T('인연','缘分'),8,Y+12,12,'#f2c14e','left',FB,0);
     if(on.length)chips(on,44,Y,354,3);else txt(T('없음 · 같이 두면 강해지는 장수 조합이에요','暂无 · 一起上阵会变强的武将组合'),44,Y+12,10.5,'#8a7a66','left',FS,0);

@@ -28,7 +28,7 @@ const S={auto:false};   // auto=true: 자동 플레이 측정용 (창 없이 첫
 const ad=(place,cap)=>window.CH_AD?CH_AD.rewarded(place,{group:place,cap}):Promise.resolve(false);
 const track=(ev,p)=>{try{window.CH_TRACK&&CH_TRACK(ev,p);}catch(e){}};
 const ALIAS={m_gwanu:'gwanu',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo',m_joun:'joun',m_jangbi:'jangbi',m_samaui:'samaui',m_juyu:'juyu',m_wonso:'wonso'};
-const baseId=id=>ALIAS[id]||id;
+const baseId=id=>ALIAS[id]||(window.MALIAS&&MALIAS[id])||id;
 
 /* ---------------- 저장 ---------------- */
 let raw=null;try{raw=JSON.parse(localStorage.getItem('cheonha-save')||'null');}catch(e){}

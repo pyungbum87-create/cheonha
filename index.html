@@ -740,7 +740,7 @@ function buffs(){
   const ids=new Set(G.slots.filter(Boolean).map(u=>u.d.id));
   // mythic forms count as their base for synergies
   const alias={m_gwanu:'gwanu',m_jegal:'jegal',m_jojo:'jojo',m_sonchaek:'sonchaek',m_yeopo:'yeopo',m_joun:'joun',m_jangbi:'jangbi',m_samaui:'samaui',m_juyu:'juyu',m_wonso:'wonso'};
-  for(const k in alias)if(ids.has(k))ids.add(alias[k]);
+  for(const k in alias)if(ids.has(k))ids.add(alias[k]);if(window.MALIAS)for(const k in MALIAS)if(ids.has(k))ids.add(MALIAS[k]);
   const on={};for(const S of SYN){const c=S.need.filter(id=>ids.has(id)).length;if(c>=S.min)on[S.id]=c;}
   const prev=G.synOn;G.synOn=on;
   for(const k in on)if(!prev[k]){const S=SYN.find(s=>s.id===k);G.banner={a:'인연 발동',b:S.n,t:2.4,c:'#f2c14e'};sfx('legend');}
@@ -1431,7 +1431,7 @@ function render(){
       ctx.save();ctx.strokeStyle='rgba(242,193,78,'+(.25+.2*Math.sin(G.t*4+i))+')';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.stroke();
       const q=(G.t*.8+i*.3)%1;ctx.fillStyle='#ffe9a8';ctx.beginPath();ctx.arc(x+(x2-x)*q,y+(y2-y)*q,1.6,0,TAU);ctx.fill();ctx.restore();});});
   // units
-  G.slots.forEach((u,i)=>{if(!u||(G.drag&&G.drag.from===i&&G.drag.moved))return;const [x,y]=slotXY(i);if(u.hasteT>0){const c2=u.buffC||'#f2c14e';ctx.strokeStyle=c2;ctx.globalAlpha=.5+.3*Math.sin(G.t*10);ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(x,y,24,0,TAU);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=c2;for(let k=0;k<4;k++){const aa=G.t*3+k*1.5708;ctx.fillRect(x+Math.cos(aa)*24-1.6,y+Math.sin(aa)*24-1.6,3.2,3.2);}}let ax=x,ay=y;if(u.anim){const q=u.anim.t/u.anim.d,o=Math.sin(q*Math.PI)*u.anim.k;ax+=u.anim.nx*o;ay+=u.anim.ny*o;}(window.SDV&&SDV.unit(ctx,u,x,y))||drawToken(ctx,u,ax,ay,20,{});if(u.tr)txt('✦'+u.tr,x+14,y-28,11,'#ffd94a','center');if(i===G.sel){ctx.strokeStyle='#fff2d8';ctx.lineWidth=1.5;rr(ctx,x-25,y-25,50,50,7);ctx.stroke();}});
+  G.slots.forEach((u,i)=>{if(!u||(G.drag&&G.drag.from===i&&G.drag.moved))return;const [x,y]=slotXY(i);if(u.hasteT>0){const c2=u.buffC||'#f2c14e';ctx.strokeStyle=c2;ctx.globalAlpha=.5+.3*Math.sin(G.t*10);ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(x,y,24,0,TAU);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=c2;for(let k=0;k<4;k++){const aa=G.t*3+k*1.5708;ctx.fillRect(x+Math.cos(aa)*24-1.6,y+Math.sin(aa)*24-1.6,3.2,3.2);}}let ax=x,ay=y;if(u.anim){const q=u.anim.t/u.anim.d,o=Math.sin(q*Math.PI)*u.anim.k;ax+=u.anim.nx*o;ay+=u.anim.ny*o;}(window.SDV&&SDV.unit(ctx,u,x,y))||drawToken(ctx,u,ax,ay,20,{});if(u.tr)txt('✦'+u.tr,x+14,y-28,11,'#ffd94a','center');if(i===G.sel){ctx.strokeStyle='#fff2d8';ctx.lineWidth=1.5;rr(ctx,x-25,y-25,50,50,7);ctx.stroke();}});window.V34Labels&&V34Labels();
   if(G.drag&&G.drag.moved){const u=G.slots[G.drag.from];if(u){const hs=slotAt(G.drag.x,G.drag.y);if(hs>=0){const [hx,hy]=slotXY(hs);ctx.fillStyle='rgba(127,224,160,.07)';ctx.beginPath();ctx.arc(hx,hy,u.range,0,TAU);ctx.fill();ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(127,224,160,.75)';ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);}ctx.globalAlpha=.85;drawToken(ctx,u,G.drag.x,G.drag.y,22,{});ctx.globalAlpha=1;}}
   for(const e of G.enemies)if(e.boss)drawBossUI(e);
   for(const sh of G.shots)drawShot(sh);
@@ -2152,7 +2152,7 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
     else if(G.paused&&!anyOpen())showOnly('pause');},700);
   // 게임 중에 약관을 열면 판이 날아가지 않도록 새 창으로
   const lb=document.getElementById('optLegal');if(lb)lb.onclick=()=>{const u=V30ZH?'legal-zh.html':'legal.html';if(G&&!G.over){if(!window.open(u,'_blank'))flash(u);}else location.href=u;};
-  window.__verTxt='v33 · 1125';
+  window.__verTxt='v34 · 1125';
 })();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
@@ -2183,5 +2183,6 @@ window.__dmg=(e,v)=>dmgEnemy(e,v,false);window.__sg={get G(){return G;},newGame,
 <script src="v31.js"></script>
 <script src="v32.js"></script>
 <script src="v33.js"></script>
+<script src="v34.js"></script>
 <script>if('serviceWorker' in navigator&&location.protocol.startsWith('http')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body></html>
