@@ -70,8 +70,8 @@ const MEL_W = 1900, MEL_T = 80, MEL_Z = 1.45, MEL_VW = 640/MEL_Z;
 function meleeHtml(B){
   const hero = person(B.melee.hero) || person(B[B.ps].gid) || me(), T = meleeTier(B), Sc = meleeScene(B);
   return `<div class="melee"><div class="mel-top"><span class="mel-time" id="melT">${T.T}</span><div class="mel-hp"><i id="melHp" style="width:100%"></i></div><span class="mel-k">격파 <b id="melK">0</b></span></div>
-    <div class="mel-wrap"><canvas id="mcv" width="${VW}" height="${VH}" aria-label="난전"></canvas><div class="mel-obj" id="melObj"></div><button class="mel-skill" id="melSkill" disabled><b>無雙</b><i id="melG"></i></button><div class="mel-msg" id="melMsg"></div></div>
-    <p class="tiny muted" style="margin:0"><b>${Sc.n} · ${T.n}</b> · ${esc(hero.n)} · 화면을 누른 채 끌어서 달린다. 가까운 적은 저절로 벤다. 기세가 차면 無雙.</p></div>`;
+    <div class="mel-wrap"><canvas id="mcv" width="${VW}" height="${VH}" aria-label="난전"></canvas><div class="mel-obj" id="melObj"></div><button class="mel-skill" id="melSkill" disabled><b>무쌍</b><i id="melG"></i></button><div class="mel-msg" id="melMsg"></div></div>
+    <p class="tiny muted" style="margin:0"><b>${Sc.n} · ${T.n}</b> · ${esc(hero.n)} · 화면을 누른 채 끌어서 달린다. 가까운 적은 저절로 벤다. 기세가 차면 무쌍.</p></div>`;
 }
 function runMelee(){
   const cv = document.getElementById('mcv'), B = G && G.battle;
@@ -93,7 +93,7 @@ function runMelee(){
     M.ents.push(e); };
   for (let i = 0; i < 40; i++) spawn(0, 20 + R()*260); for (let i = 0; i < Math.round(TR.cap*.9); i++) spawn(1, 380 + R()*1450);
   const msg = (t, bad) => { const e = document.getElementById('melMsg'); if (e){ e.textContent = t; e.className = 'mel-msg on' + (bad ? ' bad' : ''); } M.msgT = 2.4; };
-  const objHtml = () => { const e = document.getElementById('melObj'); if (e) e.innerHTML = `<span class="${M.depot.dead ? 'ok' : ''}">${SC.k==='field' ? '糧' : SC.k==='att' ? '門' : '車'} ${SC.depot}</span><span class="${M.hills[0].own ? 'ok' : ''}">高 남쪽 ${SC.hill}</span><span class="${M.hills[1].own ? 'ok' : ''}">高 북쪽 ${SC.hill}</span><span class="${M.boss.dead ? 'ok' : ''}">將 ${esc(foe.name)}</span>`; };
+  const objHtml = () => { const e = document.getElementById('melObj'); if (e) e.innerHTML = `<span class="${M.depot.dead ? 'ok' : ''}">${SC.k==='field' ? '량' : SC.k==='att' ? '문' : '차'} ${SC.depot}</span><span class="${M.hills[0].own ? 'ok' : ''}">고 남쪽 ${SC.hill}</span><span class="${M.hills[1].own ? 'ok' : ''}">고 북쪽 ${SC.hill}</span><span class="${M.boss.dead ? 'ok' : ''}">장 ${esc(foe.name)}</span>`; };
   objHtml(); msg(SC.k==='att' ? '성문을 부수고, 망루를 빼앗고, 수비대장을 노려라!' : SC.k==='def' ? '충차를 부수고, 사다리 거점을 치고, 적장을 노려라!' : '식량고를 태우고, 고지를 차지하고, 적장을 노려라!');
   // 조작: 끌기(가상 조이스틱)와 키보드
   let org = null; const keys = {};
