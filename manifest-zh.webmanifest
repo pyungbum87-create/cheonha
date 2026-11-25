@@ -3,7 +3,7 @@
   "short_name": "天下登用",
   "start_url": "./zh.html",
   "scope": "./",
-  "display": "fullscreen",
+  "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1d120d",
   "theme_color": "#1d120d",

@@ -3,7 +3,7 @@
   "short_name": "천하등용",
   "start_url": "./index.html",
   "scope": "./",
-  "display": "fullscreen",
+  "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1d120d",
   "theme_color": "#1d120d",
