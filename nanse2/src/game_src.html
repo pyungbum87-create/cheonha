@@ -101,6 +101,14 @@ p{margin:0}
 .ctp{font-family:var(--body);font-weight:800;font-size:2.4px;paint-order:stroke;stroke:#efe5cf;stroke-width:.8px;fill:#5b4f43}
 .threat{animation:pulse 1.4s ease-in-out infinite}
 .mapnote{position:absolute;left:8px;right:8px;top:8px;display:flex;flex-direction:column;gap:5px;pointer-events:none}
+.dq{position:relative;border:1px solid var(--line);border-left:5px solid var(--dc);border-radius:14px;background:var(--paper2);padding:10px 12px;margin:8px 0;display:flex;flex-direction:column;gap:6px}.dq.main{background:linear-gradient(135deg,#fbf1d6,#f4e6c4)}
+.dq-h{display:flex;align-items:center;gap:6px;min-width:0}.dq-h b{flex:1;min-width:0;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dq-cat{flex:none;font-size:10.5px;font-weight:800;color:#fff;background:var(--dc);padding:2px 7px;border-radius:99px}.dq-t{flex:none;font-size:11px;font-weight:800;color:var(--muted)}.dq-by{flex:none;width:26px;height:26px;border-radius:50%;overflow:hidden}
+.dq-x{margin:0;font-size:13.5px;line-height:1.45}.dq-bar{height:8px;border-radius:99px;background:#26201c14;overflow:hidden}.dq-bar i{display:block;height:100%;border-radius:99px;background:var(--dc);transition:width .4s}
+.dq-f{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);font-weight:700}.dq-r{color:#8a6412;text-align:right}.dq-f .ghost{flex:none;min-height:40px;padding:6px 16px}
+.dq-go{margin:2px 0 0;display:flex;flex-direction:column;align-items:center;gap:1px}.dq-go small{font-size:11px;font-weight:700;opacity:.85}.dq-drop{align-self:flex-end;border:0;background:none;color:var(--muted);font-size:11.5px;text-decoration:underline;min-height:44px;padding:4px 6px}
+.dq-sec{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 0;padding-top:10px;border-top:1px solid var(--line)}.dq-sec b{font-size:14px}.dq-sec span{font-size:11px;color:var(--muted);font-weight:700}
+.dq-aims{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}.dq-aims .ghost{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:8px 10px;min-height:56px}.dq-aims small{font-size:11px;color:var(--muted);font-weight:700}
+.stat.dirb{border:0;font:inherit;cursor:pointer;background:#f4e6c4}.stat.dirb b{position:relative}.stat.dirb b i{position:absolute;top:-2px;right:-9px;width:7px;height:7px;border-radius:50%;background:var(--red)}
 .note{pointer-events:auto;display:flex;align-items:center;gap:8px;background:#f7f0e1ee;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:12px;box-shadow:0 2px 8px #26201c14;text-align:left;width:100%}
 .note b{font-family:var(--display);font-weight:400;font-size:14px}
 .note.danger{border-color:#b3352a66;background:#fbefe6ee}
@@ -1513,7 +1521,7 @@ const bestGen = (cid, f) => peopleIn(cid, f).sort((a,b) => (b.m+b.l)-(a.m+a.l))[
 const bond = id => G.bond[id] ?? 0;
 const addBond = (id, v) => { G.bond[id] = clamp(bond(id)+v, -100, 100); };
 const apMax = () => G.role==='ruler' ? 6 : 4;
-const troopCap = () => G.role==='ronin' ? 5000 : 2500 + G.rank*2000;
+const troopCap = () => G.role==='ronin' ? 5000 : 2500 + G.rank*2000 + (G.role==='officer' && G.path==='mu' ? pathLv()*1000 : 0);
 const isSworn = id => G.sworn.includes(id);
 const lordName = () => G.pfac && fac(G.pfac) && person(fac(G.pfac).ruler) ? person(fac(G.pfac).ruler).n : '';
 const mates = () => G.pfac ? npcs().filter(p => p.fac===G.pfac) : peopleIn(G.city);
@@ -4359,7 +4367,7 @@ function evalMission(){
   if (ok){
     const up = G.rank<5; if (up) G.rank++;
     G.gold += 200; trustAdd(10); G.merit += 25;
-    news(`임무 완수! ${up ? RANKS[G.rank]+' 자리에 올랐다.' : '큰 상이 내려졌다.'} (금 +200, 신뢰 +10)`, true, true);
+    news(`임무 완수! ${up ? RANKS[G.rank]+' 자리에 올랐다.' : '큰 상이 내려졌다.'} (금 +200, 신뢰 +10)`, true, true); if (up) promoTalk();
     if (G.rank>=2 && !G.gov){
       const capC = capitalOf(G.pfac);
       const c = [city(G.city), ...citiesOf(G.pfac)].find(c => c.owner===G.pfac && !c.gov && c.id!==capC);
@@ -4376,6 +4384,146 @@ function failMission(){
   newMission();
 }
 
+/* ---------------- 지침 (장수의 할 일: 주공의 명 · 이달의 지침 · 동료의 부탁 · 내 뜻 · 벼슬길) ---------------- */
+const DCAT = { mil:['군사','#a3322a'], civ:['내정','#2f6b3a'], plot:['계략','#5a4a7a'], ppl:['사람','#b07a1e'] };
+const PATHS = {
+  mu:{ n:'무관', d:'싸움으로 이름을 떨친다. 군사 지침이 자주 내려온다.', cat:'mil', t:['돌격장','선봉장','상장'], perk:['병력 상한 +1,000 · 훈련 효과 +1','병력 상한 +2,000 · 훈련 효과 +2','병력 상한 +3,000 · 훈련 효과 +3'] },
+  mun:{ n:'문관', d:'다스림으로 나라를 받친다. 내정·사람 지침이 자주 내려온다.', cat:'civ', t:['주부','종사','별가'], perk:['달마다 녹봉 금 +25','녹봉 금 +50 · 신뢰가 덜 깎인다','녹봉 금 +80 · 신뢰가 덜 깎인다'] },
+  chaek:{ n:'책사', d:'꾀로 판을 뒤집는다. 계략 지침이 자주 내려온다.', cat:'plot', t:['참군','군사','모주'], perk:['계략 성공 +3%','계략 성공 +6% · 정찰은 반드시 성공','계략 성공 +9% · 정찰은 반드시 성공'] } };
+const PATH_XP = [0, 5, 12];
+const pathLv = () => !G || !G.path ? 0 : (G.pathXp||0) >= PATH_XP[2] ? 3 : (G.pathXp||0) >= PATH_XP[1] ? 2 : 1;
+const pathTitle = () => G.path ? PATHS[G.path].t[pathLv()-1] : '';
+const cntOf = k => (G.cnt && G.cnt[k]) || 0;
+const cntAdd = (k, n=1) => { G.cnt = G.cnt || {}; G.cnt[k] = (G.cnt[k]||0) + n; };
+function myFront(){ if (!G.pfac || G.inArmy) return null; return frontsOf(G.pfac).find(f => f.my.includes(G.city)) || null; }
+const dFront = d => frontsOf(G.pfac).find(f => f.id===d.f);
+const lordOf = () => G.pfac && fac(G.pfac) ? person(fac(G.pfac).ruler) : null;
+/* 지침 종류. mk: 지금 낼 수 있으면 조건을 돌려준다. bar: [지금, 목표]. keep: 기한까지 버티면 완수. act: 단추를 눌러 하는 일 */
+const DIRS = {
+  front:{ cat:'mil', n:'전선을 밀어라', mo:4, lv:3, mk(){ const F = myFront(); if (!F) return null; const p = Math.round(frState(F.id).p); if (p >= 65) return null; return { f:F.id, sec:F.sec, base:p, goal:Math.min(85, p + 22) }; },
+    txt:d => `${d.sec} 전선을 ${Math.round(50 + d.goal/2)} 대 ${Math.round(50 - d.goal/2)}까지 밀어라`, bar:d => { const F = dFront(d); return F ? [Math.round(frState(F.id).p) - d.base, d.goal - d.base] : [1, 1]; } },
+  hold:{ cat:'mil', n:'전선을 지켜라', mo:3, lv:2, keep:1, mk(){ const F = myFront(); if (!F) return null; const p = Math.round(frState(F.id).p); if (p < -45 || p > 40) return null; return { f:F.id, sec:F.sec, goal:p - 12 }; },
+    txt:d => `석 달 동안 ${d.sec} 전선이 ${Math.round(50 + d.goal/2)} 아래로 밀리지 않게 버텨라`, ok:d => { const F = dFront(d); return !F || frState(F.id).p >= d.goal; } },
+  duel:{ cat:'mil', n:'일기토로 기세를 올려라', mo:8, lv:3, mk(){ return me().m >= 60 ? { base:G.duels||0, goal:1 } : null; }, txt:() => '일기토에서 한 번 이겨라', bar:d => [(G.duels||0) - d.base, 1] },
+  win:{ cat:'mil', n:'싸움에서 이겨라', mo:8, lv:3, mk(){ return { base:G.wins||0 }; }, txt:() => '전투에서 한 번 이겨라', bar:d => [(G.wins||0) - d.base, 1] },
+  train:{ cat:'mil', n:'병사를 조련하라', mo:3, lv:1, mk(){ return G.train >= 92 ? null : { goal:Math.min(100, Math.round(G.train) + 12) }; }, txt:d => `훈련도를 ${d.goal}까지 올려라`, bar:d => [Math.round(G.train), d.goal] },
+  troops:{ cat:'mil', n:'병사를 모아라', mo:3, lv:1, mk(){ return G.troops >= troopCap() - 400 ? null : { goal:Math.min(troopCap(), G.troops + 800) }; }, txt:d => `병력을 ${fmt(d.goal)}까지 늘려라`, bar:d => [G.troops, d.goal] },
+  merit:{ cat:'mil', n:'공을 세워라', mo:4, lv:2, mk(){ return { base:G.merit, goal:25 + G.rank*8 }; }, txt:d => `공적 ${d.goal}을 더 쌓아라`, bar:d => [Math.round(G.merit - d.base), d.goal] },
+  patrol:{ cat:'mil', n:'도적을 쫓아라', mo:3, lv:1, mk(){ return G.troops >= 300 ? { n:2 } : null; }, txt:() => '성 둘레를 두 번 순찰해 도적을 쫓아라', act:{ t:'순찰을 돈다', ap:1, st:'m', df:48, ok:'도적 떼를 쫓아냈다.', no:'도적을 놓쳤다. 병사 몇이 다쳤다.', fail(){ G.troops = Math.max(0, G.troops - 40); } } },
+  escort:{ cat:'mil', n:'군량을 호송하라', mo:3, lv:2, mk(){ const F = myFront(); return F ? { f:F.id, sec:F.sec, n:2 } : null; }, txt:d => `${d.sec} 전선으로 군량 수레를 두 번 호송하라`,
+    act:{ t:'수레를 호송한다', ap:1, st:'l', df:50, ok:'군량이 무사히 닿았다. 전선의 보급이 넉넉해졌다.', no:'길에서 수레 몇 대를 잃었다.', win(d){ const F = dFront(d); if (F){ const S = frState(F.id); S.sup = Math.min(3, (S.sup||0) + .5); } } } },
+  scout:{ cat:'plot', n:'적정을 살펴라', mo:3, lv:1, mk(){ return city(G.city).adj.some(a => city(a).owner!==G.pfac) ? { base:cntOf('scout'), goal:2 } : null; }, txt:() => '이웃한 적 성 정찰을 두 번 성공시켜라', bar:d => [cntOf('scout') - d.base, 2] },
+  plot:{ cat:'plot', n:'적을 흔들어라', mo:4, lv:2, mk(){ return city(G.city).adj.some(a => city(a).owner && hostile(G.pfac, city(a).owner)) ? { base:G.plotWins||0 } : null; }, txt:() => '적 성에 계략을 한 번 성공시켜라', bar:d => [(G.plotWins||0) - d.base, 1] },
+  sway:{ cat:'plot', n:'적장을 꾀어라', mo:8, lv:3, mk(){ return me().i >= 60 && city(G.city).adj.some(a => city(a).owner && hostile(G.pfac, city(a).owner)) ? { base:cntOf('sway') } : null; }, txt:() => '이간이나 회유로 적장 하나를 돌려세워라', bar:d => [cntOf('sway') - d.base, 1] },
+  envoy:{ cat:'plot', n:'사신으로 가라', mo:4, lv:2, mk(){ const fs = aliveFacs().filter(f => f.id!==G.pfac && citiesOf(f.id).length); if (!fs.length) return null; const f = pick(fs); return { fid:f.id, fn:facName(f.id), n:1 }; }, txt:d => `${d.fn}에 사신으로 가서 속사정을 살피고 오라`,
+    act:{ t:'사신으로 떠난다', ap:2, st:'c', df:58, ok:'환대를 받으며 그 나라의 성과 군세를 낱낱이 보고 왔다.', no:'문전에서 박대를 받고 돌아왔다.', win(d){ for (const c of citiesOf(d.fid)) G.scout[c.id] = mi() + 6; } } },
+  donate:{ cat:'civ', n:'군자금을 보태라', mo:2, lv:1, mk(){ return { n:1 }; }, txt:() => '나라 살림이 어렵다. 금 150을 바쳐라', act:{ t:'금 150을 바친다', ap:0, gold:150, ok:'군자금을 바쳤다. 주공이 고개를 끄덕였다.' } },
+  relief:{ cat:'civ', n:'백성을 구휼하라', mo:3, lv:2, mk(){ return { cn:city(G.city).n, n:2 }; }, txt:d => `${d.cn}의 굶주린 백성에게 곡식을 두 번 풀어라`, act:{ t:'곡식을 푼다', ap:1, gold:50, ok:'죽 솥이 걸리고 백성들이 그대의 이름을 불렀다.', win(){ const c = city(G.city); if (c.morale!=null) c.morale = Math.min(100, c.morale + 4); } } },
+  develop:{ cat:'civ', n:'고을을 다스려라', mo:5, lv:2, mk(){ return G.gov && city(G.gov).dev < 10 ? { base:cntOf('a_develop'), goal:2 } : null; }, txt:() => '맡은 성의 내정을 두 번 돌보아라', bar:d => [cntOf('a_develop') - d.base, 2] },
+  tribe:{ cat:'civ', n:'변방을 달래라', mo:4, lv:2, mk(){ const id = Object.keys(TRIBES).find(k => tribeNear(k) && tribeSt(k).rel < 60); return id ? { tid:id, tn:TRIBES[id].n, n:1 } : null; }, txt:d => `${d.tn}의 족장을 찾아가 달래고 오라`,
+    act:{ t:'족장을 찾아간다', ap:1, gold:60, st:'c', df:52, ok:'족장과 술잔을 나누었다. 변방이 한결 잠잠해졌다.', no:'족장은 선물만 받고 말이 없었다.', win(d){ const S = tribeSt(d.tid); S.rel = Math.min(100, S.rel + 14); } } },
+  recommend:{ cat:'ppl', n:'인재를 천거하라', mo:4, lv:2, mk(){ const L = npcs().filter(p => p.fac==='free' && !p.army && (p.city===G.city || city(G.city).adj.includes(p.city))); if (!L.length) return null; const p = L.sort((a, b) => (b.m + b.i + b.l) - (a.m + a.i + a.l))[0]; return { npc:p.id, pn:p.n, n:1 }; }, txt:d => `재야의 ${J(d.pn, '을')} 설득해 주공께 천거하라`,
+    can:d => { const p = person(d.npc); return active(p) && p.fac==='free'; },
+    act:{ t:'찾아가 설득한다', ap:1, st:'c', df:55, ok:'그가 마음을 정했다. 주공 앞에 나아가 벼슬을 받았다.', no:'그는 아직 때가 아니라며 웃기만 했다.', win(d){ const p = person(d.npc); if (active(p) && p.fac==='free'){ p.fac = G.pfac; p.city = G.city; p.loy = 62; addBond(p.id, 12); } }, fail(d){ addBond(d.npc, 3); } } },
+  bond:{ cat:'ppl', n:'동료와 뜻을 맞춰라', mo:4, lv:1, mk(){ const L = npcs().filter(p => p.fac===G.pfac && !p.army && !p.female && bond(p.id) < 60 && p.id!==fac(G.pfac).ruler); if (!L.length) return null; const p = pick(L); return { npc:p.id, pn:p.n, goal:Math.round(bond(p.id)) + 15 }; }, txt:d => `${J(d.pn, '과')}의 인연을 ${d.goal}까지 쌓아라`, can:d => active(person(d.npc)) && person(d.npc).fac===G.pfac, bar:d => [Math.round(bond(d.npc)), d.goal] },
+  social:{ cat:'ppl', n:'사람들과 어울려라', mo:3, lv:1, mk(){ return { base:cntOf('a_social'), goal:3 }; }, txt:() => '장수들과 세 번 교류하라 (인물 화면)', bar:d => [cntOf('a_social') - d.base, 3] },
+  study:{ cat:'ppl', n:'스스로를 갈고닦아라', mo:3, lv:1, mk(){ return { base:cntOf('a_study'), goal:3 }; }, txt:() => '수련을 세 번 하라', bar:d => [cntOf('a_study') - d.base, 3] },
+  teach:{ cat:'ppl', n:'공자를 가르쳐라', mo:4, lv:2, mk(){ const L = lordOf(); if (!L) return null; const k = npcs().find(q => PARENT[q.id]===L.id && q.fac===G.pfac && ageOf(q) <= 24); return k ? { npc:k.id, pn:k.n, n:2 } : null; }, txt:d => `주공의 자식 ${J(d.pn, '을')} 두 번 가르쳐라`, can:d => active(person(d.npc)),
+    act:{ t:'글과 병법을 가르친다', ap:1, st:'i', df:45, ok:'공자가 하나를 들으면 둘을 깨쳤다.', no:'공자는 딴청만 피웠다.', win(d){ const k = person(d.npc), s = pick(['i','l','c']); if (k){ k[s] = clamp((k[s]||50) + 1, 1, 100); addBond(k.id, 6); } const L = lordOf(); if (L) addBond(L.id, 3); } } },
+  /* 동료의 부탁 */
+  a_spar:{ ask:1, cat:'ppl', n:'대련 상대', mo:3, lv:1, mk(q){ return { n:1 }; }, say:'요즘 창끝이 무뎌졌소. 한 번 겨뤄 주시겠소?', txt:d => `${d.pn}의 대련 상대가 되어 주어라`, act:{ t:'대련한다', ap:1, st:'m', df:50, ok:'땀에 젖어 마주 웃었다.', no:'한 수 밀렸지만 그는 즐거워했다.', soft:1 } },
+  a_drink:{ ask:1, cat:'ppl', n:'술 한잔', mo:2, lv:1, mk(){ return { n:1 }; }, say:'속이 답답하오. 오늘 밤 술이나 한잔 받아 주시오.', txt:d => `${d.pn}의 술자리에 함께해 주어라`, act:{ t:'술자리에 간다', ap:1, gold:30, ok:'밤이 깊도록 잔을 나누었다.', win(){ G.hp = clamp(G.hp - 3); } } },
+  a_lend:{ ask:1, cat:'ppl', n:'급한 돈', mo:2, lv:1, mk(){ return { n:1 }; }, say:'면목 없지만… 집안에 급한 일이 생겼소. 금 120만 빌려주시겠소? 넉 달 뒤에 꼭 갚으리다.', txt:d => `${d.pn}에게 금 120을 빌려주어라`, act:{ t:'금 120을 빌려준다', ap:0, gold:120, ok:'그는 몇 번이나 고개를 숙였다.', win(d){ (G.loans = G.loans || []).push({ npc:d.by, at:mi() + 4, g:160 }); } } },
+  a_vouch:{ ask:1, cat:'ppl', n:'주공께 변호', mo:3, lv:2, mk(){ return { n:1 }; }, say:'지난번 일로 주공의 눈 밖에 났소. 그대가 한마디만 거들어 주면….', txt:d => `주공 앞에서 ${J(d.pn, '을')} 변호해 주어라`, act:{ t:'주공께 아뢴다', ap:1, st:'c', df:55, ok:'주공이 노여움을 풀었다.', no:'주공이 도리어 그대까지 꾸짖었다.', win(d){ const p = person(d.by); if (p) p.loy = clamp((p.loy||60) + 8); }, fail(){ trustAdd(-3); }, soft:1 } },
+  a_letter:{ ask:1, cat:'ppl', n:'서신 심부름', mo:4, lv:1, mk(){ const L = city(G.city).adj.filter(a => city(a).owner===G.pfac); return L.length ? { to:pick(L) } : null; }, say:'', txt:d => `${city(d.to).n}에 있는 ${d.pn}의 가족에게 서신을 전하라 (그 성으로 이동)`, bar:d => [G.city===d.to ? 1 : 0, 1] },
+  a_drill:{ ask:1, cat:'ppl', n:'조련 돕기', mo:3, lv:1, mk(){ return { n:2 }; }, say:'새로 받은 병사들이 영 오합지졸이오. 그대 솜씨를 좀 빌립시다.', txt:d => `${d.pn}의 병사 조련을 두 번 도와라`, act:{ t:'조련을 돕는다', ap:1, st:'l', df:45, ok:'대오가 눈에 띄게 반듯해졌다.', no:'병사들이 좀처럼 따라오지 못했다.', win(){ G.train = Math.min(100, G.train + 2); } } },
+  a_rival:{ ask:1, cat:'plot', n:'묵은 원한', mo:6, lv:3, mk(){ const L = city(G.city).adj.map(city).filter(c => c.owner && hostile(G.pfac, c.owner)); return L.length ? { base:G.plotWins||0, tn:pick(L).n } : null; }, say:'', txt:d => `${d.pn}의 원수가 있는 적 성에 계략을 한 번 성공시켜라`, bar:d => [(G.plotWins||0) - d.base, 1] },
+};
+/* 주공의 성격에 따라 지침의 결이 달라진다 */
+const LORD_W = { yasim:{ mil:1.6, plot:1.3 }, yongjang:{ mil:1.9 }, gyohwal:{ plot:1.9 }, onhwa:{ civ:1.7, ppl:1.5 }, uiri:{ ppl:1.5, mil:1.2 }, sinjung:{ civ:1.6 } };
+const LORD_K = { cao:{ recommend:2.5, plot:1.6, sway:1.6, scout:1.4 }, liubei:{ relief:2.5, bond:1.6, recommend:1.6, social:1.4 }, sunquan:{ hold:2.2, train:1.8, escort:1.6 }, sunce:{ front:2, duel:2, win:1.6 }, sunjian:{ front:2, win:1.8 }, yuanshao:{ donate:1.6, troops:1.8 }, dongzhuo:{ donate:2.2, patrol:1.6 }, lvbu:{ duel:2.5, win:1.8 }, liubiao:{ relief:1.6, study:1.6, hold:1.6 } };
+const LORD_SAY = { mil:{ yongjang:'말보다 칼이다. 이달에는 이 일을 맡아라.', yasim:'천하는 기다려 주지 않는다. 그대가 길을 열어라.', d:'싸움터의 일이다. 그대만 한 이가 없다.' }, civ:{ onhwa:'백성이 편해야 나라가 선다. 이 일을 부탁하네.', sinjung:'안이 든든해야 밖을 칠 수 있다. 차근히 해 주게.', d:'나라 안의 일이다. 꼼꼼히 살펴라.' }, plot:{ gyohwal:'싸우지 않고 이기는 것이 으뜸이지. 그대의 꾀를 보겠네.', yasim:'적의 속을 뒤집어 놓아라.', d:'꾀를 쓸 일이다. 은밀히 움직여라.' }, ppl:{ onhwa:'사람이 곧 나라일세. 이 일은 그대 인품을 믿고 맡기네.', uiri:'의리로 맺은 사람은 배신하지 않는다. 그대가 나서 주게.', d:'사람의 일이다. 정성을 다하라.' } };
+const dirSay = (cat, L) => (LORD_SAY[cat][persOf(L)] || LORD_SAY[cat].d);
+function dirReward(d){ const D = DIRS[d.k], lv = D.lv, r = { gold:[50, 110, 200][lv-1], trust:[2, 4, 6][lv-1], merit:[5, 12, 22][lv-1] }; if (D.ask){ r.gold = lv===3 ? 150 : d.k==='a_letter' ? 50 : 0; r.trust = 0; r.merit = lv; r.bond = [10, 14, 18][lv-1]; } if (D.cat==='civ') r.gold = Math.round(r.gold*.6/10)*10; if (d.k==='donate'){ r.gold = 0; r.trust = 5; } if (d.k==='troops' || d.k==='patrol') r.troops = 200; return r; }
+const dirRewardTxt = d => { const r = dirReward(d), a = []; if (r.gold) a.push('금 +' + r.gold); if (r.trust) a.push('신뢰 +' + r.trust); if (r.merit) a.push('공적 +' + r.merit); if (r.bond) a.push('인연 +' + r.bond); if (r.troops) a.push('병력 +' + r.troops); return a.join(' · '); };
+function dirMake(k, by){ const D = DIRS[k]; let prm = null; try { prm = D.mk(by ? person(by) : null); } catch(e){ prm = null; } if (!prm) return null; const d = Object.assign({ k, id:'d' + mi() + '_' + Math.floor(Math.random()*1e6), n0:0 }, prm); if (by){ d.by = by; d.pn = person(by).n; } return d; }
+function dirOffers(){
+  const L = lordOf(); if (!L) return [];
+  const pw = LORD_W[persOf(L)] || {}, kw = LORD_K[L.id] || {}, have = new Set((G.dirs||[]).map(d => d.k)), pc = G.path ? PATHS[G.path].cat : null;
+  let pool = Object.keys(DIRS).filter(k => !DIRS[k].ask && !have.has(k)).map(k => { const d = dirMake(k); return d ? { d, w:(pw[DIRS[k].cat]||1)*(kw[k]||1)*(pc===DIRS[k].cat ? 1.5 : 1)*(DIRS[k].cat==='ppl' && G.path==='mun' ? 1.25 : 1) } : null; }).filter(Boolean);
+  const out = [];
+  while (out.length < 3 && pool.length){ const tot = pool.reduce((s, x) => s + x.w*(out.some(o => DIRS[o.k].cat===DIRS[x.d.k].cat) ? .35 : 1), 0); let r = Math.random()*tot, pk = pool[0]; for (const x of pool){ r -= x.w*(out.some(o => DIRS[o.k].cat===DIRS[x.d.k].cat) ? .35 : 1); if (r <= 0){ pk = x; break; } } out.push(pk.d); pool = pool.filter(x => x!==pk); }
+  return out;
+}
+const dirsOf = ask => (G.dirs||[]).filter(d => !!DIRS[d.k].ask===!!ask);
+const DIR_MAX = 2;
+function dirTake(i){ const d = (G.dirOffer||[])[i]; if (!d || dirsOf(0).length >= DIR_MAX) return false; G.dirOffer.splice(i, 1); d.until = mi() + DIRS[d.k].mo; (G.dirs = G.dirs || []).push(d); return true; }
+function dirDone(d){ const D = DIRS[d.k]; if (D.can && !D.can(d)) return false; if (D.act) return (d.n0||0) >= d.n; if (D.keep) return false; const b = D.bar(d); return b[0] >= b[1]; }
+function dirBar(d){ const D = DIRS[d.k]; if (D.act) return [d.n0||0, d.n]; if (D.keep) return [Math.max(0, DIRS[d.k].mo - Math.max(0, d.until - mi())), DIRS[d.k].mo]; const b = D.bar(d); return [Math.max(0, Math.min(b[0], b[1])), b[1]]; }
+function dirFinish(d, ok, quiet){
+  const D = DIRS[d.k]; G.dirs = (G.dirs||[]).filter(x => x!==d);
+  if (!ok){ if (D.ask){ addBond(d.by, -6); news(`${d.pn}의 부탁을 들어주지 못했다. (인연 -6)`, false, true); } else { const v = trustAdd(-3); news(`지침 「${D.n}」을 기한 안에 해내지 못했다. (신뢰 ${v})`, false, true); } return; }
+  const r = dirReward(d), chips = []; G.gold += r.gold; if (r.gold) chips.push([`금 +${r.gold}`, true]); if (r.trust){ trustAdd(r.trust); chips.push([`신뢰 +${r.trust}`, true]); } G.merit += r.merit; chips.push([`공적 +${r.merit}`, true]);
+  if (r.troops){ G.troops = Math.min(troopCap(), G.troops + r.troops); chips.push([`병력 +${r.troops}`, true]); }
+  if (r.bond && d.by){ addBond(d.by, r.bond); chips.push([`${d.pn} 인연 +${r.bond}`, true]); }
+  G.dirN = (G.dirN||0) + 1;
+  if (G.path){ const lv0 = pathLv(); G.pathXp = (G.pathXp||0) + (PATHS[G.path].cat===D.cat || (G.path==='mun' && D.cat==='ppl') ? 2 : 1); if (pathLv() > lv0) pathUp(); }
+  // 큰 지침은 가끔 능력이 오른다 (난이도가 높을수록 드물다)
+  if (D.lv===3 && Math.random() < .3*(dif().pg ?? 1)){ const s = { mil:'l', civ:'g', plot:'i', ppl:'c' }[D.cat]; if (me()[s]!=null && me()[s] < 100){ me()[s]++; chips.push([`${ST[s]} +1`, true]); } }
+  const msg = D.ask ? `${d.pn}의 부탁을 들어주었다.` : `지침 완수 「${D.n}」`;
+  news(msg + ' (' + chips.map(c => c[0]).join(', ') + ')', false, true);
+  if (!quiet){ if (G.toast && !G.toast.bad && Date.now() - G.toast.t < 1500){ G.toast.msg += ' · ' + msg; G.toast.chips = (G.toast.chips||[]).concat(chips); } else toast(msg, chips); Snd.sfx('win'); }
+}
+function dirCheck(quiet){ if (!G || G.role!=='officer' || !G.dirs) return; for (const d of [...G.dirs]){ const D = DIRS[d.k]; if (D.can && !D.can(d)){ G.dirs = G.dirs.filter(x => x!==d); continue; } if (dirDone(d)) dirFinish(d, true, quiet); } aimCheck(quiet); }
+function dirDo(id){
+  const d = (G.dirs||[]).find(x => x.id===id); if (!d || G.phase!=='act') return; const A = DIRS[d.k].act; if (!A) return;
+  if (G.ap < (A.ap||0)) return toast('행동력이 모자란다.', [], true); if (A.gold && G.gold < A.gold) return toast('금이 모자란다.', [], true);
+  G.ap -= (A.ap||0); if (A.gold) G.gold -= A.gold;
+  const ok = !A.st || roll(A.st, A.df);
+  if (ok || A.soft){ d.n0 = (d.n0||0) + 1; if (ok && A.win) A.win(d); if (!ok && A.fail) A.fail(d); toast(ok ? A.ok : A.no, ok ? [[`${d.n0}/${d.n}`, true]] : [], !ok); }
+  else { if (A.fail) A.fail(d); toast(A.no || '뜻대로 되지 않았다.', [], true); }
+  dirCheck();
+}
+/* 달마다: 기한 · 새 지침 · 동료의 부탁 · 녹봉 · 빌려준 돈 */
+function dirMonth(){
+  if (G.role!=='officer' || !lordOf()){ G.dirs = []; G.dirOffer = []; return; }
+  G.dirs = G.dirs || [];
+  for (const d of [...G.dirs]){ const D = DIRS[d.k]; if (D.can && !D.can(d)){ G.dirs = G.dirs.filter(x => x!==d); continue; } if (dirDone(d)){ dirFinish(d, true, true); continue; } if (mi() >= d.until) dirFinish(d, D.keep ? D.ok(d) : false, true); else if (D.keep && !D.ok(d)) dirFinish(d, false, true); }
+  if (G.path==='mun'){ const g = [25, 50, 80][pathLv()-1]; G.gold += g; }
+  for (const l of [...(G.loans||[])]) if (mi() >= l.at){ G.loans = G.loans.filter(x => x!==l); const p = person(l.npc); if (active(p)){ if (Math.random() < .85){ G.gold += l.g; addBond(p.id, 4); news(`${J(p.n, '이')} 빌려 간 돈에 이자를 얹어 갚았다. (금 +${l.g})`, false, true); } else { addBond(p.id, -8); news(`${J(p.n, '은')} 돈을 갚지 못하고 얼굴을 피한다.`, false, true); } } }
+  if (!G.dirOfferAt || mi() - G.dirOfferAt >= 2 || !(G.dirOffer||[]).length){ G.dirOffer = dirOffers(); G.dirOfferAt = mi(); G.dirSeen = 0; G.dirRe = 0; }
+  if (SIM){ if (dirsOf(0).length < DIR_MAX && G.dirOffer.length) dirTake(0); for (const d of G.dirs) if (DIRS[d.k].act && Math.random() < .5){ d.n0 = (d.n0||0) + 1; const A = DIRS[d.k].act; if (A.win) A.win(d); } return; }
+  // 동료의 부탁: 가까운 이가 가끔 찾아온다
+  if (!dirsOf(1).length && mi() - (G.askAt||0) >= 3 && Math.random() < .3){
+    const L = npcs().filter(p => p.fac===G.pfac && !p.army && !p.female && p.id!==fac(G.pfac).ruler && bond(p.id) >= 10).sort((a, b) => bond(b.id) - bond(a.id)).slice(0, 5);
+    if (L.length){ const q = pick(L), ks = Object.keys(DIRS).filter(k => DIRS[k].ask).sort(() => Math.random() - .5); for (const k of ks){ const d = dirMake(k, q.id); if (d){ G.askAt = mi(); G.askOffer = d; askTalk(d); break; } } }
+  }
+}
+function askTalk(d){
+  const D = DIRS[d.k], q = person(d.by), say = D.say || (d.k==='a_letter' ? `${city(d.to).n}에 두고 온 식구들이 걱정이오. 이 서신을 전해 주겠소?` : `${d.tn}에 내 원수가 있소. 그놈이 편히 잠드는 꼴은 못 보겠소. 그대의 꾀를 빌려주시오.`);
+  talkQ({ title:`${q.n}의 부탁`, bg: d.k==='a_drink' ? 'bg_tavern' : d.k==='a_lend' || d.k==='a_letter' ? 'bg_house' : 'bg_camp', slots:{ r:q.id }, lines:[[null, pick([`해 질 무렵, ${J(q.n, '이')} 찾아왔다.`, `막사 앞에서 ${J(q.n, '이')} 기다리고 있었다.`, `${J(q.n, '이')} 주위를 살피더니 다가와 앉았다.`])], [q.id, say]],
+    choices:[{ t:'들어주겠다', sub:dirRewardTxt(d) + ` · ${D.mo}개월 안에`, cn:'askY' }, { t:'지금은 어렵다', sub:'인연 -2', cn:'askN' }] });
+}
+/* 벼슬길 */
+function pathUp(){ const P = PATHS[G.path], lv = pathLv(), L = lordOf(); news(`${P.n}의 길에서 ${P.t[lv-1]}에 올랐다. (${P.perk[lv-1]})`, true, true); if (L) talkQ({ title:`${P.t[lv-1]} 임명`, bg:'bg_palace', slots:{ r:L.id }, lines:[[null, '궁의 섬돌 아래 문무백관이 늘어섰다.'], [L.id, `${me().n}, 그동안의 일을 내 다 보았다. 오늘부터 ${J(P.t[lv-1], '으로')} 삼노라.`], ['me', '분에 넘치는 자리이오나, 맡은 바를 다하겠습니다.'], [null, `${P.t[lv-1]}: ${P.perk[lv-1]}`]] }); }
+function pathAsk(){ const L = lordOf(); if (!L || G.path || SIM) return; talkQ({ title:'벼슬길을 정하다', bg:'bg_palace', slots:{ r:L.id }, lines:[[L.id, `${me().n}, 이제 그대도 한 길을 정할 때가 되었다. 어느 길로 나를 돕겠는가?`], [null, '한번 정한 길은 바꿀 수 없다. 길에 따라 내려오는 지침과 얻는 힘이 달라진다.']],
+  choices:Object.entries(PATHS).map(([k, P]) => ({ t:`${P.n} — ${P.d}`, sub:P.perk[0], cn:'path', arg:k })) }); }
+function promoTalk(){ const L = lordOf(); if (!L || SIM) return; talkQ({ title:`${RANKS[G.rank]} 승진`, bg:'bg_palace', slots:{ r:L.id }, lines:[[null, '북이 세 번 울리고, 그대의 이름이 불렸다.'], [L.id, `${me().n}의 공이 크다. 오늘부터 ${J(RANKS[G.rank], '으로')} 삼는다. 병력 ${fmt(troopCap())}까지 거느려도 좋다.`], ['me', '이 은혜, 반드시 공으로 갚겠습니다.']] }); if (!G.path && G.rank >= 1) pathAsk(); }
+/* 내 뜻: 스스로 세우는 긴 목표 */
+const AIMS = {
+  gov:{ n:'한 고을의 주인', d:'태수가 된다', ok:() => !!G.gov, can:() => !G.gov, st:'g' },
+  top:{ n:'장수의 끝', d:'대장군에 오른다', ok:() => G.rank >= 5, can:() => G.rank < 5, st:'l' },
+  duel:{ n:'천하의 무인', d:'일기토에서 다섯 번 더 이긴다', mk:() => ({ base:G.duels||0 }), bar:a => [(G.duels||0) - a.base, 5], st:'m' },
+  siege:{ n:'성을 깨는 자', d:'전투에서 다섯 번 더 이긴다', mk:() => ({ base:G.wins||0 }), bar:a => [(G.wins||0) - a.base, 5], st:'l' },
+  plot:{ n:'장막 안의 꾀', d:'계략을 여섯 번 더 성공시킨다', mk:() => ({ base:G.plotWins||0 }), bar:a => [(G.plotWins||0) - a.base, 6], st:'i' },
+  friend:{ n:'사람을 얻는 자', d:'인연 60 이상인 벗을 다섯 둔다', bar:() => [npcs().filter(p => bond(p.id) >= 60).length, 5], st:'c' },
+  duty:{ n:'믿고 맡기는 신하', d:'지침을 열 번 더 완수한다', mk:() => ({ base:G.dirN||0 }), bar:a => [(G.dirN||0) - a.base, 10], st:'g' },
+};
+const aimBar = a => { const A = AIMS[a.k]; return A.bar ? A.bar(a) : [A.ok() ? 1 : 0, 1]; };
+function aimSet(k){ const A = AIMS[k]; if (!A || (A.can && !A.can())) return; G.aim = Object.assign({ k, at:mi() }, A.mk ? A.mk() : {}); toast(`뜻을 세웠다: ${A.n}`, [[A.d, true]]); }
+function aimCheck(quiet){ const a = G.aim; if (!a || !AIMS[a.k]) return; const b = aimBar(a); if (b[0] < b[1]) return; const A = AIMS[a.k], s = A.st; G.aim = null; G.aimDone = (G.aimDone||[]).concat(a.k); G.gold += 300; const chips = [['금 +300', true]]; if (me()[s]==null) me()[s] = me().i; const up = Math.min(2, 100 - me()[s]); if (up > 0){ me()[s] += up; chips.push([`${ST[s]} +${up}`, true]); }
+  news(`뜻을 이루었다: ${A.n}. (${chips.map(c => c[0]).join(', ')})`, true, true); if (!quiet) toast(`뜻을 이루었다: ${A.n}`, chips); talkQ({ title:'뜻을 이루다', bg:'bg_house', lines:[[null, `${dateStr()}. 등불 아래 지난날을 돌아본다.`], ['me', `${A.d}… 마침내 해냈다. 다음은 무엇을 바라볼까.`]] }); }
+
 /* ---------------- 행동 ---------------- */
 function spend(gold){ if (G.ap<=0) return false; if (gold && G.gold<gold) return false; G.ap--; if (gold) G.gold -= gold; return true; }
 function toast(msg, chips=[], bad=false){ msg = JF(msg); G.toast = { msg, chips, bad, t:Date.now() }; }
@@ -4383,10 +4531,10 @@ const GEAR_ID = Object.fromEntries(Object.entries(GEAR).map(([k, v]) => [v[0], k
 const hasT = (p, k) => !!(p && p.tr2 && p.tr2.includes(k));
 function check(stat, d){ let v = me()[stat]; const tr = me().tr; if ((tr==='맹장'&&stat==='m')||(tr==='지장'&&stat==='i')||(tr==='인덕'&&stat==='c')) v += 10; return clamp(.5 + (v-d)/50, .05, .95); }
 const roll = (stat, d) => Math.random() < check(stat, d);
-function trustAdd(v){ if (v<0 && me().tr==='충의') v = Math.round(v*.6); if (v>0 && me().tr==='인덕') v = Math.round(v*1.2); G.trust = clamp(G.trust+v); return v; }
+function trustAdd(v){ if (v<0 && me().tr==='충의') v = Math.round(v*.6); if (v<0 && G.path==='mun' && pathLv() >= 2) v = Math.round(v*.7); if (v>0 && me().tr==='인덕') v = Math.round(v*1.2); G.trust = clamp(G.trust+v); return v; }
 // 원정 군량: 평소 먹이는 값은 유지비에 들어 있으므로, 원정에서 더 드는 몫만 받는다
 const foodCost = (troops, months) => Math.round(troops/1000*months*6);
-const plotBonus = () => clamp((me().i-65)/300, -.05, .15) + dif().plot + (hasT(me(),'gangye') ? .08 : 0);
+const plotBonus = () => clamp((me().i-65)/300, -.05, .15) + dif().plot + (hasT(me(),'gangye') ? .08 : 0) + (G.role==='officer' && G.path==='chaek' ? pathLv()*.03 : 0);
 function plotChance(kind, cid, gid){
   const c = city(cid), dg = bestGen(cid, c.owner), res = dg ? dg.i : 40;
   if (kind==='discord'){ const t = person(gid); return clamp(.15 + (me().i-60)/120 + (me().c-60)/200 + bond(gid)/200 - (t.loy||70)/250 + plotBonus(), .03, .85); }
@@ -4412,7 +4560,7 @@ function canWedNamed(p){
 }
 const namedBrides = () => npcs().filter(p => canWedNamed(p) && (p.city===G.city || bond(p.id)>=30)).sort((a,b) => bond(b.id)-bond(a.id)).slice(0,4);
 const ACT = {
-  train(){ const cost = G.role==='ruler' ? 60 : 0; if (!spend(cost)) return; const v = G.role==='ruler'?5:6; G.train = clamp(G.train+v); if (G.role==='officer') G.merit += 1;
+  train(){ const cost = G.role==='ruler' ? 60 : 0; if (!spend(cost)) return; const v = G.role==='ruler'?5:6 + (G.path==='mu' ? pathLv() : 0); G.train = clamp(G.train+v); if (G.role==='officer') G.merit += 1;
     toast('병사들이 땀을 흘렸다.', [[`훈련 +${v}`,true], ...(cost?[[`금 -${cost}`,false]]:[])]); },
   draft(cid){
     if (G.role==='ruler'){ const c = city(cid||G.city); if (!c || c.owner!==G.pfac) return; const n = Math.min(1500, Math.floor(c.pool||0)); if (n<200) return toast(`${c.n}에는 더 모을 장정이 없다. 다음 달을 기다리자.`, [], true);
@@ -4474,7 +4622,7 @@ const ACT = {
   },
   scout(cid){
     if (!spend(0)) return;
-    if (roll('i', 35)){ G.scout[cid] = mi()+6; const c = city(cid), dg = bestGen(cid, c.owner);
+    if ((G.role==='officer' && G.path==='chaek' && pathLv() >= 2) || roll('i', 35)){ G.scout[cid] = mi()+6; const c = city(cid), dg = bestGen(cid, c.owner);
       toast(`첩자가 ${c.n}의 사정을 알아왔다. 병력 ${fmt(c.troops)}${dg?`, 수비 장수 ${dg.n}`:''}. 6개월 동안 보인다.`, [['정찰 성공',true]]); if (G.role==='officer') G.merit += 2; }
     else toast('첩자가 돌아오지 않았다.', [], true);
   },
@@ -4494,14 +4642,14 @@ const ACT = {
     } else if (kind==='discord'){
       const t = person(gid); if (!active(t) || t.city!==cid || t.fac!==c.owner || t.army || aliveFacs().some(f=>f.ruler===gid)) return;
       if (Math.random() < ch){
-        if (G.pfac && bond(gid) >= 30){ t.fac = G.pfac; t.city = G.role==='ruler' ? (c.adj.find(a=>city(a).owner===G.pfac) || G.city) : G.city; t.loy = 55; win(`이간계가 통했다! ${J(t.n,'이')} 주군을 버리고 우리 편이 되었다.`, [[`${t.n} 합류`,true]], 15); }
-        else { t.fac = 'free'; win(`이간계가 통했다! ${J(t.n,'이')} 주군과 등을 지고 떠났다.`, [['적장 이탈',true]], 10); }
+        if (G.pfac && bond(gid) >= 30){ t.fac = G.pfac; t.city = G.role==='ruler' ? (c.adj.find(a=>city(a).owner===G.pfac) || G.city) : G.city; t.loy = 55; cntAdd('sway'); win(`이간계가 통했다! ${J(t.n,'이')} 주군을 버리고 우리 편이 되었다.`, [[`${t.n} 합류`,true]], 15); }
+        else { t.fac = 'free'; cntAdd('sway'); win(`이간계가 통했다! ${J(t.n,'이')} 주군과 등을 지고 떠났다.`, [['적장 이탈',true]], 10); }
       } else { addBond(gid, -10); lose(`${J(t.n,'은')} 흔들리지 않았다.`); }
     } else if (kind==='cede'){
       const t = cedeTarget(cid), old = c.owner, R = person(fac(old).ruler); G.cedeCd[cid] = mi() + 6;
       if (Math.random() < cedeChance(cid)){
         t.fac = G.pfac; t.loy = 60; transferCity(c, G.pfac, Math.round(c.troops*.6)); G.cedeAll = mi() + 3; t.city = cid; c.gov = t.id; addBond(t.id, 15);
-        talkQ({ title:`${c.n} 태수의 귀순`, bg:'bg_palace', lines:[[t.id, pick(['주군은 이 성을 버린 지 오래요. 성문을 열 테니 백성만은 지켜 주시오.', '난세에 누구를 섬길지는 내가 정하겠소. 이 성을 들어 귀공께 바치오.'])], ['me', '그대의 결단을 잊지 않겠소. 이 성은 그대로 그대가 맡으시오.'], [R ? R.id : null, `${t.n}, 이 배은망덕한 놈이…!`]] });
+        cntAdd('sway'); talkQ({ title:`${c.n} 태수의 귀순`, bg:'bg_palace', lines:[[t.id, pick(['주군은 이 성을 버린 지 오래요. 성문을 열 테니 백성만은 지켜 주시오.', '난세에 누구를 섬길지는 내가 정하겠소. 이 성을 들어 귀공께 바치오.'])], ['me', '그대의 결단을 잊지 않겠소. 이 성은 그대로 그대가 맡으시오.'], [R ? R.id : null, `${t.n}, 이 배은망덕한 놈이…!`]] });
         win(`${J(t.n,'이')} ${c.n}을(를) 들어 우리에게 넘어왔다! 싸움 없이 성 하나를 얻었다.`, [[`${c.n} 획득`,true],[`${t.n} 합류`,true]], 40); Snd.sfx('win');
         if (R) addBond(R.id, -30);
       } else { addBond(t.id, -15); t.loy = Math.min(100, (t.loy||70) + 8); lose(`${J(t.n,'은')} 밀서를 불태웠다. "나를 어찌 보고!" 도리어 충성이 굳어졌다.`); }
@@ -4859,6 +5007,7 @@ function startMonth(first){
   const forced = EVENTS.some(e => e.forced && !(G.done[e.id] && !e.rep) && roleOk(e) && e.forced());
   if (!first && (forced || (Math.random() < .3 && mi()-G.lastEvent >= 2))){ if (pickEvent()){ G.lastEvent = mi(); return; } }
   G.phase = 'act';
+  if (G.role==='officer' && !G.dirOfferAt && lordOf()){ G.dirOffer = dirOffers(); G.dirOfferAt = mi(); G.dirSeen = 0; }
   queueCouncil();
 }
 function endMonth(){
@@ -4885,6 +5034,7 @@ function endMonth(){
   const _sp = spList().length && ageOf(me())<56 && G.kids.length<8 && Math.random()<.028*Math.min(2, 1+(spList().length-1)*.6) ? pick(spList()) : null;
   if (_sp){ const k = makeKid(_sp); G.kids.push(k); news(`${k.sex==='남'?'아들':'딸'} ${J(k.n,'이')} 태어났다.`, true, true); }
   if (G.role==='officer' && G.mission) evalMission();
+  dirMonth();
   calendar(false);
   if (G.pfac && citiesOf(G.pfac).length>=UNIFY_N && !(G.scen===184 && !G.flags.era190)) G.over = { kind:'unify' };
   else if (G.year>=280){ G.over = { kind:'era' }; news('280년, 삼국의 시대가 저물었다.', true, true); }
@@ -5458,7 +5608,7 @@ const chipsHtml = ch => `<div class="chips">${ch.map(([t,up],i)=>`<span class="c
 const pp = (p, size, cls) => ptHTML(lookOf(p), ageOf(p), !!p.female, facColor(p.fac in G.facs ? p.fac : null), size, cls);
 const kp = (k, size) => ptHTML(k.look || kidLook(k), G.year-k.born, k.sex==='여', facColor(G.pfac), size);
 function actBtn(label, sub, attrs, enabled, cls=''){ return `<button class="act ${cls}" ${attrs} ${enabled?'':'disabled'}>${label}${sub?`<small>${esc(sub)}</small>`:''}</button>`; }
-const roleText = () => G.role==='ruler' ? '군주' : G.role==='officer' ? `${RANKS[G.rank]}${G.gov?' · '+city(G.gov).n+' 태수':''}` : '재야';
+const roleText = () => G.role==='ruler' ? '군주' : G.role==='officer' ? `${RANKS[G.rank]}${G.path?' · '+pathTitle():''}${G.gov?' · '+city(G.gov).n+' 태수':''}` : '재야';
 
 // 다시 그려도 스크롤과 열린 패널이 그대로 있게 한다 (누를 때마다 맨 위로 튀지 않게)
 const KEEP_SEL = ['.page', '.view', '.cpanel', '.modal', '.tk-ch', '.cpick', '.picks'];
@@ -5748,6 +5898,12 @@ const CN = {
   none(){ return '그 일은 덮어 두었다.'; },
   // 장수의 평정
   answer(ok){ if (+ok){ trustAdd(4); G.merit += 5; return '주공이 무릎을 쳤다. "옳다, 그대 말대로 하겠다." (신뢰 +4, 공적 +5)'; } trustAdd(-1); return '주공이 고개를 저었다. "그건 아니다." (신뢰 -1)'; },
+  askY(){ const d = G.askOffer; G.askOffer = null; if (!d) return ''; d.until = mi() + DIRS[d.k].mo; (G.dirs = G.dirs || []).push(d); addBond(d.by, 2); return `${d.pn}의 부탁을 받아들였다. 할 일은 「지침」에서 볼 수 있다.`; },
+  askN(){ const d = G.askOffer; G.askOffer = null; if (!d) return ''; addBond(d.by, -2); return `${J(d.pn, '은')} 씁쓸히 웃으며 돌아섰다. (인연 -2)`; },
+  path(k){ if (G.path || !PATHS[k]) return ''; G.path = k; G.pathXp = 0; const P = PATHS[k]; news(`${P.n}의 길을 택했다. ${P.t[0]}의 직함을 받았다.`, true, true); return `${P.n}의 길을 택했다. ${P.t[0]}: ${P.perk[0]}`; },
+  dirTake(i){ const d = (G.dirOffer||[])[+i]; if (!d) return ''; const nm = DIRS[d.k].n, tx = DIRS[d.k].txt(d); return dirTake(+i) ? `지침을 받들었다: ${tx}. (${DIRS[d.k].mo}개월)` : '이미 맡은 지침이 둘이다. 먼저 끝내야 한다.'; },
+  dirRe(){ if (G.dirRe) return '이미 한 번 청했다.'; G.dirRe = 1; const v = trustAdd(-1); G.dirOffer = dirOffers(); return `주공이 잠시 생각하더니 다른 일을 내놓았다. 「지침」에서 고를 수 있다. (신뢰 ${v})`; },
+  dirTroops(){ G.askTroopsAt = mi(); if (Math.random() < clamp(.2 + G.trust/160 + G.rank*.05, .1, .85)){ const n = Math.min(troopCap() - G.troops, 400 + G.rank*150); G.troops += Math.max(0, n); return `주공이 병사 ${fmt(Math.max(0, n))}을 떼어 주었다.`; } trustAdd(-1); return '주공이 고개를 저었다. "지금 가진 병사로 해내라." (신뢰 -1)'; },
   help(id){ if (!spend(0)) return '행동력이 없다.'; const p = person(id); addBond(id, 6); G.merit += 2; return `${p.n}의 일을 도왔다. (인연 +6, 공적 +2)`; },
 };
 function councilOfficer(){
@@ -5756,6 +5912,13 @@ function councilOfficer(){
   const m = G.mission, key = m ? JSON.stringify([m.t, m.target||m.city||m.npc||'', m.goal]) : '';
   if (m && G.mSeen!==key){ G.mSeen = key; lines.push([lord.id, `${me().n}, ${missionText(m)}. ${m.months}개월을 주겠다.`]); }
   else lines.push([lord.id, lnP('greet', lord)]);
+  // 이달의 지침: 주공이 직접 내놓는다 (두 달에 한 번)
+  let dirShown = false;
+  if ((G.dirOffer||[]).length && !G.dirSeen && dirsOf(0).length < DIR_MAX){ dirShown = true; G.dirSeen = 1; const d0 = G.dirOffer[0];
+    lines.push([lord.id, dirSay(DIRS[d0.k].cat, lord)]); lines.push([null, `맡길 일이 ${G.dirOffer.length}가지 나왔다. 하나를 골라 받들 수 있다. (나머지는 「지침」에서 더 받을 수 있다)`]);
+    G.dirOffer.forEach((d, i) => choices.push({ t:`받든다: ${DIRS[d.k].txt(d)}`, sub:`${DCAT[DIRS[d.k].cat][0]} · ${DIRS[d.k].mo}개월`, cn:'dirTake', arg:i, grp:'dir' }));
+    if (!G.dirRe) choices.push({ t:'다른 일을 청합니다', sub:'신뢰 -1', cn:'dirRe', grp:'dir' }); }
+  if (G.troops < troopCap() - 300 && mi() - (G.askTroopsAt||0) >= 6) choices.push({ t:'병력을 더 주십시오', sub:'신뢰가 높을수록 통한다', cn:'dirTroops' });
   // 공을 쌓았으면 상을 내린다
   if (G.merit - (G.lastPraise||0) >= 60){ G.lastPraise = G.merit; G.gold += 100; trustAdd(2); lines.push([lord.id, `${me().n}의 공이 크다. 금 100을 내리노라.`]); }
   const col = npcs().filter(p => p.fac===G.pfac && active(p) && p.id!==lord.id && p.id!==G.pid && !p.army).sort((a,b)=>bond(b.id)-bond(a.id))[0];
@@ -5764,7 +5927,7 @@ function councilOfficer(){
   // 주공의 하문: 정답은 형세로 정해진다. 지략이 높으면 실마리가 보인다.
   const nbs = [...new Set(citiesOf(G.pfac).flatMap(c => c.adj).map(city).filter(c => c.owner && hostile(G.pfac, c.owner)).map(c => c.owner))];
   const foe = nbs.sort((a,b) => totalTroops(b)-totalTroops(a))[0];
-  if (foe && Math.random() < .6){
+  if (foe && !dirShown && Math.random() < .6){
     const r = totalTroops(G.pfac) / Math.max(1, totalTroops(foe)), right = r > 1.25 ? 0 : r < .8 ? 2 : 1;
     lines.push([lord.id, `${facName(foe)}이(가) 국경에서 병력 ${fmt(totalTroops(foe))}을 거느리고 있다. 우리는 ${fmt(totalTroops(G.pfac))}. 그대라면 어찌하겠는가?`]);
     const hint = me().i >= 75 ? right : me().i >= 60 && Math.random() < .5 ? right : -1;
@@ -5809,6 +5972,7 @@ function viewTop(){
       <span class="stat">${G.role==='ruler'?'총병력':'병력'} <b>${fmt(troops)}</b></span>
       <span class="stat ${G.role!=='ronin' && trv<35?'warn':''}">${tr} <b>${Math.round(trv)}</b></span>
       <span class="stat ${G.hp<35?'warn':''}">체력 <b>${Math.round(G.hp)}</b></span>
+      ${G.role==='officer' ? `<button class="stat dirb" data-sheet="dirs">지침 <b>${(G.dirs||[]).length + (G.mission ? 1 : 0)}${(G.dirOffer||[]).length && dirsOf(0).length < DIR_MAX ? '<i></i>' : ''}</b></button>` : ''}
     </div>
     <div class="sub2">훈련 ${G.train}${G.role!=='ronin' ? ` · 공적 ${fmt(G.merit)}` : ''} · 무${SV(p.m)} 용${SV(p.l)} 지${SV(p.i)} 정${SV(p.g||p.i)} 인${SV(p.c)}</div>
   </header>`;
@@ -5960,7 +6124,7 @@ function viewMap(){
   if (G.role==='officer' && G.mission){
     const m = G.mission, pr = missionProg();
     const prog = m.t==='capture'||m.t==='defend' ? (pr?'완료':'') : `${fmt(Math.max(0,pr))}/${fmt(m.goal)}`;
-    notes.push(`<button class="note" data-view="army"><span class="lbl">주공의 명 · ${m.months}개월</span><span class="grow"><b>${esc(missionText(m))}</b> <span class="small muted">${prog}</span></span></button>`);
+    notes.push(`<button class="note" data-sheet="dirs"><span class="lbl">주공의 명 · ${m.months}개월</span><span class="grow"><b>${esc(missionText(m))}</b> <span class="small muted">${prog}</span></span></button>`);
   } else if (G.role==='ruler'){ notes.push(`<div class="note"><span class="lbl">천하통일</span><span class="grow"><b>${citiesOf(G.pfac).length} / ${UNIFY_N}성</b> <span class="small muted">${frontsOf(G.pfac).length ? '' : '성을 눌러 출진·계략'}</span></span>${frontsOf(G.pfac).length ? `<button class="frsum" id="frList">${frSummary()}</button>` : ''}</div>`); }
   else if (G.role==='ronin') notes.push(`<div class="note"><span class="lbl">재야</span><span class="grow"><b>주군을 찾거나 스스로 일어서라</b></span></div>`);
   const legend = aliveFacs().filter(f => citiesOf(f.id).length).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length)
@@ -6129,6 +6293,7 @@ function viewArmy(){
     if (m){ const pr = missionProg();
       head += `<div class="card" style="border-left:4px solid var(--gold)"><span class="lbl">주공 ${esc(lordName())}의 명 · ${m.months}개월 남음</span><b style="font-family:var(--display);font-size:18px;font-weight:400">${esc(missionText(m))}</b>
         <span class="small muted">${m.t==='capture'?(pr?'완료':'아직'):m.t==='defend'?'기한까지 지키면 완수':`${fmt(Math.max(0,pr))} / ${fmt(m.goal)}`}</span></div>`; }
+    head += `<button class="btn2" data-sheet="dirs" style="margin:0">지침 보기 · 맡은 일 ${(G.dirs||[]).length} · 받을 수 있는 일 ${(G.dirOffer||[]).length}</button>`;
     if (G.campaign && G.campaign.until>=mi() && !G.campaign.used) head += `<div class="card"><b>${city(G.campaign.target).n} 공략 허가</b><span class="small">지원군 ${fmt(G.campaign.support)} · 부장 ${G.campaign.deps}명 · 군량 무상 · ${G.campaign.until-mi()}개월 안에 출진</span>
       <button class="btn fac" data-sheet="campaign" data-arg="${G.campaign.target}" ${G.inArmy?'disabled':''}>출진 계획 세우기</button></div>`;
   }
@@ -6840,7 +7005,7 @@ function openHelp(){
   ${sec('전쟁: 군단·행군·공성', `<p>적 성을 누르고 <b>출진</b>을 고르면 작전 화면이 열린다. 인접한 우리 성마다 <b>장수</b>(첫 번째가 대장, 최대 3명)와 <b>병력 비율</b>을 고르고, <b>군량</b> 개월 수를 정한다.</p><p>여러 성에서 동시에 보내면 <b>합동 공격</b>이 된다. 부장의 능력이 더해지고 사기가 오른다.</p><p>군단은 1~2개월 행군한 뒤 성을 <b>포위</b>한다. 그 뒤 달마다 공성전이 벌어진다. 성벽은 포위할수록 깎이고, 화공과 공성 병기로 더 빨리 무너뜨릴 수 있다.</p><p>군량이 떨어지면 사기가 무너져 물러나야 한다. 군단 화면에서 <b>군량 보급</b>이나 <b>퇴각</b>을 명할 수 있다. 적도 원군을 보내니 주변 성을 살피자.</p>`, true)}
   ${sec('전투', `<p>그대가 이끄는 군단이나 그대가 있는 성이 싸우면 직접 지휘한다. 먼저 <b>병종</b>을 고르고, 3합 동안 매 합 <b>전술</b>을 고른다.</p><p>병종 상성: <b>창병 › 기병 › 궁병 › 창병</b>. 수군은 강에서만 강하다. 기병은 평지, 궁병은 산지·관문, 창병은 관문에서 강하다.</p><p>전술 상성: <b>돌격 › 화공 › 방진 › 기습 › 돌격</b>. 기병+돌격, 궁병+화공, 창병+방진, 수군+화공은 시너지가 있다.</p><p><b>일기토</b>로 적의 사기를 꺾거나 적장을 사로잡을 수 있다. 바쁠 때는 <b>맡긴다</b>로 자동 전투를 한다.</p>`)}
   ${sec('정찰·계략·매복', `<p>우리 땅과 맞닿지 않은 적 성은 병력이 <b>?</b>로 가려진다. <b>정찰</b>하면 6개월 동안 보인다.</p><p>적 성에 <b>계략</b>: 유언비어(병사 이탈·사기 저하), 화계(병력·성벽 피해), 이간(적장 빼내기), 내응(3개월 안에 치면 적 사기 붕괴).</p><p>다가오는 <b>적 군단</b>에도 유언비어와 진영 화계를 걸 수 있다. 우리 성에 <b>매복</b>을 걸면 쳐들어오는 적의 사기가 꺾인다.</p>`)}
-  ${sec('장수로 살 때', `<p>주공이 <b>임무</b>를 준다. 성 공략 임무에는 <b>지원군과 부장</b>이 붙고 군량도 대 준다. 기한 안에 해내면 승진, 못 하면 신뢰가 떨어진다.</p><p>임무가 없어도 <b>알현</b>이나 출진 화면의 <b>지원 요청</b>으로 공략 허가를 받을 수 있다.</p><p>편장군 이상이면 태수가 되고, 장군이 되면 그 성에서 <b>독립</b>할 수 있다. 옆 성의 다른 세력으로 <b>망명</b>도 가능하다.</p>`)}
+  ${sec('장수로 살 때', `<p>주공이 <b>임무</b>를 준다. 성 공략 임무에는 <b>지원군과 부장</b>이 붙고 군량도 대 준다. 기한 안에 해내면 승진, 못 하면 신뢰가 떨어진다.</p><p>위쪽 <b>지침</b>을 누르면 할 일이 한눈에 보인다. 주공이 두 달마다 내놓는 일 셋 가운데 골라 받들고(한 번에 둘까지), 가까운 동료가 가끔 부탁을 들고 찾아온다. 스스로 <b>내 뜻</b>을 세울 수 있고, 첫 승진 때 <b>무관·문관·책사</b> 가운데 벼슬길을 고른다. 주공의 성격에 따라 내려오는 일의 결이 다르다.</p><p>임무가 없어도 <b>알현</b>이나 출진 화면의 <b>지원 요청</b>으로 공략 허가를 받을 수 있다.</p><p>편장군 이상이면 태수가 되고, 장군이 되면 그 성에서 <b>독립</b>할 수 있다. 옆 성의 다른 세력으로 <b>망명</b>도 가능하다.</p>`)}
   ${sec('군주로 살 때', `<p>성마다 <b>장정</b>이 달마다 조금씩 늘어난다. 징병은 장정 수만큼만 할 수 있다.</p><p>장수를 성에 <b>배치</b>하고 <b>태수</b>로 임명하면 그 성의 병력과 개발이 저절로 늘어난다. 인물 화면의 <b>빈 성에 자동 배치</b>도 쓸 수 있다.</p><p>출진은 그 성에 있는 장수만 지휘할 수 있으니, 공격할 성 옆에 강한 장수를 모아두자.</p>`)}
   ${sec('재야로 살 때', `<p>성의 주인에게 <b>사관</b>하면 장수가 된다. 아니면 <b>의병</b>을 모아 주인 없는 성이나 약한 성을 치는 <b>거병</b>으로 스스로 군주가 된다.</p>`)}
   ${sec('인연·가문', `<p>인물 화면에서 술자리·담론·무예 겨루기·선물로 인연을 쌓는다. 인연 60 이상인 장수는 전투를 돕고, 80 이상이면 의형제를 맺을 수 있다.</p><p>혼인하면 아이가 태어난다. 15세가 넘은 자식을 <b>후계</b>로 정해두면, 그대가 죽은 뒤 그 자식으로 이어서 플레이한다.</p>`)}
@@ -6879,7 +7044,11 @@ function openMenu(){
 /* ---------- 행동 시트 ---------- */
 function doAct(name, ...args){
   if (!G || G.phase!=='act') return;
+  const ap0 = G.ap, sc0 = name==='scout' ? G.scout[args[0]] : 0;
   ACT[name](...args);
+  if (G.ap < ap0) cntAdd('a_' + name);
+  if (name==='scout' && G.scout[args[0]]!==sc0) cntAdd('scout');
+  dirCheck();
   if (G.dead && G.phase==='act'){ G.phase = 'succession'; G.deadAt = 'act'; }
   save();
   render();
@@ -6968,7 +7137,39 @@ function openKidMarry(kid){
     <button class="btn2" data-close>닫기</button>`);
   bg.querySelectorAll('[data-mk]').forEach(b => b.onclick = () => { bg.remove(); doAct('marryKid', kid, b.dataset.mk); });
 }
+function dirCardHtml(d, offerIdx){
+  const D = DIRS[d.k], C = DCAT[D.cat], off = offerIdx!=null, b = off ? null : dirBar(d), pct = b ? Math.round(clamp(b[0]/Math.max(1, b[1]), 0, 1)*100) : 0, A = D.act, left = off ? D.mo : Math.max(0, d.until - mi());
+  const who = d.by && person(d.by) ? `<span class="dq-by">${pp(person(d.by), 26)}</span>` : '';
+  const actB = !off && A ? `<button class="btn fac dq-go" data-ddo="${d.id}" ${G.phase!=='act' || G.ap < (A.ap||0) || (A.gold && G.gold < A.gold) ? 'disabled' : ''}>${A.t}<small>${[A.ap ? '행동력 ' + A.ap : '', A.gold ? '금 ' + A.gold : '', A.st ? ST[A.st] + ' 판정 ' + Math.round(check(A.st, A.df)*100) + '%' : ''].filter(Boolean).join(' · ')}</small></button>` : '';
+  return `<div class="dq" style="--dc:${C[1]}"><div class="dq-h">${who}<span class="dq-cat">${C[0]}</span><b>${esc(d.by ? d.pn + ' · ' + D.n : D.n)}</b><span class="dq-t">${left}개월</span></div>
+    <p class="dq-x">${esc(JF(D.txt(d)))}</p>
+    ${b ? `<div class="dq-bar"><i style="width:${pct}%"></i></div><div class="dq-f"><span>${D.keep ? '버티는 중' : `${fmt(b[0])} / ${fmt(b[1])}`}</span><span class="dq-r">${dirRewardTxt(d)}</span></div>` : `<div class="dq-f"><span class="dq-r">${dirRewardTxt(d)}</span>${off ? `<button class="ghost" data-dtake="${offerIdx}" ${dirsOf(0).length >= DIR_MAX ? 'disabled' : ''}>받든다</button>` : ''}</div>`}
+    ${actB}${!off ? `<button class="dq-drop" data-ddrop="${d.id}">${d.by ? '못 하겠다고 전한다' : '물린다 (신뢰 -3)'}</button>` : ''}</div>`;
+}
+function openDirs(){
+  const m = G.mission, L = lordOf(), act = dirsOf(0), asks = dirsOf(1), offers = G.dirOffer||[], a = G.aim, P = G.path ? PATHS[G.path] : null, lv = pathLv();
+  const mis = m ? (() => { const pr = missionProg(), done = m.t==='capture' || m.t==='defend'; return `<div class="dq main" style="--dc:#b8862b"><div class="dq-h"><span class="dq-cat">주공의 명</span><b>${esc(L ? L.n : '')}</b><span class="dq-t">${m.months}개월</span></div><p class="dq-x">${esc(JF(missionText(m)))}</p>${done ? `<div class="dq-f"><span>${m.t==='defend' ? '기한까지 지키면 완수' : pr ? '완료' : '아직'}</span><span class="dq-r">승진 · 금 +200 · 신뢰 +10</span></div>` : `<div class="dq-bar"><i style="width:${Math.round(clamp(pr/Math.max(1, m.goal), 0, 1)*100)}%"></i></div><div class="dq-f"><span>${fmt(Math.max(0, pr))} / ${fmt(m.goal)}</span><span class="dq-r">승진 · 금 +200 · 신뢰 +10</span></div>`}</div>`; })() : '';
+  const aimH = a && AIMS[a.k] ? (() => { const b = aimBar(a); return `<div class="dq" style="--dc:#3d6f8f"><div class="dq-h"><span class="dq-cat">내 뜻</span><b>${AIMS[a.k].n}</b></div><p class="dq-x">${AIMS[a.k].d}</p><div class="dq-bar"><i style="width:${Math.round(clamp(b[0]/b[1], 0, 1)*100)}%"></i></div><div class="dq-f"><span>${Math.min(b[0], b[1])} / ${b[1]}</span><span class="dq-r">금 +300 · ${ST[AIMS[a.k].st]} +2</span></div></div>`; })()
+    : `<p class="small muted">스스로 세우는 긴 목표. 이루면 금 300과 능력 +2를 얻는다.</p><div class="dq-aims">${Object.entries(AIMS).filter(([k, A]) => !(A.can && !A.can()) && !(G.aimDone||[]).includes(k)).map(([k, A]) => `<button class="ghost" data-aim="${k}"><b>${A.n}</b><small>${A.d} · ${ST[A.st]} +2</small></button>`).join('')}</div>`;
+  const pathH = P ? `<div class="dq" style="--dc:${DCAT[P.cat][1]}"><div class="dq-h"><span class="dq-cat">${P.n}</span><b>${P.t[lv-1]}</b><span class="dq-t">${lv} / 3단</span></div><p class="dq-x">${P.perk[lv-1]}</p>${lv < 3 ? `<div class="dq-bar"><i style="width:${Math.round(clamp(((G.pathXp||0) - PATH_XP[lv-1])/(PATH_XP[lv] - PATH_XP[lv-1]), 0, 1)*100)}%"></i></div><div class="dq-f"><span>다음: ${P.t[lv]}</span><span class="dq-r">지침을 완수하면 오른다 (${DCAT[P.cat][0]} 지침은 두 배)</span></div>` : ''}</div>`
+    : `<p class="small muted">${G.rank >= 1 ? '아직 길을 정하지 않았다.' : '첫 승진 때 무관·문관·책사 가운데 한 길을 고른다.'}</p>${G.rank >= 1 ? `<div class="dq-aims">${Object.entries(PATHS).map(([k, X]) => `<button class="ghost" data-path="${k}"><b>${X.n}</b><small>${X.perk[0]}</small></button>`).join('')}</div>` : ''}`;
+  const bg = sheet(`<h3>지침</h3><p class="small muted">주공의 명은 승진이 걸린 큰일, 이달의 지침은 골라서 받는 일(한 번에 ${DIR_MAX}개까지)이다.</p>
+    ${mis}
+    <div class="dq-sec"><b>맡은 지침</b><span>${act.length} / ${DIR_MAX}</span></div>${act.length ? act.map(d => dirCardHtml(d)).join('') : '<p class="small muted">맡은 지침이 없다. 아래에서 골라 받들 수 있다.</p>'}
+    ${asks.length ? `<div class="dq-sec"><b>동료의 부탁</b></div>${asks.map(d => dirCardHtml(d)).join('')}` : ''}
+    <div class="dq-sec"><b>주공이 내놓은 일</b><span>${offers.length ? '두 달마다 바뀐다' : ''}</span></div>${offers.length ? offers.map((d, i) => dirCardHtml(d, i)).join('') : '<p class="small muted">지금은 내려온 일이 없다. 다음 달을 기다리자.</p>'}
+    <div class="dq-sec"><b>내 뜻</b></div>${aimH}
+    <div class="dq-sec"><b>벼슬길</b></div>${pathH}
+    <button class="btn2" data-close>닫기</button>`);
+  const re = () => { bg.remove(); save(); render(); openDirs(); };
+  bg.querySelectorAll('[data-dtake]').forEach(b => b.onclick = () => { if (dirTake(+b.dataset.dtake)) Snd.sfx('tap'); re(); });
+  bg.querySelectorAll('[data-ddo]').forEach(b => b.onclick = () => { dirDo(b.dataset.ddo); re(); });
+  bg.querySelectorAll('[data-ddrop]').forEach(b => b.onclick = () => { const d = (G.dirs||[]).find(x => x.id===b.dataset.ddrop); if (d) dirFinish(d, false, true); re(); });
+  bg.querySelectorAll('[data-aim]').forEach(b => b.onclick = () => { aimSet(b.dataset.aim); re(); });
+  bg.querySelectorAll('[data-path]').forEach(b => b.onclick = () => { toast(CN.path(b.dataset.path)); re(); });
+}
 function openSheet(kind, arg){
+  if (kind==='dirs') return openDirs();
   if (kind==='policy') return openPolicy();
   if (kind==='kidmarry') return openKidMarry(arg);
   if (kind==='divorce') return openDivorce(arg);
@@ -7281,7 +7482,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
 /* =====================================================================
    BOOT
    ===================================================================== */
-if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
+if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
   globalThis.T = { tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
