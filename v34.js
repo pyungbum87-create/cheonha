@@ -2,7 +2,7 @@
    천하등용 v34 — 장수 이름표 · 히든 장수 4명 · 전장 안내 표시 (2026-11-25)
    한국어(index.html)·중국어(zh.html) 공용. v33.js 다음에 불러온다.
    1. 이름표: 칸 아래에 장수 이름(등급 색). 본편 render가 V34Labels()를 부른다.
-   2. 히든 장수 9명: 호치 허저·위풍 장료·악래 전위(위) · 금마초·봉추 방통·단복 서서(촉) · 화신 육손·신궁 태사자(오) · 마왕 동탁(군웅). 그림은 원래 장수 것을 씀.
+   2. 히든 장수 10명: 호치 허저·위풍 장료·악래 전위(위) · 금마초·봉추 방통·단복 서서·노장 황충(촉) · 화신 육손·신궁 태사자(오) · 마왕 동탁(군웅). 그림은 원래 장수 것을 씀.
    3. 안내 표시: 같은 장수 합성 가능 ▲(세력 3·혼합 4는 표시 안 함), 히든 조합 가능 금색 고리, 성 밖 적 60명부터 붉은 테두리, 진동
    4. 처음 하는 사람은 설명 카드 없이 바로 튜토리얼 (타이틀에서 1번 누르면 시작)
    ========================================================================== */
@@ -25,13 +25,15 @@ const M=[
  ['m_jangryo',T('위풍 장료','威震张辽'),0,[99,100,80,78,44],T('장료','张辽'),'jangryo','blade',{sp:'execute',d:T('주변의 체력 25% 이하 적을 즉시 처치 (적장 제외)','立即斩杀周围生命低于25%的敌人（敌将除外）')},['jangryo','ugeum','join']],
  // v36 전위 (전용 그림: sd_jeonwi_*, 초상화 jeonwi)
  ['m_jeonwi',T('악래 전위','恶来典韦'),0,[100,84,44,70,40],T('전위','典韦'),'jeonwi','glaive',{sp:'guardian',d:T('성벽 +1 · 2.5초마다 쌍철극으로 주변 적 전부 베기','城墙+1 · 每2.5秒双戟横扫周围敌军')},['heojeo','jojo','ugeum']],
+ // v37 황충
+ ['m_hwangchung',T('노장 황충','老将黄忠'),1,[100,90,66,74,52],T('황충','黄忠'),'hwangchung','bow',{sp:'snipe',d:T('3초마다 전장 어디든 저격: 적장 우선, 4배 피해','每3秒狙击全场任意目标：优先敌将，4倍伤害')},['hwangchung','madae','seoseo']],
 ];
 window.MALIAS=window.MALIAS||{};
 for(const [id,n,f,s,sn,base,wp,ex,rec] of M){if(UID[id])continue;add(id,n,f,4,s,sn,ex);UID[id]=U[U.length-1];
   MALIAS[id]=base;PALIAS[id]=base;WEAPON[id]=wp;if(window.SDV&&SDV.alias)SDV.alias[id]=base;
   RECIPES.push({out:id,in:rec});rec.forEach(k=>{try{KEEP.add(k);}catch(e){}});}
 window.buffs=(o=>function(){o.apply(this,arguments);if(!G)return;if(G.slots.some(u=>u&&u.d.sp==='warlord'))for(const u of G.slots)if(u&&u.d.f===3)u.atk*=1.4;})(buffs);
-const SP=new Set(['quake','smite','blaze','chain','volley','execute','guardian']);
+const SP=new Set(['quake','smite','blaze','chain','volley','execute','guardian','snipe']);
 window.dmgEnemy=(o=>function(e,v){if(e.chainT>0)arguments[1]=v*1.3;return o.apply(this,arguments);})(dmgEnemy);
 window.update=(o=>function(dt){const g=G;o.apply(this,arguments);if(!g||G!==g||g.over||g.paused||g.hold)return;
   for(const e of g.enemies)if(e.chainT>0)e.chainT-=dt;
@@ -41,6 +43,8 @@ window.update=(o=>function(dt){const g=G;o.apply(this,arguments);if(!g||G!==g||g
     const near=()=>g.enemies.filter(e=>e.hp>0&&Math.hypot(e.x-x,e.y-y)<u.range);
     if(sp==='guardian'){if(!u.v34G){u.v34G=1;g.walls++;g.walls0++;g.txt.push({x,y:y-34,s:T('성벽 +1','城墙 +1'),t:0,c:'#ffd27a',big:1});}
       if(u.v34T>2.5){const es=near();if(!es.length)continue;u.v34T=0;for(const e of es)dmgEnemy(e,u.atk*2,false);g.fx.push({k:'ring',x,y,r:u.range,t:0,d:.35,c:'#9bb8ff'});sfx('slash');}continue;}
+    if(sp==='snipe'){if(u.v34T>3){const es=g.enemies.filter(e=>e.hp>0);if(!es.length)continue;u.v34T=0;const bs=es.filter(e=>e.boss),e=(bs.length?bs:es).reduce((a,b)=>b.hp>a.hp?b:a);
+      dmgEnemy(e,u.atk*4,true);g.fx.push({k:'xslash',x:e.x,y:e.y-6,t:0,d:.3,c:'#fff2a8',big:1});g.fx.push({k:'ring',x:e.x,y:e.y,r:18,t:0,d:.3,c:'#fff2a8'});sfx('arrow');}continue;}
     if(sp==='quake'&&u.v34T>5){const es=near();if(!es.length)continue;u.v34T=0;for(const e of es){dmgEnemy(e,u.atk*2,false);e.frz=Math.max(e.frz||0,e.boss?.5:1.2);}
       g.fx.push({k:'ring',x,y,r:u.range,t:0,d:.45,c:'#ffd27a'});g.shake=Math.max(g.shake,4);sfx('thud');}
     else if(sp==='smite'&&u.v34T>4){const es=near();if(!es.length)continue;u.v34T=0;const e=es.reduce((a,b)=>b.hp>a.hp?b:a);dmgEnemy(e,u.atk*5,true);
