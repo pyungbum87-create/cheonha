@@ -387,7 +387,7 @@ add('m_yeopo','무신 여포',3,4,[100,99,40,50,20],'여포',{sp:'god',d:'게임
 add('m_joun','상산 조자룡',1,4,[100,96,84,90,70],'조운',{sp:'pierce',d:'일직선 관통 공격'});
 const UID={};U.forEach(u=>UID[u.id]=u);
 /* portraits (made for this game) */
-const PKEYS=["gwanu", "jangbi", "joun", "jegal", "jojo", "samaui", "heojeo", "sonchaek", "juyu", "yukson", "yeopo", "dongtak", "wonso", "yubi", "hahudon", "jangryo", "sunuk", "hwangchung", "macho", "bangtong", "songwon", "gamnyeong", "taesaja", "yeomong", "anryang", "munchu", "choseon", "seoseo", "join", "jingung", "ugeum", "akjin", "gwanpyeong", "madae", "jeongbo", "hwanggae", "handang", "hwaung", "gosun", "jangak", "sol_w", "sol_s", "sol_o", "sol_q"],PCOLS=8,PCELL=128;
+const PKEYS=["gwanu", "jangbi", "joun", "jegal", "jojo", "samaui", "heojeo", "sonchaek", "juyu", "yukson", "yeopo", "dongtak", "wonso", "yubi", "hahudon", "jangryo", "sunuk", "hwangchung", "macho", "bangtong", "songwon", "gamnyeong", "taesaja", "yeomong", "anryang", "munchu", "choseon", "seoseo", "join", "jingung", "ugeum", "akjin", "gwanpyeong", "madae", "jeongbo", "hwanggae", "handang", "hwaung", "gosun", "jangak", "sol_w", "sol_s", "sol_o", "sol_q", "jeonwi"],PCOLS=8,PCELL=128;
 const PIMG={};const PURL={};
 const ATL={pending:{}};
 function loadAtlas(src,onload,tries){tries=tries||0;ATL.pending[src]={onload,tries};const im=new Image();
@@ -2152,7 +2152,7 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
     else if(G.paused&&!anyOpen())showOnly('pause');},700);
   // 게임 중에 약관을 열면 판이 날아가지 않도록 새 창으로
   const lb=document.getElementById('optLegal');if(lb)lb.onclick=()=>{const u=V30ZH?'legal-zh.html':'legal.html';if(G&&!G.over){if(!window.open(u,'_blank'))flash(u);}else location.href=u;};
-  window.__verTxt='v35 · 1125';
+  window.__verTxt='v36 · 1125';
 })();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
