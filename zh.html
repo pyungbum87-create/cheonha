@@ -2147,7 +2147,7 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
     else if(G.paused&&!anyOpen())showOnly('pause');},700);
   // 게임 중에 약관을 열면 판이 날아가지 않도록 새 창으로
   const lb=document.getElementById('optLegal');if(lb)lb.onclick=()=>{const u=V30ZH?'legal-zh.html':'legal.html';if(G&&!G.over){if(!window.open(u,'_blank'))flash(u);}else location.href=u;};
-  window.__verTxt='v34 · 1125';
+  window.__verTxt='v35 · 1125';
 })();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};

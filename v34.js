@@ -2,7 +2,7 @@
    천하등용 v34 — 장수 이름표 · 히든 장수 4명 · 전장 안내 표시 (2026-11-25)
    한국어(index.html)·중국어(zh.html) 공용. v33.js 다음에 불러온다.
    1. 이름표: 칸 아래에 장수 이름(등급 색). 본편 render가 V34Labels()를 부른다.
-   2. 히든 장수: 호치 허저(위) · 금마초(촉) · 화신 육손(오) · 마왕 동탁(군웅). 그림은 원래 장수 것을 씀.
+   2. 히든 장수 8명: 호치 허저·위풍 장료(위) · 금마초·봉추 방통·단복 서서(촉) · 화신 육손·신궁 태사자(오) · 마왕 동탁(군웅). 그림은 원래 장수 것을 씀.
    3. 안내 표시: 같은 장수 합성 가능 ▲(세력 3·혼합 4는 표시 안 함), 히든 조합 가능 금색 고리, 성 밖 적 60명부터 붉은 테두리, 진동
    4. 처음 하는 사람은 설명 카드 없이 바로 튜토리얼 (타이틀에서 1번 누르면 시작)
    ========================================================================== */
@@ -18,14 +18,23 @@ const M=[
  ['m_macho',T('금마초','锦马超'),1,[100,90,50,80,34],T('마초','马超'),'macho','spear',{sp:'smite',d:T('4초마다 가장 강한 적에게 5배 일격','每4秒对最强敌人造成5倍一击')},['macho','madae','bangtong']],
  ['m_yukson',T('화신 육손','火神陆逊'),2,[72,97,100,88,86],T('육손','陆逊'),'yukson','talisman',{sp:'blaze',d:T('6초마다 적이 몰린 곳에 불바다','每6秒在敌军密集处燃起火海')},['yukson','yeomong','songwon']],
  ['m_dongtak',T('마왕 동탁','魔王董卓'),3,[90,96,76,56,64],T('동탁','董卓'),'dongtak','smash',{sp:'warlord',d:T('군웅 전체 공격력 +40%','群雄全体攻击+40%')},['dongtak','hwaung','gosun']],
+ // v35 추가 4명
+ ['m_bangtong',T('봉추 방통','凤雏庞统'),1,[40,80,100,76,90],T('방통','庞统'),'bangtong','talisman',{sp:'chain',d:T('7초마다 연환계: 주변 적 둔화 + 받는 피해 +30%','每7秒连环计：周围敌军减速并受伤+30%')},['bangtong','yubi','hwangchung']],
+ ['m_seoseo',T('단복 서서','单福徐庶'),1,[76,88,99,86,60],T('서서','徐庶'),'seoseo','talisman',{sp:'insight',d:T('간파: 방패병·군의관의 능력을 없앰','看破：使盾兵·军医的能力失效')},['seoseo','gwanpyeong','yubi']],
+ ['m_taesaja',T('신궁 태사자','神射太史慈'),2,[100,88,70,80,50],T('태사자','太史慈'),'taesaja','bow',{sp:'volley',d:T('3초마다 적 6명에게 연속 사격','每3秒向6名敌人连射')},['taesaja','gamnyeong','handang']],
+ ['m_jangryo',T('위풍 장료','威震张辽'),0,[99,100,80,78,44],T('장료','张辽'),'jangryo','blade',{sp:'execute',d:T('주변의 체력 25% 이하 적을 즉시 처치 (적장 제외)','立即斩杀周围生命低于25%的敌人（敌将除外）')},['jangryo','ugeum','join']],
 ];
 window.MALIAS=window.MALIAS||{};
 for(const [id,n,f,s,sn,base,wp,ex,rec] of M){if(UID[id])continue;add(id,n,f,4,s,sn,ex);UID[id]=U[U.length-1];
   MALIAS[id]=base;PALIAS[id]=base;WEAPON[id]=wp;if(window.SDV&&SDV.alias)SDV.alias[id]=base;
   RECIPES.push({out:id,in:rec});rec.forEach(k=>{try{KEEP.add(k);}catch(e){}});}
 window.buffs=(o=>function(){o.apply(this,arguments);if(!G)return;if(G.slots.some(u=>u&&u.d.sp==='warlord'))for(const u of G.slots)if(u&&u.d.f===3)u.atk*=1.4;})(buffs);
+const SP=new Set(['quake','smite','blaze','chain','volley','execute']);
+window.dmgEnemy=(o=>function(e,v){if(e.chainT>0)arguments[1]=v*1.3;return o.apply(this,arguments);})(dmgEnemy);
 window.update=(o=>function(dt){const g=G;o.apply(this,arguments);if(!g||G!==g||g.over||g.paused||g.hold)return;
-  for(let i=0;i<g.slots.length;i++){const u=g.slots[i];if(!u||!u.d.sp)continue;const sp=u.d.sp;if(sp!=='quake'&&sp!=='smite'&&sp!=='blaze')continue;
+  for(const e of g.enemies)if(e.chainT>0)e.chainT-=dt;
+  if(g.slots.some(u=>u&&u.d.sp==='insight'))for(const e of g.enemies)if(e.kind){e.kind=null;if(g.fx.length<60)g.fx.push({k:'ring',x:e.x,y:e.y,r:14,t:0,d:.3,c:'#9bd0ff'});}
+  for(let i=0;i<g.slots.length;i++){const u=g.slots[i];if(!u||!u.d.sp)continue;const sp=u.d.sp;if(!SP.has(sp))continue;
     const [x,y]=slotXY(i);u.v34T=(u.v34T||0)+dt;
     const near=()=>g.enemies.filter(e=>e.hp>0&&Math.hypot(e.x-x,e.y-y)<u.range);
     if(sp==='quake'&&u.v34T>5){const es=near();if(!es.length)continue;u.v34T=0;for(const e of es){dmgEnemy(e,u.atk*2,false);e.frz=Math.max(e.frz||0,e.boss?.5:1.2);}
@@ -35,6 +44,10 @@ window.update=(o=>function(dt){const g=G;o.apply(this,arguments);if(!g||G!==g||g
     else if(sp==='blaze'&&u.v34T>6){const es=near();if(!es.length)continue;u.v34T=0;let best=es[0],bn=-1;
       for(const e of es){const n=es.filter(o=>Math.hypot(o.x-e.x,o.y-e.y)<60).length;if(n>bn){bn=n;best=e;}}
       g.zones.push({x:best.x,y:best.y,r:64,t:0,d:4,tick:0,dps:u.spow*.9});g.fx.push({k:'ring',x:best.x,y:best.y,r:64,t:0,d:.5,c:'#ff7a3a'});sfx('flame');}
+    else if(sp==='chain'&&u.v34T>7){const es=near();if(!es.length)continue;u.v34T=0;for(const e of es){e.chainT=4;e.slow=Math.max(e.slow||0,4);dmgEnemy(e,u.spow*.8,false);}
+      g.fx.push({k:'ring',x,y,r:u.range,t:0,d:.5,c:'#b48cff'});g.txt.push({x,y:y-34,s:T('연환계','连环计'),t:0,c:'#c9a8ff'});sfx('skill');}
+    else if(sp==='volley'&&u.v34T>3){const es=near();if(!es.length)continue;u.v34T=0;es.sort((a,b)=>b.d-a.d);for(const e of es.slice(0,6)){dmgEnemy(e,u.atk*1.6,false);g.fx.push({k:'ring',x:e.x,y:e.y,r:9,t:0,d:.22,c:'#fff2a8'});}sfx('arrow');}
+    else if(sp==='execute'&&u.v34T>.4){u.v34T=0;for(const e of near())if(!e.boss&&e.hp<e.max*.25){dmgEnemy(e,e.hp*4+1,true);g.fx.push({k:'xslash',x:e.x,y:e.y-6,t:0,d:.25,c:'#9bd0ff'});}}
   }})(update);
 
 /* ---------------- 1·3. 이름표와 안내 표시 ---------------- */
