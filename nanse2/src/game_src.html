@@ -327,6 +327,8 @@ p{margin:0}
 .phase.terr{background:#e9e2f0;color:#5a4a7a}.thint{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:#f1e8d6}.thint .gl{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#6f6356;color:#fff;font-family:var(--seal);flex:0 0 28px}.thint b{display:block;font-size:13px}.thint small{display:block;font-size:11.5px;color:var(--muted)}.thint.warn{background:#f6e3c4}.thint.warn .gl{background:#b8791a}.thint.bad{background:#f6dcd6}.thint.bad .gl{background:#a3322a}
 .thbtns.q4{grid-template-columns:1fr 1fr}.thbtns.q4 button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:52px}.thbtns.q4 small{font-size:10.5px;font-weight:400;color:var(--muted)}.thbtns.q4 button.on small{color:#cfc3a9}.thbtns button:disabled{opacity:.45}
 .thdelta{opacity:0}.thsvg.done .thdelta{animation:thd 2.2s ease-out forwards}@keyframes thd{0%{opacity:0;transform:translateY(6px)}15%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+.thcorps{display:grid;grid-template-columns:1fr 1fr;gap:6px}.thcorps button,.thcorps .foe{display:flex;align-items:center;gap:8px;padding:8px;border-radius:12px;border:1px solid #c8b48a;background:#fff;font:inherit;color:inherit;text-align:left;min-height:52px}.thcorps .foe{background:#f1e8d6;border-color:transparent}.thcorps small{display:block;font-size:10.5px;color:var(--muted)}.thcorps b{font-size:12.5px}.thcorps .mg{width:30px;height:30px;flex:0 0 30px;font-size:16px}
+.trb{padding:12px;border-radius:14px;background:#fffaf0;box-shadow:inset 0 0 0 1px var(--line);margin-bottom:8px;display:flex;flex-direction:column;gap:8px}.trb.far{opacity:.6}.trb small.d{display:block;font-size:11.5px;color:var(--muted)}
 .thslots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.thslot{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;border:1px dashed #c8b48a;background:#fbf6ea;font:inherit;color:inherit;min-height:96px;position:relative}.thslot.on{border-style:solid;background:#fff}.thslot .gl{position:absolute;top:4px;left:6px;font-family:var(--seal);color:var(--red);font-size:14px}.thslot .empty{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#efe5cf;color:#a89a7c;font-style:normal;font-size:18px}.thslot .nm{display:flex;flex-direction:column;align-items:center;line-height:1.2}.thslot .nm b{font-size:12.5px}.thslot .nm small{font-size:10.5px;color:var(--muted)}
 .thsup{display:flex;align-items:center;gap:8px;font-size:12.5px}.thsup .sb{display:flex;gap:3px}.thsup .sb i{width:14px;height:10px;border-radius:3px;background:#e6dcc6}.thsup .sb i.on{background:#c9932a}.thsup .sb i.half{background:linear-gradient(90deg,#c9932a 50%,#e6dcc6 50%)}.thsup button{margin-left:auto;border:1px solid #c8b48a;background:#fff;border-radius:10px;font:inherit;font-size:12px;padding:6px 10px;min-height:40px}.thhelp summary{font-size:12px;color:var(--muted);min-height:32px;display:flex;align-items:center}.pv{font-family:var(--display);font-size:18px;color:var(--red)}
 .theater{display:flex;flex-direction:column;gap:8px}.thtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.thtab{flex:0 0 auto;border:0;border-bottom:3px solid transparent;background:#f4ecdc;border-radius:10px 10px 4px 4px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;min-height:40px;color:#6f6356}.thtab small{margin-left:4px;font-size:11px;opacity:.7}.thtab.on{border-bottom-color:var(--fc);background:#fffaf0;color:#2a1f16}
@@ -1811,6 +1813,7 @@ function monthStep(ff){
   }
   aiDiplomacy(ff);
   frontStep(ff);
+  tribeStep(ff);
   armiesStep(ff);
   for (const p of Object.values(G.people)){
     if (!active(p) || p.id===G.pid || p.id===G.protect) continue;
@@ -2206,23 +2209,26 @@ function frontStep(ff){
     if (aiRun){ // 장수로 있을 때는 주공이 전선을 지휘한다
       const pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city));
       for (const [k, f] of [['van', p => p.m*1.2 + p.l*.8], ['adv', p => p.i], ['rear', p => p.g||p.i]]) if (!frRoleP(F, S0(F), k)){ const c = pool.filter(p => !Object.values(S0(F).r).includes(p.id)).sort((a, b) => f(b) - f(a))[0]; if (c) frSetRole(F.id, k, c.id); }
+      if (!frCorps(F, S0(F))){ const usedC = new Set(Object.values(G.fronts).map(o => o.corps).filter(Boolean)), ck = corpsAvail(G.pfac).filter(x => !usedC.has(x)).sort((a, b) => CORPS[b].p[frIdx(F)] - CORPS[a].p[frIdx(F)])[0]; if (ck) S0(F).corps = ck; }
       const S1 = S0(F); if (!S1.sug){ const r0 = frEval(F).ratio; S1.st = (r0 > .55 || Math.random() < .25) && S1.sup >= 1 ? 'push' : 'hold'; if (S1.st==='push') S1.bonus = Math.round(rnd(0, 10)); } S1.sug = false;
     }
     const { S, me_, en, ratio } = frEval(F), adv = frRoleP(F, S, 'adv'), rear = frRoleP(F, S, 'rear'), ph0 = frPhase(S.p)[0];
+    const cp = frCorps(F, S), ce = frFoeCorps(F), advI = adv ? adv.i : 40, foeI = en.best ? en.best.i : 50;
     const terr = frTerr(F), lured = lure[F.ef] && lure[F.ef]!==F.id, bait = lure[F.ef]===F.id;
     let fi = S.fNext; if (lured && fi!=='hold') fi = fi==='mass' ? 'push' : 'hold'; if (bait && fi==='hold') fi = 'push';
     const foePush = fi!=='hold'; S.fDid = fi;
-    const cons = S.st==='push' ? (rear ? clamp(1.3 - (rear.g||rear.i)/110, .4, 1) : 1) : 0, starve = S.st==='push' && S.sup < cons;
+    const cons = S.st==='push' ? Math.max(.3, (rear ? clamp(1.3 - (rear.g||rear.i)/110, .4, 1) : 1) + (cp && cp.sup || 0)) : 0, starve = S.st==='push' && S.sup < cons;
     if (S.st==='push') S.sup = Math.max(0, S.sup - cons); else S.sup = Math.min(6, S.sup + .5);
-    const mk = S.st==='push' ? (starve ? 1 : 1.25) : .8, fk = ({ hold:.8, push:1.15, mass:1.45 })[fi]*(adv ? 1 - clamp((adv.i - 50)/250, 0, .2) : 1);
+    const mk = (S.st==='push' ? (starve ? 1 : 1.25)*corpsPush(cp, terr, foeI) : .8), fk = ({ hold:.8, push:1.15, mass:1.45 })[fi]*(foePush ? corpsPush(ce, terr, advI) : 1)*(adv ? 1 - clamp((adv.i - 50)/250, 0, .2) : 1);
     const pincer = S.st==='push' && nPush[F.ef] >= 2 ? 5 : 0, lureB = S.st==='push' && lured ? 7 : 0;
     let d = ((ratio*mk) - ((1 - ratio)*fk))*34 + (S.st==='push' ? S.bonus*(starve ? .5 : 1) + pincer + lureB : 0) + rnd(-6, 6);
-    if (S.st!=='push' && d < 0) d *= terr==='mountain' ? .4 : .6;
+    if (S.st!=='push' && d < 0) d *= (terr==='mountain' ? .4 : .6)*corpsHold(cp, terr, foeI);
+    if (d > 0 && !foePush) d *= corpsHold(ce, terr, advI);
     d *= FR_TERR[terr][2];
     S.starve = starve; S.pincer = pincer > 0; S.lureB = lureB > 0;
     S.p = clamp(Math.round(S.p + d), -100, 100);
     // 소모: 미는 쪽이 더 잃는다. 집결한 적을 버텨 내면 적이 크게 다친다
-    const lossMy = ((S.st==='push' ? .03 : .015) + (foePush ? .01 : 0))*(terr==='river' && S.st!=='push' ? .6 : 1), lossEn = (foePush ? .03 : .015) + (S.st==='push' ? .015 : 0) + (fi==='mass' && S.st!=='push' ? .03 : 0);
+    const lossMy = ((S.st==='push' ? .03 : .015) + (foePush ? .01 : 0))*(terr==='river' && S.st!=='push' ? .6 : 1), lossEn = (foePush ? .03 : .015) + (S.st==='push' ? .015 : 0) + (fi==='mass' && S.st!=='push' ? .03 : 0) + (cp && cp.bleed || 0);
     for (const id of F.my) city(id).troops = Math.round(city(id).troops*(1 - lossMy));
     for (const id of F.foe) city(id).troops = Math.round(city(id).troops*(1 - lossEn));
     S.last = Math.round(d); S.foePush = foePush; S.bonus = 0;
@@ -2344,6 +2350,104 @@ function openFront(id){
   bg.querySelector('#frAuto').onclick = e => { S.auto = !S.auto; save(); const t = e.currentTarget.querySelector('.tgl'); t.classList.toggle('on', !!S.auto); e.currentTarget.setAttribute('aria-checked', !!S.auto); };
 }
 
+
+/* =====================================================================
+   이민족과 정예 병종
+   변방의 여섯 부족은 그 땅을 가진 세력을 약탈하거나, 손을 잡으면 원군과 고유 병종을 내준다.
+   정예 병종은 전선마다 하나씩 둔다. 지형에 따라 미는 힘·버티는 힘이 달라진다.
+   ===================================================================== */
+const TRIBES = {
+  wuhuan:{ n:'오환', gl:'烏', home:['yp','bp','ji'], str:72, corps:'wuhuan', friend:{ yuanshao:50, gongsunzan:-40 }, d:'북방 초원의 기마 부족. 평야에서 따를 자가 없다.' },
+  xiongnu:{ n:'남흉노', gl:'匈', home:['jny','sd'], str:68, corps:'xiongnu', friend:{}, d:'병주 일대의 말 탄 궁수들. 달리며 쏘는 화살이 무섭다.' },
+  qiang:{ n:'강족', gl:'羌', home:['ww','ts','ad'], str:74, corps:'qiang', friend:{ mateng:60, machao:60, dongzhuo:30, hansui:50 }, d:'서량 고원의 부족. 마씨 집안과 피로 맺어져 있다.' },
+  nanman:{ n:'남만', gl:'蠻', home:['jg','jz'], str:70, corps:'xiang', corps2:'tengjia', friend:{ menghuo:90 }, d:'남중 밀림의 부족. 코끼리와 등나무 갑옷으로 싸운다.' },
+  shanyue:{ n:'산월', gl:'越', home:['kj','yz','jy','wx'], str:62, corps:'shanyue', friend:{ sunquan:-40, sunce:-40, sunjian:-30 }, d:'강동 산속의 부족. 손씨와 오래 싸워 왔다.' },
+  wuling:{ n:'무릉만', gl:'溪', home:['wl','ll'], str:60, corps:'wuling', friend:{ liubei:25 }, d:'형남 산골의 부족. 산길 싸움에 능하다.' }
+};
+const CORPS = {
+  hubao:{ n:'호표기', gl:'豹', p:[1.3,1.1,1.05], h:.9, rulers:['cao','caopi'], gens:['caochun','caoxiu','caozhen'], d:'조조의 친위 기병. 백 명의 장수감에서 뽑았다. 평야 공세에 가장 강하다.' },
+  qingzhou:{ n:'청주병', gl:'靑', p:[1.1,1.05,1.05], h:.75, rulers:['cao','caopi'], gens:[], d:'항복한 황건 삼십만에서 가려 뽑은 보병. 좀처럼 밀리지 않는다.' },
+  baier:{ n:'백이병', gl:'毦', p:[1.05,1.1,1.05], h:.7, rulers:['liubei','liushan'], gens:['chendao'], d:'유비의 친위대. 흰 깃 장식을 달고 끝까지 진을 지킨다.' },
+  wudang:{ n:'무당비군', gl:'飛', p:[1.05,1.35,1.1], h:.85, rulers:[], gens:['wangping','zhugeliang'], tribe:'nanman', both:1, d:'남중의 용사로 꾸린 산악 부대. 산악 공세에 가장 강하다. (제갈량·왕평 + 남만과 화친)' },
+  jiefan:{ n:'해번군', gl:'煩', p:[1.05,1.05,1.3], h:.85, hr:.7, rulers:['sunquan','sunce','sunjian'], gens:[], d:'손씨의 친위 수군. 강 전선에서 밀고 버티는 데 모두 강하다.' },
+  daji:{ n:'대극사', gl:'戟', p:[1.15,1.05,1.0], h:.8, rulers:['yuanshao'], gens:['zhanghe'], d:'원소의 중갑 극병. 평야에서 단단하다.' },
+  xiandeng:{ n:'선등사', gl:'登', p:[1.1,1.1,1.0], h:.75, bleed:.02, rulers:[], gens:['quyi'], d:'국의의 쇠뇌 결사대. 달려드는 기병을 쇠뇌로 꺾는다. 적 손실이 늘어난다.' },
+  baima:{ n:'백마의종', gl:'白', p:[1.3,1.0,1.0], h:.95, rulers:['gongsunzan'], gens:[], d:'흰 말만 탄 공손찬의 궁기병. 평야를 휩쓴다.' },
+  xianzhen:{ n:'함진영', gl:'陷', p:[1.22,1.22,1.15], h:.85, rulers:[], gens:['gaoshun'], d:'고순의 칠백 정예. 어떤 땅에서든 진을 무너뜨린다.' },
+  xiliang:{ n:'서량철기', gl:'鐵', p:[1.3,1.12,.95], h:.9, rulers:['mateng','machao','hansui','dongzhuo'], gens:['machao','pangde'], d:'서량의 철갑 기병. 평야와 고원에서 강하다.' },
+  feixiong:{ n:'비웅군', gl:'熊', p:[1.2,1.1,1.0], h:.9, rulers:['dongzhuo'], gens:['lijue','guosi','huaxiong'], d:'동탁의 친위 정예.' },
+  huangjin:{ n:'황건 역사', gl:'黃', p:[1.15,1.05,1.05], h:1, sup:-.3, rulers:['zhangjiao'], gens:['zhangbao_hj','zhangliang'], d:'믿음으로 뭉친 장정들. 군량을 적게 먹는다.' },
+  wuhuan:{ n:'오환 돌기', gl:'烏', p:[1.3,1.0,.95], h:.95, tribe:'wuhuan', d:'천하 명기(名騎). 평야 공세에 강하다.' },
+  xiongnu:{ n:'흉노 궁기', gl:'匈', p:[1.15,1.05,1.0], h:.9, bleed:.02, tribe:'xiongnu', d:'달리며 쏜다. 싸우는 달마다 적 손실이 늘어난다.' },
+  qiang:{ n:'강족 철기', gl:'羌', p:[1.2,1.2,.95], h:.9, tribe:'qiang', d:'고원의 기병. 평야와 산악 모두에서 민다.' },
+  xiang:{ n:'상병(코끼리)', gl:'象', p:[1.4,1.0,.9], h:.9, fire:1, tribe:'nanman', d:'코끼리 떼. 평야에서 막을 수 없다. 다만 지략 85 이상의 적 군사는 불로 코끼리를 되돌린다.' },
+  tengjia:{ n:'등갑병', gl:'藤', p:[1.05,1.15,1.15], h:.6, fire:1, tribe:'nanman', d:'기름 먹인 등나무 갑옷. 칼과 화살이 들지 않아 거의 밀리지 않는다. 불에는 속수무책.' },
+  shanyue:{ n:'산월 정병', gl:'越', p:[1.0,1.25,1.15], h:.85, tribe:'shanyue', d:'산과 물에 익숙한 용사들.' },
+  wuling:{ n:'무릉 만병', gl:'溪', p:[1.0,1.25,1.05], h:.8, tribe:'wuling', d:'산길에서 나타났다 사라진다. 산악에서 강하다.' }
+};
+const TI = { plain:0, mountain:1, river:2 };
+function tribeSt(id){ G.tribes = G.tribes || {}; if (!G.tribes[id]){ const r = G.pfac && fac(G.pfac) ? fac(G.pfac).ruler : null; G.tribes[id] = { rel: (TRIBES[id].friend[r] || 0), vas:0 }; } return G.tribes[id]; }
+const tribeAlly = id => { const T = tribeSt(id); return T.rel >= 60 || T.vas > 0; };
+function tribeFriendOf(fid, tid){ if (fid===G.pfac) return tribeAlly(tid); const f = fac(fid); return !!(f && (TRIBES[tid].friend[f.ruler]||0) >= 50); }
+function corpsAvail(fid){
+  const f = fac(fid); if (!f) return [];
+  return Object.keys(CORPS).filter(k => { const c = CORPS[k], byR = (c.rulers||[]).includes(f.ruler), byG = (c.gens||[]).some(g => { const p = G.people[g]; return p && p.alive!==false && p.fac===fid; }), byT = c.tribe ? tribeFriendOf(fid, c.tribe) : false;
+    return c.both ? (byG && byT) : (byR || byG || (c.tribe && !c.both && byT)); });
+}
+function frCorps(F, S){ const k = S.corps; return k && CORPS[k] && corpsAvail(G.pfac).includes(k) ? CORPS[k] : null; }
+function frFoeCorps(F){ const t = TI[frTerr(F)], L = corpsAvail(F.ef); if (!L.length) return null; const used = new Set(); for (const o of frontsOf(G.pfac)){ if (o.ef!==F.ef) continue; if (o.id===F.id) break; const k = L.filter(x => !used.has(x)).sort((a, b) => CORPS[b].p[frIdx(o)] - CORPS[a].p[frIdx(o)])[0]; if (k) used.add(k); }
+  const k = L.filter(x => !used.has(x)).sort((a, b) => CORPS[b].p[t] - CORPS[a].p[t])[0]; return k ? CORPS[k] : null; }
+const frIdx = F => TI[frTerr(F)];
+const corpsHold = (c, terr, oppI) => !c ? 1 : c.fire && oppI >= 85 ? 1.2 : terr==='river' && c.hr ? c.hr : c.h;
+const corpsPush = (c, terr, oppI) => !c ? 1 : c.fire && oppI >= 85 ? .9 : c.p[TI[terr]];
+// 부족의 한 달: 약탈·원군·관계 변화
+function tribeStep(ff){
+  if (ff || SIM) return;
+  for (const [id, T] of Object.entries(TRIBES)){
+    const homes = T.home.map(city), mine = homes.filter(c => c.owner===G.pfac);
+    if (G.pfac && (G.role==='ruler' || G.role==='officer')){
+      const S = tribeSt(id); if (S.vas > 0) S.vas--; if (S.rel > 0 && S.vas<=0 && Math.random() < .5) S.rel--; if (S.rel < 0 && Math.random() < .3) S.rel++;
+      if (mine.length && S.vas<=0 && S.rel <= -30 && Math.random() < .12 + (-S.rel)/400){ const c = pick(mine), n = Math.round(c.troops*rnd(.06, .1)); c.troops -= n; const g = Math.min(G.role==='ruler' ? G.gold : 0, Math.round(rnd(40, 120))); if (G.role==='ruler') G.gold -= g;
+        for (const F of frontsOf(G.pfac)) if (F.my.includes(c.id)){ const So = frState(F.id); So.p = clamp(So.p - 8, -100, 100); }
+        news(`${T.n}이(가) ${c.n} 일대를 약탈했다. 병력 -${fmt(n)}${g ? `, 금 -${g}` : ''}. 뒤가 어지러워 그쪽 전선이 흔들린다.`, false, true); }
+      else if (tribeAlly(id) && Math.random() < .2){ const near = mine[0] || citiesOf(G.pfac).filter(c => c.adj.some(a => T.home.includes(a)))[0]; if (near){ const n = Math.round(rnd(800, 1500)); near.troops += n; news(`${T.n}의 원군 ${fmt(n)}이 ${near.n}에 닿았다.`, false, true); } }
+    }
+    // 다른 세력의 땅도 가끔 약탈당한다
+    const others = homes.filter(c => c.owner && c.owner!==G.pfac && !tribeFriendOf(c.owner, id));
+    if (others.length && Math.random() < .06){ const c = pick(others); c.troops = Math.round(c.troops*.92); if (visible(c.id)) news(`${T.n}이(가) ${facName(c.owner)}의 ${c.n}을(를) 약탈했다.`, false, false); }
+  }
+}
+const tribeNear = id => { const T = TRIBES[id]; return G.pfac && citiesOf(G.pfac).some(c => T.home.includes(c.id) || c.adj.some(a => T.home.includes(a))); };
+function tribeAct(id, k){
+  if (G.role!=='ruler') return toast('부족과의 교섭은 군주의 일이다.', [], true);
+  const T = TRIBES[id], S = tribeSt(id), R = me();
+  if (!tribeNear(id)) return toast(`${T.n}의 땅과 닿아 있지 않다.`, [], true);
+  if (k==='gift'){ if (!spend(200)) return toast('금 200과 행동력이 필요하다.', [], true); const v = Math.round(rnd(10, 16) + R.c/12); S.rel = clamp(S.rel + v, -100, 100); Snd.sfx('coin'); return toast(`${T.n}의 대인에게 비단과 소금을 보냈다.`, [[`관계 +${v}`, true]]); }
+  if (k==='pact'){ if (S.rel < 40) return toast('관계가 40은 되어야 맹약을 맺을 수 있다.', [], true); if (!spend(400)) return toast('금 400과 행동력이 필요하다.', [], true); S.rel = 80; Snd.sfx('gong'); talkQ({ title:`${T.n}과의 맹약`, bg:'bg_camp', lines:[[null, `${T.n}의 대인이 흰 말을 잡아 그 피로 맹세했다. "그대의 적이 곧 우리의 적이다."`]] }); return toast(`${T.n}과 맹약을 맺었다. ${CORPS[T.corps].n}${T.corps2 ? '·' + CORPS[T.corps2].n : ''}을(를) 전선에 둘 수 있다.`, [['맹약', true]]); }
+  if (k==='subdue'){ const base = citiesOf(G.pfac).filter(c => T.home.includes(c.id) || c.adj.some(a => T.home.includes(a))).sort((a, b) => b.troops - a.troops)[0]; if (!base || base.troops < 5000) return toast('부족의 땅 가까운 성에 병력 5천은 있어야 한다.', [], true); if (!spend(0)) return toast('이번 달 행동력이 없다.', [], true);
+    const g = bestGen(base.id, G.pfac) || R, ch = clamp(.5 + ((g.m + g.l)/2 - T.str)/40 + (base.troops - 8000)/40000, .1, .9);
+    if (Math.random() < ch){ base.troops = Math.round(base.troops*.92); S.vas = 36; S.rel = Math.max(S.rel, 20); Snd.sfx('win'); talkQ({ title:`${T.n} 토벌`, bg:'bg_field', lines:[[g.id===G.pid ? 'me' : g.id, `${T.n}의 본거지를 깨뜨렸습니다. 대인이 무릎을 꿇고 군마를 바쳤습니다.`]] }); return toast(`${T.n}을(를) 복속시켰다. 세 해 동안 약탈이 없고 병종을 쓸 수 있다.`, [['복속 36개월', true]]); }
+    base.troops = Math.round(base.troops*.82); S.rel = clamp(S.rel - 30, -100, 100); Snd.sfx('lose'); return toast(`${g.n}의 토벌군이 ${T.n}의 유인에 걸려 크게 졌다.`, [['병력 -18%', false], ['관계 -30', false]], true); }
+  if (k==='incite'){ if (S.rel < 20) return toast('관계가 20은 되어야 부탁할 수 있다.', [], true); const tg = T.home.map(city).concat(T.home.flatMap(h => city(h).adj).map(city)).filter(c => c.owner && c.owner!==G.pfac && hostile(G.pfac, c.owner)); if (!tg.length) return toast('부족이 칠 만한 적이 가까이에 없다.', [], true); if (!spend(300)) return toast('금 300과 행동력이 필요하다.', [], true);
+    const ef = tg[0].owner; for (const c of tg.filter(c => c.owner===ef).slice(0, 3)) c.troops = Math.round(c.troops*.88); for (const F of frontsOf(G.pfac)) if (F.ef===ef){ const So = frState(F.id); So.p = clamp(So.p + 8, -100, 100); } S.rel -= 5; Snd.sfx('hooves');
+    return toast(`${T.n}이(가) ${facName(ef)}의 뒤를 휩쓸었다.`, [['적 병력 -12%', true], [`${facName(ef)} 전선 +8`, true]]); }
+}
+function openTribes(){
+  const rows = Object.entries(TRIBES).map(([id, T]) => { const S = tribeSt(id), near = tribeNear(id), st = S.vas > 0 ? ['복속 ' + S.vas + '개월','up'] : S.rel >= 60 ? ['맹약','gold'] : S.rel >= 20 ? ['우호','up'] : S.rel <= -30 ? ['적대','down'] : ['중립',''];
+    const ruler = G.role==='ruler', b = (k, t, sub, dis) => `<button data-ta="${id}:${k}" ${dis || !ruler || !near ? 'disabled' : ''}><b>${t}</b><small>${sub}</small></button>`;
+    return `<div class="trb ${near ? '' : 'far'}"><div class="row" style="gap:10px;align-items:center"><span class="mg" style="--c:#6b4a3a">${T.gl}</span><div class="grow"><b>${T.n}</b> <span class="chip ${st[1]}">${st[0]}</span><small class="d">${T.d} · 땅: ${T.home.map(h => city(h).n).join('·')}</small></div><b class="pv">${S.rel}</b></div>
+      <div class="tiny">병종: <b>${CORPS[T.corps].n}</b>${T.corps2 ? ` · <b>${CORPS[T.corps2].n}</b>` : ''} — ${tribeAlly(id) ? '지금 쓸 수 있다' : '맹약(관계 60)이나 복속하면 쓸 수 있다'}</div>
+      ${near ? `<div class="thbtns q4">${b('gift','선물','금 200 · 관계 +')}${b('pact','맹약','금 400 · 관계 40 이상', S.rel < 40 || S.rel >= 60)}${b('subdue','토벌','병력 5천 · 이기면 복속')}${b('incite','적을 치게 한다','금 300 · 관계 20 이상', S.rel < 20)}</div>` : '<p class="tiny muted" style="margin:0">우리 땅과 닿아 있지 않다.</p>'}</div>`; }).join('');
+  const bg = sheet(`<div class="cu-head"><h3>이민족</h3><button class="icon" data-close aria-label="닫기">✕</button></div><p class="small muted">변방의 부족은 그 땅을 가진 세력을 약탈한다. 손을 잡으면 원군과 고유 병종을 얻는다.${G.role!=='ruler' ? ' (교섭은 군주만 할 수 있다)' : ''}</p>${rows}`);
+  bg.querySelectorAll('[data-ta]').forEach(b => b.onclick = () => { const [id, k] = b.dataset.ta.split(':'); tribeAct(id, k); save(); bg.remove(); render(); if (!(G.talks && G.talks.length)) openTribes(); });
+}
+function openCorpsPick(fid){
+  const F = frontsOf(G.pfac).find(f => f.id===fid); if (!F) return; if (G.role!=='ruler') return toast('병종 배치는 주공이 정한다.', [], true), render();
+  const S = frState(fid), L = corpsAvail(G.pfac), t = frTerr(F), usedAt = k => { const o = frontsOf(G.pfac).find(x => x.id!==fid && frState(x.id).corps===k); return o ? o.name : ''; };
+  const rows = L.sort((a, b) => CORPS[b].p[TI[t]] - CORPS[a].p[TI[t]]).map(k => { const c = CORPS[k]; return `<button class="mrow" data-ck="${k}"><span class="mg" style="--c:#7a2a22">${c.gl}</span><span class="grow"><b>${c.n}${S.corps===k ? ' ✓' : ''}</b><small>${c.d}</small><small>평야 ×${c.p[0]} · 산악 ×${c.p[1]} · 강 ×${c.p[2]} · 버티기 ×${c.h}${usedAt(k) ? ` · 지금 ${usedAt(k)}` : ''}</small></span><b class="pv">×${c.p[TI[t]]}</b></button>`; }).join('');
+  const bg = sheet(`<div class="cu-head"><h3>${esc(F.sec)} 전선 · 정예 병종</h3><button class="icon" data-close aria-label="닫기">✕</button></div><p class="small muted">이 전선은 <b>${FR_TERR[t][0]}</b>. 병종은 전선 하나에만 둘 수 있다. 군주·장수·부족과의 관계에 따라 쓸 수 있는 병종이 달라진다.</p><div class="mlist">${rows || '<p class="small" style="padding:12px">아직 쓸 수 있는 정예 병종이 없다. 이민족과 맹약을 맺거나, 병종을 이끄는 장수를 얻자.</p>'}</div>${S.corps ? '<button class="btn2" data-ck="" style="margin-top:8px">병종 빼기</button>' : ''}`);
+  bg.querySelectorAll('[data-ck]').forEach(b => b.onclick = () => { const k = b.dataset.ck; if (k) for (const o of Object.values(G.fronts)) if (o.corps===k) o.corps = null; S.corps = k || null; bg.remove(); save(); render(); });
+}
 /* ---------------- 전역 화면: 나와 적 한 나라를 한 장에. 우리 땅 | 전선 | 적 땅 ----------------
    성은 땅 위의 점. 전선(북부·중원·남부)을 밀면 선이 적 성 쪽으로 다가가고, 닿으면 그 성을 두고 결전. */
 const thEnemiesCount = () => Object.keys(thEnemies()).length;
@@ -2419,11 +2523,12 @@ function viewTheater(){
     <div class="thint ${it ? it[1] : ''}"><span class="gl">探</span><span class="grow"><b>적의 낌새: ${it ? it[0] : '알 수 없음'}</b><small>${it ? it[2] : '군사 자리에 지략 높은 장수를 두면 적의 다음 수가 읽힌다.'}</small></span></div>
     ${lastTxt ? `<p class="tiny muted" style="margin:0">${lastTxt}</p>` : ''}
     <div class="thslots">${['van','adv','rear'].map(slot).join('')}</div>
+    ${(() => { const c = frCorps(selF, S), e = frFoeCorps(selF), ti = TI[frTerr(selF)]; return `<div class="thcorps"><button data-corps="${selF.id}"><span class="mg" style="--c:${c ? '#7a2a22' : '#b7a789'}">${c ? c.gl : '兵'}</span><span class="grow"><small>아군 정예</small><b>${c ? `${c.n} ×${c.p[ti]}` : '일반 병사'}</b></span><span class="mch">›</span></button><div class="foe"><span class="mg" style="--c:${e ? '#3a3a4a' : '#b7a789'}">${e ? e.gl : '兵'}</span><span class="grow"><small>적 정예</small><b>${e ? `${e.n} ×${e.p[ti]}` : '일반 병사'}</b></span></div></div>`; })()}
     ${supBar}${S.starve ? '<p class="tiny bad" style="margin:0">지난달 군량이 모자라 공세가 약했다.</p>' : ''}
     ${G.role==='ruler' ? `<div class="thbtns q4"><button class="${S.st==='push' ? 'on' : ''}" data-tho="push"><b>밀어붙인다</b><small>원정길 · 군량 1</small></button><button class="${S.st==='hold' ? 'on' : ''}" data-tho="hold"><b>버틴다</b><small>덜 밀리고 군량 회복</small></button><button class="${S.st==='feint' ? 'on' : ''}" data-tho="feint" ${multi ? '' : 'disabled'}><b>양동</b><small>${multi ? '적의 눈을 끌어 옆 전선을 돕는다' : '다른 전선이 있어야 한다'}</small></button><button data-tho="shift" ${multi || thEnemiesCount() > 1 ? '' : 'disabled'}><b>병력을 돌린다</b><small>30%를 위태로운 전선으로</small></button></div>
     <button class="thauto" data-tho="auto"><span class="tgl ${S.auto ? 'on' : ''}"><i></i></span>다음 달에도 이 명령 유지</button>` : `<p class="tiny muted" style="margin:0">이 전선은 주공이 지휘한다. 그대는 건의하거나, 이 전선의 성에 있다면 선봉을 자원할 수 있다. (신뢰 ${G.trust})</p>
     <div class="thbtns"><button data-tho="sugpush">공세를 건의한다</button><button data-tho="sughold">수비를 건의한다</button><button data-tho="vol" ${selF.my.includes(G.city) && !G.inArmy ? '' : 'disabled'}>선봉을 자원한다</button></div>`}
-    <details class="thhelp"><summary>전선 규칙</summary><p class="tiny">· 지형: ${tr[0]} — ${tr[3]}<br>· 적도 달마다 수비·공세·대군 집결을 정한다. 집결한 적은 버텨서 깎고, 수비하는 적은 밀어붙인다.<br>· 같은 적의 두 전선을 같은 달에 밀면 협공 +5. 양동이 통하면 옆 전선의 적 공세가 약해지고 우리 공세 +7.<br>· 돌파하면 성을 칠지, 보급로를 끊을지, 옆 전선의 뒤를 칠지 고른다.<br>· 밀어붙이면 원정길(큰길·산길·물길 → 고비 셋)을 거쳐 이번 달 미는 힘이 정해진다. 큰길은 군량 +1, 산길은 군량 -1 대신 기습.<br>· 공세 한 달에 군량 1개월분. 후방 장수의 정치가 높으면 덜 든다. 버티면 반 달분씩 찬다.<br>· 선봉은 미는 힘, 군사는 적의 공세를 꺾고 원정길 판정을 맡는다.<br>· 막대가 끝에 닿으면 결전. 이기면 같은 적의 다른 전선도 +12.</p></details></div>`;
+    <details class="thhelp"><summary>전선 규칙</summary><p class="tiny">· 정예 병종은 전선에 하나. 지형마다 미는 힘이 다르고, 코끼리·등갑병은 지략 85 이상의 군사에게 불로 당한다. 이민족과 맹약하면 그들의 병종을 쓴다.<br>· 지형: ${tr[0]} — ${tr[3]}<br>· 적도 달마다 수비·공세·대군 집결을 정한다. 집결한 적은 버텨서 깎고, 수비하는 적은 밀어붙인다.<br>· 같은 적의 두 전선을 같은 달에 밀면 협공 +5. 양동이 통하면 옆 전선의 적 공세가 약해지고 우리 공세 +7.<br>· 돌파하면 성을 칠지, 보급로를 끊을지, 옆 전선의 뒤를 칠지 고른다.<br>· 밀어붙이면 원정길(큰길·산길·물길 → 고비 셋)을 거쳐 이번 달 미는 힘이 정해진다. 큰길은 군량 +1, 산길은 군량 -1 대신 기습.<br>· 공세 한 달에 군량 1개월분. 후방 장수의 정치가 높으면 덜 든다. 버티면 반 달분씩 찬다.<br>· 선봉은 미는 힘, 군사는 적의 공세를 꺾고 원정길 판정을 맡는다.<br>· 막대가 끝에 닿으면 결전. 이기면 같은 적의 다른 전선도 +12.</p></details></div>`;
   return `<div class="theater">${tabs}<div class="thmap">${svg}</div>${card}</div>`;
 }
 // 병력을 돌린다: 이 전선의 병력 일부를 가장 위태로운 다른 전선으로
@@ -5635,7 +5740,7 @@ function viewMap(){
     .map(f => `<span class="chip" style="background:${f.color}26;color:${mix(f.color,'#000000',.25)}">${esc(facName(f.id))} ${citiesOf(f.id).length}</span>`).join('');
   if (MAPZ==null) MAPZ = ((typeof innerWidth!=='undefined' && innerWidth >= 700) ? 1.3 : 2.2) * MAP_K;
   const hasTh = (G.role==='ruler' || G.role==='officer') && G.pfac && frontsOf(G.pfac).length;
-  const seg = hasTh ? `<div class="mseg"><button class="${G.mapMode!=='world' ? 'on' : ''}" data-mm="front">전선</button><button class="${G.mapMode==='world' ? 'on' : ''}" data-mm="world">천하</button></div>` : '';
+  const seg = hasTh ? `<div class="mseg"><button class="${G.mapMode!=='world' ? 'on' : ''}" data-mm="front">전선</button><button class="${G.mapMode==='world' ? 'on' : ''}" data-mm="world">천하</button><button data-mtribe="1">부족</button></div>` : '';
   if (hasTh && G.mapMode!=='world') return `<div class="mapview th">${seg}${viewTheater()}</div>`;
   return `<div class="mapview">${seg}<div class="mapscroll" id="mapScroll"><div class="mapinner" id="mapInner" style="width:${Math.round(MAPZ*100)}%">${mapSvg()}</div></div>
     <div class="mapnote">${notes.join('')}</div>
@@ -6520,7 +6625,7 @@ function openMenu(){
     <p class="msec">이야기</p>
     <div class="mgrid">${tile('mTale','傳','열전','명장면 ' + TALES.length + '편 · 완수 ' + tl,'#b3352a')}${tile('mCodex','將','명장 도감','숙적 ' + cdx + '명','#3b4f8a')}${tile('mAch','功','업적','달성 ' + ach,'#a8822a')}${tile('mChron','史','연대기','이번 천하의 기록','#2f6b5a')}</div>
     <p class="msec">장수</p>
-    <div class="mgrid">${tile('mCu','招','내 장수 부르기','만든 장수를 휘하에','#6b4a8a')}${tile('mHelp','書','게임 방법','처음이라면','#5a6470')}</div>
+    <div class="mgrid">${tile('mCu','招','내 장수 부르기','만든 장수를 휘하에','#6b4a8a')}${tile('mTribe','夷','이민족','오환·흉노·강·남만·산월·무릉','#6b4a3a')}${tile('mHelp','書','게임 방법','처음이라면','#5a6470')}</div>
     <p class="msec">시스템</p>
     <div class="mlist">${row('mSet','⚙','설정','소리 · 진동 · 평정')}${row('mCopy','⧉','저장 칸','다른 칸에 따로 저장')}${row('mTitle','⌂','처음 화면으로','진행은 자동 저장된다','dim')}</div>`);
   bg.querySelector('.sheet').classList.add('menu');
@@ -6529,6 +6634,7 @@ function openMenu(){
   bg.querySelector('#mHelp').onclick = () => { bg.remove(); openHelp(); };
   bg.querySelector('#mAch').onclick = () => { bg.remove(); openAch(); };
   bg.querySelector('#mTale').onclick = () => { bg.remove(); openTales(); };
+  bg.querySelector('#mTribe').onclick = () => { bg.remove(); openTribes(); };
   bg.querySelector('#mCodex').onclick = () => { bg.remove(); openCodex(); };
   bg.querySelector('#mSet').onclick = () => { bg.remove(); openSettings(); };
   bg.querySelector('#mAd').onclick = () => { bg.remove(); showAd('gold', () => { if (adLeft()<=0) return; const g = adGold(); adDay().n++; saveMeta(); G.gold += g; toast('후원자가 군자금을 보내왔다.', [[`금 +${fmt(g)}`,true]]); save(); render(); }); };
@@ -6779,6 +6885,8 @@ function bind(){
   on('[data-mm]', b => { G.mapMode = b.dataset.mm; save(); render(); });
   on('[data-thf]', b => { G.thEf = b.dataset.thf; G.thSel = null; render(); });
   on('[data-ths]', b => { G.thSel = b.dataset.ths; render(); });
+  on('[data-corps]', b => openCorpsPick(b.dataset.corps));
+  on('[data-mtribe]', () => openTribes());
   on('[data-role]', b => openRolePick(b.dataset.rf, b.dataset.role));
   on('[data-fgf]', b => { frGens(b.dataset.fgf, b.dataset.fg); save(); render(); });
   on('[data-tho]', b => { const id = G.thSel || (document.querySelector('.thl rect[stroke-width="2"]') && document.querySelector('.thl rect[stroke-width="2"]').closest('[data-ths]').dataset.ths); const F = id && frontsOf(G.pfac).find(f => f.id===id) || frontsOf(G.pfac).filter(f => f.ef===G.thEf).sort((a, b) => Math.abs(frState(b.id).p) - Math.abs(frState(a.id).p))[0]; if (!F) return;
