@@ -324,6 +324,9 @@ p{margin:0}
 .tgl{width:46px;height:28px;border-radius:14px;background:#cfc3a9;position:relative;flex:0 0 46px;transition:background .2s}.tgl i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}.tgl.on{background:#3d7a52}.tgl.on i{transform:translateX(18px)}
 .mapview.th{display:flex;flex-direction:column;gap:8px;padding:8px 10px 96px;overflow-y:auto}.mseg{display:flex;gap:4px;background:#e6dcc6;border-radius:12px;padding:3px;align-self:center;position:relative;z-index:3}.mapview:not(.th) .mseg{position:absolute;bottom:14px;left:12px;box-shadow:0 2px 8px rgba(40,25,10,.25)}.mseg button{border:0;background:none;font:inherit;font-size:13px;font-weight:700;padding:6px 18px;border-radius:9px;color:#6f6356;min-height:36px}.mseg button.on{background:#2a1f16;color:#f4ecdc}
 .phase{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e6dcc6;color:#6f6356;margin-left:4px;vertical-align:2px}.phase.good{background:#dcefdf;color:#2f6b3a}.phase.hot{background:#2f6b3a;color:#fff}.phase.warn{background:#f6e3c4;color:#8a5a12}.phase.bad{background:#a3322a;color:#fff}
+.phase.terr{background:#e9e2f0;color:#5a4a7a}.thint{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:#f1e8d6}.thint .gl{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#6f6356;color:#fff;font-family:var(--seal);flex:0 0 28px}.thint b{display:block;font-size:13px}.thint small{display:block;font-size:11.5px;color:var(--muted)}.thint.warn{background:#f6e3c4}.thint.warn .gl{background:#b8791a}.thint.bad{background:#f6dcd6}.thint.bad .gl{background:#a3322a}
+.thbtns.q4{grid-template-columns:1fr 1fr}.thbtns.q4 button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:52px}.thbtns.q4 small{font-size:10.5px;font-weight:400;color:var(--muted)}.thbtns.q4 button.on small{color:#cfc3a9}.thbtns button:disabled{opacity:.45}
+.thdelta{opacity:0}.thsvg.done .thdelta{animation:thd 2.2s ease-out forwards}@keyframes thd{0%{opacity:0;transform:translateY(6px)}15%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
 .thslots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.thslot{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;border:1px dashed #c8b48a;background:#fbf6ea;font:inherit;color:inherit;min-height:96px;position:relative}.thslot.on{border-style:solid;background:#fff}.thslot .gl{position:absolute;top:4px;left:6px;font-family:var(--seal);color:var(--red);font-size:14px}.thslot .empty{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#efe5cf;color:#a89a7c;font-style:normal;font-size:18px}.thslot .nm{display:flex;flex-direction:column;align-items:center;line-height:1.2}.thslot .nm b{font-size:12.5px}.thslot .nm small{font-size:10.5px;color:var(--muted)}
 .thsup{display:flex;align-items:center;gap:8px;font-size:12.5px}.thsup .sb{display:flex;gap:3px}.thsup .sb i{width:14px;height:10px;border-radius:3px;background:#e6dcc6}.thsup .sb i.on{background:#c9932a}.thsup .sb i.half{background:linear-gradient(90deg,#c9932a 50%,#e6dcc6 50%)}.thsup button{margin-left:auto;border:1px solid #c8b48a;background:#fff;border-radius:10px;font:inherit;font-size:12px;padding:6px 10px;min-height:40px}.thhelp summary{font-size:12px;color:var(--muted);min-height:32px;display:flex;align-items:center}.pv{font-family:var(--display);font-size:18px;color:var(--red)}
 .theater{display:flex;flex-direction:column;gap:8px}.thtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.thtab{flex:0 0 auto;border:0;border-bottom:3px solid transparent;background:#f4ecdc;border-radius:10px 10px 4px 4px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;min-height:40px;color:#6f6356}.thtab small{margin-left:4px;font-size:11px;opacity:.7}.thtab.on{border-bottom-color:var(--fc);background:#fffaf0;color:#2a1f16}
@@ -2165,6 +2168,20 @@ const FR_ROLES = { van:['선봉','先','m','무력·통솔이 높을수록 세�
 function frPhase(p){ return p <= -70 ? ['위기','bad'] : p < -30 ? ['열세','warn'] : p <= 30 ? ['대치',''] : p < 70 ? ['우세','good'] : ['돌파 직전','hot']; }
 function frRoleP(F, S, k){ const p = person(S.r[k]); if (!p || !active(p) || p.fac!==G.pfac || p.army) return null; if (p.id===G.pid ? !(F.my.includes(G.city) && !G.inArmy) : !F.my.includes(p.city)) return null; return p; }
 function frSetRole(id, k, gid){ const S = frState(id); for (const o of Object.values(G.fronts)) for (const r of Object.keys(o.r||{})) if (o.r[r]===gid) o.r[r] = null; S.r[k] = gid || null; S.gens = Object.values(S.r).filter(Boolean); }
+/* 전선 지형: 그 전선에 걸친 성들의 땅이 싸움의 성격을 정한다 */
+const FR_TERR = { plain:['평야','平',1.15,'밀고 밀리는 폭이 크다. 선봉의 힘이 그대로 드러난다.'], mountain:['산악','山',.7,'밀리는 폭이 작다. 버티면 적의 공세가 반쯤만 통한다. 산길 원정 +4.'], river:['강','水',.85,'강을 건너 미는 쪽이 힘들다. 물길 원정 +5. 버티는 쪽 손실이 적다.'] };
+function frTerr(F){ const L = [...F.my, ...F.foe].map(id => TERRAIN[id] || 'plain'), n = L.length, m = L.filter(t => t==='mountain').length, r = L.filter(t => t==='river').length; return m >= n/3 && m >= r ? 'mountain' : r >= n/3 ? 'river' : 'plain'; }
+/* 적의 낌새: 적도 달마다 전선별로 수비·공세·집결(큰 공세)을 정한다. 군사의 지략이 높으면 미리 읽힌다 */
+const FR_INT = { hold:['수비 태세','', '적은 이번 달 지킬 생각이다. 밀기 좋은 때다.'], push:['공세 준비','warn','적이 밀고 나올 것이다.'], mass:['대군 집결','bad','적이 이 전선에 힘을 모았다. 버티면 적이 크게 다치고, 맞밀면 크게 밀린다.'] };
+function frPlanFoe(FS){
+  const by = {}; for (const F of FS) (by[F.ef] = by[F.ef] || []).push(F);
+  for (const [ef, L] of Object.entries(by)){
+    const br = brain(ef), a = br ? br.a : .4, ev = L.map(F => [F, frEval(F)]), weak = ev.slice().sort((x, y) => x[1].ratio - y[1].ratio)[0][0];
+    for (const [F, e] of ev){ const S = e.S, timid = e.ratio > .68;
+      S.fNext = timid ? (Math.random() < .15 ? 'push' : 'hold') : F===weak && Math.random() < .3 + a*.5 ? 'mass' : Math.random() < .25 + a*.35 ? 'push' : 'hold';
+      const adv = frRoleP(F, S, 'adv'); S.fKnown = Math.random() < clamp(.3 + ((adv ? adv.i : 35) - (e.en.best ? e.en.best.i : 50))/80 + (adv ? .15 : 0), .08, .95); }
+  }
+}
 const frSupCost = (F, S) => Math.round(frEval(F).me_.t/1000*6 + 40);
 const frPow = (ids, gens, fid) => { const t = ids.reduce((s, id) => s + (city(id).troops||0), 0); const g = (gens && gens.length ? gens.map(person).filter(Boolean) : ids.map(id => bestGen(id, fid)).filter(Boolean)); const best = g.sort((a, b) => (b.m + b.l) - (a.m + a.l))[0]; return { t, k: genFactor(best), best }; };
 function frEval(F){
@@ -2179,6 +2196,12 @@ function frontStep(ff){
   const FS = frontsOf(G.pfac), live = new Set(FS.map(F => F.id));
   for (const k of Object.keys(G.fronts||{})) if (!live.has(k)) delete G.fronts[k];
   const rep = [];
+  G.thKey = (G.thKey||0) + 1;
+  // 양동과 협공: 같은 적을 상대로 한 전선끼리 서로 돕는다
+  const nPush = {}, lure = {};
+  for (const F of FS){ const S = frState(F.id); S.pp = S.p; if (S.fNext==null){ S.fNext = Math.random() < .4 ? 'push' : 'hold'; S.fKnown = false; }
+    if (S.st==='push') nPush[F.ef] = (nPush[F.ef]||0) + 1;
+    if (S.st==='feint'){ const e = frEval(F), adv = frRoleP(F, S, 'adv'), ok = Math.random() < clamp(.55 + ((adv ? adv.i : 45) - (e.en.best ? e.en.best.i : 50))/90, .2, .92); S.feintOk = ok; if (ok) lure[F.ef] = F.id; rep.push(`${F.sec} 양동 ${ok ? '성공' : '간파당함'}`); } }
   for (const F of FS){
     if (aiRun){ // 장수로 있을 때는 주공이 전선을 지휘한다
       const pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city));
@@ -2186,24 +2209,29 @@ function frontStep(ff){
       const S1 = S0(F); if (!S1.sug){ const r0 = frEval(F).ratio; S1.st = (r0 > .55 || Math.random() < .25) && S1.sup >= 1 ? 'push' : 'hold'; if (S1.st==='push') S1.bonus = Math.round(rnd(0, 10)); } S1.sug = false;
     }
     const { S, me_, en, ratio } = frEval(F), adv = frRoleP(F, S, 'adv'), rear = frRoleP(F, S, 'rear'), ph0 = frPhase(S.p)[0];
-    const br = brain(F.ef), foePush = Math.random() < .35 + (br ? br.a*.4 : .2) + (ratio < .4 ? .2 : 0);
+    const terr = frTerr(F), lured = lure[F.ef] && lure[F.ef]!==F.id, bait = lure[F.ef]===F.id;
+    let fi = S.fNext; if (lured && fi!=='hold') fi = fi==='mass' ? 'push' : 'hold'; if (bait && fi==='hold') fi = 'push';
+    const foePush = fi!=='hold'; S.fDid = fi;
     const cons = S.st==='push' ? (rear ? clamp(1.3 - (rear.g||rear.i)/110, .4, 1) : 1) : 0, starve = S.st==='push' && S.sup < cons;
     if (S.st==='push') S.sup = Math.max(0, S.sup - cons); else S.sup = Math.min(6, S.sup + .5);
-    const mk = S.st==='push' ? (starve ? 1 : 1.25) : .8, fk = (foePush ? 1.15 : .8)*(adv ? 1 - clamp((adv.i - 50)/250, 0, .2) : 1);
-    let d = ((ratio*mk) - ((1 - ratio)*fk))*34 + (S.st==='push' ? S.bonus*(starve ? .5 : 1) : 0) + rnd(-6, 6);
-    if (S.st==='hold' && d < 0) d *= .6;
-    S.starve = starve;
+    const mk = S.st==='push' ? (starve ? 1 : 1.25) : .8, fk = ({ hold:.8, push:1.15, mass:1.45 })[fi]*(adv ? 1 - clamp((adv.i - 50)/250, 0, .2) : 1);
+    const pincer = S.st==='push' && nPush[F.ef] >= 2 ? 5 : 0, lureB = S.st==='push' && lured ? 7 : 0;
+    let d = ((ratio*mk) - ((1 - ratio)*fk))*34 + (S.st==='push' ? S.bonus*(starve ? .5 : 1) + pincer + lureB : 0) + rnd(-6, 6);
+    if (S.st!=='push' && d < 0) d *= terr==='mountain' ? .4 : .6;
+    d *= FR_TERR[terr][2];
+    S.starve = starve; S.pincer = pincer > 0; S.lureB = lureB > 0;
     S.p = clamp(Math.round(S.p + d), -100, 100);
-    // 소모: 미는 쪽이 더 잃는다
-    const lossMy = (S.st==='push' ? .03 : .015) + (foePush ? .01 : 0), lossEn = (foePush ? .03 : .015) + (S.st==='push' ? .015 : 0);
+    // 소모: 미는 쪽이 더 잃는다. 집결한 적을 버텨 내면 적이 크게 다친다
+    const lossMy = ((S.st==='push' ? .03 : .015) + (foePush ? .01 : 0))*(terr==='river' && S.st!=='push' ? .6 : 1), lossEn = (foePush ? .03 : .015) + (S.st==='push' ? .015 : 0) + (fi==='mass' && S.st!=='push' ? .03 : 0);
     for (const id of F.my) city(id).troops = Math.round(city(id).troops*(1 - lossMy));
     for (const id of F.foe) city(id).troops = Math.round(city(id).troops*(1 - lossEn));
     S.last = Math.round(d); S.foePush = foePush; S.bonus = 0;
     const ph1 = frPhase(S.p)[0]; if (Math.abs(S.last) >= 8 || ph1!==ph0) rep.push(`${F.name.replace(' 전선', '')} ${S.last >= 0 ? '+' : ''}${S.last}${ph1!==ph0 ? `(${ph1})` : ''}${starve ? ' 군량 부족' : ''}`);
-    if (S.p >= 100) frBreak(F, S, true);
+    if (S.p >= 100){ if (G.role==='ruler' && !G.frBreakOffer && !SIM){ G.frBreakOffer = { front:F.id }; S.p = 100; } else frBreak(F, S, true); }
     else if (S.p <= -100) frBreak(F, S, false);
-    S.st = S.auto ? S.st : 'hold';
+    S.st = S.auto && S.st!=='feint' ? S.st : 'hold';
   }
+  frPlanFoe(frontsOf(G.pfac));
   if (rep.length) news(`전선 보고: ${rep.join(', ')}`, false, true);
   // 적장의 도전: 대치 중인 전선에서 가끔 적 선봉이 진 앞으로 나온다
   if (!G.frDuelOffer && !SIM && Math.random() < .22){
@@ -2215,6 +2243,7 @@ const S0 = F => frState(F.id);
 const frVan = F => frRoleP(F, frState(F.id), 'van') || npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).sort((a, b) => b.m - a.m)[0] || null;
 // 전선이 무너지면 결전이 벌어진다
 function frBreak(F, S, ours){
+  if (G.frBreakOffer && G.frBreakOffer.front===F.id) G.frBreakOffer = null;
   if (ours){
     const tgt = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0], src = F.my.map(city).filter(c => c.adj.includes(tgt.id)).sort((a, b) => b.troops - a.troops)[0];
     if (!tgt || !src) return;
@@ -2250,7 +2279,15 @@ function frPush(id){
   if (!spend(0)) return toast('이번 달 행동력이 없다.', [], true);
   S.st = 'push';
   const from = F.my.map(city).sort((a, b) => b.troops - a.troops)[0], to = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0];
-  G.trek = { front:id, ids:[], to:to.id, from:from.id, road:null, nodes:[], i:0, log:[], riv: TERRAIN[to.id]==='river' || TERRAIN[from.id]==='river', acc:{} };
+  G.trek = { front:id, ids:[], to:to.id, from:from.id, road:null, nodes:[], i:0, log:[], riv: TERRAIN[to.id]==='river' || TERRAIN[from.id]==='river' || frTerr(F)==='river', acc:{} };
+}
+// 양동: 치는 척해서 적의 눈을 끈다. 통하면 같은 적의 다른 전선에서 적 공세가 한 단계 약해지고 우리 공세에 +7
+function frFeint(id){
+  const F = frontsOf(G.pfac).find(f => f.id===id); if (!F || G.role!=='ruler') return;
+  if (frontsOf(G.pfac).filter(f => f.ef===F.ef).length < 2) return toast('같은 적과 맞닿은 다른 전선이 있어야 양동을 쓸 수 있다.', [], true);
+  const S = frState(id); if (S.st==='feint') return;
+  if (!spend(0)) return toast('이번 달 행동력이 없다.', [], true);
+  S.st = 'feint'; S.bonus = 0; Snd.sfx('drum');
 }
 function frHold(id){ const S = frState(id); S.st = 'hold'; S.bonus = 0; }
 function frBonusFromTrek(T){
@@ -2259,7 +2296,8 @@ function frBonusFromTrek(T){
   let b = (A.surprise||0)*.6 + (A.intel||0)*60 + (A.morale||0)*.5 - (A.eta||0)*8 + (A.recruit||0)/150 + (A.food||0)*2;
   if (A.troops){ for (const id of F.my) city(id).troops = Math.max(500, Math.round(city(id).troops*(1 + A.troops))); b += A.troops*80; }
   if (A.recruit){ const c = F.my.map(city).sort((a, b) => b.troops - a.troops)[0]; if (c) c.troops += A.recruit; }
-  S.bonus = Math.round(clamp(b, -12, 25)) + (({ main:0, hill:4, water:3 })[T.road]||0);
+  const tr = frTerr(F);
+  S.bonus = Math.round(clamp(b, -12, 25)) + (({ main:0, hill:4, water:3 })[T.road]||0) + (tr==='mountain' && T.road==='hill' ? 4 : tr==='river' && T.road==='water' ? 5 : 0);
   S.sup = clamp(S.sup + (A.food||0) + (({ main:1, hill:-1, water:0 })[T.road]||0), 0, 6);
   S.road = T.road;
 }
@@ -2308,7 +2346,25 @@ function openFront(id){
 
 /* ---------------- 전역 화면: 나와 적 한 나라를 한 장에. 우리 땅 | 전선 | 적 땅 ----------------
    성은 땅 위의 점. 전선(북부·중원·남부)을 밀면 선이 적 성 쪽으로 다가가고, 닿으면 그 성을 두고 결전. */
+const thEnemiesCount = () => Object.keys(thEnemies()).length;
 function thEnemies(){ const FS = frontsOf(G.pfac), by = {}; for (const F of FS) (by[F.ef] = by[F.ef] || []).push(F); return by; }
+let TH_SEEN = 0;
+function thPathD(xs, ys, H){ const line = [{ x: xs[0], y: 0 }, ...xs.map((x, i) => ({ x, y: ys[i] })), { x: xs[xs.length - 1], y: H }]; let d = `M${f1(line[0].x)} ${f1(line[0].y)}`; for (let q = 1; q < line.length; q++){ const a = line[q - 1], b = line[q], cy = (a.y + b.y)/2; d += ` C${f1(a.x)} ${f1(cy)} ${f1(b.x)} ${f1(cy)} ${f1(b.x)} ${f1(b.y)}`; } return d; }
+// 달이 넘어가면 전선이 실제로 밀리는 모습을 보여 준다
+function thAnimRun(){
+  const svg = document.querySelector('.thsvg[data-anim]'); if (!svg || svg._run) return;
+  if (G.phase!=='act' || (G.talks && G.talks.length) || document.querySelector('.modal-bg,.sheet-bg')) return;
+  svg._run = 1; TH_SEEN = G.thKey;
+  const A = JSON.parse(svg.dataset.anim), L1 = svg.querySelector('#thL1'), L2 = svg.querySelector('#thL2'), AR = svg.querySelector('#thA'), gs = [...svg.querySelectorAll('.thg')];
+  const t0 = performance.now() + 350, dur = 1100; let snd = 0;
+  const fr = now => { if (!document.body.contains(svg)) return; const u = clamp((now - t0)/dur, 0, 1), e = u < .5 ? 2*u*u : 1 - Math.pow(-2*u + 2, 2)/2;
+    if (u > 0 && !snd){ snd = 1; Snd.sfx('drum'); }
+    const xs = A.x0.map((x, i) => x + (A.x1[i] - x)*e), d = thPathD(xs, A.ys, A.H);
+    L1.setAttribute('d', d); L2.setAttribute('d', d); AR.setAttribute('d', d + ` L0 ${A.H} L0 0 Z`);
+    gs.forEach((g, i) => g.setAttribute('transform', `translate(${f1(xs[i] - A.x1[i])} 0)`));
+    if (u < 1) requestAnimationFrame(fr); else svg.classList.add('done'); };
+  requestAnimationFrame(fr);
+}
 function viewTheater(){
   const by = thEnemies(), efs = Object.keys(by).sort((a, b) => Math.max(...by[b].map(F => Math.abs(frState(F.id).p))) - Math.max(...by[a].map(F => Math.abs(frState(F.id).p))));
   if (!efs.length) return '';
@@ -2326,38 +2382,48 @@ function viewTheater(){
     const rearFo = [...new Set(F.foe.flatMap(id => city(id).adj).filter(a => city(a).owner===ef && !used.has(a)))].sort((a, b) => city(b).troops - city(a).troops).slice(0, 1);
     place(rearMy, 42, -1); place(rearFo, W - 42, 1);
   });
-  const vs = sorted.map((F, q) => { const S = frState(F.id); return { F, S, x: W/2 + clamp(S.p, -100, 100)/100*(D - 10), y: (q + .5)*bandH }; });
-  const line = [{ x: vs[0].x, y: 0 }, ...vs, { x: vs[vs.length - 1].x, y: H }];
-  let d = `M${f1(line[0].x)} ${f1(line[0].y)}`; for (let q = 1; q < line.length; q++){ const a = line[q - 1], b = line[q], cy = (a.y + b.y)/2; d += ` C${f1(a.x)} ${f1(cy)} ${f1(b.x)} ${f1(cy)} ${f1(b.x)} ${f1(b.y)}`; }
+  const xOf = p => W/2 + clamp(p, -100, 100)/100*(D - 10);
+  const vs = sorted.map((F, q) => { const S = frState(F.id); return { F, S, x: xOf(S.p), y: (q + .5)*bandH }; });
+  const pend = !!G.thKey && TH_SEEN!==G.thKey && vs.some(o => o.S.pp != null && o.S.pp!==o.S.p);
+  const x1 = vs.map(o => o.x), x0 = vs.map(o => pend && o.S.pp != null ? xOf(o.S.pp) : o.x), ys = vs.map(o => o.y);
+  const d = thPathD(pend ? x0 : x1, ys, H);
   const myArea = d + ` L0 ${H} L0 0 Z`;
-  let svg = `<svg viewBox="0 0 ${W} ${H}" class="thsvg" role="img" aria-label="${esc(facName(ef))}과의 전역">
+  let svg = `<svg viewBox="0 0 ${W} ${H}" class="thsvg" role="img" aria-label="${esc(facName(ef))}과의 전역"${pend ? ` data-anim='${JSON.stringify({ x0, x1, ys, H })}'` : ''}>
     <defs><pattern id="thp" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 6 L6 0" stroke="#000" stroke-opacity=".05"/></pattern></defs>
-    <rect width="${W}" height="${H}" fill="${foCol}" fill-opacity=".34"/><path d="${myArea}" fill="${myCol}" fill-opacity=".42"/><rect width="${W}" height="${H}" fill="url(#thp)"/>
+    <rect width="${W}" height="${H}" fill="${foCol}" fill-opacity=".34"/><path id="thA" d="${myArea}" fill="${myCol}" fill-opacity=".42"/><rect width="${W}" height="${H}" fill="url(#thp)"/>
+    ${sorted.map((F, q) => { const t = frTerr(F), y0 = q*bandH; return t==='mountain' ? [70, 150, 215, 290].map((x, m) => `<path d="M${x} ${f1(y0 + bandH - 8 - (m%2)*14)} l9 -13 l6 7 l7 -11 l11 17z" fill="#3a2a1a" fill-opacity=".13"/>`).join('') : t==='river' ? `<path d="M${W/2 - 26} ${f1(y0)} q14 ${f1(bandH/4)} 0 ${f1(bandH/2)} t0 ${f1(bandH/2)}" fill="none" stroke="#5f8fa8" stroke-opacity=".5" stroke-width="9" stroke-linecap="round"/>` : ''; }).join('')}
     ${sorted.slice(1).map((F, q) => `<line x1="0" x2="${W}" y1="${f1((q + 1)*bandH)}" y2="${f1((q + 1)*bandH)}" stroke="#fff" stroke-opacity=".35" stroke-dasharray="2 5"/>`).join('')}
-    <path d="${d}" fill="none" stroke="#fff6e6" stroke-width="7" stroke-opacity=".55" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#a3322a" stroke-width="3.6" stroke-dasharray="9 6" stroke-linecap="round"/>`;
+    <path id="thL1" d="${d}" fill="none" stroke="#fff6e6" stroke-width="7" stroke-opacity=".55" stroke-linecap="round"/><path id="thL2" d="${d}" fill="none" stroke="#a3322a" stroke-width="3.6" stroke-dasharray="9 6" stroke-linecap="round"/>`;
   for (const [id, P] of Object.entries(pos)){ const c = city(id), mine = c.owner===G.pfac, cap = capitalOf(c.owner)===c.id, here = c.id===G.city;
     svg += `<g class="thc" data-city="${c.id}"><circle cx="${f1(P.x)}" cy="${f1(P.y)}" r="${cap ? 9 : 7}" fill="${mine ? myCol : foCol}" stroke="#fff" stroke-width="2"/>${cap ? `<text x="${f1(P.x)}" y="${f1(P.y + 3.5)}" text-anchor="middle" font-size="9" fill="#fff">★</text>` : ''}${here ? `<circle cx="${f1(P.x)}" cy="${f1(P.y)}" r="13" fill="none" stroke="#a3322a" stroke-width="1.5" stroke-dasharray="3 2"/>` : ''}
       <text x="${f1(P.x)}" y="${f1(P.y + 21)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#2a1f16" stroke="#fffaf0" stroke-width="3" paint-order="stroke">${esc(c.n)}</text><text x="${f1(P.x)}" y="${f1(P.y + 32)}" text-anchor="middle" font-size="9" fill="#5a4e3c" stroke="#fffaf0" stroke-width="2.5" paint-order="stroke">${mine || visible(c.id) ? fmt(c.troops) : '?'}</text></g>`; }
-  for (const o0 of vs){ const o = { ...o0, y: o0.y - bandH/2 + 15, x: o0.x + 0 }; const r = Math.round(clamp(50 + o.S.p/2, 0, 100)), on = o.F.id===selF.id, txt = `${o.F.sec} 전선 ${r}:${100 - r}`, w = txt.length*7.4 + 14;
+  vs.forEach((o0, qi) => { const o = { ...o0, y: o0.y - bandH/2 + 15, x: o0.x + 0 }; const r = Math.round(clamp(50 + o.S.p/2, 0, 100)), on = o.F.id===selF.id, txt = `${FR_TERR[frTerr(o.F)][1]} ${o.F.sec} 전선 ${r}:${100 - r}`, w = txt.length*7.2 + 14, dl = o.S.pp != null ? o.S.p - o.S.pp : 0;
+    svg += `<g class="thg"${pend ? ` transform="translate(${f1(x0[qi] - x1[qi])} 0)"` : ''}>`;
+    if (o.S.st==='feint') svg += `<path d="M${f1(o.x - 46)} ${f1(o.y + 16)} L${f1(o.x - 10)} ${f1(o.y + 16)}" stroke="#c9932a" stroke-width="4" stroke-dasharray="5 5" stroke-linecap="round"/>`;
+    if (o.S.fKnown && o.S.fNext==='mass') svg += `<g><circle cx="${f1(o.x + w/2 + 2)}" cy="${f1(o.y - 9)}" r="8" fill="#a3322a" stroke="#fff" stroke-width="1.5"/><text x="${f1(o.x + w/2 + 2)}" y="${f1(o.y - 5)}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">!</text></g>`;
+    if (pend && dl) svg += `<text class="thdelta" x="${f1(o.x)}" y="${f1(o.y + 38)}" text-anchor="middle" font-size="15" font-weight="800" fill="${dl > 0 ? '#1f6b36' : '#a3322a'}" stroke="#fffaf0" stroke-width="3.5" paint-order="stroke">${dl > 0 ? '▶ +' : '◀ '}${dl}</text>`;
     if (o.S.st==='push') svg += `<path d="M${f1(o.x - 46)} ${f1(o.y + 16)} L${f1(o.x - 10)} ${f1(o.y + 16)}" stroke="#2f7a4a" stroke-width="5" stroke-linecap="round"/><path d="M${f1(o.x - 4)} ${f1(o.y + 16)} l-10 -7 v14z" fill="#2f7a4a"/>`;
     if (o.S.foePush && (o.S.last||0) < 0) svg += `<path d="M${f1(o.x + 46)} ${f1(o.y + 16)} L${f1(o.x + 10)} ${f1(o.y + 16)}" stroke="#b3452a" stroke-width="5" stroke-linecap="round"/><path d="M${f1(o.x + 4)} ${f1(o.y + 16)} l10 -7 v14z" fill="#b3452a"/>`;
-    svg += `<g class="thl" data-ths="${o.F.id}" role="button" tabindex="0"><rect x="${f1(o.x - w/2)}" y="${f1(o.y - 11)}" width="${f1(w)}" height="22" rx="6" fill="${on ? '#2a1f16' : '#fffaf0'}" stroke="${on ? '#d4a01f' : '#a3322a'}" stroke-width="${on ? 2 : 1.2}"/><text x="${f1(o.x)}" y="${f1(o.y + 4.5)}" text-anchor="middle" font-size="12" font-weight="700" fill="${on ? '#fff6dc' : '#2a1f16'}">${esc(txt)}</text></g>`; }
+    svg += `<g class="thl" data-ths="${o.F.id}" role="button" tabindex="0"><rect x="${f1(o.x - w/2)}" y="${f1(o.y - 11)}" width="${f1(w)}" height="22" rx="6" fill="${on ? '#2a1f16' : '#fffaf0'}" stroke="${on ? '#d4a01f' : '#a3322a'}" stroke-width="${on ? 2 : 1.2}"/><text x="${f1(o.x)}" y="${f1(o.y + 4.5)}" text-anchor="middle" font-size="12" font-weight="700" fill="${on ? '#fff6dc' : '#2a1f16'}">${esc(txt)}</text></g></g>`; });
   svg += '</svg>';
   // 아래 카드: 고른 전선
   const { S, me_, en, ratio } = frEval(selF), near = selF.foe.map(city).sort((a, b) => a.troops - b.troops)[0], mineW = selF.my.map(city).sort((a, b) => a.troops - b.troops)[0];
   const hint = S.p >= 60 ? `조금만 더 밀면 ${near.n}이(가) 무너진다` : S.p <= -60 ? `더 밀리면 ${mineW.n}이(가) 위험하다` : S.p >= 20 ? '아군이 조금씩 밀고 있다' : S.p <= -20 ? '적이 조금씩 밀고 있다' : '팽팽하다';
-  const ph = frPhase(S.p), cost = frSupCost(selF, S);
+  const ph = frPhase(S.p), cost = frSupCost(selF, S), tr = FR_TERR[frTerr(selF)], it = S.fKnown && S.fNext ? FR_INT[S.fNext] : null, multi = FS.length >= 2;
+  const lastTxt = S.pp != null && S.fDid ? `지난달 ${S.p - S.pp >= 0 ? '+' : ''}${S.p - S.pp} · 적은 ${FR_INT[S.fDid][0].replace(' 태세','').replace(' 준비','').replace('대군 집결','대공세')}${S.pincer ? ' · 협공 +5' : ''}${S.lureB ? ' · 양동 덕 +7' : ''}${S.starve ? ' · 군량 부족' : ''}` : '';
   const tabs = efs.length > 1 ? `<div class="thtabs">${efs.map(f => `<button class="thtab ${f===ef ? 'on' : ''}" data-thf="${f}" style="--fc:${facColor(f)}">${esc(facName(f))}<small>${by[f].length}</small></button>`).join('')}</div>` : '';
   const slot = k => { const R = FR_ROLES[k], g = frRoleP(selF, S, k); return `<button class="thslot ${g ? 'on' : ''}" data-role="${k}" data-rf="${selF.id}"><span class="gl">${R[1]}</span>${g ? pp(g, 30) : '<i class="empty">+</i>'}<span class="nm"><small>${R[0]}</small><b>${g ? esc(g.n) : '비어 있음'}</b>${g ? `<small>${({m:'무',i:'지',g:'정'})[R[2]]} ${SV(R[2]==='g' ? (g.g||g.i) : g[R[2]])}</small>` : ''}</span></button>`; };
   const supBar = `<div class="thsup"><span>군량</span><div class="sb">${[0,1,2,3,4,5].map(q => `<i class="${q < Math.floor(S.sup) ? 'on' : q < S.sup ? 'half' : ''}"></i>`).join('')}</div><b>${(Math.round(S.sup*2)/2)}개월</b><button data-tho="supply" ${S.sup >= 6 || G.role!=='ruler' ? 'disabled' : ''}>보내기 · 금 ${fmt(cost)}</button></div>`;
-  const card = `<div class="thcard"><div class="row between"><b>${esc(selF.sec)} 전선 <span class="phase ${ph[1]}">${ph[0]}</span></b><span class="small ${S.p <= -60 ? 'bad' : S.p >= 60 ? 'good' : 'muted'}">${hint}</span></div>${frBar(S.p)}
+  const card = `<div class="thcard"><div class="row between"><b>${esc(selF.sec)} 전선 <span class="phase ${ph[1]}">${ph[0]}</span><span class="phase terr">${tr[1]} ${tr[0]}</span></b><span class="small ${S.p <= -60 ? 'bad' : S.p >= 60 ? 'good' : 'muted'}">${hint}</span></div>${frBar(S.p)}
     <div class="thinfo"><span>아군 <b>${fmt(me_.t)}</b> · 힘 ${Math.round(ratio*100)}</span><span>적 <b>${fmt(en.t)}</b>${en.best ? ` · ${esc(en.best.n)}` : ''}</span></div>
+    <div class="thint ${it ? it[1] : ''}"><span class="gl">探</span><span class="grow"><b>적의 낌새: ${it ? it[0] : '알 수 없음'}</b><small>${it ? it[2] : '군사 자리에 지략 높은 장수를 두면 적의 다음 수가 읽힌다.'}</small></span></div>
+    ${lastTxt ? `<p class="tiny muted" style="margin:0">${lastTxt}</p>` : ''}
     <div class="thslots">${['van','adv','rear'].map(slot).join('')}</div>
     ${supBar}${S.starve ? '<p class="tiny bad" style="margin:0">지난달 군량이 모자라 공세가 약했다.</p>' : ''}
-    ${G.role==='ruler' ? `<div class="thbtns"><button class="${S.st==='push' ? 'on' : ''}" data-tho="push">밀어붙인다</button><button class="${S.st==='hold' ? 'on' : ''}" data-tho="hold">버틴다</button><button data-tho="shift">병력을 돌린다</button></div>
+    ${G.role==='ruler' ? `<div class="thbtns q4"><button class="${S.st==='push' ? 'on' : ''}" data-tho="push"><b>밀어붙인다</b><small>원정길 · 군량 1</small></button><button class="${S.st==='hold' ? 'on' : ''}" data-tho="hold"><b>버틴다</b><small>덜 밀리고 군량 회복</small></button><button class="${S.st==='feint' ? 'on' : ''}" data-tho="feint" ${multi ? '' : 'disabled'}><b>양동</b><small>${multi ? '적의 눈을 끌어 옆 전선을 돕는다' : '다른 전선이 있어야 한다'}</small></button><button data-tho="shift" ${multi || thEnemiesCount() > 1 ? '' : 'disabled'}><b>병력을 돌린다</b><small>30%를 위태로운 전선으로</small></button></div>
     <button class="thauto" data-tho="auto"><span class="tgl ${S.auto ? 'on' : ''}"><i></i></span>다음 달에도 이 명령 유지</button>` : `<p class="tiny muted" style="margin:0">이 전선은 주공이 지휘한다. 그대는 건의하거나, 이 전선의 성에 있다면 선봉을 자원할 수 있다. (신뢰 ${G.trust})</p>
     <div class="thbtns"><button data-tho="sugpush">공세를 건의한다</button><button data-tho="sughold">수비를 건의한다</button><button data-tho="vol" ${selF.my.includes(G.city) && !G.inArmy ? '' : 'disabled'}>선봉을 자원한다</button></div>`}
-    <details class="thhelp"><summary>전선 규칙</summary><p class="tiny">· 밀어붙이면 원정길(큰길·산길·물길 → 고비 셋)을 거쳐 이번 달 미는 힘이 정해진다. 큰길은 군량 +1, 산길은 군량 -1 대신 기습.<br>· 공세 한 달에 군량 1개월분. 후방 장수의 정치가 높으면 덜 든다. 버티면 반 달분씩 찬다.<br>· 선봉은 미는 힘, 군사는 적의 공세를 꺾고 원정길 판정을 맡는다.<br>· 막대가 끝에 닿으면 결전. 이기면 같은 적의 다른 전선도 +12.</p></details></div>`;
+    <details class="thhelp"><summary>전선 규칙</summary><p class="tiny">· 지형: ${tr[0]} — ${tr[3]}<br>· 적도 달마다 수비·공세·대군 집결을 정한다. 집결한 적은 버텨서 깎고, 수비하는 적은 밀어붙인다.<br>· 같은 적의 두 전선을 같은 달에 밀면 협공 +5. 양동이 통하면 옆 전선의 적 공세가 약해지고 우리 공세 +7.<br>· 돌파하면 성을 칠지, 보급로를 끊을지, 옆 전선의 뒤를 칠지 고른다.<br>· 밀어붙이면 원정길(큰길·산길·물길 → 고비 셋)을 거쳐 이번 달 미는 힘이 정해진다. 큰길은 군량 +1, 산길은 군량 -1 대신 기습.<br>· 공세 한 달에 군량 1개월분. 후방 장수의 정치가 높으면 덜 든다. 버티면 반 달분씩 찬다.<br>· 선봉은 미는 힘, 군사는 적의 공세를 꺾고 원정길 판정을 맡는다.<br>· 막대가 끝에 닿으면 결전. 이기면 같은 적의 다른 전선도 +12.</p></details></div>`;
   return `<div class="theater">${tabs}<div class="thmap">${svg}</div>${card}</div>`;
 }
 // 병력을 돌린다: 이 전선의 병력 일부를 가장 위태로운 다른 전선으로
@@ -4751,6 +4817,13 @@ const EVENTS = [
   { id:'hduel', s:'鬪', t:'원작의 일기토', rep:true, forced:()=>!!G.hduelOffer,
     x:()=>{ const o = G.hduelOffer, f = person(o.foe); return `「${o.n}」 ${J(f.n,'이')} 홀로 진 앞으로 나와 외친다. ${o.sub ? `원작에서는 ${J(person(o.sub).n,'이')} 맞섰던 자리다.` : `원작에서 이 싸움은 이렇게 끝났다: ${o.r}.`}`; },
     c:()=>[ { t:'말을 달려 맞붙는다', ok:{ hduel:1, msg:'병기를 꼬나쥐고 진 앞으로 나섰다.' } }, { t:'물러선다', ok:{ hduel:0, msg:'그대는 나서지 않았다. 병사들 사이에 수군거림이 돈다.' } } ] },
+  { id:'frbreak', s:'破', t:'전선 돌파', rep:true, forced:()=>{ const o = G.frBreakOffer, F = o && frontsOf(G.pfac).find(x => x.id===o.front); if (o && !F) G.frBreakOffer = null; return !!F; },
+    x:()=>{ const F = frontsOf(G.pfac).find(x => x.id===G.frBreakOffer.front), t = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0]; return `${F.name}이 무너졌다! 적의 대열이 흩어져 달아난다. 이 기세를 어디에 쓸 것인가. 눈앞에는 ${t.n}(병력 ${fmt(t.troops)}, 성 안 군량 ${grainOf(t)}개월)이 있다.`; },
+    c:()=>{ const F = frontsOf(G.pfac).find(x => x.id===G.frBreakOffer.front), others = frontsOf(G.pfac).filter(x => x.ef===F.ef && x.id!==F.id), out = [
+        { t:'성을 친다 — 곧바로 결전(공성)', ok:{ frb:0, msg:'북소리와 함께 전군이 성벽으로 밀려간다.' } },
+        { t:'보급로를 끊는다 — 적 성의 병력 -20%·군량 -2개월, 전선은 우세로 유지', ok:{ frb:1, msg:'기병이 적의 군량 수레를 불태웠다. 성 안이 술렁인다.' } } ];
+      if (others.length) out.push({ t:`옆 전선의 뒤를 친다 — ${others.map(o => o.sec).join('·')} 전선 +35`, ok:{ frb:2, msg:'돌파한 군이 방향을 틀어 옆 전선의 적 뒤를 덮쳤다!' } });
+      return out; } },
   { id:'frduel', s:'戰', t:'적장의 도전', rep:true, forced:()=>!!G.frDuelOffer && !!frontsOf(G.pfac).find(F => F.id===G.frDuelOffer.front),
     x:()=>{ const o = G.frDuelOffer, f = person(o.foe), F = frontsOf(G.pfac).find(x => x.id===o.front), v = F && frVan(F); return `${o.name}. ${J(f.n,'이')} 홀로 진 앞으로 말을 몰고 나와 외친다. "${pick(['나와 겨룰 자 없느냐!', '쥐새끼처럼 숨어 있을 테냐!', '이 창을 받아 낼 자가 있다면 나와라!'])}" 이기면 전선이 크게 밀리고, 지면 우리 기세가 꺾인다.${v ? ` 우리 선봉은 ${v.n}(무 ${SV(v.m)})이다.` : ''}`; },
     c:()=>{ const o = G.frDuelOffer, F = frontsOf(G.pfac).find(x => x.id===o.front), v = F && frVan(F), here = F && F.my.includes(G.city) && !G.inArmy, out = [];
@@ -4944,6 +5017,11 @@ function applyEff(e){
     let v = e[k];
     switch (k){
       case 'mer': G.merit = Math.max(0, G.merit+v); add('공적', v); break;
+      case 'frb': { const o = G.frBreakOffer; G.frBreakOffer = null; const F = o && frontsOf(G.pfac).find(x => x.id===o.front); if (!F) break; const S = frState(F.id);
+        if (v===0) frBreak(F, S, true);
+        else if (v===1){ for (const id of F.foe){ const c = city(id); c.troops = Math.round(c.troops*.8); c.grain = Math.max(0, grainOf(c) - 2); } S.p = 72; S.sup = Math.min(6, S.sup + 1); chips.push(['적 병력 -20%', true], ['적 군량 -2개월', true]); }
+        else { for (const x of frontsOf(G.pfac)) if (x.ef===F.ef && x.id!==F.id){ const So = frState(x.id); So.p = clamp(So.p + 35, -100, 100); chips.push([`${x.sec} 전선 +35`, true]); } S.p = 55; }
+        break; }
       case 'frd': { const o = G.frDuelOffer; G.frDuelOffer = null; if (!o) break; const S = frState(o.front), F = frontsOf(G.pfac).find(x => x.id===o.front), f = person(o.foe);
         if (v===2){ G.hduelGo = { id:'fr', n:o.name + ' 일기토', foe:o.foe, at:o.at, r:'', front:o.front }; }
         else if (v===1 && F && frVan(F)){ const van = frVan(F), ch = clamp(.5 + (van.m - f.m)/50, .1, .9), win = Math.random() < ch;
@@ -5081,6 +5159,7 @@ function render0(){
   if (G.phase==='battle') tipOnce('battle'); else if (G.phase==='act' && G.view!=='map') tipOnce(G.view);
   if (G.battle && G.battle.anim) runAnim();
   else if (G.battle && G.battle.ds) runDuelCv();
+  thAnimRun();
 }
 function showToast(t){
   const el = document.createElement('div');
@@ -6709,7 +6788,7 @@ function bind(){
       else { trustAdd(-1); toast('"아직 때가 아니다." 건의가 받아들여지지 않았다.', [['신뢰 -1', false]], true); } G.thSel = F.id; save(); render(); return; }
     if (k==='vol'){ frSetRole(F.id, 'van', G.pid); toast(`${F.sec} 전선의 선봉을 맡았다. 결전이 나면 그대가 앞장선다.`, [['선봉', true]]); G.thSel = F.id; save(); render(); return; }
     if (k==='supply'){ const S = frState(F.id), c = frSupCost(F, S); if (G.gold < c) return toast('금이 모자란다.', [], true); G.gold -= c; S.sup = Math.min(6, S.sup + 2); Snd.sfx('coin'); toast(`${F.name}에 군량 2개월분을 보냈다.`, [[`금 -${fmt(c)}`, false]]); }
-    else if (k==='push') frPush(F.id); else if (k==='hold') frHold(F.id); else if (k==='shift') frShift(F.id); else if (k==='auto'){ const S = frState(F.id); S.auto = !S.auto; }
+    else if (k==='push') frPush(F.id); else if (k==='feint') frFeint(F.id); else if (k==='hold') frHold(F.id); else if (k==='shift') frShift(F.id); else if (k==='auto'){ const S = frState(F.id); S.auto = !S.auto; }
     G.thSel = F.id; save(); render(); });
   on('[data-trek]', b => { const k = b.dataset.trek; if (k==='close'){ G.trek = null; } else if (k==='auto') trekAuto(); else if (k.startsWith('road:')) trekRoad(k.slice(5)); else if (k.startsWith('pick:')) trekPick(+k.slice(5)); save(); render(); });
   on('[data-plan]', b => { planDo(b.dataset.plan); save(); render(); });
