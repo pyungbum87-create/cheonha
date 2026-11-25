@@ -12,7 +12,8 @@ function pxAssault(ctx, A){
   const gx = X0 + 14, gw = 48, gh = Math.min(48, h*.62);
   const starving = plan==='starve' || A.grainLow;
   // 성벽 위 수비병
-  const defs = []; for (let i = 0; i < 7; i++){ const x = 572 + i*10 + (R()-.5)*3; defs.push({ x, y: top + 1, ph: R()*6, bow: i%2===0, fallT: meWin ? .74 + R()*.12 : (R() < .2 ? .5 + R()*.3 : null) }); }
+  const cvM = CORPS_V[A.myCorps], cvF = CORPS_V[A.foeCorps];
+  const defs = []; for (let i = 0; i < 7; i++){ const x = 572 + i*10 + (R()-.5)*3; defs.push({ x, y: top + 1, ph: R()*6, bow: cvF==='ranged' ? i%4!==3 : i%2===0, fallT: meWin ? .74 + R()*.12 : (R() < .2 ? .5 + R()*.3 : null) }); }
   if (starving) defs.splice(0, 3);
   // 공격군
   const atk = [], N = 26, ladders = [496 + 0, 578, 604, 628].slice(plan==='rams' ? 1 : 0);
@@ -66,13 +67,19 @@ function pxAssault(ctx, A){
       if (d.fallT != null && t > d.fallT){ const k = cl01((t - d.fallT)/.1), fy = lerp(d.y, baseY + 6, ease(k)); ctx.save(); ctx.translate(d.x, fy); ctx.rotate(1.6*k); ctx.translate(-d.x, -fy); blitFig(ctx, figSprite('bow', A.foeCol, 'idle'), d.x, fy, .55, true, 12, 37, 1 - k*.5); ctx.restore(); continue; }
       const shoot = Math.sin(tt*6 + d.ph) > 0;
       ctx.globalAlpha = starving ? .75 : 1;
-      blitFig(ctx, figSprite(d.bow ? 'bow' : 'spear', A.foeCol, d.bow && shoot ? 'charge' : 'idle'), d.x, d.y + (starving ? 3 : 0), .55, true, 12, 37);
+      blitFig(ctx, figSprite(d.bow ? 'bow' : cvF==='heavy' ? 'shield' : 'spear', cvF==='heavy' && !d.bow ? shade(A.foeCol, .7) : A.foeCol, d.bow && shoot ? 'charge' : 'idle'), d.x, d.y + (starving ? 3 : 0), .55, true, 12, 37);
       ctx.globalAlpha = 1;
     }
     // 깃발
     if (!(meWin && t > .8)) drawBanner(ctx, 616, top - 4, 40, A.foeCol, tt, 1, 1, .8);
     else { const k = ease(cl01((t - .8)/.06)); drawBanner(ctx, 588, top - 4 + (1 - k)*30, 46, A.myCol, tt, -1, 2, .9); }
     drawBanner(ctx, 70, 270, 70, A.myCol, tt, -1, 0, 1); drawBanner(ctx, 150, 300, 70, A.myCol, tt, -1, 3, 1);
+    // 정예 병종: 기병은 성 아래를 휩쓸고, 코끼리는 성문을 들이받고, 중보병은 방패 벽으로, 궁병은 엄호 사격
+    { const k = ease(cl01((t - .1)/.4));
+      if (cvM==='cav') for (let i = 0; i < 5; i++){ const x = 90 + i*40 + k*210 + Math.sin(tt*.6 + i)*10, y = 306 + (i%2)*20; blitFig(ctx, figSprite('cav', A.myCol, Math.sin(tt*3 + i) > 0 ? 'a' : 'b'), x, y, .72, false, 28, 38); }
+      else if (cvM==='eleph') for (let i = 0; i < 2; i++){ const hit = t > .5 ? Math.abs(Math.sin((t - .5)*40))*8 : 0; drawElephant(ctx, lerp(110, gx - 62, k) - i*74 + hit, baseY + 30 + i*20, .82, false, A.myCol, tt + i); if (t > .5 && i===0 && hit > 6) puff(ctx, gx, baseY - 6, 18, .4, '160,140,110'); }
+      else if (cvM==='heavy') for (let i = 0; i < 7; i++) blitFig(ctx, figSprite('shield', shade(A.myCol, .7), 'idle'), lerp(170, 500, k) + (i%2)*10, 258 + i*11, .66, false, 12, 37);
+      else if (cvM==='ranged') for (let i = 0; i < 7; i++) blitFig(ctx, figSprite('bow', A.myCol, Math.sin(tt*5 + i) > 0 ? 'charge' : 'idle'), 330 + (i%2)*16, 256 + i*12, .64, false, 12, 37); }
     // 화살
     for (const a of arrows){ if (t < a.t0 || t > a.t0 + a.dur) continue; const k = (t - a.t0)/a.dur, p1 = pos(a.tg, a.t0 + a.dur), x = lerp(a.d.x - 6, p1[0], k), y = lerp(a.d.y - 22, p1[1] - 12, k) - Math.sin(k*Math.PI)*24;
       ctx.strokeStyle = 'rgba(30,20,10,.9)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 7, y - 3); ctx.stroke(); }
@@ -101,7 +108,8 @@ function pxWallTop(ctx, A){
   const bg = inkBg(Object.assign({}, A, { castle:null })), vg = vignette(), R = seeded(hashStr('wt' + A.seed + A.plan));
   const meWin = (A.myLoss/(A.myBefore||1)) <= (A.foeLoss/(A.foeBefore||1)), plan = A.plan || '';
   const PY = 300; // 성가퀴 윗선
-  const foes = []; for (let i = 0; i < 46; i++){ const x = 30 + R()*580; foes.push({ x0: x, x1: x + (320 - x)*.15, y0: 196 + R()*26, y1: PY - 4 + R()*6, t0: .04 + R()*.1, t1: .38 + R()*.16, ph: R()*6, cav: i%9===0, fallT: null }); }
+  const cvM = CORPS_V[A.myCorps], cvF = CORPS_V[A.foeCorps];
+  const foes = []; for (let i = 0; i < 46; i++){ const x = 30 + R()*580; foes.push({ x0: x, x1: x + (320 - x)*.15, y0: 196 + R()*26, y1: PY - 4 + R()*6, t0: .04 + R()*.1, t1: .38 + R()*.16, ph: R()*6, cav: i%(cvF==='cav' ? 3 : 9)===0, fallT: null }); }
   const nF = clamp(Math.round(A.foeLoss/(A.foeBefore||1)*2.4*foes.length), 4, foes.length - 6); foes.slice().sort(() => R() - .5).slice(0, nF).forEach(f => f.fallT = .2 + R()*.6);
   const mine = []; for (let i = 0; i < 9; i++){ const x = 34 + i*72 + (R()-.5)*14; mine.push({ x, ph: R()*6, bow: i%3!==1, fallT: !meWin && R() < .35 ? .66 + R()*.2 : null }); }
   const ladders = [120, 268, 410, 548].map((x, i) => ({ x: x + (R()-.5)*20, t0: .44 + i*.04, push: meWin ? .6 + R()*.12 : null }));
@@ -121,8 +129,9 @@ function pxWallTop(ctx, A){
     for (const [[x, y, s, mv], f] of list){
       if (f.fallT != null && t > f.fallT){ const k = cl01((t - f.fallT)/.06); if (k >= 1 && t > f.fallT + .25) continue; ctx.save(); ctx.translate(x, y); ctx.rotate(1.3*k); ctx.translate(-x, -y); blitFig(ctx, figSprite(f.cav ? 'cav' : 'spear', A.foeCol, 'idle'), x, y, s, true, f.cav ? 28 : 12, f.cav ? 38 : 37, 1 - cl01((t - f.fallT - .08)/.15)); ctx.restore(); continue; }
       const pose = f.cav ? (mv ? (Math.sin(tt*16 + f.ph) > 0 ? 'a' : 'b') : 'idle') : (mv ? (Math.sin(tt*14 + f.ph) > 0 ? 'charge' : 'idle') : 'charge');
-      blitFig(ctx, figSprite(f.cav ? 'cav' : 'spear', A.foeCol, pose), x, y, s, x > 320, f.cav ? 28 : 12, f.cav ? 38 : 37);
+      blitFig(ctx, figSprite(f.cav ? 'cav' : cvF==='heavy' ? 'shield' : cvF==='ranged' && f.ph > 3 ? 'bow' : 'spear', cvF==='heavy' && !f.cav ? shade(A.foeCol, .7) : A.foeCol, pose), x, y, s, x > 320, f.cav ? 28 : 12, f.cav ? 38 : 37);
     }
+    if (cvF==='eleph') for (let i = 0; i < 3; i++){ const k = ease(cl01((t - .08 - i*.04)/.42)), back = meWin && t > .8 ? ease(cl01((t - .8)/.2))*40 : 0, y = lerp(206, PY - 8, k) - back; drawElephant(ctx, 150 + i*170, y, .34 + .5*cl01((y - 196)/(PY - 196)), i===2, A.foeCol, tt + i); }
     // 우리 화살 (멀어질수록 작게)
     for (const a of shots){ if (t < a.t0 || t > a.t0 + a.dur) continue; const k = (t - a.t0)/a.dur, [fx, fy] = fpos(a.f, a.t0 + a.dur), x = lerp(a.s.x + 10, fx, k), y = lerp(PY - 40, fy - 10, k) - Math.sin(k*Math.PI)*40, L = 14*(1 - k) + 4;
       ctx.strokeStyle = 'rgba(30,20,10,.9)'; ctx.lineWidth = 2*(1 - k) + .8; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (a.s.x < fx ? -1 : 1)*L*.4, y + L*.6); ctx.stroke(); if (plan==='rain') glow(ctx, x, y, 6, .3, '255,230,170'); }
@@ -130,7 +139,7 @@ function pxWallTop(ctx, A){
     for (const m of mine){
       if (m.fallT != null && t > m.fallT){ const k = cl01((t - m.fallT)/.1); ctx.save(); ctx.translate(m.x, PY + 40); ctx.rotate(-1.2*k); ctx.translate(-m.x, -(PY + 40)); blitFig(ctx, figSprite('spear', A.myCol, 'idle'), m.x, PY + 40 + k*20, 1.35, false, 12, 37, 1 - k); ctx.restore(); continue; }
       const shoot = m.bow && Math.sin(tt*5 + m.ph) > -.2;
-      blitFig(ctx, figSprite(m.bow ? 'bow' : 'spear', A.myCol, shoot || (!m.bow && Math.sin(tt*7 + m.ph) > .4) ? 'charge' : 'idle'), m.x, PY + 42, 1.35, m.x > 320 && !m.bow ? true : false, 12, 37);
+      blitFig(ctx, figSprite(m.bow || cvM==='ranged' ? 'bow' : cvM==='heavy' ? 'shield' : 'spear', cvM==='heavy' && !m.bow ? shade(A.myCol, .7) : A.myCol, shoot || (!m.bow && Math.sin(tt*7 + m.ph) > .4) ? 'charge' : 'idle'), m.x, PY + 42, 1.35, m.x > 320 && !m.bow ? true : false, 12, 37);
     }
     // 성가퀴 (앞쪽 돌 난간)
     const stone = '#b9a988', dk = '#7d6f56';
