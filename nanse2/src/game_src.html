@@ -287,7 +287,7 @@ p{margin:0}
 .pxcut .tx b{font-family:var(--display);font-weight:400;font-size:clamp(18px,5.6vw,30px)}
 .pxcut.vs{justify-content:center;gap:4%}
 .pxcut.vs .band{background:linear-gradient(90deg,#1b2a52f0,#000e 50%,#4a0f0af0)}
-.pxcut .vp{position:relative;width:26%;display:flex;flex-direction:column;align-items:center;gap:3px}
+.pxcut .vpc{width:84%;aspect-ratio:1;border-radius:8px;border:2px solid #e3b34a;box-shadow:0 0 0 2px #000;object-fit:cover;background:#efe4c8}.pxcut .vp{position:relative;width:26%;display:flex;flex-direction:column;align-items:center;gap:3px}
 .pxcut .vp svg{aspect-ratio:1;border:3px solid #e3b34a;box-shadow:0 0 0 2px #000;background:#efe5cf;box-sizing:border-box}
 .pxcut .vp b{font-family:var(--display);font-weight:400;color:#fff;font-size:clamp(13px,3.8vw,18px);text-shadow:2px 2px 0 #000}
 .pxcut .vsx{position:relative;font-family:var(--display);font-size:clamp(26px,8vw,44px);color:#ffd84a;text-shadow:3px 3px 0 #000}
@@ -395,6 +395,11 @@ button.stat.pol.off{background:#e3ddd0;color:#7a7060}
 .gen.locked{opacity:.55}
 .gen .lock{font-size:11px;font-weight:800;color:var(--muted)}
 .ad-slot{border:1.5px dashed var(--line);border-radius:12px;min-height:90px;display:grid;place-items:center;color:var(--muted);font-size:12px;text-align:center;padding:8px}
+.evart{margin:-14px -14px 0;height:132px;border-radius:16px 16px 0 0;background-size:cover;background-position:center 30%;-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent);flex:none}
+.endart{width:calc(100% + 24px);margin:-12px -12px 4px;height:170px;border-radius:14px 14px 0 0;background-size:cover;background-position:center 25%;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
+.trart{height:84px;margin:-2px -2px 6px;border-radius:10px;background-size:cover;background-position:center 35%;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
+.cimg{flex:none;width:54px;height:54px;border-radius:10px;object-fit:cover;background:#efe4c8;border:1px solid var(--line);mix-blend-mode:multiply}
+.cvimg{display:block;width:64px;height:64px;margin:4px auto 0;border-radius:10px;object-fit:cover;mix-blend-mode:multiply}
 .tomb{text-align:center;align-items:center}
 .tomb h2{font-size:28px}
 .epi{font-family:var(--display);font-size:18px;color:var(--red)}
@@ -974,7 +979,7 @@ const WPN = {"hejin":"do","huangfusong":"mo","zhujun":"do","dingyuan":"mo","zhan
 const GEAR = {"qinglong":["청룡언월도","weapon",{"mu":2}],"zhangba":["장팔사모","weapon",{"mu":2}],"shuanggu":["쌍고검","weapon",{"mu":1,"in":1}],"fangtian":["방천화극","weapon",{"mu":2}],"qixing":["칠성보도","weapon",{"mu":1,"ji":1}],"guding":["고정도","weapon",{"mu":2}],"tieji":["철척사모","weapon",{"mu":1}],"tiebian":["철편","weapon",{"mu":1}],"shuangtieji":["쌍철극","weapon",{"mu":2}],"yitian":["의천검","weapon",{"mu":1,"in":1}],"qinggang":["청홍검","weapon",{"mu":2}],"chitu":["적토마","horse",{"yong":2}],"jueying":["절영","horse",{"yong":1}],"yuxi":["전국옥새","book",{"in":3}],"taiping":["태평요술","book",{"ji":2,"in":2}],"sunzi":["손자병법","book",{"yong":2,"ji":1}],"wuzi":["오자병법","book",{"yong":1,"ji":1}],"liutao":["육도","book",{"ji":2}],"sanlue":["삼략","book",{"yong":1,"jeong":1}]};
 // 그림 초상화가 있는 인물 (portraits/<id>.webp)
 const PORTRAITS = ["bianshi","caimao","caiyan","caiyong","cao","caoang","caochun","caohong","caopi","caoren","caorui","caozhen","chendeng","chengong","chengpu","chengyu","chenlin","chenqun","chenwu","chunyuqiong","daqiao","dengai","dianwei","diaochan","dingfeng","dingyuan","dongcheng","dongxi","dongzhuo","face01","face02","face03","face04","face05","face06","face07","face08","face09","face10","face11","face12","face13","face14","face15","face16","fazheng","feiyi","fengji","ganning","ganshi","gaogan","gaolan","gaoshun","gongsundu","gongsunkang","gongsunzan","guanhai","guanping","guanxing","guanyu","guohuai","guojia","guosi","guotu","guyong","hanfu","hansui","hantang","haozhao","hejin","huangfusong","huanggai","huangquan","huangshi_zg","huangzhong","huangzu","huatuo","huaxiong","jiangqin","jiangwan","jiangwei","jianyong","jiaxu","jiling","jushou","kanze","kongrong","kuailiang","kuaiyue","lengbao","liaohua","lidian","lijue","lingcao","lingtong","liru","lisu","liubei","liubiao","liucong","liuqi","liushan","liuyan","liuyao","liuye","liuzhang","liyan","lumeng","lushi","lusu","luxun","lvbu","lvfan","lvqian","machao","madai","maliang","manchong","masu","mateng","mengda","menghuo","mishi","mizhu","pangde","pangtong","panzhang","quyi","shenpei","shixie","simahui","simashi","simayi","simazhao","sunce","sunfuren","sunjian","sunqian","sunquan","taishici","taoqian","tianfeng","wangping","wangshuang","wangyun","weiyan","wenchou","wenpin","wujing","wushi","wuyi","xiahoudun","xiahouyuan","xiandi","xiaoqiao","xinpi","xuchu","xuhuang","xunyou","xunyu","xurong","xusheng","xushu","xuyou","yanliang","yanpu","yanxing","yanyan","yiji","yuanshang","yuanshao","yuanshu","yuantan","yuanxi","yuejin","yuji","yujin","zangba","zhangbao","zhangbao_hj","zhangfei","zhanghe","zhanghong","zhangji","zhangjiao","zhangliang_hj","zhangliao","zhanglu","zhangrang","zhangren","zhangsong","zhangxiu","zhangxun","zhangyan","zhangyi","zhangzhao","zhaoyun","zhenshi","zhonghui","zhongyao","zhoucang","zhoutai","zhouyu","zhugejin","zhugeliang","zhuhuan","zhujun","zhuran"];
-const SCENES = ["b184_daxing","b190_hulao","b200_guandu","b208_changban","b208_chibi","b219_dingjun","b219_fancheng","b220_maicheng","b222_yiling","e207_sangu","e234_wuzhang"];
+const SCENES = ["b184_daxing","b190_hulao","b200_baima","b200_guandu","b208_changban","b208_chibi","b211_tongguan","b215_hefei","b219_dingjun","b219_fancheng","b220_maicheng","b222_yiling","b225_nanman","e192_lianhuan","e200_wuguan","e207_sangu","e208_huarong","e223_baidi","e234_wuzhang"];
 const GICON = ["book","chitu","fangtian","guding","jueying","qinggang","qinglong","qixing","shuanggu","shuangtieji","taiping","tiebian","tieji","yitian","yuxi","zhangba"];
 // 역사 사건(회귀자의 기억): [id, 연, 월, 이름, 성, 원작 결과, 관련 인물, 일기토, 대화 등장인물, 규모, a측 대표, b측 대표]
 const HIST_EV = [["b184_daxing",184,3,"대흥산 전투","ji","장비가 등무를, 관우가 정원지를 베고 황건적 5만을 무너뜨린다.",["liubei","guanyu","zhangfei","chengyuanzhi","dengmao"],[["zhangfei","dengmao","장비 승리, 등무 전사"],["guanyu","chengyuanzhi","관우 승리, 정원지 전사"]],["liubei","zhangfei","guanyu"],"small","liubei","chengyuanzhi"],["b184_qingzhou",184,4,"청주 구원전","bh","유비가 관우·장비를 산 양쪽에 숨기고 거짓 퇴각해 황건적을 협공한다.",["liubei","guanyu","zhangfei"],[],[],"small","liubei",""],["b184_yingchuan",184,5,"영천 화공","xc","황건적이 풀숲에 진을 치자 황보숭과 주준이 바람을 타 불을 지른다. 퇴로에서 조조가 처음 등장해 적을 벤다.",["huangfusong","zhujun","cao","zhangliang_hj","zhangbao_hj"],[],[],"mid","huangfusong","zhangliang_hj"],["b184_guangzong",184,6,"광종 포위","ye","노식이 장각을 포위하지만 환관에게 뇌물을 주지 않아 모함으로 압송된다. 뒤이은 동탁은 패하고 유비 형제가 구한다.",["lushi","zhangjiao"],[],[],"mid","lushi","zhangjiao"],["b184_zhangbao_magic",184,8,"장보의 요술","ye","장보가 요술로 바람과 우레를 부르자, 유비가 짐승의 피로 요술을 깨뜨린다.",["liubei","guanyu","zhangfei","zhujun","zhangbao_hj"],[],[],"small","liubei","zhangbao_hj"],["b184_wancheng",184,10,"완성 탈환","wn","손견이 맨 먼저 성벽에 올라 조홍(조홍)을 베고, 한충과 손중도 전사한다.",["zhujun","liubei","sunjian","hanzhong","zhaohong","sunzhong"],[["sunjian","zhaohong","손견 승리"]],[],"mid","zhujun","hanzhong"],["e189_shichangshi",189,8,"십상시의 난","ly","하진이 십상시에게 살해되고, 원소·조조가 궁에 들어가 환관을 몰살한다. 동탁이 황제를 손에 넣는다.",[],[],["hejin","cao"],"event","",""],["e189_dingyuan",189,9,"여포의 배신","ly","이숙이 적토마와 황금으로 여포를 꾀어, 여포가 의부 정원을 죽이고 동탁의 수양아들이 된다.",[],[],["liru","lvbu"],"event","",""],["e190_qixing",190,1,"칠성보도 암살 미수","ly","조조가 왕윤의 칠성보도로 동탁을 찌르려다 들켜 칼을 바치는 척하고 달아난다. 도중에 여백사 일가를 죽인다.",[],[],["cao","dongzhuo"],"event","",""],["b190_sishui",190,2,"사수관 전투","ly","화웅이 포충·유섭·반봉을 베고 손견을 패주시켜 조무가 전사한다. 관우가 데운 술이 식기 전에 화웅을 벤다.",["sunjian","baozhong","guanyu","huaxiong","lisu","huzhen"],[["baozhong","huaxiong","포충 전사"],["yushe","huaxiong","유섭 전사"],["panfeng","huaxiong","반봉 전사"],["guanyu","huaxiong","관우 승리, 화웅 전사"]],["huaxiong","yuanshao","guanyu","cao"],"mid","sunjian","huaxiong"],["b190_hulao",190,3,"호뢰관 전투","ly","여포가 방열·목순을 베고 무안국의 팔을 자르며 공손찬을 쫓는다. 장비·관우·유비가 셋이서 여포와 싸워 물리친다.",["yuanshao","gongsunzan","liubei","guanyu","zhangfei","lvbu"],[["fangyue","lvbu","방열 전사"],["mushun","lvbu","목순 전사"],["wuanguo","lvbu","무안국 팔 잘림"],["gongsunzan","lvbu","공손찬 도주"],["zhangfei","lvbu","장비·관우·유비 협공, 여포 퇴각"]],["lvbu","zhangfei","guanyu","liubei"],"mid","yuanshao","lvbu"],["b190_xingyang",190,4,"형양 추격전","ly","장안으로 떠나는 동탁을 조조가 홀로 쫓다가 서영의 매복에 크게 진다. 조홍이 말을 내주어 조조가 산다.",["cao","xiahoudun","caohong","xurong"],[["xiahoudun","xurong","하후돈 승리, 서영 전사"]],[],"small","cao","xurong"],["e190_yuxi",190,4,"전국옥새","ly","불탄 낙양의 우물에서 손견이 전국옥새를 얻고 몰래 강동으로 돌아간다. 원소와 사이가 틀어진다.",[],[],["sunjian"],"event","",""],["b191_jieqiao",191,10,"반하 전투","py","문추에게 쫓기던 공손찬을 조운이 구하며 처음 등장한다. 국의가 엄강을 벤다. 유비가 와서 싸움을 멈춘다.",["yuanshao","wenchou","quyi","gongsunzan","yangang_gs","zhaoyun"],[["zhaoyun","wenchou","50~60합, 승부 없음"],["quyi","yangang_gs","국의 승리, 엄강 전사"]],[],"mid","yuanshao","gongsunzan"],["b191_xianshan",191,11,"현산 전투","xy","손견이 황조를 깨뜨리고 양양을 포위하지만, 괴량의 계책으로 여공이 현산에 매복해 손견이 돌과 화살에 맞아 전사한다.",["sunjian","sunce","chengpu","huanggai","hantang","huangzu","kuailiang","lvgong","chensheng","zhanghu"],[["hantang","zhanghu","한당 승리, 장호 전사"],["sunce","chensheng","손책이 활로 진생을 쏨"]],[],"mid","sunjian","huangzu"],["e192_lianhuan",192,4,"연환계","ca","왕윤이 초선을 이용해 동탁과 여포 사이를 갈라놓고, 여포가 동탁을 죽인다.",[],[],["wangyun","diaochan","lvbu","dongzhuo"],"event","",""],["b192_changan",192,6,"장안 함락","ca","가후의 권유로 이각·곽사가 장안을 공격한다. 여포는 패주하고 왕윤은 죽는다.",["lijue","guosi","zhangji","fanchou","lvbu","wangyun"],[],[],"mid","lijue","lvbu"],["b194_changping",194,3,"장평관 전투","ca","열일곱 살 마초가 왕방을 베고 이몽을 사로잡지만, 장안 내응이 들통나 서량군이 물러난다.",["mateng","hansui","machao","wangfang","limeng"],[["machao","wangfang","마초 승리, 왕방 전사"],["machao","limeng","마초가 이몽 생포"]],[],"small","mateng","wangfang"],["b194_xuzhou",194,4,"서주 침공","xp","도겸의 부하 장개가 조조의 아버지 조숭을 죽이자 조조가 서주를 친다. 유비가 구원 오고, 여포가 연주를 습격해 조조가 물러난다.",["cao","xiahoudun","yujin","dianwei","taoqian","caobao","liubei","guanyu","zhangfei"],[],["cao","taoqian"],"large","cao","taoqian"],["b194_beihai",194,5,"북해 구원","bh","포위된 공융을 위해 태사자가 홀로 포위를 뚫고 유비에게 구원을 청한다. 관우가 관해를 벤다.",["kongrong","taishici","liubei","guanyu","guanhai"],[["taishici","guanhai","포위 돌파"],["guanyu","guanhai","관우 승리, 관해 전사"]],[],"small","kongrong","guanhai"],["b194_puyang",194,8,"복양 전투","pu","진궁이 복양 부호 전씨를 시켜 거짓 내응을 약속한다. 성에 들어간 조조가 화공에 갇혀 크게 다치고 전위가 구해낸다.",["cao","dianwei","xiahoudun","yuejin","lidian","lvbu","chengong","gaoshun","zhangliao","zangba"],[["dianwei","lvbu","전위가 조조를 업고 탈출"]],["chengong","cao","dianwei"],"large","cao","lvbu"],["b195_dingtao",195,4,"정도 전투","pu","조조가 둑 뒤에 병사를 숨기고 부녀자를 내세워 여포를 꾀어낸 뒤 크게 이긴다. 여포는 연주를 잃고 유비에게 간다.",["cao","dianwei","xuchu","lvbu","chengong"],[],[],"mid","cao","lvbu"],["b195_xuchu",195,2,"허저 등용","rn","황건 잔당 하의·황소를 쫓던 중 조홍이 하만을 베고 이전이 황소를 사로잡는다. 하의를 붙잡은 허저와 전위가 겨루어 승부가 나지 않자 조조가 함정으로 허저를 잡아 등용한다.",["cao","dianwei","xuchu"],[["dianwei","xuchu","승부 없음"],["caohong","heman","조홍 승리, 하만 전사"]],[],"small","cao","xuchu"],["b195_shenting",195,6,"신정 일기토","jy","손책과 태사자가 신정에서 단둘이 맞붙어 서로 투구와 단극을 빼앗는다. 뒤에 손책이 태사자를 사로잡아 마음을 얻는다.",["sunce","chengpu","huanggai","hantang","taishici","liuyao"],[["sunce","taishici","백 합 넘게 승부 없음, 투구와 단극을 빼앗음"]],["taishici","sunce"],"small","sunce","taishici"],["b195_jiangdong",195,8,"강동 평정","wx","손책이 유요·착융·설례를 차례로 깨고, 엄백호와 왕랑을 몰아내 강동을 차지한다. 주태가 몸에 열두 군데 상처를 입고 손권을 구하고, 화타가 치료한다.",["sunce","zhouyu","zhoutai","jiangqin","chenwu","liuyao","zerong","xueli","yanbaihu","wanglang"],[["sunce","yanyu","손책 승리"]],[],"mid","sunce","liuyao"],["e195_xiandi_east",195,7,"헌제 동천","ly","이각·곽사가 서로 싸우는 틈에 양봉·한섬·동승이 헌제를 모시고 낙양으로 간다. 서황이 허저와 겨룬다(14회).",[],[["xuhuang","xuchu","50합 승부 없음"]],[],"event","",""],["e196_xudu",196,8,"허도 천도","xc","조조가 헌제를 허도로 모셔 천자를 끼고 제후를 호령한다. 서황이 만총의 설득으로 조조에게 간다.",[],[],[],"event","",""],["b196_xuyi",196,6,"우이 대치와 서주 상실","xp","유비가 원술군과 맞서는 동안, 서주를 지키던 장비가 술에 취해 조표를 때리고 조표가 여포를 끌어들여 서주를 잃는다.",["liubei","guanyu","jiling"],[["guanyu","jiling","30합 승부 없음"]],[],"mid","liubei","jiling"],["e196_yuanmen",196,9,"원문사극","xb","여포가 멀리 세운 극을 활로 맞히고 기령과 유비를 화해시킨다.",[],[],["lvbu","jiling"],"event","",""],["b197_wancheng",197,1,"완성 전투","wn","항복한 장수가, 조조가 숙부의 미망인 추씨를 취한 데 분노한다. 가후의 계책으로 호거아가 전위의 극을 훔치고 야습해 전위·조앙·조안민이 죽는다.",["zhangxiu","jiaxu","huchenger","cao","dianwei","caoang","caoanmin","yujin"],[],["jiaxu","dianwei","cao"],"mid","zhangxiu","cao"],["b197_sevenroutes",197,5,"원술 칠로군","xp","황제를 칭한 원술이 일곱 갈래로 서주를 친다. 진규·진등 부자가 한섬·양봉을 이간해 배반시키고 여포가 크게 이긴다.",["zhangxun","qiaorui","chenji_ys","leibo","chenlan","hanxian","yangfeng","lvbu","gaoshun","zhangliao","chengong","chendeng"],[],[],"large","zhangxun","lvbu"],["b197_shouchun",197,9,"수춘 토벌","sc","조조가 군량 부족을 감추려 군량관 왕후를 베어 사기를 다잡고 수춘을 함락한다. 원술은 회수를 건너 달아난다.",["cao","liubei","lvbu","sunce","lifeng","yuejiu","lianggang","chenji_ys"],[],[],"mid","cao","lifeng"],["b198_rangcheng",198,3,"양성 추격전","wn","가후는 처음엔 추격을 말리고, 장수가 지자 다시 추격하라 한다. 두 번째 추격은 크게 이긴다.",["zhangxiu","jiaxu","cao","xuchu"],[],[],"mid","zhangxiu","cao"],["b198_xiaopei",198,9,"소패 전투","xb","고순과 싸우던 하후돈이 조성의 화살에 왼눈을 맞자, 화살을 뽑아 눈알을 삼키고 조성을 벤다.",["gaoshun","caoxing","xiahoudun","liubei"],[["xiahoudun","gaoshun","40~50합"],["xiahoudun","caoxing","하후돈 승리, 조성 전사"]],[],"small","gaoshun","xiahoudun"],["b198_xiapi",198,12,"하비 수공","xp","곽가·순유의 계책으로 사수와 기수를 터뜨려 하비를 물에 잠근다. 후성·송헌·위속이 여포를 묶어 바치고, 여포·진궁·고순은 백문루에서 처형된다. 장료는 항복한다.",["cao","liubei","guanyu","zhangfei","xiahoudun","guojia","xunyou","lvbu","chengong","gaoshun","zhangliao","houcheng","songxian","weixu"],[],["lvbu","cao","liubei","chengong"],"large","cao","lvbu"],["e199_yidai",199,3,"의대조","xc","허전 사냥 뒤, 헌제가 옥대 속 밀서로 동승에게 조조 토벌을 명한다. 유비·마등이 서명한다.",[],[],["xiandi","dongcheng","liubei"],"event","",""],["b199_yijing",199,3,"역경 전투","bp","원소가 땅굴을 파 역경루를 무너뜨리고, 공손찬은 처자를 죽이고 스스로 불에 뛰어든다.",["yuanshao","yanliang","wenchou","zhanghe","gaolan","gongsunzan","gongsunxu","tiankai"],[],[],"large","yuanshao","gongsunzan"],["b199_yuanshu_end",199,6,"원술 최후","xp","원소에게 가려던 원술을 유비가 막는다. 장비가 기령을 베고, 원술은 꿀물 한 그릇을 찾다 피를 토하고 죽는다.",["liubei","guanyu","zhangfei","yuanshu","jiling"],[["zhangfei","jiling","장비 승리, 기령 전사"]],[],"small","liubei","yuanshu"],["b199_chezhou",199,8,"서주 탈취","xp","조조가 차주에게 유비를 죽이라 하지만 진등이 알리고, 관우가 차주를 벤다. 유비가 서주를 차지한다.",["liubei","guanyu","chendeng","chezhou"],[["guanyu","chezhou","관우 승리, 차주 전사"]],[],"small","liubei","chezhou"],["b199_liudai",199,10,"유대·왕충 격파","xp","관우가 왕충을, 장비가 꾀를 써서 유대를 사로잡는다. 유비는 둘을 놓아준다.",["guanyu","zhangfei","liudai_cao","wangzhong"],[["guanyu","wangzhong","관우가 생포"],["zhangfei","liudai_cao","장비가 계략으로 생포"]],[],"small","guanyu","liudai_cao"],["b200_xuzhou",200,1,"서주 함락","xp","유비의 야습이 간파되어 크게 지고 삼형제가 흩어진다. 하비를 지키던 관우는 토산에서 세 가지 약속을 받고 조조에게 몸을 맡긴다.",["cao","zhangliao","xuhuang","xiahoudun","liubei","guanyu","zhangfei"],[],[],"mid","cao","liubei"],["b200_baima",200,4,"백마 전투","pu","안량이 송헌·위속을 베고 서황을 물리친다. 관우가 적토마를 달려 만군 속에서 안량을 베고 머리를 가져온다.",["yanliang","cao","songxian","weixu","xuhuang","guanyu","zhangliao"],[["songxian","yanliang","송헌 전사"],["weixu","yanliang","위속 전사"],["xuhuang","yanliang","서황 패퇴"],["guanyu","yanliang","관우 승리, 안량 전사"]],["cao","guanyu"],"mid","yanliang","cao"],["b200_yanjin",200,4,"연진 전투","pu","조조가 군량과 말을 미끼로 버려 문추군을 어지럽힌다. 문추가 장료·서황을 물리치지만 관우에게 베인다.",["wenchou","liubei","cao","zhangliao","xuhuang","guanyu"],[["zhangliao","wenchou","장료 패퇴"],["xuhuang","wenchou","서황 패퇴"],["guanyu","wenchou","관우 승리, 문추 전사"]],[],"mid","wenchou","cao"],["e200_wuguan",200,6,"오관참육장","ly","유비의 소식을 들은 관우가 두 형수를 모시고 다섯 관문을 지나며 여섯 장수를 벤다.",[],[["guanyu","kongxiu","동령관, 공수 전사"],["guanyu","mengtan","낙양, 맹탄 전사"],["guanyu","hanfu_ly","낙양, 한복 전사"],["guanyu","bianxi","기수관, 변희 전사"],["guanyu","wangzhi","형양, 왕식 전사"],["guanyu","qinqi","황하 나루, 진기 전사"]],["cao","guanyu"],"event","",""],["e200_gucheng",200,7,"고성 재회","rn","장비가 관우를 의심하자, 관우가 쫓아온 채양을 북이 세 번 울리기 전에 벤다. 주창·관평이 합류하고 조운도 돌아온다.",[],[["guanyu","caiyang","관우 승리, 채양 전사"]],["zhangfei","guanyu","liubei"],"event","",""],["e200_sunce_death",200,4,"손책의 죽음","wx","사냥 중 허공의 식객에게 습격당한 손책이 우길을 죽인 뒤 환영에 시달리다 죽고, 손권이 뒤를 잇는다.",[],[],["sunce","sunquan"],"event","",""],["b200_guandu",200,10,"관도대전","cl","원소가 저수·전풍의 간언을 듣지 않는다. 허유가 조조에게 투항해 오소 군량고를 알려주고, 조조가 직접 오소를 불태운다. 순우경이 패하고 장합·고람이 투항해 원소군이 무너진다.",["yuanshao","zhanghe","gaolan","chunyuqiong","jushou","tianfeng","shenpei","xuyou","guotu","cao","xunyou","guojia","xuchu","zhangliao","xuhuang","yuejin","caoren"],[],["xuyou","cao","yuanshao"],"large","yuanshao","cao"],["b201_cangting",201,4,"창정 전투","py","정욱의 십면매복계로 조조가 원소의 대군을 다시 무너뜨린다. 원소는 피를 토하고 이듬해 죽는다.",["cao","chengyu","xuchu","xuhuang","yuanshao","yuantan","yuanshang"],[],[],"large","cao","yuanshao"],["b207_bailang",207,8,"백랑산 전투","bp","곽가의 계책으로 조조가 사막을 건너 오환을 치고, 장료가 선봉에서 답돈을 벤다. 곽가는 돌아오는 길에 병으로 죽는다.",["cao","zhangliao","guojia","yuanshang","yuanxi"],[],[],"mid","cao","yuanshang"],["e207_sangu",207,12,"삼고초려","xy","유비가 눈보라를 뚫고 세 번 초가를 찾아가 제갈량을 얻는다. 제갈량은 천하삼분의 계책을 내놓는다.",[],[],["zhangfei","liubei","zhugeliang"],"event","",""],["b208_bowang",208,6,"박망파 화공","xn","제갈량의 첫 지휘. 조운이 거짓으로 져서 하후돈을 좁은 골짜기로 끌어들이고 불을 놓는다.",["xiahoudun","yujin","lidian","liubei","zhugeliang","guanyu","zhangfei","zhaoyun"],[["zhaoyun","xiahoudun","조운이 거짓 패주로 유인"]],[],"mid","xiahoudun","liubei"],["b208_changban",208,9,"장판파","xy","조운이 홀로 적진을 누비며 아두를 품에 안고 돌아온다. 하후은을 베어 청홍검을 얻고, 미부인은 우물에 몸을 던진다. 장비가 장판교에서 호통쳐 추격을 막는다.",["cao","caoren","zhanghe","xuchu","xiahouen","liubei","zhaoyun","zhangfei","mishi"],[["zhaoyun","xiahouen","조운 승리, 청홍검을 얻음"],["zhaoyun","zhanghe","조운이 구덩이에서 뛰어올라 벗어남"]],["zhaoyun","cao","zhangfei"],"mid","cao","liubei"],["e208_caimao",208,10,"군영회","jx","주유가 옛 벗 장간을 속여 거짓 편지를 훔쳐 가게 한다. 조조는 수군 도독 채모를 의심해 벤다.",["zhouyu","caimao"],[],["zhouyu","cao"],"event","zhouyu","caimao"],["b208_chibi",208,11,"적벽대전","jx","방통이 연환계로 배를 묶게 하고, 황개가 고육계로 거짓 항복한다. 동남풍이 불자 황개의 불배가 조조의 수채를 태운다.",["zhouyu","zhugeliang","huanggai","lusu","ganning","lumeng","kanze","pangtong","cao","xuchu","zhangliao","xuhuang","wenpin"],[],["zhugeliang","huanggai","cao","zhouyu"],"large","zhouyu","cao"],["e208_huarong",208,12,"화용도","jl","패주하는 조조를 관우가 화용도에서 막지만, 옛 은혜를 생각해 길을 터 준다.",[],[],["cao","guanyu"],"event","",""],["b209_nanjun",209,3,"남군 공방전","jl","주유가 조인과 싸우다 독화살을 맞는다. 그 틈에 제갈량이 남군·형주·양양을 가로챈다.",["zhouyu","ganning","lumeng","caoren","caochun"],[],[],"mid","zhouyu","caoren"],["b209_changsha",209,6,"장사 전투","chs","관우와 황충이 백여 합을 겨룬다. 황충의 말이 넘어지자 관우가 살려 주고, 황충은 활로 투구 끈만 쏘아 갚는다. 위연이 태수를 베고 성을 바친다.",["guanyu","huangzhong","weiyan"],[["guanyu","huangzhong","백여 합 승부 없음, 서로 목숨을 살려 줌"]],["huangzhong","guanyu"],"small","guanyu","huangzhong"],["b211_tongguan",211,8,"동관 전투","hn","마초가 조조를 몰아붙여 조조는 수염을 자르고 전포를 버리고 달아난다. 허저가 웃통을 벗고 마초와 겨룬다. 가후의 이간계로 마초와 한수가 갈라선다.",["machao","hansui","pangde","madai","cao","xuchu","caohong","xuhuang","jiaxu"],[["xuchu","machao","이백여 합 승부 없음"],["caohong","machao","조홍이 조조를 구함"]],["machao","cao","xuchu"],"large","machao","cao"],["b214_luofeng",214,7,"낙봉파","zt","유비의 백마를 타고 좁은 길로 가던 방통이 낙봉파에서 장임의 복병이 쏜 화살에 맞아 죽는다. 뒤에 제갈량이 장임을 사로잡아 벤다.",["liubei","pangtong","huangzhong","weiyan","zhangren","lengbao","wuyi"],[["weiyan","lengbao","위연이 냉포를 사로잡음"]],["pangtong","zhangren"],"mid","liubei","zhangren"],["b214_jiameng",214,10,"가맹관 전투","zt","장비와 마초가 낮부터 횃불을 밝힌 밤까지 겨루어도 승부가 나지 않는다. 제갈량의 계책으로 마초가 유비에게 귀순한다.",["zhangfei","liubei","machao","madai"],[["zhangfei","machao","이백여 합 승부 없음, 밤까지 이어짐"]],[],"small","zhangfei","machao"],["b215_hefei",215,8,"합비 소요진","lu","장료가 팔백 결사대로 손권의 본진을 짓밟는다. 손권은 말을 뛰어 끊어진 다리를 건너 겨우 목숨을 건지고, 능통이 온몸에 상처를 입고 막아선다.",["sunquan","ganning","lingtong","lumeng","zhoutai","zhangliao","yuejin"],[["lingtong","zhangliao","능통이 손권을 지키며 버팀"]],["zhangliao","sunquan","ganning"],"mid","sunquan","zhangliao"],["b217_ruxu",217,2,"유수구 전투","lu","감녕이 기병 백 명으로 조조의 영채를 야습하고 한 명도 잃지 않는다. 주태가 손권을 구하다 온몸에 상처를 입는다.",["cao","zhangliao","xuhuang","sunquan","ganning","zhoutai","xusheng"],[],[],"mid","cao","sunquan"],["b219_dingjun",219,1,"정군산 전투","hz","법정이 맞은편 산에서 깃발로 신호하고, 황충이 산 위에서 내리달려 하후연을 벤다. 유비가 한중을 얻는다.",["liubei","huangzhong","fazheng","zhaoyun","xiahouyuan","zhanghe"],[["huangzhong","xiahouyuan","황충 승리, 하후연 전사"]],["fazheng","huangzhong","xiahouyuan"],"large","liubei","xiahouyuan"],["b219_hanshui",219,3,"한수 전투","hz","조운이 포위된 황충을 구해 영채로 돌아와 문을 활짝 열고 홀로 선다. 조조군은 복병을 의심해 물러나다 크게 진다.",["zhaoyun","huangzhong","cao","xuhuang","zhanghe"],[],[],"mid","zhaoyun","cao"],["b219_fancheng",219,8,"번성 수공","xy","관을 메고 나선 방덕이 관우와 겨루어 화살을 맞힌다. 관우가 가을 장마에 강둑을 터 칠군을 물에 잠근다. 우금은 항복하고 방덕은 굽히지 않다 죽는다.",["guanyu","guanping","zhoucang","liaohua","caoren","yujin","pangde","xuhuang","manchong"],[["guanyu","pangde","백여 합 승부 없음, 방덕의 화살이 관우의 팔에 맞음"],["zhoucang","pangde","주창이 물속에서 방덕을 사로잡음"]],["guanyu","yujin","pangde"],"large","guanyu","caoren"],["b220_maicheng",220,1,"맥성","jl","여몽이 흰옷으로 강을 건너 형주를 빼앗는다. 맥성에 갇힌 관우는 구원을 얻지 못하고 길을 뚫다 사로잡혀 관평과 함께 죽는다.",["panzhang","zhuran","luxun","guanyu","guanping","zhoucang","liaohua"],[],["guanping","guanyu"],"mid","panzhang","guanyu"],["e221_zhangfei",221,6,"장비의 죽음","zt","관우의 복수를 서두르던 장비가 부하를 매질하고, 술에 취해 잠든 사이 그들의 손에 죽는다.",["zhangfei"],[],["zhangfei"],"event","zhangfei",""],["b222_yiling",222,6,"이릉대전","ya","유비가 숲을 따라 칠백 리에 영채를 잇자, 육손이 때를 기다려 불을 놓는다. 유비는 백제성으로 달아나고 조운이 뒤를 끊는다.",["luxun","zhuran","xusheng","dingfeng","zhoutai","liubei","zhaoyun","guanxing","zhangbao"],[],["liubei","luxun"],"large","luxun","liubei"],["e223_baidi",223,4,"백제성 탁고","ya","병이 깊어진 유비가 제갈량에게 아들과 나라를 맡기고 세상을 떠난다.",["liubei"],[],["liubei","zhugeliang"],"event","liubei",""],["b225_nanman",225,5,"남만 정벌","jg","제갈량이 맹획을 일곱 번 사로잡고 일곱 번 놓아 주어 마음으로 복종시킨다.",["zhugeliang","zhaoyun","weiyan","madai","wangping","menghuo"],[["weiyan","menghuo","위연이 거짓 패주로 유인"]],["menghuo","zhugeliang"],"large","zhugeliang","menghuo"],["b228_xincheng",228,1,"신성 급습","sy","촉으로 돌아서려던 맹달을 사마의가 여드레 만에 천이백 리를 달려와 벤다.",["simayi","mengda"],[],[],"mid","simayi","mengda"],["b228_tianshui",228,2,"천수 전투","ts","강유가 제갈량의 계책을 꿰뚫고 조운과 맞선다. 제갈량은 반간계로 강유를 얻는다.",["zhugeliang","zhaoyun","weiyan","jiangwei"],[["zhaoyun","jiangwei","승부 없음, 조운이 강유의 창법에 놀람"]],["zhugeliang","jiangwei"],"mid","zhugeliang","jiangwei"],["b228_jieting",228,5,"가정 전투","ts","마속이 왕평의 말을 듣지 않고 산 위에 진을 쳤다가 물길이 끊겨 무너진다. 제갈량은 빈 성에서 거문고를 타 사마의를 물리고, 울면서 마속을 벤다.",["simayi","zhanghe","masu","wangping"],[],["wangping","masu","zhanghe"],"mid","simayi","masu"],["b228_chencang",228,12,"진창 공방전","ca","학소가 삼천 병사로 스무 날 넘게 제갈량의 운제·충차·땅굴을 모두 막아 낸다. 구원 온 왕쌍은 위연에게 베인다.",["zhugeliang","weiyan","jiangwei","haozhao","wangshuang"],[["weiyan","wangshuang","위연 승리, 왕쌍 전사"]],[],"mid","zhugeliang","haozhao"],["b231_mumen",231,6,"목문도","ts","물러나는 촉군을 쫓던 장합이 목문도 골짜기에서 쇠뇌 매복에 걸려 죽는다.",["zhugeliang","weiyan","jiangwei","zhanghe","simayi"],[],[],"mid","zhugeliang","zhanghe"],["b234_shangfang",234,4,"상방곡","ca","제갈량이 사마의 부자를 골짜기에 가두고 불을 놓지만, 갑자기 소나기가 내려 불이 꺼진다.",["madai","jiangwei","simayi","simashi","simazhao"],[],[],"mid","madai","simayi"],["e234_wuzhang",234,8,"오장원","ca","과로로 쓰러진 제갈량이 수명을 비는 등불을 켜지만 등불이 꺼진다. 가을바람 부는 오장원에서 별이 진다.",["zhugeliang"],[],["zhugeliang","jiangwei","simayi"],"event","zhugeliang",""],["e234_weiyan",234,9,"위연의 반란","hz","제갈량이 죽자 위연이 잔도를 불태우고 맞선다. \"누가 감히 나를 베랴\" 외치는 순간 뒤에 있던 마대가 벤다.",["madai","weiyan"],[["madai","weiyan","마대가 뒤에서 벰"]],["weiyan","madai"],"event","madai","weiyan"]];
@@ -2320,7 +2325,7 @@ function frBreak(F, S, ours){
     a.state = 'siege'; a.eta = 0; a.bonus = { surprise:15, intel:.1 }; a.frontBreak = 1;
     G.queue.push({ kind:'siege', to:tgt.id, fac:G.pfac, front:1 });
     news(`${F.name}이 무너졌다! 아군이 ${J(tgt.n,'을')} 향해 결전에 나선다.`, true, true);
-    { const v = person(gens[0]); talkQ({ title:`${F.sec} 전선 돌파 · ${tgt.n}`, bg:'bg_field', lines:[[null, `${F.name}이 무너졌다. 적의 대열이 흩어지고 ${tgt.n}의 성문이 눈앞에 보인다.`], [v ? v.id : 'me', pick(['지금이다! 단숨에 성벽까지 밀어붙여라!', '흩어진 적을 쫓아 성 아래까지 간다!', '이 기세라면 성도 버티지 못한다!'])]] }); }
+    { const v = person(gens[0]); talkQ({ title:`${F.sec} 전선 돌파 · ${tgt.n}`, bg:'bg_siege', lines:[[null, `${F.name}이 무너졌다. 적의 대열이 흩어지고 ${tgt.n}의 성문이 눈앞에 보인다.`], [v ? v.id : 'me', pick(['지금이다! 단숨에 성벽까지 밀어붙여라!', '흩어진 적을 쫓아 성 아래까지 간다!', '이 기세라면 성도 버티지 못한다!'])]] }); }
     S.p = 35;
     for (const o of frontsOf(G.pfac)) if (o.ef===F.ef && o.id!==F.id){ const So = frState(o.id); So.p = clamp(So.p + 12, -100, 100); }
   } else {
@@ -2332,7 +2337,7 @@ function frBreak(F, S, ours){
     const a = createArmy({ fac:F.ef, gens: g ? [g.id] : [], troops:n, from:src.id, to:tgt.id, kind:'attack', food:4 });
     a.state = 'siege'; a.eta = 0; a.frontBreak = 1;
     news(`${F.name}이 밀렸다! ${facName(F.ef)}의 대군이 ${J(tgt.n,'을')} 에워쌌다.`, true, true);
-    talkQ({ title:`${F.sec} 전선 붕괴 · ${tgt.n}`, bg:'bg_camp', lines:[[null, `${F.name}이 뚫렸다. ${facName(F.ef)}의 깃발이 ${tgt.n} 성벽 아래를 뒤덮는다.`], [g ? g.id : null, pick(['성을 에워싸라! 한 놈도 빠져나가지 못하게!', '이 성만 떨어뜨리면 길이 열린다!'])]] });
+    talkQ({ title:`${F.sec} 전선 붕괴 · ${tgt.n}`, bg:'bg_wallnight', lines:[[null, `${F.name}이 뚫렸다. ${facName(F.ef)}의 깃발이 ${tgt.n} 성벽 아래를 뒤덮는다.`], [g ? g.id : null, pick(['성을 에워싸라! 한 놈도 빠져나가지 못하게!', '이 성만 떨어뜨리면 길이 열린다!'])]] });
     S.p = -35; S.fort = Math.max(0, (S.fort||0) - 1);
   }
 }
@@ -2508,6 +2513,7 @@ const CORPS = {
   shanyue:{ n:'산월 정병', gl:'월', p:[1.0,1.25,1.15], h:.85, tribe:'shanyue', d:'산과 물에 익숙한 용사들.' },
   wuling:{ n:'무릉 만병', gl:'계', p:[1.0,1.25,1.05], h:.8, tribe:'wuling', d:'산길에서 나타났다 사라진다. 산악에서 강하다.' }
 };
+for (const k in CORPS) CORPS[k].k = k;
 const TI = { plain:0, mountain:1, river:2 };
 function tribeSt(id){ G.tribes = G.tribes || {}; if (!G.tribes[id]){ const r = G.pfac && fac(G.pfac) ? fac(G.pfac).ruler : null; G.tribes[id] = { rel: (TRIBES[id].friend[r] || 0), vas:0 }; } return G.tribes[id]; }
 const tribeAlly = id => { const T = tribeSt(id); return T.rel >= 60 || T.vas > 0; };
@@ -2567,7 +2573,7 @@ function tribeAct(id, k){
 function openTribes(){
   const rows = Object.entries(TRIBES).map(([id, T]) => { const S = tribeSt(id), near = tribeNear(id), st = S.vas > 0 ? ['복속 ' + S.vas + '개월','up'] : S.rel >= 60 ? ['맹약','gold'] : S.rel >= 20 ? ['우호','up'] : S.rel <= -30 ? ['적대','down'] : ['중립',''];
     const ruler = G.role==='ruler', b = (k, t, sub, dis) => `<button data-ta="${id}:${k}" ${dis || !ruler || !near ? 'disabled' : ''}><b>${t}</b><small>${sub}</small></button>`;
-    return `<div class="trb ${near ? '' : 'far'}"><div class="row" style="gap:10px;align-items:center"><span class="mg" style="--c:#6b4a3a">${T.gl}</span><div class="grow"><b>${T.n}</b> <span class="chip ${st[1]}">${st[0]}</span><small class="d">${T.d} · 땅: ${T.home.map(h => city(h).n).join('·')}</small></div><b class="pv">${S.rel}</b></div>
+    return `<div class="trb ${near ? '' : 'far'}"><div class="trart" style="background-image:url(art/tr_${id}.webp)"></div><div class="row" style="gap:10px;align-items:center"><img class="cimg" src="art/u_${T.corps}.webp" alt="" loading="lazy"><div class="grow"><b>${T.n}</b> <span class="chip ${st[1]}">${st[0]}</span><small class="d">${T.d} · 땅: ${T.home.map(h => city(h).n).join('·')}</small></div><b class="pv">${S.rel}</b></div>
       <div class="tiny">병종: <b>${CORPS[T.corps].n}</b>${T.corps2 ? ` · <b>${CORPS[T.corps2].n}</b>` : ''} — ${tribeAlly(id) ? '지금 쓸 수 있다' : '맹약(관계 60)이나 복속하면 쓸 수 있다'}</div>
       ${near ? `<div class="thbtns q4">${b('gift','선물','금 200 · 관계 +')}${b('pact','맹약','금 400 · 관계 40 이상', S.rel < 40 || S.rel >= 60)}${b('subdue','토벌','병력 5천 · 이기면 복속')}${b('incite','적을 치게 한다','금 300 · 관계 20 이상', S.rel < 20)}</div>` : '<p class="tiny muted" style="margin:0">우리 땅과 닿아 있지 않다.</p>'}</div>`; }).join('');
   const vs_ = Object.keys(G.vassals||{}).filter(f => fac(f) && fac(f).alive).map(f => { const V = G.vassals[f]; return `<div class="trb"><div class="row" style="gap:10px;align-items:center"><span class="mg" style="--c:${facColor(f)}">속</span><div class="grow"><b>${esc(facName(f))}</b> <span class="chip gold">속국 ${V.m}개월</span><small class="d">성 ${citiesOf(f).length} · 달마다 조공 금 ${citiesOf(f).length*35} · 지금까지 ${fmt(V.sum||0)}. 우리 병력이 그들의 1.3배 아래로 떨어지면 등을 돌린다.</small></div></div><div class="thbtns q4"><button data-va="${f}" ${V.m < 12 ? 'disabled' : ''}><b>병합 권고</b><small>${V.m < 12 ? '한 해 뒤부터' : '싸움 없이 땅을 얻는다'}</small></button></div></div>`; }).join('');
@@ -2578,7 +2584,7 @@ function openTribes(){
 function openCorpsPick(fid){
   const F = frontsOf(G.pfac).find(f => f.id===fid); if (!F) return; if (G.role!=='ruler') return toast('병종 배치는 주공이 정한다.', [], true), render();
   const S = frState(fid), L = corpsAvail(G.pfac), t = frTerr(F), usedAt = k => { const o = frontsOf(G.pfac).find(x => x.id!==fid && frState(x.id).corps===k); return o ? o.name : ''; };
-  const rows = L.sort((a, b) => CORPS[b].p[TI[t]] - CORPS[a].p[TI[t]]).map(k => { const c = CORPS[k]; return `<button class="mrow" data-ck="${k}"><span class="mg" style="--c:#7a2a22">${c.gl}</span><span class="grow"><b>${c.n}${S.corps===k ? ' ✓' : ''}</b><small>${c.d}</small><small>평야 ×${c.p[0]} · 산악 ×${c.p[1]} · 강 ×${c.p[2]} · 버티기 ×${c.h}${usedAt(k) ? ` · 지금 ${usedAt(k)}` : ''}</small></span><b class="pv">×${c.p[TI[t]]}</b></button>`; }).join('');
+  const rows = L.sort((a, b) => CORPS[b].p[TI[t]] - CORPS[a].p[TI[t]]).map(k => { const c = CORPS[k]; return `<button class="mrow" data-ck="${k}"><img class="cimg" src="art/u_${k}.webp" alt="" loading="lazy"><span class="grow"><b>${c.n}${S.corps===k ? ' ✓' : ''}</b><small>${c.d}</small><small>평야 ×${c.p[0]} · 산악 ×${c.p[1]} · 강 ×${c.p[2]} · 버티기 ×${c.h}${usedAt(k) ? ` · 지금 ${usedAt(k)}` : ''}</small></span><b class="pv">×${c.p[TI[t]]}</b></button>`; }).join('');
   const bg = sheet(`<div class="cu-head"><h3>${esc(F.sec)} 전선 · 정예 병종</h3><button class="icon" data-close aria-label="닫기">✕</button></div><p class="small muted">이 전선은 <b>${FR_TERR[t][0]}</b>. 병종은 전선 하나에만 둘 수 있다. 군주·장수·부족과의 관계에 따라 쓸 수 있는 병종이 달라진다.</p><div class="mlist">${rows || '<p class="small" style="padding:12px">아직 쓸 수 있는 정예 병종이 없다. 이민족과 맹약을 맺거나, 병종을 이끄는 장수를 얻자.</p>'}</div>${S.corps ? '<button class="btn2" data-ck="" style="margin-top:8px">병종 빼기</button>' : ''}`);
   bg.querySelectorAll('[data-ck]').forEach(b => b.onclick = () => { const k = b.dataset.ck; if (k) for (const o of Object.values(G.fronts)) if (o.corps===k) o.corps = null; S.corps = k || null; bg.remove(); save(); render(); });
 }
@@ -2642,7 +2648,7 @@ function viewTheater(){
       <linearGradient id="thgf" x1="0" x2="1"><stop offset="0" stop-color="${foCol}" stop-opacity=".34"/><stop offset="1" stop-color="${foCol}" stop-opacity=".6"/></linearGradient>
       <radialGradient id="thvg" cx=".5" cy=".5" r=".8"><stop offset=".55" stop-color="#2a1a0a" stop-opacity="0"/><stop offset="1" stop-color="#2a1a0a" stop-opacity=".3"/></radialGradient>
       <pattern id="thp" width="7" height="7" patternUnits="userSpaceOnUse"><path d="M0 7 L7 0" stroke="#3a2a1a" stroke-opacity=".05"/><circle cx="2" cy="2" r=".5" fill="#3a2a1a" fill-opacity=".06"/></pattern></defs>
-    <rect width="${W}" height="${H}" fill="#efe4c8"/><rect width="${W}" height="${H}" fill="url(#thgf)"/><path id="thA" d="${myArea}" fill="url(#thgm)"/>
+    <rect width="${W}" height="${H}" fill="#efe4c8"/>${sorted.map((F, q) => `<image href="art/th_${frTerr(F)}.webp" x="0" y="${f1(q*bandH)}" width="${W}" height="${f1(bandH)}" preserveAspectRatio="xMidYMid slice" opacity=".7"/>`).join('')}<rect width="${W}" height="${H}" fill="url(#thgf)"/><path id="thA" d="${myArea}" fill="url(#thgm)"/>
     ${deco}<rect width="${W}" height="${H}" fill="url(#thp)"/>
     ${sorted.slice(1).map((F, q) => `<line x1="0" x2="${W}" y1="${f1((q + 1)*bandH)}" y2="${f1((q + 1)*bandH)}" stroke="#fff" stroke-opacity=".4" stroke-dasharray="2 6"/>`).join('')}
     <path class="thline" d="${d}" fill="none" stroke="#fff8e6" stroke-width="11" stroke-opacity=".5" stroke-linecap="round"/><path class="thline" d="${d}" fill="none" stroke="#3a1410" stroke-width="5.4" stroke-opacity=".85" stroke-linecap="round"/><path class="thline" d="${d}" fill="none" stroke="#d8483a" stroke-width="3" stroke-dasharray="10 7" stroke-linecap="round"/>`;
@@ -2685,7 +2691,7 @@ function viewTheater(){
     <div class="thbtns"><button data-tho="sugpush">공세를 건의한다</button><button data-tho="sughold">수비를 건의한다</button><button data-tho="vol" ${selF.my.includes(G.city) && !G.inArmy ? '' : 'disabled'}>선봉을 자원한다</button></div>`}`;
   const org = `<div class="thslots">${['van','adv','rear'].map(slot).join('')}</div>
     <button class="thplan ${deps.length ? 'on' : ''}" data-deps="${selF.id}"><span class="mg" style="--c:${deps.length ? '#3b4f8a' : '#b7a789'}">부</span><span class="grow"><small>부장 ${deps.length}/4 · 미는 힘 +${Math.round((frDepK(selF, S) - 1)*100)}% · 결전에 함께 출진</small><b>${deps.length ? deps.map(p => esc(p.n)).join(' · ') : '부장 없음 — 눌러서 고른다'}</b></span><span class="mch">›</span></button>
-    <div class="thcorps"><button data-corps="${selF.id}"><span class="mg" style="--c:${cpc ? '#7a2a22' : '#b7a789'}">${cpc ? cpc.gl : '병'}</span><span class="grow"><small>아군 정예</small><b>${cpc ? `${cpc.n} ×${cpc.p[tix]}` : '일반 병사'}</b></span><span class="mch">›</span></button><div class="foe"><span class="mg" style="--c:${cpe ? '#3a3a4a' : '#b7a789'}">${cpe ? cpe.gl : '병'}</span><span class="grow"><small>적 정예</small><b>${cpe ? `${cpe.n} ×${cpe.p[tix]}` : '일반 병사'}</b></span></div></div>
+    <div class="thcorps"><button data-corps="${selF.id}">${cpc ? `<img class="cimg" src="art/u_${cpc.k}.webp" alt="">` : `<span class="mg" style="--c:#b7a789">병</span>`}<span class="grow"><small>아군 정예</small><b>${cpc ? `${cpc.n} ×${cpc.p[tix]}` : '일반 병사'}</b></span><span class="mch">›</span></button><div class="foe">${cpe ? `<img class="cimg" src="art/u_${cpe.k}.webp" alt="">` : `<span class="mg" style="--c:#b7a789">병</span>`}<span class="grow"><small>적 정예</small><b>${cpe ? `${cpe.n} ×${cpe.p[tix]}` : '일반 병사'}</b></span></div></div>
     ${supBar}`;
   const inv = `<p class="tiny muted" style="margin:0">금을 들여 전선을 다진다. 행동력은 들지 않는다. 가진 금 <b>${fmt(G.gold)}</b></p><button class="mad" data-adg="1" ${adLeft() > 0 ? '' : 'disabled'}><span class="mg">금</span><span class="grow"><b>군자금 +${fmt(adGold())}</b><small>광고를 보고 후원을 받는다 · 오늘 ${adLeft()}/${adCapNow()}</small></span><span class="mplay">▶</span></button><div class="mlist">${Object.keys(FR_INV).map(k => { const I = FR_INV[k], lv = I.lv(selF, S), ok = I.ok(selF, S), c = I.cost(selF, S); return `<button class="mrow" data-inv="${k}" ${ok && ruler && G.gold >= c ? '' : 'disabled'}><span class="mg" style="--c:#a8822a">${I.gl}</span><span class="grow"><b>${I.n} ${I.max > 1 ? `<span class="lvd">${'●'.repeat(lv)}${'○'.repeat(I.max - lv)}</span>` : lv ? '<span class="chip up">적용 중</span>' : ''}</b><small>${k==='drill' && !cpc ? '먼저 편성에서 정예 병종을 둔다.' : I.d}</small></span><b class="pv">${ok ? fmt(c) : '—'}</b></button>`; }).join('')}</div>
     ${`<details class="thhelp"><summary>전선 규칙</summary><p class="tiny">· 병력의 이점은 점점 줄어든다(두 배의 병력이 두 배의 힘은 아니다). 지형·계절·계책·적의 낌새가 맞으면 적은 병력으로도 민다.<br>· 계책: 화공(가을·평야·등갑), 매복(산악·적이 나올 때), 수공(강·여름), 거짓 퇴각(적이 쫓아올 때 +30), 야습(적이 지킬 때), 이간.<br>· 정예 병종은 전선에 하나. 지형마다 미는 힘이 다르고, 코끼리·등갑병은 지략 85 이상의 군사에게 불로 당한다. 이민족과 맹약하면 그들의 병종을 쓴다.<br>· 지형: ${tr[0]} — ${tr[3]}<br>· 적도 달마다 수비·공세·대군 집결을 정한다. 집결한 적은 버텨서 깎고, 수비하는 적은 밀어붙인다.<br>· 같은 적의 두 전선을 같은 달에 밀면 협공 +5. 양동이 통하면 옆 전선의 적 공세가 약해지고 우리 공세 +7.<br>· 돌파하면 성을 칠지, 보급로를 끊을지, 옆 전선의 뒤를 칠지 고른다.<br>· 밀어붙이면 원정길(큰길·산길·물길 → 고비 셋)을 거쳐 이번 달 미는 힘이 정해진다. 큰길은 군량 +1, 산길은 군량 -1 대신 기습.<br>· 공세 한 달에 군량 1개월분. 후방 장수의 정치가 높으면 덜 든다. 버티면 반 달분씩 찬다.<br>· 선봉은 미는 힘, 군사는 적의 공세를 꺾고 원정길 판정을 맡는다.<br>· 막대가 끝에 닿으면 결전. 이기면 같은 적의 다른 전선도 +12.</p></details>`}`;
@@ -3223,7 +3229,7 @@ function openMeleePick(){
   const L = meleeCands(B), T = meleeTier(B), Sc = meleeScene(B), cm = battleCorps(B, B[B.ps].fid), cf = battleCorps(B, (B.ps==='att' ? B.def : B.att).fid);
   const rows = L.map(p => `<button class="mrow" data-mh="${p.id}"><span>${pp(p, 40)}</span><span class="grow"><b>${esc(p.n)}</b><small>무 ${SV(p.m)} (칼의 힘) · 통 ${SV(p.l)} (말의 빠르기)</small></span><b class="pv">${SV(p.m)}</b></button>`).join('');
   const bg = sheet(`<div class="cu-head"><h3>${Sc.n} <span class="chip ${T.cls}">${T.n}</span></h3><button class="icon" data-close aria-label="닫기">✕</button></div>
-    <p class="small muted">${T.d} ${Sc.dd} ${Sc.wd}</p><div class="intel"><span>아군 병종 <b>${cm ? CORPS[cm].n : '일반 병사'}</b></span><span>적 병종 <b>${cf ? CORPS[cf].n : '일반 병사'}</b></span><span>시간 <b>${T.T}초</b></span></div>
+    <p class="small muted">${T.d} ${Sc.dd} ${Sc.wd}</p><div class="intel"><span>아군 병종 <b>${cm ? CORPS[cm].n : '일반 병사'}</b>${cm ? `<img class="cvimg" src="art/u_${cm}.webp" alt="">` : ''}</span><span>적 병종 <b>${cf ? CORPS[cf].n : '일반 병사'}</b>${cf ? `<img class="cvimg" src="art/u_${cf}.webp" alt="">` : ''}</span><span>시간 <b>${T.T}초</b></span></div>
     <span class="lbl">누가 나설 것인가</span><div class="mlist">${rows}</div>`);
   bg.querySelectorAll('[data-mh]').forEach(b => b.onclick = () => { bg.remove(); B.melee = { on:true, hero:b.dataset.mh }; Snd.sfx('horn'); render(); });
 }
@@ -3921,7 +3927,7 @@ function tbHtml(B){
       else if (s && !u && reach[k]!==undefined) cls += ' hm';
       let inner = '';
       if (show){ const p = u.gid ? person(u.gid) : null, pct = clamp(u.troops/u.max*100, 0, 100), ready = u.sk && u.sp >= TB_SP_COST;
-        inner = `<span class="tbu ${mine?'me':'foe'}${u.done&&mine?' done':''}${s===u?' sel':''}${u.hidden?' hid':''}${u.cmd?' cmd':''}${ready?' ready':''}">${p ? pp(p, 30) : `<img loading="lazy" decoding="async" class="tbimg" src="art/u_${u.type}.webp" alt="">`}<i class="tbty">${GL[u.type]}</i>${u.corps ? `<i class="tbcp" title="${CORPS[u.corps].n}">${CORPS[u.corps].gl}</i>` : ''}<b>${u.troops>=1000 ? (u.troops/1000).toFixed(1)+'k' : u.troops}</b>${u.stun?'<i class="tbst">난</i>':u.wallT>=tb.turn?'<i class="tbst w">순</i>':''}<em style="width:${pct}%"></em><u style="width:${clamp(u.sp||0,0,100)}%"></u></span>`; }
+        inner = `<span class="tbu ${mine?'me':'foe'}${u.done&&mine?' done':''}${s===u?' sel':''}${u.hidden?' hid':''}${u.cmd?' cmd':''}${ready?' ready':''}">${p ? pp(p, 30) : `<img loading="lazy" decoding="async" class="tbimg" src="art/u_${u.corps || u.type}.webp" alt="">`}<i class="tbty">${GL[u.type]}</i>${u.corps ? `<i class="tbcp" title="${CORPS[u.corps].n}">${CORPS[u.corps].gl}</i>` : ''}<b>${u.troops>=1000 ? (u.troops/1000).toFixed(1)+'k' : u.troops}</b>${u.stun?'<i class="tbst">난</i>':u.wallT>=tb.turn?'<i class="tbst w">순</i>':''}<em style="width:${pct}%"></em><u style="width:${clamp(u.sp||0,0,100)}%"></u></span>`; }
       else if (t==='g' && tb.gate>0) inner = `<span class="tbl">문 ${tb.gate}</span>`;
       else if (t==='k') inner = `<span class="tbl">본</span>`;
       inner += fx.filter(f => f.x===x && f.y===y).map((f, i) => `<span class="tbfx ${f.cls||''}" style="animation-delay:${i*90 - (now - f.t)}ms">${esc(f.txt)}</span>`).join('');
@@ -3965,17 +3971,17 @@ const TALES = [
     intro:[['cao','이 술을 들고 나가시오.'], ['guanyu','술은 따라 두시오. 다녀와서 마시겠소.']],
     st:[ { foe:'huaxiong', maxR:3, goal:'win', t:'세 합 안에 화웅을 꺾는다', pre:[['huaxiong','이름도 없는 마궁수가 감히!']] } ],
     win:[['cao','술이 아직 따뜻하구려!']], lose:[[null, '술은 식었고, 화웅의 웃음소리만 남았다.']] },
-  { id:'sy', n:'호뢰관 삼영전', y:190, hero:'zhangfei', bg:'bg_field', d:'천하무쌍 여포. 혼자서는 버틸 수 없다. 버티다 보면 형님들이 온다.',
+  { id:'sy', n:'호뢰관 삼영전', y:190, hero:'zhangfei', bg:'s_b190_hulao', d:'천하무쌍 여포. 혼자서는 버틸 수 없다. 버티다 보면 형님들이 온다.',
     intro:[['lvbu','덤빌 놈이 고작 너 하나냐!'], ['zhangfei','연인 장익덕이 여기 있다! 성 셋 가진 종놈아, 덤벼라!']],
     st:[ { foe:'lvbu', maxR:4, goal:'survive', t:'네 합을 버틴다 (무승부도 좋다)' },
          { foe:'lvbu', carry:1, maxR:3, goal:'survive', boost:22, t:'관우가 청룡도를 들고 합세했다 (무력 +22)', pre:[['guanyu','셋째야, 내가 왔다!']] },
          { foe:'lvbu', carry:1, maxR:3, goal:'survive', boost:34, t:'유비까지 쌍고검을 뽑았다 (무력 +34). 버티면 여포가 물러난다', pre:[['liubei','두 아우와 함께라면 두려울 것 없다!']] } ],
     win:[['lvbu','…오늘은 이만 하자!'], [null, '여포가 말머리를 돌려 관으로 달아났다. 세 영웅의 이름이 천하에 퍼진다.']], lose:[[null, '방천화극 앞에 끝내 무릎을 꿇었다.']] },
-  { id:'ts', n:'신정의 맞수', y:195, hero:'taishici', bg:'bg_field', d:'정찰 나온 손책과 단기로 마주쳤다. 서로의 투구와 단극을 빼앗을 만큼의 승부.',
+  { id:'ts', n:'신정의 맞수', y:195, hero:'taishici', bg:'bg_field_dawn', d:'정찰 나온 손책과 단기로 마주쳤다. 서로의 투구와 단극을 빼앗을 만큼의 승부.',
     intro:[['taishici','네가 손책이냐! 동래 태사자가 상대해 주마!'], ['sunce','좋다, 오랜만에 피가 끓는구나!']],
     st:[ { foe:'sunce', maxR:6, goal:'survive', t:'여섯 합 동안 쓰러지지 않는다' } ],
     win:[['sunce','훗날 그대와 함께 천하를 달리고 싶구나.']], lose:[[null, '손책의 창끝이 투구를 날려 보냈다.']] },
-  { id:'gw', n:'다섯 관문 여섯 장수', y:200, hero:'guanyu', bg:'bg_field', d:'형님에게 돌아가는 길. 통행증은 없다. 관문마다 막아서는 장수를 지나야 한다.',
+  { id:'gw', n:'다섯 관문 여섯 장수', y:200, hero:'guanyu', bg:'s_e200_wuguan', d:'형님에게 돌아가는 길. 통행증은 없다. 관문마다 막아서는 장수를 지나야 한다.',
     intro:[['guanyu','형님께서 계신 곳이라면 천 리라도 간다.']],
     st:[ { foe:'kongxiu', goal:'win', t:'동령관 · 공수를 넘는다', pre:[['kongxiu','승상의 문서가 없으면 한 발짝도 못 지나간다!']] },
          { foe:'mengtan', heal:8, goal:'win', t:'낙양 · 맹탄을 넘는다' },
@@ -3983,19 +3989,19 @@ const TALES = [
          { foe:'wangzhi', heal:8, goal:'win', ambush:1, t:'형양 · 숙소에 장작이 쌓여 있다', pre:[['wangzhi','편히 쉬다 가시오. (밤이 되면 불을 놓아라…)']] },
          { foe:'qinqi', heal:8, goal:'win', t:'황하 나루 · 진기를 넘으면 강을 건넌다' } ],
     win:[['guanyu','형님, 운장이 돌아왔습니다.'], [null, '다섯 관문을 지나 여섯 장수를 넘었다.']], lose:[[null, '관문 앞에서 발이 묶였다.']] },
-  { id:'zy', n:'장판 단기구출', y:208, hero:'zhaoyun', bg:'bg_field', d:'백만 대군 한가운데. 품에는 어린 주군이 있다. 장판교까지 살아서 가야 한다.',
+  { id:'zy', n:'장판 단기구출', y:208, hero:'zhaoyun', bg:'s_b208_changban', d:'백만 대군 한가운데. 품에는 어린 주군이 있다. 장판교까지 살아서 가야 한다.',
     intro:[[null, '무너진 담 아래, 미부인이 아두를 건넨다.'], ['zhaoyun','주군의 핏줄은 이 조자룡이 지킨다!']],
     st:[ { foe:'xiahouen', goal:'win', t:'청강검을 찬 하후은이 길을 막는다', pre:[['xiahouen','어린애를 안고 어딜 가느냐!']] },
          { foe:'caochun', heal:5, goal:'survive', breakthru:1, t:'호표기가 에워싼다 · 맞서거나, 뚫고 지나간다' },
          { foe:'zhanghe', heal:5, goal:'survive', breakthru:1, t:'장합이 뒤를 쫓는다 · 버티거나, 흙구덩이를 박차고 뛰어넘는다', pre:[['zhanghe','거기 서라, 백마의 장수!']] } ],
     win:[['zhangfei','자룡! 어서 다리를 건너라, 뒤는 내가 맡는다!'], [null, '품 안의 아두는 곤히 잠들어 있었다.']], lose:[[null, '포위가 끝내 좁혀 들었다.']] },
-  { id:'zb', n:'장판교의 호통', y:208, hero:'zhangfei', bg:'bg_field', d:'다리 위에 홀로 섰다. 뒤에는 피난민과 형님. 앞에는 조조의 대군.',
+  { id:'zb', n:'장판교의 호통', y:208, hero:'zhangfei', bg:'s_b208_changban', d:'다리 위에 홀로 섰다. 뒤에는 피난민과 형님. 앞에는 조조의 대군.',
     intro:[['zhangfei','(뒤 숲에 말꼬리에 나뭇가지를 매달아 먼지를 일으켜라. 복병이 있는 듯 보이게.)']],
     st:[ { foe:'caochun', shout:1, goal:'win', t:'선봉이 다리 앞에 닿았다 · 호통으로 물리치거나 맞붙는다' },
          { foe:'zhanghe', shout:1, goal:'survive', t:'장합이 창을 겨눈다 · 호통이냐 일기토냐' },
          { foe:'xuchu', shout:2, goal:'survive', t:'조조 본대가 멈췄다 · 마지막 호통', pre:[['cao','저자가 장익덕인가… 함부로 다가가지 마라.']] } ],
     win:[['zhangfei','연인 장익덕이 여기 있다! 누가 나와 죽기로 싸우겠느냐!'], [null, '조조군이 물러갔다. 장비는 다리를 끊고 돌아섰다.']], lose:[[null, '다리가 뚫렸다.']] },
-  { id:'xm', n:'웃통 벗은 호치', y:211, hero:'xuchu', bg:'bg_field', d:'동관. 서량의 금마초가 조조를 노린다. 백 합이 넘도록 끝나지 않는 승부.',
+  { id:'xm', n:'웃통 벗은 호치', y:211, hero:'xuchu', bg:'s_b211_tongguan', d:'동관. 서량의 금마초가 조조를 노린다. 백 합이 넘도록 끝나지 않는 승부.',
     intro:[['machao','조조의 호치가 누구냐! 나와라!'], ['xuchu','내가 허중강이다!']],
     st:[ { foe:'machao', maxR:5, goal:'survive', t:'다섯 합을 버틴다' },
          { foe:'machao', carry:1, maxR:5, goal:'survive', strip:1, t:'진으로 돌아와 숨을 돌렸다 · 갑옷을 벗고 다시 나갈 수도 있다' } ],
@@ -4009,53 +4015,53 @@ TALES.push(
     st:[ { type:'timing', t:'백오십 보 밖, 원문에 세운 극', d:'바람이 잦아드는 순간 시위를 놓는다', zone:[.46, .56], spd:900, stat:'m', tries:2, ok:{ log:'화살이 곁날 한가운데를 맞혔다! 장수들이 숨을 삼킨다.' }, no:{ log:'화살이 빗나갔다.' } },
          { type:'choice', t:'기령이 칼자루를 놓지 않는다', opts:[ { t:'호통으로 누른다', stat:'m', diff:80, ok:{ log:'기령이 칼을 거두었다.' }, no:{ log:'기령이 이를 악물고 버틴다.', hp:-5 } }, { t:'술잔을 들어 달랜다', stat:'c', diff:45, ok:{ log:'양쪽 장수가 마지못해 잔을 들었다.' }, no:{ log:'술잔이 엎어졌다.', fail:1 } } ] } ],
     win:[['lvbu','하하! 하늘이 싸우지 말라 하는구나!']], lose:[[null, '극 곁을 스친 화살이 땅에 박혔다. 칼집에서 칼들이 빠져나온다.']] },
-  { id:'hf', n:'팔백 기의 돌격', y:215, hero:'zhangliao', bg:'bg_field', d:'합비. 손권의 십만 대군 앞에 장료의 결사대는 팔백. 새벽에 먼저 친다.',
+  { id:'hf', n:'팔백 기의 돌격', y:215, hero:'zhangliao', bg:'s_b215_hefei', d:'합비. 손권의 십만 대군 앞에 장료의 결사대는 팔백. 새벽에 먼저 친다.',
     intro:[['zhangliao','적이 다 모이기 전에 꺾어야 한다. 나를 따르라!']],
     st:[ { type:'battle', t:'새벽 돌격 · 오군 선봉을 꿰뚫는다', my:800, foe:9000, morale:130, boost:'charge', u:'cav', foeName:'오군 선봉', foeId:'chenwu', goal:'survive' },
          { type:'choice', t:'손권의 깃발이 보인다. 그런데 아군 몇이 포위되었다', opts:[ { t:'곧장 손권에게 달려간다', stat:'m', diff:88, ok:{ log:'손권이 언덕으로 달아났다! 오군이 술렁인다.', foeHp:20 }, no:{ log:'호위 장수들이 앞을 막는다.', duel:1 } }, { t:'되돌아가 포위된 아군을 구한다', stat:'l', diff:70, ok:{ log:'"장군께서 우리를 버리셨는가!" — 아니다. 다시 돌아왔다!', hp:-8 }, no:{ log:'구했지만 크게 다쳤다.', hp:-20 } } ] },
          { foe:'lingtong', maxR:4, goal:'survive', t:'소요진 다리 · 능통이 막아선다' } ],
     win:[[null, '이날 이후 강동의 아이들은 장료의 이름만 들어도 울음을 그쳤다고 한다.']], lose:[[null, '대군의 물결이 결사대를 삼켰다.']] },
-  { id:'dj', n:'정군산의 노장', y:219, hero:'huangzhong', bg:'bg_field', d:'높은 곳을 차지했다. 법정이 깃발을 흔들 때까지 기다렸다가, 지친 하후연을 친다.',
+  { id:'dj', n:'정군산의 노장', y:219, hero:'huangzhong', bg:'s_b219_dingjun', d:'높은 곳을 차지했다. 법정이 깃발을 흔들 때까지 기다렸다가, 지친 하후연을 친다.',
     intro:[['fazheng','제가 흰 깃발을 들면 기다리시고, 붉은 깃발을 들면 치십시오.'], ['huangzhong','늙은이라 얕보는 자들에게 보여 주지.']],
     st:[ { type:'timing', t:'산 위에서 때를 기다린다', d:'붉은 깃발이 오르고 적이 지친 순간에 친다. 너무 이르면 맞서고, 늦으면 놓친다', zone:[.62, .78], spd:1400, stat:'l', tries:1, ok:{ log:'붉은 깃발! 북소리와 함께 산을 내리닫는다.', foeHp:30 }, no:{ log:'때를 놓쳤다. 적이 대열을 갖추었다.', hp:-10 } },
          { foe:'xiahouyuan', goal:'win', boost:8, t:'하후연과 맞선다 (내리닫는 기세 무력 +8)' } ],
     win:[['huangzhong','보았느냐! 이 칼은 아직 녹슬지 않았다!']], lose:[[null, '하후연의 칼이 노장의 투구를 스쳤다.']] },
-  { id:'cb', n:'동남풍', y:208, hero:'zhouyu', bg:'bg_camp', d:'적벽. 조조의 배는 이미 쇠사슬로 묶였다. 남은 것은 거짓 항복과 바람.',
+  { id:'cb', n:'동남풍', y:208, hero:'zhouyu', bg:'s_b208_chibi', d:'적벽. 조조의 배는 이미 쇠사슬로 묶였다. 남은 것은 거짓 항복과 바람.',
     intro:[['zhouyu','모든 것이 갖추어졌으나, 동풍만이 모자라는구나.']],
     st:[ { type:'choice', t:'황개가 거짓 항복을 자청한다', opts:[ { t:'장수들 앞에서 매질한다 (고육계)', stat:'c', diff:55, ok:{ log:'피투성이 황개의 항복 서신을 조조가 믿었다.' }, no:{ log:'조조가 반쯤만 믿는다.', hp:-10 } }, { t:'서신만 보낸다', stat:'i', diff:85, ok:{ log:'서신이 통했다.' }, no:{ log:'조조가 의심하고 경계를 높였다.', hp:-15 } } ] },
          { type:'timing', t:'제단의 바람을 기다린다', d:'깃발이 서북으로 눕는 순간 불배를 띄운다', zone:[.7, .82], spd:1100, stat:'i', tries:2, ok:{ log:'동남풍이다! 불배 스무 척이 미끄러지듯 나아간다.' }, no:{ log:'바람이 아직 아니다.' } },
          { type:'battle', t:'불배가 쇠사슬로 묶인 함대를 덮친다', my:30000, foe:80000, morale:120, boost:'fire', boostK:2.2, u:'navy', foeName:'조조 수군', foeId:'cao', goal:'win' } ],
     win:[['zhouyu','강 위가 대낮처럼 밝구나…'], [null, '적벽의 불길은 사흘 밤낮 꺼지지 않았다.']], lose:[[null, '불길이 바람을 거슬러 아군 배로 번졌다.']] },
-  { id:'kc', n:'빈 성의 거문고', y:228, hero:'zhugeliang', bg:'bg_palace', d:'서성. 군사는 모두 나가고 남은 것은 늙은 병사 이천. 사마의 십오만이 다가온다.',
+  { id:'kc', n:'빈 성의 거문고', y:228, hero:'zhugeliang', bg:'bg_gate', d:'서성. 군사는 모두 나가고 남은 것은 늙은 병사 이천. 사마의 십오만이 다가온다.',
     intro:[['zhugeliang','성문을 모두 열고 길을 쓸어라. 나는 성루에서 거문고를 타겠다.']],
     st:[ { type:'choice', t:'사마의의 선봉이 성문 앞에 닿았다', opts:[ { t:'성문을 열고 백성 차림의 병사에게 길을 쓸게 한다', stat:'i', diff:70, ok:{ log:'선봉이 멈칫했다.' }, no:{ log:'선봉 장수가 웃으며 앞으로 나온다.', hp:-15 } }, { t:'성문을 닫고 깃발을 숨긴다', stat:'l', diff:90, ok:{ log:'성은 텅 빈 듯 조용하다. 선봉이 의심한다.' }, no:{ log:'선봉이 성벽을 오르기 시작했다!', fail:1 } } ] },
          { type:'timing', t:'성루에서 거문고를 탄다', d:'한 음도 흔들림 없이. 손끝이 떨리는 순간을 피해 다음 소절로 넘어간다', zone:[.4, .6], spd:800, stat:'i', tries:2, ok:{ log:'거문고 소리가 맑다. 사마의가 말고삐를 당긴다.' }, no:{ log:'한 음이 떨렸다.', hp:-15 } },
          { type:'choice', t:'사마의의 아들이 "빈 성입니다!" 하고 외친다', opts:[ { t:'아무렇지 않게 술을 따른다', stat:'i', diff:80, ok:{ log:'"공명은 평생 조심스러운 사람이다. 반드시 복병이 있다." 사마의가 군을 돌렸다!' }, no:{ log:'사마의의 눈빛이 흔들린다…', fail:1 } } ] } ],
     win:[['zhugeliang','…등에 식은땀이 흘렀구나. 다시는 못 할 일이다.']], lose:[[null, '활짝 열린 성문으로 위군이 밀려들었다.']] },
-  { id:'dd', n:'칼 한 자루 들고 가는 잔치', y:215, hero:'guanyu', bg:'bg_tavern', d:'노숙이 형주를 돌려 달라며 잔치에 불렀다. 장막 뒤에는 칼잡이가 숨어 있다.',
+  { id:'dd', n:'칼 한 자루 들고 가는 잔치', y:215, hero:'guanyu', bg:'bg_banquet', d:'노숙이 형주를 돌려 달라며 잔치에 불렀다. 장막 뒤에는 칼잡이가 숨어 있다.',
     intro:[['lusu','장군, 형주를 빌려 간 지 오래입니다. 오늘은 그 이야기를 합시다.']],
     st:[ { type:'choice', t:'노숙이 형주 반환을 다그친다', opts:[ { t:'수염을 쓸며 꾸짖는다', stat:'m', diff:75, ok:{ log:'자리의 공기가 얼어붙었다. 아무도 먼저 칼을 뽑지 못한다.' }, no:{ log:'장막 뒤에서 칼 소리가 난다.', hp:-10 } }, { t:'술잔을 들고 말을 돌린다', stat:'c', diff:65, ok:{ log:'노숙이 웃으며 잔을 받는다.' }, no:{ log:'노숙의 얼굴이 굳는다.', hp:-5 } } ] },
          { type:'choice', t:'잔치가 끝날 무렵, 문밖에 칼잡이들이 늘어섰다', opts:[ { t:'노숙의 손목을 잡고 함께 강가로 걷는다', stat:'m', diff:70, ok:{ log:'노숙을 놓아주자 주창의 배가 이미 닿아 있었다.' }, no:{ log:'칼잡이 하나가 달려든다!', duel:1 } }, { t:'주창에게 신호를 보내 배를 댄다', stat:'i', diff:60, ok:{ log:'배가 강가에 닿았다. 유유히 올랐다.' }, no:{ log:'신호가 늦었다. 길을 뚫어야 한다.', duel:1 } } ], foe:'zhoutai' } ],
     win:[['guanyu','노숙, 오늘 술은 좋았소.']], lose:[[null, '강동의 칼끝이 겨누어졌다.']] },
-  { id:'qz', n:'일곱 번 잡고 일곱 번 놓다', y:225, hero:'zhugeliang', bg:'bg_field', d:'남만왕 맹획. 몸이 아니라 마음을 꺾어야 다시는 등을 돌리지 않는다.',
+  { id:'qz', n:'일곱 번 잡고 일곱 번 놓다', y:225, hero:'zhugeliang', bg:'s_b225_nanman', d:'남만왕 맹획. 몸이 아니라 마음을 꺾어야 다시는 등을 돌리지 않는다.',
     intro:[['menghuo','이번엔 운이 나빴을 뿐이다! 다시 싸우면 내가 이긴다!']],
     st:[ { type:'choice', t:'첫째 · 골짜기에 군을 숨긴다', opts:[ { t:'거짓으로 져서 끌어들인다', stat:'i', diff:55, ok:{ log:'맹획을 사로잡았다. 웃으며 풀어 주었다.' }, no:{ log:'맹획이 눈치채고 물러났다.', hp:-8 } } ] },
          { type:'choice', t:'넷째 · 독천 넷이 길을 막는다', opts:[ { t:'샘의 물을 피하는 길을 찾는다', stat:'i', diff:70, ok:{ log:'은자가 해독할 풀을 일러 주었다.' }, no:{ log:'병사들이 독에 쓰러졌다.', hp:-20 } } ] },
          { type:'battle', t:'여섯째 · 등갑군을 불로 잡는다', my:15000, foe:20000, boost:'fire', boostK:2, u:'spear', foeName:'등갑군', foeId:'menghuo', goal:'win' },
          { type:'choice', t:'일곱째 · 맹획을 또 풀어 준다', opts:[ { t:'마음으로 대한다', stat:'c', diff:60, ok:{ log:'"승상의 하늘 같은 위엄, 남인은 다시는 배반하지 않겠습니다."' }, no:{ log:'맹획이 이를 갈며 돌아갔다.', fail:1 } } ] } ],
     win:[['menghuo','…이제 알겠소. 졌소.']], lose:[[null, '남중은 다시 들끓었다.']] },
-  { id:'bm', n:'백마의 일격', y:200, hero:'guanyu', bg:'bg_field', d:'백마. 원소의 맹장 안량이 깃발 아래 서 있다. 만 군 사이로 말을 몰아 단숨에 벤다.',
+  { id:'bm', n:'백마의 일격', y:200, hero:'guanyu', bg:'s_b200_baima', d:'백마. 원소의 맹장 안량이 깃발 아래 서 있다. 만 군 사이로 말을 몰아 단숨에 벤다.',
     intro:[['cao','안량을 당해낼 자가 없구려…'], ['guanyu','저 자는 머리를 팔려고 꽂아 둔 것과 같습니다.']],
     st:[ { type:'timing', t:'적진을 가르며 달린다', d:'안량이 고개를 돌리는 찰나에 청룡도를 내리친다', zone:[.48, .58], spd:700, stat:'m', tries:1, ok:{ log:'안량이 칼을 들기도 전에 청룡도가 떨어졌다!', foeHp:60 }, no:{ log:'안량이 알아채고 칼을 들었다!' } },
          { foe:'yanliang', maxR:2, goal:'win', t:'두 합 안에 끝낸다' } ],
     win:[[null, '안량의 머리를 들고 만 군 사이를 빠져나왔다. 원소군이 길을 비켰다.']], lose:[[null, '안량의 호위가 겹겹이 몰려들었다.']] },
-  { id:'sr', n:'삼영전 · 여포의 눈으로', y:190, hero:'lvbu', bg:'bg_field', d:'호뢰관. 고리눈의 장수 하나는 우습다. 그런데 하나가 더, 또 하나가 더 온다.',
+  { id:'sr', n:'삼영전 · 여포의 눈으로', y:190, hero:'lvbu', bg:'s_b190_hulao', d:'호뢰관. 고리눈의 장수 하나는 우습다. 그런데 하나가 더, 또 하나가 더 온다.',
     intro:[['lvbu','덤빌 놈은 다 덤벼라!']],
     st:[ { foe:'zhangfei', maxR:4, goal:'survive', t:'장비와 맞붙는다' },
          { foe:'guanyu', maxR:3, goal:'survive', foeBoost:10, t:'관우가 끼어들었다 (적 무력 +10)' },
          { type:'choice', t:'유비까지 칼을 뽑았다. 셋을 상대로', opts:[ { t:'유비 쪽 틈을 찔러 빠져나간다', stat:'m', diff:90, ok:{ log:'극을 한 번 휘둘러 길을 열고 관으로 돌아갔다.' }, no:{ log:'세 자루 병기가 동시에 날아든다!', hp:-25 } }, { t:'적토마를 믿고 내달린다', stat:'l', diff:40, ok:{ log:'적토마가 바람처럼 내달렸다.' }, no:{ log:'말이 헛디뎠다.', hp:-15 } } ] } ],
     win:[['lvbu','셋이서 하나를 못 잡는구나! 하하하!']], lose:[[null, '세 형제의 병기에 포위되었다.']] },
-  { id:'hr', n:'화용도', y:208, hero:'cao', bg:'bg_field', d:'적벽에서 불타 달아나는 길. 두 갈래 길 중 하나를 골라야 한다.',
+  { id:'hr', n:'화용도', y:208, hero:'cao', bg:'s_e208_huarong', d:'적벽에서 불타 달아나는 길. 두 갈래 길 중 하나를 골라야 한다.',
     intro:[['cao','…아직 끝나지 않았다. 길을 찾아라.']],
     st:[ { type:'choice', t:'큰길에는 연기가 없고, 좁은 화용도에는 연기가 피어오른다', opts:[ { t:'연기 나는 화용도로 (허를 찌른다)', stat:'i', diff:60, ok:{ log:'"공명이 일부러 연기를 피웠겠지." 그러나 길목에는…' }, no:{ log:'길이 진흙탕이다. 병사들이 쓰러진다.', hp:-15 } }, { t:'큰길로', stat:'l', diff:85, ok:{ log:'큰길로 빠져나왔다.', skip:1 }, no:{ log:'큰길에 복병이 있었다!', hp:-25 } } ] },
          { type:'choice', t:'관우가 길을 막았다', opts:[ { t:'옛 은혜를 떠올리게 한다', stat:'c', diff:60, ok:{ log:'관우가 말머리를 돌렸다. 길이 열렸다.' }, no:{ log:'관우의 눈빛이 흔들리지 않는다.', duel:1 } }, { t:'목숨을 걸고 맞선다', stat:'m', diff:95, ok:{ log:'허저와 함께 길을 뚫었다.', hp:-20 }, no:{ log:'청룡도 앞에 길이 막혔다.', duel:1 } } ], foe:'guanyu' } ],
@@ -4065,7 +4071,7 @@ TALES.push(
     st:[ { type:'battle', t:'밤의 조조 진영을 휩쓴다', my:100, foe:3000, morale:130, boost:'ambush', boostK:3, u:'cav', foeName:'조조 진영', foeId:'zhangliao', goal:'survive' },
          { type:'timing', t:'횃불이 켜지기 전에 빠져나간다', d:'적 진영의 북이 울리기 전 순간', zone:[.3, .45], spd:900, stat:'l', tries:1, ok:{ log:'한 명도 잃지 않고 돌아왔다!' }, no:{ log:'몇 기가 뒤처졌다.', hp:-10 } } ],
     win:[['sunquan','맹덕에게 장료가 있다면, 나에게는 흥패가 있다!']], lose:[[null, '조조 진영의 횃불이 길을 막았다.']] },
-  { id:'mz', n:'횃불 아래의 승부', y:214, hero:'machao', bg:'bg_field', d:'가맹관. 해가 졌지만 두 사람 모두 물러설 생각이 없다.',
+  { id:'mz', n:'횃불 아래의 승부', y:214, hero:'machao', bg:'bg_wallnight', d:'가맹관. 해가 졌지만 두 사람 모두 물러설 생각이 없다.',
     intro:[['zhangfei','해가 졌다고 물러날 줄 아느냐! 횃불을 밝혀라!'], ['machao','바라던 바다!']],
     st:[ { foe:'zhangfei', maxR:5, goal:'survive', t:'낮의 승부 다섯 합' },
          { type:'choice', t:'횃불이 켜졌다', opts:[ { t:'말을 바꿔 탄다', stat:'l', diff:50, ok:{ log:'새 말의 숨이 고르다.', hp:12 }, no:{ log:'말을 바꿀 틈이 없다.' } }, { t:'그대로 나간다', stat:'m', diff:60, ok:{ log:'기세가 꺾이지 않았다.', hp:5 }, no:{ log:'' } } ] },
@@ -4076,7 +4082,7 @@ TALES.push(
     st:[ { type:'choice', t:'조조군이 진영 앞에 닿았다', opts:[ { t:'홀로 창을 들고 진문 앞에 선다', stat:'m', diff:75, ok:{ log:'조조가 복병을 의심해 머뭇거린다.' }, no:{ log:'조조군이 몰려든다!', hp:-15 } } ] },
          { type:'battle', t:'물러나는 적에게 쇠뇌를 퍼붓는다', my:3000, foe:30000, morale:125, boost:'ambush', boostK:2.4, u:'bow', foeName:'조조군', foeId:'xuhuang', goal:'survive', view:'wall' } ],
     win:[['liubei','자룡의 온몸이 담덩어리로구나!']], lose:[[null, '진영이 무너졌다.']] },
-  { id:'pd', n:'관을 메고 나간 장수', y:219, hero:'pangde', bg:'bg_field', d:'번성. 관을 앞세우고 관우와 맞선다. 그런데 가을비가 그치지 않는다.',
+  { id:'pd', n:'관을 메고 나간 장수', y:219, hero:'pangde', bg:'s_b219_fancheng', d:'번성. 관을 앞세우고 관우와 맞선다. 그런데 가을비가 그치지 않는다.',
     intro:[['pangde','이 관에 관우가 들어가든, 내가 들어가든!']],
     st:[ { foe:'guanyu', maxR:5, goal:'survive', t:'관우와 백 합 (다섯 합 버티기)' },
          { type:'timing', t:'화살 한 발', d:'물러나는 관우의 이마를 노린다', zone:[.5, .6], spd:800, stat:'m', tries:1, ok:{ log:'화살이 관우의 팔에 꽂혔다!', foeHp:25 }, no:{ log:'화살이 빗나갔다.' } },
@@ -4501,11 +4507,11 @@ function dirMonth(){
 }
 function askTalk(d){
   const D = DIRS[d.k], q = person(d.by), say = D.say || (d.k==='a_letter' ? `${city(d.to).n}에 두고 온 식구들이 걱정이오. 이 서신을 전해 주겠소?` : `${d.tn}에 내 원수가 있소. 그놈이 편히 잠드는 꼴은 못 보겠소. 그대의 꾀를 빌려주시오.`);
-  talkQ({ title:`${q.n}의 부탁`, bg: d.k==='a_drink' ? 'bg_tavern' : d.k==='a_lend' || d.k==='a_letter' ? 'bg_house' : 'bg_camp', slots:{ r:q.id }, lines:[[null, pick([`해 질 무렵, ${J(q.n, '이')} 찾아왔다.`, `막사 앞에서 ${J(q.n, '이')} 기다리고 있었다.`, `${J(q.n, '이')} 주위를 살피더니 다가와 앉았다.`])], [q.id, say]],
+  talkQ({ title:`${q.n}의 부탁`, bg: d.k==='a_drink' ? 'bg_tavern' : d.k==='a_lend' ? 'bg_market' : d.k==='a_letter' ? 'bg_gate' : d.k==='a_vouch' ? 'bg_palace' : campBg(), slots:{ r:q.id }, lines:[[null, pick([`해 질 무렵, ${J(q.n, '이')} 찾아왔다.`, `막사 앞에서 ${J(q.n, '이')} 기다리고 있었다.`, `${J(q.n, '이')} 주위를 살피더니 다가와 앉았다.`])], [q.id, say]],
     choices:[{ t:'들어주겠다', sub:dirRewardTxt(d) + ` · ${D.mo}개월 안에`, cn:'askY' }, { t:'지금은 어렵다', sub:'인연 -2', cn:'askN' }] });
 }
 /* 벼슬길 */
-function pathUp(){ const P = PATHS[G.path], lv = pathLv(), L = lordOf(); news(`${P.n}의 길에서 ${P.t[lv-1]}에 올랐다. (${P.perk[lv-1]})`, true, true); if (L) talkQ({ title:`${P.t[lv-1]} 임명`, bg:'bg_palace', slots:{ r:L.id }, lines:[[null, '궁의 섬돌 아래 문무백관이 늘어섰다.'], [L.id, `${me().n}, 그동안의 일을 내 다 보았다. 오늘부터 ${J(P.t[lv-1], '으로')} 삼노라.`], ['me', '분에 넘치는 자리이오나, 맡은 바를 다하겠습니다.'], [null, `${P.t[lv-1]}: ${P.perk[lv-1]}`]] }); }
+function pathUp(){ const P = PATHS[G.path], lv = pathLv(), L = lordOf(); news(`${P.n}의 길에서 ${P.t[lv-1]}에 올랐다. (${P.perk[lv-1]})`, true, true); if (L) talkQ({ title:`${P.t[lv-1]} 임명`, bg:'bg_banquet', slots:{ r:L.id }, lines:[[null, '궁의 섬돌 아래 문무백관이 늘어섰다.'], [L.id, `${me().n}, 그동안의 일을 내 다 보았다. 오늘부터 ${J(P.t[lv-1], '으로')} 삼노라.`], ['me', '분에 넘치는 자리이오나, 맡은 바를 다하겠습니다.'], [null, `${P.t[lv-1]}: ${P.perk[lv-1]}`]] }); }
 function pathAsk(){ const L = lordOf(); if (!L || G.path || SIM) return; talkQ({ title:'벼슬길을 정하다', bg:'bg_palace', slots:{ r:L.id }, lines:[[L.id, `${me().n}, 이제 그대도 한 길을 정할 때가 되었다. 어느 길로 나를 돕겠는가?`], [null, '한번 정한 길은 바꿀 수 없다. 길에 따라 내려오는 지침과 얻는 힘이 달라진다.']],
   choices:Object.entries(PATHS).map(([k, P]) => ({ t:`${P.n} — ${P.d}`, sub:P.perk[0], cn:'path', arg:k })) }); }
 function promoTalk(){ const L = lordOf(); if (!L || SIM) return; talkQ({ title:`${RANKS[G.rank]} 승진`, bg:'bg_palace', slots:{ r:L.id }, lines:[[null, '북이 세 번 울리고, 그대의 이름이 불렸다.'], [L.id, `${me().n}의 공이 크다. 오늘부터 ${J(RANKS[G.rank], '으로')} 삼는다. 병력 ${fmt(troopCap())}까지 거느려도 좋다.`], ['me', '이 은혜, 반드시 공으로 갚겠습니다.']] }); if (!G.path && G.rank >= 1) pathAsk(); }
@@ -4524,6 +4530,13 @@ function aimSet(k){ const A = AIMS[k]; if (!A || (A.can && !A.can())) return; G.
 function aimCheck(quiet){ const a = G.aim; if (!a || !AIMS[a.k]) return; const b = aimBar(a); if (b[0] < b[1]) return; const A = AIMS[a.k], s = A.st; G.aim = null; G.aimDone = (G.aimDone||[]).concat(a.k); G.gold += 300; const chips = [['금 +300', true]]; if (me()[s]==null) me()[s] = me().i; const up = Math.min(2, 100 - me()[s]); if (up > 0){ me()[s] += up; chips.push([`${ST[s]} +${up}`, true]); }
   news(`뜻을 이루었다: ${A.n}. (${chips.map(c => c[0]).join(', ')})`, true, true); if (!quiet) toast(`뜻을 이루었다: ${A.n}`, chips); talkQ({ title:'뜻을 이루다', bg:'bg_house', lines:[[null, `${dateStr()}. 등불 아래 지난날을 돌아본다.`], ['me', `${A.d}… 마침내 해냈다. 다음은 무엇을 바라볼까.`]] }); }
 
+/* ---------------- 장면 그림 고르기 ---------------- */
+const isWinter = () => G && (G.month===12 || G.month<=2);
+function fieldBg(){ if (!G) return 'bg_field'; const m = G.month, r = Math.random(); if (isWinter() && r < .6) return 'bg_field_snow'; if (m>=6 && m<=8 && r < .35) return 'bg_field_rain'; const r2 = Math.random(); return r2 < .2 ? 'bg_field_dawn' : r2 < .4 ? 'bg_field_dusk' : 'bg_field'; }
+const campBg = () => isWinter() && Math.random() < .7 ? 'bg_snowcamp' : 'bg_camp';
+function battleBg(B){ const t = TERRAIN[B.to] || 'plain'; if (B.kind==='siege' || B.kind==='raise') return B.ps==='att' ? 'bg_siege' : 'bg_wallguard'; if (t==='river' && Math.random() < .6) return 'bg_river'; if (t==='mountain' && Math.random() < .6) return 'bg_pass'; return fieldBg(); }
+const EV_BG = { frbreak:'bg_field_dusk', frduel:'bg_field_dawn', histfate:'bg_shrine', quiet:'bg_ferry', book:'bg_house', plague:'bg_market', hermit:'bg_ferry', horse:'bg_field', drink:'bg_tavern', sworn:'bg_banquet', rival:'camp', marry:'bg_house', kid:'bg_house', sick:'bg_shrine', teach:'bg_house', feast:'bg_banquet', slander:'bg_palace', bribe:'bg_wallnight', campaign:'bg_council', gift:'bg_palace', famine:'bg_market', envoy:'bg_gate', talent:'bg_market', revolt:'bg_market', bigfeast:'bg_banquet', emperor:'end_unify', rwork:'bg_market', rinvite:'bg_gate', desert:'camp', engine:'bg_siege', nightraid:'bg_wallnight', rescue:'bg_wallguard', spy:'bg_pass', peace:'bg_gate', purge:'bg_jail', newlord:'bg_palace', guandu:'s_b200_guandu', chibi:'s_b208_chibi', samgo:'bg_house', hduel:'field' };
+function evBg(id){ const k = EV_BG[id]; if (!k) return ''; if (k==='camp') return campBg(); if (k==='field') return fieldBg(); return k; }
 /* ---------------- 행동 ---------------- */
 function spend(gold){ if (G.ap<=0) return false; if (gold && G.gold<gold) return false; G.ap--; if (gold) G.gold -= gold; return true; }
 function toast(msg, chips=[], bad=false){ msg = JF(msg); G.toast = { msg, chips, bad, t:Date.now() }; }
@@ -4649,7 +4662,7 @@ const ACT = {
       const t = cedeTarget(cid), old = c.owner, R = person(fac(old).ruler); G.cedeCd[cid] = mi() + 6;
       if (Math.random() < cedeChance(cid)){
         t.fac = G.pfac; t.loy = 60; transferCity(c, G.pfac, Math.round(c.troops*.6)); G.cedeAll = mi() + 3; t.city = cid; c.gov = t.id; addBond(t.id, 15);
-        cntAdd('sway'); talkQ({ title:`${c.n} 태수의 귀순`, bg:'bg_palace', lines:[[t.id, pick(['주군은 이 성을 버린 지 오래요. 성문을 열 테니 백성만은 지켜 주시오.', '난세에 누구를 섬길지는 내가 정하겠소. 이 성을 들어 귀공께 바치오.'])], ['me', '그대의 결단을 잊지 않겠소. 이 성은 그대로 그대가 맡으시오.'], [R ? R.id : null, `${t.n}, 이 배은망덕한 놈이…!`]] });
+        cntAdd('sway'); talkQ({ title:`${c.n} 태수의 귀순`, bg:'bg_gate', lines:[[t.id, pick(['주군은 이 성을 버린 지 오래요. 성문을 열 테니 백성만은 지켜 주시오.', '난세에 누구를 섬길지는 내가 정하겠소. 이 성을 들어 귀공께 바치오.'])], ['me', '그대의 결단을 잊지 않겠소. 이 성은 그대로 그대가 맡으시오.'], [R ? R.id : null, `${t.n}, 이 배은망덕한 놈이…!`]] });
         win(`${J(t.n,'이')} ${c.n}을(를) 들어 우리에게 넘어왔다! 싸움 없이 성 하나를 얻었다.`, [[`${c.n} 획득`,true],[`${t.n} 합류`,true]], 40); Snd.sfx('win');
         if (R) addBond(R.id, -30);
       } else { addBond(t.id, -15); t.loy = Math.min(100, (t.loy||70) + 8); lose(`${J(t.n,'은')} 밀서를 불태웠다. "나를 어찌 보고!" 도리어 충성이 굳어졌다.`); }
@@ -5090,7 +5103,7 @@ function jailStart(cf){
   G.city = jc.id; me().city = jc.id; G.panel = false;
   news(`${J(me().n,'이')} ${facName(cf)}에게 사로잡혀 ${jc.n}에 갇혔다.`, true, true);
   const R = fac(cf).ruler;
-  talkQ({ title:`${dateStr()} · ${jc.n} 옥사`, bg:'bg_palace', lines:[[null, `쇠사슬 소리와 함께 ${jc.n}의 옥문이 닫혔다.`], [R, pick([`${me().n}, 그대 같은 인물을 그냥 베기는 아깝다. 내 밑에서 일할 생각은 없는가?`, `몸값이 오기 전까지는 여기서 지내라. 도망칠 생각은 말고.`, `네 주인이 그대를 얼마로 여기는지 보자꾸나.`])], ['me', pick(['(…반드시 살아서 돌아간다.)', '(옥창 너머로 별을 센다. 길은 어딘가 있다.)'])]] });
+  talkQ({ title:`${dateStr()} · ${jc.n} 옥사`, bg:'bg_jail', lines:[[null, `쇠사슬 소리와 함께 ${jc.n}의 옥문이 닫혔다.`], [R, pick([`${me().n}, 그대 같은 인물을 그냥 베기는 아깝다. 내 밑에서 일할 생각은 없는가?`, `몸값이 오기 전까지는 여기서 지내라. 도망칠 생각은 말고.`, `네 주인이 그대를 얼마로 여기는지 보자꾸나.`])], ['me', pick(['(…반드시 살아서 돌아간다.)', '(옥창 너머로 별을 센다. 길은 어딘가 있다.)'])]] });
   Snd.sfx('capture'); vib(200);
 }
 function jailFree(why){
@@ -5116,7 +5129,7 @@ function jailTick(){
   }
   const bro = npcs().find(p => active(p) && (G.bond[p.id]??0) >= 75 && p.fac===G.pfac && !p.army && (p.m||0) >= 70);
   if (bro && Math.random() < .1 + Jl.m*.02){
-    talkQ({ title:'구출', bg:'bg_camp', lines:[[bro.id, `${me().n}! 내가 왔다. 옥문은 내가 막을 테니 어서 말에 올라라!`], ['me', `${bro.n}… 이 은혜는 잊지 않겠다.`]] });
+    talkQ({ title:'구출', bg:'bg_jail', lines:[[bro.id, `${me().n}! 내가 왔다. 옥문은 내가 막을 테니 어서 말에 올라라!`], ['me', `${bro.n}… 이 은혜는 잊지 않겠다.`]] });
     G.bond[bro.id] = Math.min(100, (G.bond[bro.id]||0) + 10); jailFree(`${bro.n}이(가) 옥문을 부수고 구해 내어`); return;
   }
   if (Jl.m >= 8 && Math.random() < .25 + (Jl.m - 8)*.1){ jailFree('포로 교환으로 풀려나'); return; }
@@ -5728,7 +5741,7 @@ function histTalk(e){
   if ((cast||[]).includes(G.pid) && !near) return;
   const mine = G.pfac && [...who, ...(cast||[])].some(id2 => person(id2) && person(id2).fac===G.pfac);
   const tk = TALKS[id];
-  const bg = SCENES.includes(id) ? 's_'+id : tk && tk.bg ? tk.bg : scale==='event' ? 'bg_palace' : 'bg_field';
+  const bg = SCENES.includes(id) ? 's_'+id : tk && tk.bg ? tk.bg : scale==='event' ? 'bg_palace' : fieldBg();
   const title = `${y}년 ${m}월 · ${n}`;
   if (tk){ talkQ({ title, bg, lines: tk.lines.map(([w, s]) => [w===G.pid ? 'me' : w, s]) }); return; }
   if (!(scale==='large' || mine || near)) return;
@@ -5744,13 +5757,13 @@ function battleIntro(B){
   const lines = [[null, `${city(B.to).n}. ${foe.name}의 군세 ${fmt(foe.troops)}이(가) 진을 쳤다.`]];
   if (fp) lines.push([fp.id, lnP(B.ps==='att' ? 'def' : 'cry', fp)]);
   if (mp) lines.push([mp.id===G.pid ? 'me' : mp.id, lnP(B.ps==='att' ? 'cry' : 'def', mp)]);
-  talkQ({ title: B.kind==='siege' ? `${city(B.to).n} 공성전` : `${city(B.to).n} 전투`, bg:'bg_field', lines });
+  talkQ({ title: B.kind==='siege' ? `${city(B.to).n} ${B.ps==='att' ? '공성전' : '수성전'}` : `${city(B.to).n} 전투`, bg:battleBg(B), lines });
 }
 function duelIntro(B, fp){
   if (SIM || !fp) return;
   const r = rivalOf(fp.id);
-  if (r && (r.w + r.l + r.d) > 0){ const L = rivalLines(fp, r); talkQ({ title:`일기토 · ${rivalTitle(r)}`, bg:'bg_field', lines: L }); return; }
-  talkQ({ title:'일기토', bg:'bg_field', lines:[[fp.id, lnP('duel', fp)], ['me', lnP('duel', me())]] });
+  if (r && (r.w + r.l + r.d) > 0){ const L = rivalLines(fp, r); talkQ({ title:`일기토 · ${rivalTitle(r)}`, bg:fieldBg(), lines: L }); return; }
+  talkQ({ title:'일기토', bg:fieldBg(), lines:[[fp.id, lnP('duel', fp)], ['me', lnP('duel', me())]] });
 }
 /* 숙적 기록: 한 번 맞붙은 장수는 다음에 만나면 그 승부를 기억한다 */
 function rivalOf(id){ G.rivals = G.rivals || {}; return G.rivals[id] || null; }
@@ -5781,7 +5794,7 @@ function openCodex(){
 function socialTalk(p, mode, ok){
   const mine = { drink:'한잔 받으시오. 오늘은 마음껏 마십시다.', talk:'요즘 천하의 형세를 어찌 보시오?', spar:'창 한번 맞대 봅시다.', gift:'작은 정성이오. 받아 주시오.' }[mode];
   const key = mode==='gift' ? 'gift' : ok ? mode : mode+'X';
-  talkQ({ title: ({ drink:'술자리', talk:'담론', spar:'무예 겨루기', gift:'선물' })[mode] + ' · ' + p.n, bg: mode==='drink' ? 'bg_tavern' : 'bg_house', lines:[['me', mine], [p.id, lnP(key, p)]] });
+  talkQ({ title: ({ drink:'술자리', talk:'담론', spar:'무예 겨루기', gift:'선물' })[mode] + ' · ' + p.n, bg: mode==='drink' ? 'bg_tavern' : mode==='gift' ? 'bg_market' : mode==='spar' ? campBg() : 'bg_house', lines:[['me', mine], [p.id, lnP(key, p)]] });
 }
 function recruitTalk(p, ok){
   talkQ({ title:'등용 · '+p.n, bg:'bg_house', lines:[['me', `${p.n}, 그대의 재주가 필요하오. 나와 함께 천하를 바로잡지 않겠소?`], [p.id, lnP(ok ? 'join' : 'joinX', p)]] });
@@ -6380,16 +6393,17 @@ function viewModal(){
   if (G.phase==='act' && G.trek) return `<div class="modal-bg">${viewTrek()}</div>`;
   return '';
 }
+function evArt(){ if (!G.ev) return ''; if (G.ev.bg===undefined) G.ev.bg = evBg(G.ev.id); return G.ev.bg ? `<div class="evart" style="background-image:url(art/${G.ev.bg}.webp)"></div>` : ''; }
 function viewEvent(){
   const ev = EVM[G.ev.id];
   const head = G.ev.npc && person(G.ev.npc) ? pp(person(G.ev.npc), 54) : G.ev.kid && kidById(G.ev.kid) ? kp(kidById(G.ev.kid), 54) : `<span class="seal">${ev.s}</span>`;
   if (G.ev.res){
     const r = G.ev.res;
-    return `<div class="modal"><div class="ehead">${head}<div><h3>${ev.t}</h3><div class="small muted">${esc(r.t)}</div></div></div>
+    return `<div class="modal">${evArt()}<div class="ehead">${head}<div><h3>${ev.t}</h3><div class="small muted">${esc(r.t)}</div></div></div>
       <p class="result ${r.ok?'':'bad'}">${esc(r.msg)}</p>${chipsHtml(r.chips)}
       <button class="btn" id="evNext">${G.dead ? '생의 끝' : '확인'}</button></div>`;
   }
-  return `<div class="modal"><div class="ehead">${head}<div><h3>${ev.t}</h3><div class="small muted">${dateStr()}</div></div></div>
+  return `<div class="modal">${evArt()}<div class="ehead">${head}<div><h3>${ev.t}</h3><div class="small muted">${dateStr()}</div></div></div>
     ${G.ev.id==='frduel' && G.frDuelOffer && person(G.frDuelOffer.foe) ? (() => { const f = person(G.frDuelOffer.foe); return `<div class="evpt">${pp(f, 92)}<div><b>${esc(f.n)}</b><small>${esc(facName(f.fac))} · 무력 ${SV(f.m)} · 통솔 ${SV(f.l)}</small></div></div>`; })() : ''}
     ${(() => { const o = G.ev.id==='histfate' ? G.histOffer : G.ev.id==='hduel' ? G.hduelOffer : null; return o && SCENES.includes(o.id) ? `<img loading="lazy" decoding="async" class="rscene" src="art/s_${o.id}.webp" alt="">` : ''; })()}
     <p>${esc(G.ev.text)}</p>
@@ -6504,7 +6518,7 @@ const EPI = { '노환':'노환으로 눈을 감았다', '병사':'병으로 세�
 let lastDeadGen = -1, lastResB = null, lastAnim = null, lastOver = null, lastBattleObj = null;
 function renderSuccession(){
   const p = me(), cands = heirCands(), sc = genScore();
-  $app.innerHTML = `<div class="page"><div class="card tomb">
+  $app.innerHTML = `<div class="page"><div class="card tomb"><div class="endart" style="background-image:url(art/${G.dead==='전사' ? 'bg_field_dusk' : 'end_tomb'}.webp)"></div>
     ${pp(p,84,'gray sq')}<h2>${esc(p.n)}</h2>
     <div class="epi">${G.gen}대 · ${roleText()}</div>
     <p>${p.b}–${G.year}. ${ageOf(p)}세에 ${EPI[G.dead]||'세상을 떠났다'}.</p>
@@ -6525,7 +6539,7 @@ function renderSuccession(){
 }
 function renderOver(){
   const e = G.end;
-  $app.innerHTML = `<div class="page"><div class="card tomb">
+  $app.innerHTML = `<div class="page"><div class="card tomb"><div class="endart" style="background-image:url(art/${e.unify ? 'end_unify' : G.over && G.over.kind==='era' ? 'end_retire' : 'end_tomb'}.webp)"></div>
     <span class="seal" style="width:60px;height:60px;font-size:40px;background:var(--red)">${e.unify?'통':'가'}</span><h2>${esc(G.surname)}씨 가문</h2>
     <div class="epi">${e.unify ? '천하를 하나로 만들었다' : G.over && G.over.kind==='era' ? '삼국의 시대를 끝까지 살아냈다' : `${G.gen}대에 걸친 이야기`}</div>
     <div class="scorebox"><div><span>가문 점수</span><b>${fmt(e.total)}</b></div><div><span>전투 승리</span><b>${G.wins}</b></div><div><span>함락한 성</span><b>${G.flags.sieges||0}</b></div></div>
@@ -7465,7 +7479,7 @@ function pxOverlays(A){
   const myPt = ptAny(A.myLook, A.myAge, A.myFemale, A.myCol), foePt = ptAny(A.foeLook, A.foeAge, A.foeFemale, A.foeCol);
   if (A.kind==='duel'){
     cut.className = 'pxcut vs';
-    cut.innerHTML = `<div class="band"></div><div class="vp l">${myPt}<b>${esc(A.myName)}</b></div><div class="vsx">VS</div><div class="vp r">${foePt}<b>${esc(A.foeName)}</b></div>`;
+    cut.innerHTML = `<div class="band"></div><div class="vp l">${myPt}<b>${esc(A.myName)}</b>${A.myCorps ? `<img class="vpc" src="art/u_${A.myCorps}.webp" alt="">` : ''}</div><div class="vsx">VS</div><div class="vp r">${foePt}<b>${esc(A.foeName)}</b>${A.foeCorps ? `<img class="vpc" src="art/u_${A.foeCorps}.webp" alt="">` : ''}</div>`;
   } else {
     const mine = BEATS[A.myT]===A.foeT && !A.myBf, foeWin = BEATS[A.foeT]===A.myT && !A.foeBf;
     if (mine || foeWin){
