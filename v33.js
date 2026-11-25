@@ -112,6 +112,13 @@ window.button=(o=>function(id,x,y,w,h,label,sub,opt){if(h<60)return o.apply(this
 if(window.__v31&&__v31.TUT){const t=__v31.TUT;t[0].x=306;t[0].y=(L.rowY+L.botY)/2;t[0].r=52;t[1].x=130;t[1].y=L.rowY+L.rowH/2;t[1].r=40;}
 {const r=document.getElementById('rot');if(r)r.innerHTML=`<b>${T('세로로 돌려 주세요','请竖屏游玩')}</b><span>${T('천하등용은 세로 화면에서 플레이합니다','天下登用为竖屏游戏')}</span>`;}
 {const st=document.createElement('style');st.textContent='#ctl button{min-width:50px!important;height:28px!important;font-size:13px!important;padding:0 8px!important}';document.head.append(st);}
+/* 아이폰 홈 화면 앱: 켜는 순간에는 상태 표시줄·홈 막대 여백이 빠진 크기로 재고, 여백이 생겨도 resize 이벤트가 오지 않는다.
+   그래서 게임 영역(#app) 크기가 바뀔 때마다 다시 맞춘다. */
+{let last='';const fit=()=>{const a=document.getElementById('app');if(!a)return;const k=a.clientWidth+'x'+a.clientHeight;if(k===last)return;last=k;try{resize();}catch(e){}};
+  try{if(window.ResizeObserver)new ResizeObserver(fit).observe(document.getElementById('app'));}catch(e){}
+  addEventListener('pageshow',()=>setTimeout(fit,60));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(fit,60);});
+  if(window.visualViewport)visualViewport.addEventListener('resize',()=>setTimeout(fit,30));
+  [80,300,800,2000].forEach(t=>setTimeout(fit,t));}
 try{bgCache=null;resize();}catch(e){}
 window.__v33={L};
 })();
