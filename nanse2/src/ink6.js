@@ -20,9 +20,13 @@ function paNew(url){
 let PA_READY = false;
 function paReady(){
   if (PA_READY) return true;
-  for (const c in PA_MAN) if (/^(r_|q_|s_|w_|a_|c_)/.test(c) && !(paImg(c) && (!PA.msk[c] || (PA.msk[c].complete && PA.msk[c].naturalWidth)))) return false;
+  for (const c of PA_CORE) if (!paHas(c)) return false;
   return (PA_READY = true);
 }
+const PA_CORE = ['s_walk1', 's_walk2', 'w_atk', 'w_ret', 'a_draw', 'a_shot', 'c_gal1', 'c_gal2', 'r_gal1', 'r_gal2', 'q_gal1', 'q_gal2'];
+function paHas(c){ return !!(PA_MAN[c] && paImg(c) && (!PA.msk[c] || (PA.msk[c].complete && PA.msk[c].naturalWidth))); }
+const PA_FAM = {};
+function paFam(f){ if (PA_FAM[f]) return true; for (const c in PA_MAN) if (c.startsWith(f + '_') && !paHas(c)) return false; return (PA_FAM[f] = true); }
 function paOk(c){ if (!paImg(c)) return false; const k = PA.msk[c]; return !k || k.complete; }
 function paAll(list){ for (const c of list) if (!paOk(c)) return false; return true; }
 function paSrc(c, col){
@@ -32,7 +36,7 @@ function paSrc(c, col){
   try {
     cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
     const L = document.createElement('canvas'); L.width = cv.width; L.height = cv.height; const lx = L.getContext('2d');
-    lx.drawImage(k, 0, 0); lx.globalCompositeOperation = 'source-in'; lx.fillStyle = col; lx.fillRect(0, 0, L.width, L.height);
+    lx.drawImage(k, 0, 0, L.width, L.height); lx.globalCompositeOperation = 'source-in'; lx.fillStyle = col; lx.fillRect(0, 0, L.width, L.height);
     const x = cv.getContext('2d'); x.drawImage(im, 0, 0);
     x.globalCompositeOperation = 'multiply'; x.globalAlpha = .9; x.drawImage(L, 0, 0);
     x.globalAlpha = 1; x.globalCompositeOperation = 'destination-in'; x.drawImage(im, 0, 0);
@@ -58,7 +62,7 @@ function paDraw(ctx, cf, x, y, D, flip, col, alpha){
 /* 기마 장수: o.pa = { c:'strike'|'wind'|..., p } 가 있으면 그 동작, 없으면 달리기/서기 */
 function paRider(c, x, y, sc, flip, col, o){
   if (o.noRider || o.vec || !paReady()) return null;
-  const f = o.weapon === 'spear' ? 'q' : 'r', man = PA_MAN[f + '_gal1']; if (!man) return null;
+  const f = o.weapon === 'spear' ? 'q' : 'r', man = PA_MAN[f + '_gal1']; if (!man || !paFam(f)) return null;
   let cf;
   if (o.pa){ const id = f + '_' + o.pa.c; if (!PA_MAN[id] || !paOk(id)) return null; cf = paAt(id, o.pa.p); }
   else if (o.run){ if (!paAll([f + '_gal1', f + '_gal2'])) return null; cf = paLoop([f + '_gal1', f + '_gal2'], (o.g || 0)*.5); }
@@ -114,7 +118,7 @@ function paEleph(c, x, y, sc, flip, col, t){
   if (!paOk('e_walk')) return false; const m = PA_MAN.e_walk;
   return paDraw(c, paLoop(['e_walk'], t*.18), x, y, 92*sc/m.w, flip, col);
 }
-setTimeout(() => { try { for (const c in PA_MAN) if (/^(r_|q_|s_|w_|a_|c_|e_|v_)/.test(c)) paImg(c); } catch(e){} }, 300);
+setTimeout(() => { try { PA_CORE.forEach(paImg); setTimeout(() => { for (const c in PA_MAN) if (/^(r_|q_|s_|w_|a_|c_|e_|v_)/.test(c)) paImg(c); }, 1500); } catch(e){} }, 200);
 /* 그린 효과 */
 const PA_UI = {};
 function paUi(n){ let o = PA_UI[n]; if (!o){ o = PA_UI[n] = paNew('art/ui/' + n + '.webp'); } return o.complete && o.naturalWidth ? o : null; }

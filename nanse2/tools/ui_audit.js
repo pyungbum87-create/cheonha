@@ -3,6 +3,7 @@
 const path = require('path'), fs = require('fs');
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const FILE = path.resolve(process.argv.slice(2).find(a => !a.startsWith('--')) || path.join(__dirname, '..', 'index.html')), SHOTS = process.argv.includes('--shots');
+const URLB = process.env.AUDIT_URL || ('file://' + FILE);
 const VPS = [['폰', 390, 844], ['작은폰', 360, 640], ['가로', 844, 390]];
 const MIN_TAP = 40;   // 애플 44pt, 구글 48dp 권장. 40 미만은 실패, 44 미만은 주의
 async function check(p){
@@ -33,17 +34,17 @@ async function check(p){
 }
 const clean = p => p.evaluate(() => document.querySelectorAll('.sheet-bg.tip, .tipsheet, #tut').forEach(x => x.remove()));
 async function newGame(p, year, tab, id){
-  await p.goto('file://' + FILE + '?dbg=1'); await p.waitForTimeout(700);
+  await p.goto(URLB + '?dbg=1'); await p.waitForTimeout(700);
   await p.getByText(year + '년', { exact: true }).click(); await p.locator(`[data-ttab="${tab}"]`).click().catch(() => {});
   await p.locator(`[data-pick="${id}"]`).click(); await p.locator('#go').click(); await p.waitForTimeout(500);
   await p.evaluate(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); });
 }
 const prep = js => async p => { await p.evaluate(js); await p.waitForTimeout(250); };
 const SCENES = [
-  ['타이틀', async p => { await p.goto('file://' + FILE + '?dbg=1'); await p.waitForTimeout(700); }],
+  ['타이틀', async p => { await p.goto(URLB + '?dbg=1'); await p.waitForTimeout(700); }],
   ['타이틀·회귀자', async p => { await p.locator('[data-ttab="reg"]').click().catch(() => {}); await p.waitForTimeout(200); }],
   ['타이틀·군주 선택창', async p => { await p.getByText('200년', { exact: true }).click(); await p.locator('[data-ttab="ruler"]').click().catch(() => {}); await p.locator('[data-pick="cao"]').click(); await p.waitForTimeout(250); }],
-  ['내 장수 만들기', async p => { await p.goto('file://' + FILE + '?dbg=1'); await p.waitForTimeout(600); await p.locator('#btnCu').click(); await p.waitForTimeout(200); await p.locator('#cuNew').click(); await p.waitForTimeout(250); }],
+  ['내 장수 만들기', async p => { await p.goto(URLB + '?dbg=1'); await p.waitForTimeout(600); await p.locator('#btnCu').click(); await p.waitForTimeout(200); await p.locator('#cuNew').click(); await p.waitForTimeout(250); }],
   ['지도(군주)', async p => { await newGame(p, 200, 'ruler', 'cao'); await p.evaluate(() => { D.G.talks = []; D.render(); }); }],
   ['평정(군주)', prep(() => { D.G.talks = []; D.queueCouncil(true); const T = D.G.talks[0]; if (T) T.i = T.lines.length - 1; D.render(); })],
   ['역사 대화', prep(() => { D.G.talks = []; D.talkQ({ title:'208년 11월 · 적벽', bg:'s_b208_chibi', lines:[['zhouyu','지금이다! 불을 놓아라! 강 위의 배들이 한꺼번에 타오른다.'],['cao','어째서 바람이…']] }); D.render(); })],

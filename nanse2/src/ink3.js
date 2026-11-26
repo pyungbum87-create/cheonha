@@ -80,7 +80,7 @@ function pxFight(ctx, A){
         const sw = melee ? Math.sin(tt*10 + m.ph) : 0;
         if (mv) for (let k = 0; k < 3; k++){ const ag = ((tt*3 + k/3) % 1); puff(ctx, x - S.dir*(26 + ag*30), m.y + 14 - ag*10, 6 + ag*18, .28*(1 - ag), '176,154,120'); }
         drawHorseman(ctx, x, m.y + 16, .74, !S.isMe, S.col, { t: tt + m.ph, g: tt*2.4, run: mv, wa: melee ? -.7 + sw*.8 : -1.0, lean: melee ? .12 : 0, weapon: m.weapon, horse: m.horse, look: m.look });
-        ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; const nw = ctx.measureText(S.nm||'').width + 10;
+        ctx.font = '700 11px Pretendard, sans-serif'; ctx.textAlign = 'center'; const nw = ctx.measureText(S.nm||'').width + 10;
         ctx.fillStyle = 'rgba(12,8,4,.72)'; ctx.fillRect(x - nw/2, m.y - 58, nw, 15); ctx.fillStyle = S.col; ctx.fillRect(x - nw/2, m.y - 58, 3, 15); ctx.fillStyle = '#f4ecdc'; ctx.fillText(S.nm||'', x + 1, m.y - 47);
         continue;
       }
