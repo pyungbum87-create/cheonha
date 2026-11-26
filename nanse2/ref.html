@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>ref</title><body>ref
+<script>
+(async()=>{const q=new URLSearchParams(location.search);const fs=(q.get('f')||'').split(',').filter(Boolean);const out=[];
+for(const f of fs){const b=await fetch(f).then(r=>r.blob());const im=await createImageBitmap(b);const c=document.createElement('canvas');c.width=im.width;c.height=im.height;c.getContext('2d').drawImage(im,0,0);
+out.push({name:f.split('/').pop().replace(/\.\w+$/,'.png'),data:c.toDataURL('image/png')});}
+if(window.opener){window.opener.postMessage({nanseRef:out},'https://chatgpt.com');document.body.textContent='sent '+out.length;setTimeout(()=>window.close(),500);}else document.body.textContent='no opener '+out.length;})();
+</script>
