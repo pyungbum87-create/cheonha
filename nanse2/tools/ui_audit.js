@@ -31,7 +31,7 @@ async function check(p){
     return out;
   }, MIN_TAP);
 }
-const clean = p => p.evaluate(() => document.querySelectorAll('.sheet-bg.tip, .tipsheet').forEach(x => x.remove()));
+const clean = p => p.evaluate(() => document.querySelectorAll('.sheet-bg.tip, .tipsheet, #tut').forEach(x => x.remove()));
 async function newGame(p, year, tab, id){
   await p.goto('file://' + FILE + '?dbg=1'); await p.waitForTimeout(700);
   await p.getByText(year + '년', { exact: true }).click(); await p.locator(`[data-ttab="${tab}"]`).click().catch(() => {});
