@@ -16,7 +16,7 @@ if(API){const dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2};}
 else{c.width=W;c.height=H;}
 function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('canvas');cv.width=w;cv.height=h;return cv}
-const BUILD='1126-1058';
+const BUILD='1126-1218';
 const QS=(!API&&typeof location!=='undefined')?location.search:'';
 // 안전장치: 반지름 음수·NaN이면 그리기 전체가 멈추는 문제 방지
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
@@ -141,11 +141,13 @@ if(API){try{API.showShareMenu&&API.showShareMenu({withShareTicket:true});API.onS
 // ================================================================ 게임 데이터
 const STAGES=[
  {n:['주거 지구','住宅区'],d:['처음 감염이 퍼진 아파트 골목','感染最先蔓延的公寓小巷'],mul:1,rate:1,sp:{run:20,pred:45,cmd:75,blk:95}},
- {n:['상업 지구','商业区'],d:['셔터가 내려간 네온 거리','卷帘门紧闭的霓虹街'],mul:1.6,rate:1.06,sp:{run:15,pred:40,cmd:65,blk:85}},
- {n:['공장 단지','工厂区'],d:['꺼진 확성기가 우는 공장','关着的喇叭仍在鸣响的工厂'],mul:2.6,rate:1.12,sp:{run:12,pred:32,cmd:55,blk:75}},
- {n:['지하 시추 기지','地下钻探基地'],d:['모든 것이 깨어난 곳','一切苏醒的地方'],mul:3.8,rate:1.18,sp:{run:10,pred:26,cmd:48,blk:65}},
- {n:['방송탑','广播塔'],d:['마지막 헬기가 기다리는 곳','最后的直升机在等待'],mul:4.6,rate:1.22,sp:{run:14,pred:24,cmd:45,blk:60}}];
+ {n:['상업 지구','商业区'],d:['셔터가 내려간 네온 거리','卷帘门紧闭的霓虹街'],mul:1.85,rate:1.06,sp:{run:15,pred:40,cmd:65,blk:85}},
+ {n:['공장 단지','工厂区'],d:['꺼진 확성기가 우는 공장','关着的喇叭仍在鸣响的工厂'],mul:2.8,rate:1.12,sp:{run:12,pred:32,cmd:55,blk:75}},
+ {n:['지하 시추 기지','地下钻探基地'],d:['모든 것이 깨어난 곳','一切苏醒的地方'],mul:4,rate:1.18,sp:{run:10,pred:26,cmd:48,blk:65}},
+ {n:['방송탑','广播塔'],d:['마지막 헬기가 기다리는 곳','最后的直升机在等待'],mul:4.9,rate:1.22,sp:{run:14,pred:24,cmd:45,blk:60}}];
 const STAGE_RECTS={"1":[[0,0,55,193],[0,193,95,243],[296,0,514,218],[600,0,724,243],[588,88,625,128],[598,128,625,193],[0,243,97,878],[602,243,724,878],[152,350,202,438],[152,506,202,593],[152,661,202,753],[493,348,543,433],[493,505,543,593],[493,665,543,753]],"2":[[0,0,290,95],[435,0,724,95],[0,110,45,965],[685,110,724,320],[635,315,724,700],[680,700,724,965],[40,120,178,205],[215,128,515,202],[555,122,690,205],[330,195,428,290],[115,228,165,282],[590,228,645,282],[222,322,520,672],[530,355,555,385],[525,410,550,450],[580,395,615,440],[585,520,625,550],[535,560,565,590],[600,570,630,620],[100,760,150,845],[100,865,150,960],[590,760,635,845],[590,865,635,960]],"3":[[0,1,278,101],[445,1,724,101],[0,101,22,201],[22,136,172,201],[212,136,510,201],[550,136,724,201],[0,191,58,965],[58,321,80,591],[100,431,125,521],[100,546,125,611],[345,226,428,296],[215,246,300,326],[450,261,505,321],[185,341,505,669],[608,491,665,641],[665,271,724,965],[690,201,724,271],[105,736,160,921],[555,761,625,951]],"4":[[0,0,290,100],[435,0,724,100],[0,70,65,135],[660,70,724,135],[0,135,172,205],[208,135,515,205],[550,135,724,205],[0,185,92,690],[0,690,70,965],[640,185,724,390],[605,390,724,665],[640,665,724,965],[285,235,445,330],[200,365,532,690],[530,410,552,545],[205,250,250,290],[550,300,595,345],[110,770,170,835],[555,790,610,860],[110,880,145,920],[575,875,615,910]],"5":[[0,1,345,141],[425,1,724,141],[50,176,185,213],[218,176,508,213],[542,176,680,213],[680,141,724,261],[0,141,55,266],[0,266,18,521],[0,521,100,691],[0,691,180,931],[0,931,30,965],[205,346,285,451],[285,356,555,691],[610,301,724,701],[555,301,620,351],[550,691,724,965],[348,251,438,301],[270,291,310,323],[455,286,505,326]]};
+// 밸런스 기준값(한곳에서 조정): 레벨 필요 경험치, 칸 층마다 적 체력·숫자 증가, 칸 클리어 회복, 버티기 시간
+const BAL={need:[5,4,.85],l0:.7,lHm:.4,lRate:.09,heal:.05,fightT:85};
 const BOSS_T=150;            // 문지기 등장 시간(초)
 const ZT={walk:{hp:12,spd:54,dmg:10,xp:1,r:10},run:{hp:9,spd:96,dmg:8,xp:1,r:10},pred:{hp:42,spd:52,dmg:14,xp:4,r:11},blk:{hp:230,spd:30,dmg:18,xp:14,r:17},cmd:{hp:130,spd:36,dmg:10,xp:12,r:15},boss:{hp:9000,spd:36,dmg:28,xp:80,r:32},spit:{hp:30,spd:42,dmg:8,xp:5,r:11,spr:'cmd',sc:.9},bomb:{hp:20,spd:62,dmg:6,xp:3,r:12,spr:'walk',sc:1.15},nest:{hp:300,spd:0,dmg:0,xp:12,r:24}};
 const ZN={walk:['감염자','感染者'],run:['추적자','追踪者'],pred:['덮치기형','扑击者'],cmd:['지휘형','指挥者'],blk:['거구','巨躯'],boss:['문지기','守门者'],spit:['침 뱉는 놈','喷吐者'],bomb:['폭탄 좀비','爆弹感染者'],nest:['포자 둥지','孢子巢']};
@@ -353,7 +355,7 @@ function ownedW(){return Object.keys(S.w).filter(k=>!WP[k].p)}
 function makeOpts(){const ks=Object.keys(WP).filter(k=>lv(k)<WP[k].m&&(WP[k].p||weaponOpen(k))),wc=ownedW().length;
  let pool=ks.filter(k=>lv(k)>0||WP[k].p||wc<6).sort(()=>Math.random()-.5);const out=[];const nw=pool.find(k=>!WP[k].p&&!lv(k));
  if(nw&&(S.lv<=4||wc<2)){out.push(nw);pool=pool.filter(k=>k!==nw)}while(out.length<3&&pool.length)out.push(pool.shift());return out.sort(()=>Math.random()-.5)}
-function levelUp(){S.lv++;S.need=Math.round(3+S.lv*3+S.lv*S.lv*.5);mission('lv',S.lv,true);const o=makeOpts();if(!o.length){P.hp=Math.min(P.maxHp,P.hp+20);return}
+function levelUp(){S.lv++;S.need=S.tut?Math.round(3+S.lv*3+S.lv*S.lv*.5):Math.round(BAL.need[0]+S.lv*BAL.need[1]+S.lv*S.lv*BAL.need[2]);mission('lv',S.lv,true);const o=makeOpts();if(!o.length){P.hp=Math.min(P.maxHp,P.hp+20);return}
  S.pick={opts:o,t:0};AudioFx.cue('card');vib('medium');
  if(S.lv===2)tip('pick',[['레벨이 오를 때마다 무기나 보조 능력을 하나 골라요.','每次升级可以选择一个武器或辅助能力。'],['무기를 최대 레벨(5)로 키우고 짝이 되는 보조를 가지면, 보급 상자에서 진화해요.','武器升到满级(5)并拥有对应辅助能力，就能在补给箱中进化。']])}
 function applyPick(k){if(!S.pick)return;S.w[k]=lv(k)+1;if(k==='arm'){P.maxHp+=20;P.hp=Math.min(P.maxHp,P.hp+40)}S.pick=null;P.inv=Math.max(P.inv,.8);
@@ -495,7 +497,7 @@ function weapons(dt){const p=P,cd=S.cd,cdm=CDM();newWeapons(dt,cdm);
  S.tur=S.tur.filter(t=>t.t<t.life)}
 
 // ================================================================ 판 끝
-function calcReward(won){const b=S.kills*.12+((S.tt||0)+S.t)*.35+(won?60:0);return Math.round(b*(1+.3*S.st)*(1+.3*(S.diff-1))*(1+.08*upLv('sup')))}
+function calcReward(won){const b=(S.kills*.12+((S.tt||0)+S.t)*.35+(won?80:0))*1.2;return Math.round(b*(1+.3*S.st)*(1+.3*(S.diff-1))*(1+.08*upLv('sup')))}
 function giveSupRun(n){S.bonus=(S.bonus||0)+n;message(L('물자 +','物资 +')+n,1.4)}
 function finishRun(won){if(S.over)return;S.over=true;S.won=won;if(S.daily&&won&&save.dailyWin!==S.daily.key){save.dailyWin=S.daily.key;S.bonus=(S.bonus||0)+250;S.dailyOk=1;track('daily_clear',{})}if(S.endless){S.newBest=S.t>(save.endBest||0);save.endBest=Math.max(save.endBest||0,Math.round(S.t))}const rw=calcReward(won)+(S.bonus||0);S.reward=rw;save.sup+=rw;mission('time',Math.round(S.t-(S.tc||0)));S.tc=S.t;
  if(won){const k=S.st;save.stats.clears++;mission('clear');const first=!save.clr[k+1];save.clr[k+1]=1;save.diff[k]=Math.max(save.diff[k]||1,S.diff+1);
@@ -509,7 +511,7 @@ function revive(){S.over=false;S.revived=true;sc='battle';save.sup=Math.max(0,sa
 // ================================================================ 길 고르기(챕터 경로) · 상점 · 사건 · 휴식
 // 노드 종류: 전투형(fight 버티기, elite 정예 사냥, defend 발전기 지키기, collect 연료 모으기, rescue 생존자 구출, boss) / 쉼터형(shop, event, rest)
 const NT={
- fight:{i:'⚔',c:'#c8d2de',n:['버티기','坚守'],d:['75초 동안 버티면 길이 열려요','坚持75秒即可通过'],b:1},
+ fight:{i:'⚔',c:'#c8d2de',n:['버티기','坚守'],d:['85초 동안 버티면 길이 열려요','坚持85秒即可通过'],b:1},
  elite:{i:'☠',c:'#ffd166',n:['정예 사냥','精英狩猎'],d:['금빛 정예 3마리를 쓰러뜨려요 · 부품 많이','击倒3个金色精英 · 零件更多'],b:1},
  defend:{i:'⚡',c:'#7fd0ff',n:['발전기 지키기','守护发电机'],d:['60초 동안 발전기를 지켜요 · 놈들이 발전기를 부숴요','守护发电机60秒 · 敌人会破坏它'],b:1},
  collect:{i:'⛽',c:'#ff9a5a',n:['연료 모으기','收集燃料'],d:['흩어진 연료통 5개를 모아요','收集散落的5个燃料桶'],b:1},
@@ -535,13 +537,13 @@ function enterNode(n){const R=S.route;R.cur=n;R.sel=null;track('node',{t:n.t,l:n
  for(const k of['zs','bul','gems','pk','pools','tur','bolts','fx','num','pt','dec','eb','air','fp','dead','sfx','mines','rays'])S[k]=[];
  const o=findOpen();P.x=o.x;P.y=o.y;P.inv=1.5;S.sv=(S.sv||[]).filter(v=>v.st===1);S.sv.forEach((v,i)=>{v.x=P.x+(i?30:-30);v.y=P.y+20});
  Object.assign(S,{t:0,spawn:0,wave:22,elT:30,elN:0,drops:n.t==='fight'?[38]:[],bossOut:n.t!=='boss',bT:14,boss:null,win:false,winT:-1,svT:n.t==='rescue'?[2,16]:(Math.random()<.35?[25]:[]),node:n,eK:0,nodeRes:0,cans:null,canMv:0,gen:null,eNext:4,od:0,rage:0,tc:0});
- S.hm=S.hm0*(1+.22*n.l);S.rate=S.rate0*(1+.07*n.l);
+ S.hm=S.hm0*(BAL.l0+BAL.lHm*n.l);S.rate=S.rate0*(1+BAL.lRate*n.l);
  nodeSetup2(n);
  if(n.t==='defend')S.gen={x:P.x+46,y:P.y,hp:100,mhp:100};
  if(n.t==='collect')S.cans=placeSpots(5,180,400,150);
  flowUpdate();sc='battle';announce(LL(NT[n.t].n),LL(NT[n.t].d),NT[n.t].c);AudioFx.cue('surge',.6)}
 function nodeTick(dt){const n=S.node;if(!n||S.win)return;const p=P;let done=false;modTick(dt);
- if(n.t==='fight')done=S.t>=75;
+ if(n.t==='fight')done=S.t>=BAL.fightT;
  else if(n.t==='elite'){if(S.t>=S.eNext&&S.zs.filter(z=>z.el&&!z.dead).length<2){S.eNext=S.t+11;spawnElite(['cmd','pred','blk'][(Math.random()*3)|0],false)}done=S.eK>=3}
  else if(n.t==='defend'){const G=S.gen;near(G.x,G.y,34,z=>{G.hp-=ZT[z.t].dmg*dt*.35});if(G.hp<=0){S.win=true;S.winT=1;S.nodeFail=1;message(L('발전기가 부서졌어요! 체력을 잃고 물러나요','发电机被毁！损失生命并撤退'),2);AudioFx.cue('lose',.6);return}done=S.t>=60}
  else if(n.t==='collect'){if(S.t>80&&!S.canMv){S.canMv=1;for(const c of S.cans){for(let k=0;k<40;k++){const a=Math.random()*TAU,r=rand(110,200),x=p.x+Math.cos(a)*r,y=p.y+Math.sin(a)*r;if(!solid(x,y,18)){c.x=x;c.y=y;break}}}message(L('남은 연료통을 가까이에서 찾았어요','在附近找到了剩下的燃料桶'),1.6)}S.cans=S.cans.filter(c=>{if(hyp(c.x-p.x,c.y-p.y)<34){AudioFx.cue('pick',.7);vib('light');S.cansGot=(S.cansGot||0)+1;P.hp=Math.min(P.maxHp,P.hp+P.maxHp*.04);return false}return true});done=!S.cans.length}
@@ -550,10 +552,10 @@ function nodeTick(dt){const n=S.node;if(!n||S.win)return;const p=P;let done=fals
  else if(n.t==='rescue')done=S.nodeRes>=2||(S.t>20&&!S.svT.length&&!S.sv.some(v=>v.st===0));
  if(done){S.win=true;S.winT=1.6;for(const gm of S.gems)gm.pull=true;for(const z of S.zs)if(!z.dead&&z.t!=='boss')killZ(z);announce(L('구역 확보!','区域已控制！'),L('다음 길을 고르세요','选择下一条路'),'#7fe0b0');AudioFx.cue('win',.6)}}
 function nodeClear(){const n=S.node,R=S.route;S.tt+=S.t;mission('time',Math.round(S.t-(S.tc||0)));S.tc=0;let g2=0;
- if(S.nodeFail){P.hp=Math.max(1,P.hp-P.maxHp*.25)}else{g2=Math.round((22+9*n.l+(n.t==='elite'?20:0)+(S.cansGot||0)*2)*(HR('scrap')?1.5:1)*(HR('doll')?1.4:1)*(1+.06*RL('scout'))*(S.daily&&S.daily.k==='rich'?2:1)*(n.m?MODS[n.m].mul:1));S.scrap+=g2;P.hp=Math.min(P.maxHp,P.hp+P.maxHp*((HR('bag')?.15:.08)+.02*RL('doc')));if(n.t==='elite'||n.m==='hunt'||(n.l===1&&!(S.rel&&S.rel.length)))offerRelic('node')}
+ if(S.nodeFail){P.hp=Math.max(1,P.hp-P.maxHp*.25)}else{g2=Math.round((22+9*n.l+(n.t==='elite'?20:0)+(S.cansGot||0)*2)*(HR('scrap')?1.5:1)*(HR('doll')?1.4:1)*(1+.06*RL('scout'))*(S.daily&&S.daily.k==='rich'?2:1)*(n.m?MODS[n.m].mul:1));S.scrap+=g2;P.hp=Math.min(P.maxHp,P.hp+P.maxHp*((HR('bag')?BAL.heal+.06:BAL.heal)+.02*RL('doc')));if(n.t==='elite'||n.m==='hunt'||(n.l===1&&!(S.rel&&S.rel.length)))offerRelic('node')}
  S.nodeFail=0;S.cansGot=0;n.done=1;S.acid=[];S.bea=null;S.huntT=null;S.node=null;S.win=false;S.winT=-1;S.zs=[];sc='route';if(g2)message(L('부품 +','零件 +')+g2,1.6)}
 // ---- 그리기: 칸 목표(HUD) · 발전기 · 연료통
-function drawObj(){const n=S.node;if(!n)return;let s='';if(n.t==='fight')s=L('버티기 ','坚守 ')+Math.max(0,Math.ceil(75-S.t))+L('초','秒');else if(n.t==='elite')s=L('정예 ','精英 ')+S.eK+'/3';else if(n.t==='defend')s=L('발전기 ','发电机 ')+Math.max(0,Math.round(S.gen.hp))+'% · '+Math.max(0,Math.ceil(60-S.t))+L('초','秒');else if(n.t==='collect')s=L('연료 ','燃料 ')+(5-S.cans.length)+'/5';else if(n.t==='rescue')s=L('생존자 ','幸存者 ')+S.nodeRes+'/2';else if(n.t==='beacon'){const B=S.bea&&S.bea[S.beI];s=L('중계기 ','中继器 ')+S.beI+'/'+(S.bea?S.bea.length:3)+(B&&B.p>0?' · '+Math.round(B.p*100)+'%':'')}else if(n.t==='nest')s=L('둥지 ','巢穴 ')+(S.nestN-S.zs.filter(z=>z.t==='nest'&&!z.dead).length)+'/'+S.nestN;else if(n.t==='boss')s=S.bossOut?L('문지기를 쓰러뜨려요','击倒守门者'):L('문지기가 다가와요 ','守门者逼近 ')+Math.max(0,Math.ceil(S.bT-S.t));
+function drawObj(){const n=S.node;if(!n)return;let s='';if(n.t==='fight')s=L('버티기 ','坚守 ')+Math.max(0,Math.ceil(BAL.fightT-S.t))+L('초','秒');else if(n.t==='elite')s=L('정예 ','精英 ')+S.eK+'/3';else if(n.t==='defend')s=L('발전기 ','发电机 ')+Math.max(0,Math.round(S.gen.hp))+'% · '+Math.max(0,Math.ceil(60-S.t))+L('초','秒');else if(n.t==='collect')s=L('연료 ','燃料 ')+(5-S.cans.length)+'/5';else if(n.t==='rescue')s=L('생존자 ','幸存者 ')+S.nodeRes+'/2';else if(n.t==='beacon'){const B=S.bea&&S.bea[S.beI];s=L('중계기 ','中继器 ')+S.beI+'/'+(S.bea?S.bea.length:3)+(B&&B.p>0?' · '+Math.round(B.p*100)+'%':'')}else if(n.t==='nest')s=L('둥지 ','巢穴 ')+(S.nestN-S.zs.filter(z=>z.t==='nest'&&!z.dead).length)+'/'+S.nestN;else if(n.t==='boss')s=S.bossOut?L('문지기를 쓰러뜨려요','击倒守门者'):L('문지기가 다가와요 ','守门者逼近 ')+Math.max(0,Math.ceil(S.bT-S.t));
  rr(175,106,400,44,14,'rgba(0,0,0,.6)',NT[n.t].c,2);g.save();g.beginPath();g.arc(200,128,19,0,TAU);g.fillStyle='#141a24';g.fill();g.restore();nodeIcon(n.t,200,128,19);txt(s,388,128,20,'#fff','center',false,800);if(n.m)modGlyph(n.m,552,128,15)}
 // ---- 경로 화면
 function routeScreen(){const R=S.route;bgMap(R.st,.7);const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(5,7,12,.7)');gr.addColorStop(1,'rgba(5,7,12,.9)');g.fillStyle=gr;g.fillRect(0,0,W,H);
@@ -784,7 +786,7 @@ function beaconTick(dt){const B=S.bea[S.beI];if(!B)return true;const d=hyp(P.x-B
  if(S.t>95&&!S.canMv){S.canMv=1;for(let i=S.beI;i<S.bea.length;i++){const q=placeSpots(1,110,210,0)[0];if(q){S.bea[i].x=q.x;S.bea[i].y=q.y}}message(L('가까운 곳에 중계기 자리를 다시 찾았어요','在附近重新找到了中继器位置'),1.6)}
  if(B.p>=1){B.on=1;S.beI++;AudioFx.cue('ding',.8);vib('medium');S.fx.push({k:'wave',x:B.x,y:B.y,t:0,life:.7,R:140,c:'#7fd0ff'});if(S.beI<S.bea.length){message(L('중계기 연결 ','中继器已连接 ')+S.beI+'/'+S.bea.length+L(' · 신호에 놈들이 몰려와요!',' · 信号引来了敌人！'),1.6);for(let i=0;i<6+3*S.beI;i++)spawnRing(pickType())}}
  return S.beI>=S.bea.length}
-function nestTick(dt){let alive=0;for(const z of S.zs){if(z.t!=='nest'||z.dead)continue;alive++;z.spT-=dt;if(z.spT<=0){z.spT=Math.max(2,3.4-S.node.l*.2);if(hyp(z.x-P.x,z.y-P.y)<560&&S.zs.length<200){for(let k=0;k<2;k++){const a=Math.random()*TAU,x=z.x+Math.cos(a)*36,y=z.y+Math.sin(a)*30;if(!solid(x,y,10))spawn(S.t>35&&Math.random()<.3?'run':'walk',x,y)}spark(z.x,z.y-14,6,'#9dff6a',90,.5,2.4,-30)}}}return alive===0}
+function nestTick(dt){let alive=0;if(S.t>90&&!S.canMv){S.canMv=1;for(const z of S.zs)if(z.t==='nest'&&!z.dead){const q=placeSpots(1,140,240,0)[0];if(q){z.x=q.x;z.y=q.y}}message(L('남은 둥지를 가까이에서 찾았어요','在附近找到了剩下的巢穴'),1.6)}for(const z of S.zs){if(z.t!=='nest'||z.dead)continue;alive++;z.spT-=dt;if(z.spT<=0){z.spT=Math.max(2,3.4-S.node.l*.2);if(hyp(z.x-P.x,z.y-P.y)<560&&S.zs.length<200){for(let k=0;k<2;k++){const a=Math.random()*TAU,x=z.x+Math.cos(a)*36,y=z.y+Math.sin(a)*30;if(!solid(x,y,10))spawn(S.t>35&&Math.random()<.3?'run':'walk',x,y)}spark(z.x,z.y-14,6,'#9dff6a',90,.5,2.4,-30)}}}return alive===0}
 function nestKilled(z){S.scrap=(S.scrap||0)+6;S.fx.push({k:'boom',x:z.x,y:z.y,t:0,life:.5,R:70,c:'#9dff6a'});spark(z.x,z.y-10,24,'#b6f08a',200,.7,3);shake(.25);AudioFx.cue('slam',.6);const left=S.zs.filter(q=>q.t==='nest'&&!q.dead).length;if(left)message(L('둥지 파괴! 남은 둥지 ','巢穴已摧毁！剩余 ')+left,1.4)}
 
 // ---- 보급 투하(쉼터형 칸): 상자 셋 중 하나
@@ -1120,6 +1122,7 @@ if(S.unlockMsg){txt('🔓 '+S.unlockMsg,375,y,22,'#7fe0b0','center');y+=46}
  if(!S.doubled&&S.reward>0){button(140,y,470,80,L('📺 광고 보고 물자 2배','📺 看广告物资翻倍'),'blue',22,()=>showAd('double',()=>{S.doubled=true;save.sup+=S.reward;persist();AudioFx.cue('win')}));y+=96}
  if(won){button(140,y,470,72,L('친구에게 자랑하기','分享给好友'),'dark',22,shareGame);y+=90}
  const tutDone=S.tut,cs=won&&S.first?'c'+S.st:null,en=S.endless;const after=f=>{if(tutDone)playStory('pro',f);else if(cs)playStory(cs,f);else f()};
+ if(!won&&!S.endless&&canUpgrade()){txt(L('💡 물자로 대피소 능력을 강화하면 더 멀리 갈 수 있어요','💡 用物资在避难所强化能力，就能走得更远'),375,y+6,18,'#ffd166','center',false,700);y+=36}
  button(140,y,230,84,L('대피소로','回避难所'),'green',24,()=>{S=null;after(()=>{sc=tutDone?'shelter':'title'})});button(380,y,230,84,L('다시 출동','再次出动'),'gold',26,()=>{const st=S.st,d=S.diff,b=false;S=null;after(()=>{if(en)newEndless(b);else startChapter(st,d,false)})})}
 
 // ================================================================ 안내 팁 · 광고 · 알림
