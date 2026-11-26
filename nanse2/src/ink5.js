@@ -1,5 +1,6 @@
 /* 코끼리 (상병): 등에 병사를 태운 큰 몸집 */
 function drawElephant(c, x, y, sc, flip, col, t){
+  if (paEleph(c, x, y, sc, flip, col, t)) return;
   c.save(); c.translate(x, y); c.scale(flip ? -sc : sc, sc); const w = Math.sin(t*1.6), g = '#8d8478', gd = '#6e665c';
   c.lineJoin = c.lineCap = 'round'; c.strokeStyle = '#2a251f'; c.lineWidth = 1.6;
   c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.ellipse(0, 2, 30, 6, 0, 0, TWO_PI); c.fill();
@@ -46,7 +47,7 @@ function runTrekCv(){
     if (ev==='ambushR' || ev==='cliff') for (const r of rocks){ const k = ((t + r.d) % 1.4)/1.4, y = 40 + k*130; ctx.fillStyle = '#6a5c48'; ctx.beginPath(); ctx.arc(r.x + k*30, y, r.r, 0, TWO_PI); ctx.fill(); if (k > .9) puff(ctx, r.x + 30, 172, 14, .35, '150,130,100'); }
     // 행군 대열
     const baseY = road==='water' ? 158 : 168, bob = halt ? 0 : Math.sin(t*9)*1.5;
-    if (road==='water') for (let b = 0; b < 3; b++){ const x = 80 + b*120, y = baseY + Math.sin(t*2 + b)*2; ctx.fillStyle = '#5a4630'; ctx.strokeStyle = '#2a1f16'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x - 46, y); ctx.lineTo(x + 46, y); ctx.lineTo(x + 34, y + 12); ctx.lineTo(x - 34, y + 12); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 46); ctx.stroke(); ctx.fillStyle = '#efe4c8'; ctx.beginPath(); ctx.moveTo(x + 2, y - 44); ctx.quadraticCurveTo(x + 30, y - 30, x + 2, y - 10); ctx.fill(); ctx.stroke(); for (let i = 0; i < 4; i++) blitFig(ctx, figSprite('spear', col, 'idle'), x - 26 + i*16, y + 2, .5, false, 12, 37); }
+    if (road==='water') for (let b = 0; b < 3; b++){ const x = 80 + b*120, y = baseY + Math.sin(t*2 + b)*2; if (paShip(ctx, x, y + 14, col, t*.25 + b*.37)) continue; ctx.fillStyle = '#5a4630'; ctx.strokeStyle = '#2a1f16'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x - 46, y); ctx.lineTo(x + 46, y); ctx.lineTo(x + 34, y + 12); ctx.lineTo(x - 34, y + 12); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 46); ctx.stroke(); ctx.fillStyle = '#efe4c8'; ctx.beginPath(); ctx.moveTo(x + 2, y - 44); ctx.quadraticCurveTo(x + 30, y - 30, x + 2, y - 10); ctx.fill(); ctx.stroke(); for (let i = 0; i < 4; i++) blitFig(ctx, figSprite('spear', col, 'idle'), x - 26 + i*16, y + 2, .5, false, 12, 37); }
     else { for (let i = 0; i < 9; i++){ const x = 60 + i*26, y = baseY + (i%2)*8 + (halt ? 0 : Math.abs(Math.sin(t*9 + i))*1.6); blitFig(ctx, figSprite(i%4===3 ? 'bow' : 'spear', col, !halt && Math.sin(t*9 + i) > 0 ? 'charge' : 'idle'), x, y, .6, false, 12, 37); }
       const cv_ = CORPS_V[trekCorps]; if (cv_==='eleph') for (let i = 0; i < 2; i++) drawElephant(ctx, 190 + i*64, baseY + 22 + i*6, .7, false, col, t*4 + i); else if (cv_==='cav') for (let i = 0; i < 3; i++) blitFig(ctx, figSprite('cav', col, !halt && Math.sin(t*10 + i) > 0 ? 'a' : halt ? 'idle' : 'b'), 380 + i*44, baseY + 16 + (i%2)*8, .7, false, 28, 38);
       drawBanner(ctx, 120, baseY - 6, 56, col, t*5, -1, 0, .9); drawHorseman(ctx, 330, baseY + 14 + bob, .78, false, col, { t: t*5, g: t*2.2, run: !halt, wa: -1.0, weapon: rd ? rd.weapon : 'spear', horse: rd ? rd.horse : '#6a4326', look: rd });
@@ -191,7 +192,7 @@ function runMelee(){
     const list = M.ents.filter(e => { const x = e.x - cam; return x > -30 && x < VW_ + 30 && (!e.dead || e.dead < .6); }); list.push({ hero:1, y:H.y }); if (!M.boss.dead) list.push({ boss:1, y:M.boss.y }); list.sort((a, b) => a.y - b.y);
     for (const e of list){
       if (e.hero){ const x = H.x - cam; ctx.fillStyle = 'rgba(243,201,90,.35)'; ctx.beginPath(); ctx.ellipse(x, H.y + 4, 26, 9, 0, 0, TWO_PI); ctx.fill();
-        drawHorseman(ctx, x, H.y + 6, .64, M.face < 0, myCol, { t: tt, g: tt*.45, run: H.mv, wa: M.swing > 0 ? -1.6 + (1 - M.swing)*2.2 : -1.0, lean: H.mv ? .1 : 0, weapon: rd ? rd.weapon : 'spear', horse: rd ? rd.horse : '#6a4326', look: rd }); continue; }
+        drawHorseman(ctx, x, H.y + 6, .64, M.face < 0, myCol, { t: tt, g: tt*.45, run: H.mv, pa: M.swing > 0 ? { c:'strike', p: 1 - M.swing } : null, wa: M.swing > 0 ? -1.6 + (1 - M.swing)*2.2 : -1.0, lean: H.mv ? .1 : 0, weapon: rd ? rd.weapon : 'spear', horse: rd ? rd.horse : '#6a4326', look: rd }); continue; }
       if (e.boss){ const Bo = M.boss, x = Bo.x - cam; if (x < -60 || x > VW_ + 60) continue; drawHorseman(ctx, x, Bo.y + 6, .64, H.x < Bo.x, foCol, { t: tt + 2, g: tt*.4, run: true, wa: -1.0 + Math.sin(tt*2)*.5, weapon: frd ? frd.weapon : 'blade', horse: frd ? frd.horse : '#2c2420', look: frd, hurt: Bo.hurt > 0 });
         ctx.fillStyle = '#3a1410'; ctx.fillRect(x - 24, Bo.y - 62, 48, 5); ctx.fillStyle = '#c2452f'; ctx.fillRect(x - 24, Bo.y - 62, 48*Math.max(0, Bo.hp)/Bo.max, 5); ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2a1410'; ctx.lineWidth = 3; ctx.strokeText(foe.name, x, Bo.y - 66); ctx.fillText(foe.name, x, Bo.y - 66); continue; }
       const x = e.x - cam, col = e.side ? foCol : myCol;

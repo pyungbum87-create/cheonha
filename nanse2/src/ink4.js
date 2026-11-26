@@ -85,7 +85,7 @@ function pxAssault(ctx, A){
       ctx.strokeStyle = 'rgba(30,20,10,.9)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 7, y - 3); ctx.stroke(); }
     for (const a of myArrows){ if (t < a.t0 || t > a.t0 + a.dur) continue; const k = (t - a.t0)/a.dur, x = lerp(a.fx, a.tx, k), y = lerp(a.fy, a.ty, k) - Math.sin(k*Math.PI)*60;
       ctx.strokeStyle = 'rgba(30,20,10,.9)'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(x - 7, y + 2); ctx.lineTo(x, y); ctx.stroke(); if (a.fire){ glow(ctx, x, y, 10, .7, '255,150,40'); } }
-    if (plan==='fire' || A.myT==='fire'){ for (let i = 0; i < 5; i++){ const fx = 574 + i*13, on = t > .35 + i*.05; if (on){ flame(ctx, fx, top + 2, .9, tt + i, i*2); puff(ctx, fx + 4, top - 20 - ((tt*20 + i*9) % 40), 12, .25, '48,40,36'); } } }
+    if (plan==='fire' || A.myT==='fire'){ for (let i = 0; i < 5; i++){ const fx = 574 + i*13, on = t > .35 + i*.05; if (on){ paFx(ctx, 'fx_fire', fx, top - 12, 48, .9); flame(ctx, fx, top + 2, .9, tt + i, i*2); puff(ctx, fx + 4, top - 20 - ((tt*20 + i*9) % 40), 12, .25, '48,40,36'); } } }
     // 굶주림: 성 안에서 가는 연기 몇 줄기
     if (starving) for (let i = 0; i < 3; i++){ const ag = ((tt*.5 + i*.33) % 1); puff(ctx, 520 + i*40, top - 30 - ag*60, 6 + ag*14, .2*(1 - ag), '90,80,70'); }
     ctx.restore();
@@ -160,7 +160,7 @@ function pxWallTop(ctx, A){
       if (pushed > 0 && pushed < .5) puff(ctx, L.x + 10, PY + 10, 14, .4, '150,130,100');
     }
     // 끓는 기름·바위
-    if (plan==='oil' && t > .48 && t < .7){ const k = (t - .48)/.22; for (let i = 0; i < 5; i++){ const x = 80 + i*120; flame(ctx, x, PY + 18, 1.2*(1 - k*.5), tt + i, i); puff(ctx, x, PY - 10 - k*40, 14 + k*30, .35*(1 - k), '60,50,45'); } }
+    if (plan==='oil' && t > .48 && t < .7){ const k = (t - .48)/.22; for (let i = 0; i < 5; i++){ const x = 80 + i*120; paFx(ctx, 'fx_fire', x, PY + 6, 70*(1 - k*.4), .9*(1 - k*.3)); flame(ctx, x, PY + 18, 1.2*(1 - k*.5), tt + i, i); puff(ctx, x, PY - 10 - k*40, 14 + k*30, .35*(1 - k), '60,50,45'); } }
     // 적 화살이 날아와 난간에 박힌다
     for (const a of incoming){ if (t < a.t0 || t > a.t0 + .08) continue; const k = (t - a.t0)/.08, y = lerp(200, PY + 4, k), L = 4 + 18*k; ctx.strokeStyle = 'rgba(30,20,10,.95)'; ctx.lineWidth = 1 + 2*k; ctx.beginPath(); ctx.moveTo(a.x, y); ctx.lineTo(a.x - L*.3, y - L); ctx.stroke(); if (a.fire) glow(ctx, a.x, y, 10 + 10*k, .7, '255,150,40'); if (k > .85) sparkBurst(ctx, a.x, PY + 4, (k - .85)/.15, seeded(hashStr('i' + a.x)), 5); }
     // 깃발 (성벽 위)

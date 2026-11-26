@@ -202,6 +202,14 @@ function pxDuel(ctx, A){
       const col = isMe ? A.myCol : A.foeCol;
       if (t >= .80 && ((isMe && loserMe) || (!isMe && !A.win && false))){}
       const isLoser = (t >= .80 && !A.draw && (isMe ? loserMe : !loserMe));
+      let pa = null;
+      if (i >= 0 && t >= T0 && t < .80){
+        if (u >= .27 && u < .335) pa = { c:'wind', p:(u - .27)/.065 };
+        else if (u >= .335 && u < .42) pa = { c: mineRes < 0 ? 'hit' : 'strike', p:(u - .335)/.085 };
+        else if (u >= .42 && u < .62) pa = { c: mineRes < 0 ? 'rehit' : 'recov', p:(u - .42)/.2 };
+      }
+      if (t >= .80 && !isLoser && isMe === winnerMe && !A.draw) pa = { c:'wind', p:(t - .80)/.06 };
+      if (isLoser && paRider(ctx, x, FY, SC, !isMe, col, { t: tt, weapon: isMe ? wMe : wFoe, pa: t < .84 ? { c:'hit', p:(t - .80)/.04 } : { c:'fall', p:(t - .84)/.12 } })){ continue; }
       if (isLoser){
         const k = ease(cl01((t - .80)/.12)), bolt = ease(cl01((t - .83)/.17));
         drawHorseman(ctx, x + dir*(bolt*160), FY, SC, !isMe, col, { t: tt, g: tt*3, run: true, noRider:true, horse: isMe ? hMe : hFoe, rear: .2 });
@@ -210,7 +218,7 @@ function pxDuel(ctx, A){
         blitFig(ctx, figSprite(isMe ? 'spear' : 'spear', col, 'idle'), rx, ry + 38*1.3, 1.5, !isMe, 12, 37); ctx.restore();
         continue;
       }
-      const tip = drawHorseman(ctx, x, FY, SC, !isMe, col, { t: tt + (isMe?0:1), g, run: moving, wa, lean: lean*(isMe?1:1), rear, weapon: isMe ? wMe : wFoe, horse: isMe ? hMe : hFoe, look: isMe ? rMe : rFoe });
+      const tip = drawHorseman(ctx, x, FY, SC, !isMe, col, { t: tt + (isMe?0:1), g, run: moving, pa, wa, lean: lean*(isMe?1:1), rear, weapon: isMe ? wMe : wFoe, horse: isMe ? hMe : hFoe, look: isMe ? rMe : rFoe });
       tips.push(tip);
     }
     // 충돌 연출
@@ -223,6 +231,8 @@ function pxDuel(ctx, A){
       else if (rd.k==='l'){ slashArc(ctx, cx, cy + 6, 66, -2.5, .6, k, true); }
       else { slashArc(ctx, cx, cy + 6, 62, -2.6, .3, k, false); slashArc(ctx, cx, cy + 6, 62, -2.6, .3, k, true); }
       sparkBurst(ctx, cx, cy + 12, k, seeded(hashStr('s' + i)), 16, '#fff0b8');
+      paFx(ctx, 'fx_slash', cx, cy, 190*(.75 + k*.4), 1 - k, rd.k==='l' ? .3 : -.3, rd.k==='l');
+      if (rd.k!=='d') paFx(ctx, 'fx_ink', rd.k==='w' ? 320 + off : 320 - off, 210, 120*(.6 + k*.6), .8*(1 - k));
       if (rd.k!=='d'){ const lx = rd.k==='w' ? 320 + (off + 6) : 320 - (off + 6); inkSplat(ctx, lx, 214 + k*10, 26*(.5 + k), .65*(1 - k*.5), '110,22,16', seeded(hashStr('i' + i))); }
       if (u > .335 && u < .37){ ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(0, 0, VW, VH); }
     }

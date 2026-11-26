@@ -1,6 +1,7 @@
 /* ---------- 병사·장수 그림 ---------- */
 const FIGS = new Map();
 function figSprite(type, col, pose){
+  if (typeof paFig === 'function'){ const pf = paFig(type, col, pose); if (pf) return pf; }
   const key = type+'|'+col+'|'+pose; let c = FIGS.get(key); if (c) return c;
   const S = 2, W = type==='cav' ? 56 : 36, H = 40;
   c = document.createElement('canvas'); c.width = W*S; c.height = H*S;
@@ -63,12 +64,14 @@ function drawCavFig(x, col, pose){
   x.strokeStyle = col; x.lineWidth = 2.4; x.beginPath(); x.moveTo(26, 14); x.lineTo(hx, hy); x.stroke();
 }
 function blitFig(ctx, spr, x, y, sc, flip, ax, ay, alpha){
+  if (spr.__pa) return paBlit(ctx, spr, x, y, sc, flip, alpha);
   ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
   if (alpha != null && alpha < 1) ctx.globalAlpha = Math.max(0, alpha);
   ctx.drawImage(spr, -ax*sc, -ay*sc, spr.width/2*sc, spr.height/2*sc); ctx.restore();
 }
 /* 기마 장수 (벡터, 매 프레임 그림) — o:{g,run,wa,lean,t,rot,horse,weapon,noRider,hurt} */
 function drawHorseman(c, x, y, sc, flip, col, o){
+  { const pr = paRider(c, x, y, sc, flip, col, o); if (pr) return pr; }
   const t = o.t || 0, g = o.g || 0, hc = o.horse || '#6a4326', hd = shade(hc, .55), run = o.run;
   c.save(); c.translate(x, y); c.scale(flip ? -sc : sc, sc);
   if (o.rot){ c.translate(0, -24); c.rotate(o.rot); c.translate(0, 24); }
