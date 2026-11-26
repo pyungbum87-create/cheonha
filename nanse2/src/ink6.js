@@ -1,3 +1,5 @@
+/* 크기 기준: 몸 높이(무기 제외) 보병 28, 기병(말+사람 높이) 40, 장수 말 몸통 길이 118 — 모든 병종·양 진영 같은 기준 */
+const PA_SZ = { foot:28, cav:40, rider:118 };
 /* ---------- 채색 연속 동작 (열쇠 자세 → 영상 → 프레임 띠) ---------- */
 const PA_MAN = /*@@PAMAN@@*/{};
 const PA = { img:{}, msk:{}, tint:new Map(), hot:{} };
@@ -68,7 +70,7 @@ function paRider(c, x, y, sc, flip, col, o){
   else if (o.run){ if (!paAll([f + '_gal1', f + '_gal2'])) return null; cf = paLoop([f + '_gal1', f + '_gal2'], (o.g || 0)*.5); }
   else if (f === 'r' && PA_MAN.r_walk1 && paAll(['r_walk1', 'r_walk2']) && o.walk){ cf = paLoop(['r_walk1', 'r_walk2'], (o.t || 0)*.12); }
   else { const id = f + '_gal1'; if (!paOk(id)) return null; cf = [id, 0]; }
-  const D = 134*sc/man.w;
+  const D = PA_SZ.rider*sc/(man.bw || man.w);
   c.save();
   if (o.rot){ c.translate(x, y - 24*sc); c.rotate(flip ? -o.rot : o.rot); c.translate(-x, -(y - 24*sc)); }
   c.fillStyle = 'rgba(30,20,10,.28)'; c.beginPath(); c.ellipse(x, y + 1, 44*sc, 5*sc, 0, 0, TWO_PI); c.fill();
@@ -84,7 +86,7 @@ function paFig(type, col, pose){
   if (type === 'cav'){
     if (!paAll(['c_gal1', 'c_gal2'])) return null;
     const cf = pose === 'idle' ? ['c_gal1', 0] : paLoop(['c_gal1', 'c_gal2'], now*1.5);
-    return paProxy(cf, col, 52);
+    return paProxy(cf, col, PA_SZ.cav);
   }
   const fm = PA_FOOT[type]; if (!fm) return null;
   if (pose === 'charge') PA.hot[hk] = now;
@@ -93,12 +95,12 @@ function paFig(type, col, pose){
   if (fm === 's'){ if (!paAll(['s_walk1', 's_walk2'])) return null; cf = live ? paLoop(['s_walk1', 's_walk2'], now*.8) : ['s_walk1', 0]; }
   else if (fm === 'w'){ if (!paAll(['w_atk', 'w_ret'])) return null; cf = live ? paLoop(['w_atk', 'w_ret'], now*.9) : ['w_atk', 0]; }
   else { if (!paAll(['a_shot', 'a_draw'])) return null; cf = live ? paLoop(['a_shot', 'a_draw'], now*.7) : ['a_draw', PA_MAN.a_draw.n - 1]; }
-  return paProxy(cf, col, 34);
+  return paProxy(cf, col, PA_SZ.foot);
 }
 function paProxy(cf, col, hUnits){
   const m = PA_MAN[cf[0]], fam = PA_MAN[cf[0][0] === 'c' ? 'c_gal1' : cf[0][0] === 's' ? 's_walk1' : cf[0][0] === 'w' ? 'w_atk' : 'a_draw'];
   const src = paSrc(cf[0], col); if (!src) return null;
-  return { __pa:1, src, col, f: cf[1], s: m.s, ax: m.ax, ay: m.ay, D: hUnits/(fam.h || .8) };
+  return { __pa:1, src, col, f: cf[1], s: m.s, ax: m.ax, ay: m.ay, D: hUnits/(fam.bh || fam.h || .8) };
 }
 function paBlit(ctx, p, x, y, sc, flip, alpha){
   const D = p.D*sc;
@@ -111,7 +113,7 @@ function paBlit(ctx, p, x, y, sc, flip, alpha){
 const PA_DIE = { spear:'s_die', shield:'w_die', cav:'c_fall' };
 function paFigDie(type, col, k){
   const c = PA_DIE[type]; if (!c || !paReady() || !paOk(c)) return null;
-  return paProxy(paAt(c, k), col, type === 'cav' ? 52 : 34);
+  return paProxy(paAt(c, k), col, type === 'cav' ? PA_SZ.cav : PA_SZ.foot);
 }
 /* 코끼리 */
 function paEleph(c, x, y, sc, flip, col, t){

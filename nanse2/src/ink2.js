@@ -214,6 +214,7 @@ function glow(c, x, y, r, a, rgb){
   c.globalCompositeOperation = 'lighter'; puff(c, x, y, r, a, rgb); c.globalCompositeOperation = 'source-over';
 }
 function flame(c, x, y, s, t, ph){
+  { const im = typeof paUi === 'function' && paUi('fx_fire'); if (im){ const f = 1 + .12*Math.sin(t*30 + (ph||0)), w = 26*s*f, h = w*im.naturalHeight/im.naturalWidth; c.save(); c.globalAlpha = .95; c.drawImage(im, x - w/2, y - h*.92, w, h); c.restore(); return; } }
   const f = 1 + .2*Math.sin(t*38 + ph), h = 17*s*f;
   for (const [k, col] of [[1,'#c8321a'],[.74,'#ff7d24'],[.46,'#ffc93c'],[.22,'#fff3b8']]){
     c.fillStyle = col; c.beginPath(); c.moveTo(x - 5.5*s*k, y);
