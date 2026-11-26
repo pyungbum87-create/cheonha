@@ -15,7 +15,7 @@ let dpr=1,view={s:1,ox:0,oy:0};
 if(API){dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((info.windowWidth||375)*dpr));c.height=Math.max(1,Math.round((info.windowHeight||667)*dpr));
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2};}
 else{c.width=W;c.height=H;}
-const BUILD='1116-2310';
+const BUILD='1126-1300';
 const FONT='"PingFang SC","Apple SD Gothic Neo","Noto Sans KR","Noto Sans SC","Microsoft YaHei",sans-serif';
 // 안전장치: 반지름이 음수면 그리기 전체가 멈추므로 0으로 보정
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
@@ -261,7 +261,7 @@ const STAGES=[
   mission:['임무: 여울을 건너는 적을 강가에서 막기','任务：在江边阻击涉水渡江的敌人'],
   path:[[304, 30], [304, 115], [76, 115], [76, 258], [278, 258], [278, 399], [84, 399], [84, 478], [178, 478], [178, 565]],
   waves:[[['s',10,.7]],[['h',6,.9]],[['d',5,1.2],['g',5,1]],[['a',4,1.8],['s',8,.7]],[['h',10,.6],['c',3,1.6]],[['d',8,1],['g',8,.8]],[['a',6,1.4],['h',6,.8]],[['s',16,.4],['d',6,1],['c',3,1.5]],[['a',8,1.2],['g',10,.6],['h',8,.6]]]},
- {name:['진주성','晋州城'],year:['1592년 10월','1592年10月'],gold:630,hp:1.65,bg:'bg_4',
+ {name:['진주성','晋州城'],year:['1592년 10월','1592年10月'],gold:630,hp:1.55,bg:'bg_4',
   intro:['진주목사 김시민이 3,800명으로 2만 왜군을 막아냈다.','晋州牧使金时敏以三千八百人击退两万倭军。'],
   tip:['마지막 웨이브에 대장이 와요. 책략을 아껴 두세요.','最后一波会出现大将，请保留计策。'],
   path:[[60,30],[60,200],[180,200],[180,100],[300,100],[300,340],[60,340],[60,460],[180,460],[180,565]],
@@ -375,7 +375,7 @@ const HONOR=[[4,60],[8,100],[12,180]];// 별 수, 공적
 const FARM_RATE=3,FARM_CAP=8;// 시간당 공적, 최대 시간
 function farmAmount(){return Math.floor(Math.min(FARM_CAP,(Date.now()-save.farm)/3600000)*FARM_RATE)}
 function cartLeft(){const t=todayKey();if(!save.cart||save.cart.day!==t)save.cart={day:t,n:0};return 3-save.cart.n}
-function cartReward(){return 15+rankIdx()*3}
+function cartReward(){return 25+rankIdx()*4}
 function rewardBadge(){ordersInit();if(beaconCan())return true;if(save.orders.m.some(m=>!m.c&&m.p>=ORDERS[m.i].goal))return true;if(HONOR.some((h,i)=>!save.honor.includes(i)&&starTotal()>=h[0]))return true;return farmAmount()>=FARM_RATE*4}
 
 // ---------------------------------------------------------------- 기하
@@ -410,14 +410,31 @@ function startStage(i,chal){const S=STAGES[i],P=buildPath(S.path);
   hero:null,heroLv:1,skillCd:0,skillT:0,H:null,carts:[],cartsSafe:0,cartsLost:0,storyI:0,storyT:0,cd:{fire:0,reinf:0},aim:null,nums:[],bombs:[],reinf:[],eproj:[],coins:[],taps:[],slow:0,goldPulse:0,time:0,result:null,phase:'intro',revived:false,doubled:false,kills:0,banner:null,bossWarn:0,leakFlash:0};
  floats.length=0;if(S.story&&!(save.seen||[]).includes(i))B.phase='story';B.H=makeHero();camReset();popup=null;sc='battle';speed=1;paused=false;save.plays++;track('stage_start',{stage:i+1});persist()}
 function skillCdMax(){return HERO.skillCd*Math.max(.5,1-.08*save.up.skill)}
-function queueWave(){const w=B.S.waves[B.wave];if(B.S.carts&&B.S.carts.includes(B.wave)){B.carts.push({cart:true,d:-10,x:B.S.path[0][0],y:B.S.path[0][1],hp:160,max:160,dead:false,hitT:0,face:1});B.banner={t:2,txt:L('피난 수레 출발! 성문까지 지켜라','难民车出发！护送至城门')};AudioFx.cue('horn')}let t=0;for(const [type,count,gap] of w){for(let k=0;k<count;k++){B.spawnQ.push({type,at:B.time+t});t+=gap}t+=1.5}
+// 몹 수 늘리기: 일반 적은 수 ×1.4, 체력 ×0.8, 엽전 ×0.75, 간격 ×0.72 (대장류는 그대로)
+const CROWD={n:1.4,hp:.8,gold:.75,gap:.72};function crowdy(t){const E=ENEMIES[t];return !(E.boss||E.mid)}
+// 보급 광고: 돈이 모자란 순간에 제안 (전투 엽전 2회/판, 본영 공적은 보급 수레 하루 3회와 공유)
+const SUPPLY_MAX=2;let offer=null;
+function supplyAmt(){return 100+25*B.i}
+function offerSupply(force){if(!B||B.result||B.phase!=='play')return false;if((B.supplyUsed||0)>=SUPPLY_MAX){if(force)message(L('이번 전투 보급은 모두 받았어요','本场补给已用完'),1.1);return false}offer={t:0,kind:'gold'};track('ad_offer',{place:'supply',stage:B.i});return true}
+function offerMerit(){if(cartLeft()<=0)return false;offer={t:0,kind:'merit'};track('ad_offer',{place:'cart_base'});return true}
+function drawOffer(dt){offer.t+=dt;const a=Math.min(1,offer.t*5),gold=offer.kind==='gold';g.fillStyle='rgba(8,6,4,'+(.7*a)+')';g.fillRect(0,0,VW,VH);g.globalAlpha=a;
+ rr(36,206,288,236,16,'#2f2a22','#c8a050',2);paper(36,206,288,236,16,.18);icon('coin',180,246,44);
+ txt(gold?L('엽전이 모자라요!','铜钱不够了！'):L('공적이 모자라요!','功勋不够了！'),180,290,19,'#ffd34d','center','900');
+ txt(gold?L('광고를 보면 보급대가 엽전을 가져와요','观看广告，补给队送来铜钱'):L('광고를 보면 의병 보급 수레가 와요','观看广告，义兵补给车到达'),180,314,11.5,'#e8dcc0','center','600');
+ const amt=gold?supplyAmt():cartReward(),left=gold?SUPPLY_MAX-(B.supplyUsed||0):cartLeft();
+ button(60,334,240,50,'',gold?'gold':'green',15);txt(L('▶ 광고 보고 ','▶ 看广告 ')+(gold?L('엽전 +','铜钱 +'):L('공적 +','功勋 +'))+amt,180,355,15,'#fff','center','900');txt((gold?L('이번 전투 남은 횟수 ','本场剩余 '):L('오늘 남은 횟수 ','今日剩余 '))+left,180,374,9.5,'#fff3c8','center','600');
+ button(110,394,140,36,L('괜찮아요','不用了'),'gray',13);g.globalAlpha=1}
+function tapOffer(x,y){if(offer.t<.3)return;if(hit(x,y,60,334,240,50)){const k=offer.kind;offer=null;if(k==='gold')showAd('supply',()=>{B.supplyUsed=(B.supplyUsed||0)+1;const n=supplyAmt();B.gold+=n;B.goldPulse=1;addFloat(130,TOP+16,L('보급 도착! 엽전 +','补给到达！铜钱 +')+n,'#ffd34d');AudioFx.cue('reward');vib('medium')});
+  else showAd('cart',()=>{save.cart.n++;gainMerit(cartReward());AudioFx.cue('reward');message(L('의병 보급 수레 도착! 공적 +','义兵补给车到达！功勋 +')+cartReward(),1.4)});return}
+ if(hit(x,y,110,394,140,36)||!hit(x,y,36,206,288,236))offer=null}
+function queueWave(){const w=B.S.waves[B.wave];if(B.S.carts&&B.S.carts.includes(B.wave)){B.carts.push({cart:true,d:-10,x:B.S.path[0][0],y:B.S.path[0][1],hp:160,max:160,dead:false,hitT:0,face:1});B.banner={t:2,txt:L('피난 수레 출발! 성문까지 지켜라','难民车出发！护送至城门')};AudioFx.cue('horn')}let t=0;for(const [type,count0,gap0] of w){const cr=crowdy(type),count=cr?Math.round(count0*CROWD.n):count0,gap=cr?gap0*CROWD.gap:gap0;for(let k=0;k<count;k++){B.spawnQ.push({type,at:B.time+t});t+=gap}t+=1.5}
  B.wave++;B.nextT=null;B.lastSpawnAt=B.time+t;
  if(w.some(x=>x[0]==='b')){AudioFx.cue('drum');B.bossWarn=3;vib('heavy')}else if(w.some(x=>x[0]==='k')){AudioFx.cue('drum');vib('medium')}else AudioFx.cue('horn');
  B.banner={t:1.6,txt:L('웨이브 ','第')+B.wave+L('','波')+(w.some(x=>x[0]==='h')?L(' · 기마대 돌격!',' · 骑兵突袭！'):'')}}
 function callWave(){if(B.wave>=B.S.waves.length)return;
  if(B.started&&B.nextT!=null){const left=Math.ceil(B.nextT);if(left>0){B.gold+=left;for(const k in B.cd)B.cd[k]=Math.max(0,B.cd[k]-left);addFloat(100,BOT-14,'+'+left,'#ffd34d');AudioFx.cue('coin');order('early')}}
  if(!B.started&&!save.tips.tut2)track('tutorial_step',{step:2});if(!B.started)save.tips.tut2=1;B.started=true;queueWave()}
-function spawn(type){const E=ENEMIES[type],hp=Math.round(E.hp*B.S.hp*(B.chal?1.3:1));B.enemies.push({type,E,hp,max:hp,d:0,x:B.S.path[0][0],y:B.S.path[0][1],blocked:null,flash:0,dead:false,atkT:0})}
+function spawn(type){const E=ENEMIES[type],hp=Math.round(E.hp*B.S.hp*(B.chal?1.3:1)*(crowdy(type)?CROWD.hp:1));B.enemies.push({type,E,hp,max:hp,d:0,x:B.S.path[0][0],y:B.S.path[0][1],blocked:null,flash:0,dead:false,atkT:0})}
 function auraMul(x,y,mil){const h=B.H;if(!h||h.dead)return 1;if(Math.hypot(h.x-x,h.y-y)>HERO.aura)return 1;return 1+(mil?HERO.mAura:HERO.tAura)+.04*(B.heroLv-1)+(!mil&&hasP('gun')?.15:0)}
 // ---- 장수: 땅을 누르면 이동, 근접전, 체력, 부활
 function heroHome(){const e=B.P.pts[B.P.pts.length-1],p=posAt(B.P,B.P.len-70);return {x:p.x+(p.x<180?26:-26),y:Math.min(BOT-30,p.y)}}
@@ -487,10 +504,10 @@ function shoot(kind,sx,sy,tg,dmg,type,extra){const tx=tg.x,ty=tg.y-6,d=Math.hypo
  Object.assign(P,extra||{});if(delay)P.t=-delay/P.T;B.proj.push(P)}
 function dealDamage(e,dmg,type,quiet){if(e.dead)return;let m=1;if(type==='phys')m=1-e.E.armor;else if(type==='pierce')m=1-e.E.armor*.4;else if(type==='blast')m=1-e.E.armor/2;
  const v=dmg*m;e.hp-=v;if(quiet){if(e.hp>0)return}else{e.flash=.1;if(v>=9)B.nums.push({x:e.x+(Math.random()-.5)*8,y:e.y-22,v:Math.round(v),t:.7,c:type==='blast'?'#ffd27a':type==='fire'?'#ff9a5a':'#fff'})}if(!quiet&&!e.E.boss&&!e.blocked){const kb=type==='blast'?7:type==='fire'?3:1.5;e.d=Math.max(0,e.d-kb);const p=posAt(B.P,e.d);e.x=p.x;e.y=p.y}
- if(e.hp<=0){e.dead=true;B.gold+=e.E.gold;B.kills++;order('kill');AudioFx.cue('die');B.coins.push({x:e.x,y:e.y-10,t:0,n:e.E.gold});if(e.E.boss){B.slow=1.2;B.fx.push({x:e.x,y:e.y,t:.6,r:60,ring:true})}if(e.blocked&&e.blocked.target===e)e.blocked.target=null;B.corpses.push({type:e.type,E:e.E,x:e.x,y:e.y,face:e.face,t:1.3});puff(e.x,e.y+e.E.r*.6,6,'rgba(150,120,80,.8)',30,.45,4,0,'smoke');if(e.E.boss){shake(.5);vib('heavy')}}}
+ if(e.hp<=0){e.dead=true;const bty=crowdy(e.type)?Math.max(2,Math.round(e.E.gold*CROWD.gold)):e.E.gold;B.gold+=bty;B.kills++;order('kill');AudioFx.cue('die');B.coins.push({x:e.x,y:e.y-10,t:0,n:bty});if(e.E.boss){B.slow=1.2;B.fx.push({x:e.x,y:e.y,t:.6,r:60,ring:true})}if(e.blocked&&e.blocked.target===e)e.blocked.target=null;B.corpses.push({type:e.type,E:e.E,x:e.x,y:e.y,face:e.face,t:1.3});puff(e.x,e.y+e.E.r*.6,6,'rgba(150,120,80,.8)',30,.45,4,0,'smoke');if(e.E.boss){shake(.5);vib('heavy')}}}
 function targetsIn(x,y,range,n){const es=B.enemies.filter(e=>!e.dead&&Math.hypot(e.x-x,e.y-y)<=range).sort((a,b)=>b.d-a.d);if(!es.length)return [];const out=[];for(let i=0;i<n;i++)out.push(es[i%es.length]);return out}
 function pickTarget(x,y,range){let best=null;for(const e of B.enemies){if(e.dead)continue;if(Math.hypot(e.x-x,e.y-y)<=range&&(!best||e.d>best.d))best=e}return best}
-function tick(dt){if(!B||B.phase!=='play'||paused||dbgFreeze)return;if(B.choice){B.choice.t+=dt;return}let d=dt;if(B.slow>0){B.slow-=dt;d*=.3}for(let k=0;k<speed;k++)step(d)}
+function tick(dt){if(!B||B.phase!=='play'||paused||dbgFreeze)return;if(B.choice){B.choice.t+=dt;return}if(offer||adShow)return;let d=dt;if(B.slow>0){B.slow-=dt;d*=.3}for(let k=0;k<speed;k++)step(d)}
 function step(dt){
  B.time+=dt;
  while(B.spawnQ.length&&B.spawnQ[0].at<=B.time)spawn(B.spawnQ.shift().type);
@@ -683,7 +700,7 @@ function guideScreen(){bg();txt(L('안내서','指南'),180,30,18,'#ffe2a0','cen
  button(80,530,200,50,L('◀ 돌아가기','◀ 返回'),'gray',15)}
 
 // ---------------------------------------------------------------- 화면: 전투
-function nextWaveInfo(){if(B.wave>=B.S.waves.length)return null;return B.S.waves[B.wave].map(([t,cn])=>LL(ENEMIES[t].name)+'×'+cn).join('  ')}
+function nextWaveInfo(){if(B.wave>=B.S.waves.length)return null;return B.S.waves[B.wave].map(([t,cn])=>LL(ENEMIES[t].name)+'×'+(crowdy(t)?Math.round(cn*CROWD.n):cn)).join('  ')}
 function popupButtons(){if(!popup)return [];const sl=B.slots[popup.slot],btns=[];
  if(!sl.t){const opts=TORDER.map(k=>({k,label:LL(TOWERS[k].short||TOWERS[k].name),cost:TOWERS[k].cost[0],color:TOWERS[k].color}));
   const n=opts.length,R=56,v=camView(),cx=Math.max(CAM.x+R+24,Math.min(CAM.x+v.w-R-24,sl.x)),cy=Math.max(CAM.y+R+24,Math.min(CAM.y+v.h-R-34,sl.y));opts.forEach((o,i)=>{const a=-Math.PI/2+i*TAU/n;btns.push(Object.assign({},o,{x:cx+Math.cos(a)*R,y:cy+Math.sin(a)*R}))})}
@@ -752,7 +769,7 @@ function drawBattle(dt){
  // HUD
  g.fillStyle='#1d1812';g.fillRect(0,0,VW,TOP);paper(0,0,VW,TOP,0,.18);g.fillStyle='#6b4a2e';g.fillRect(0,TOP-2,VW,2);
  if(icon('heart',18,TOP/2,22))txt(''+B.lives,32,TOP/2,16,'#ff8a80','left','800');else txt('♥ '+B.lives,12,TOP/2,16,'#ff7070','left','800');
- if(icon('coin',96,TOP/2,24))txt(''+B.gold,111,TOP/2,15,'#ffd34d','left','800');else txt(L('엽전 ','铜钱 ')+B.gold,80,TOP/2,15,'#ffd34d','left','800');txt(L('웨이브 ','敌波 ')+Math.min(B.wave,B.S.waves.length)+'/'+B.S.waves.length,VW-10,TOP/2,13,'#e8dcc0','right','700');
+ if(icon('coin',96,TOP/2,24))txt(''+B.gold,111,TOP/2,15,'#ffd34d','left','800');if((B.supplyUsed||0)<SUPPLY_MAX&&!B.result){const gx=86,gy=TOP/2+8;g.fillStyle='#3c7d43';g.beginPath();g.arc(gx,gy,6,0,TAU);g.fill();g.strokeStyle='#a8f0b0';g.lineWidth=1.2;g.stroke();txt('+',gx,gy+.5,10,'#fff','center','900')}else txt(L('엽전 ','铜钱 ')+B.gold,80,TOP/2,15,'#ffd34d','left','800');txt(L('웨이브 ','敌波 ')+Math.min(B.wave,B.S.waves.length)+'/'+B.S.waves.length,VW-10,TOP/2,13,'#e8dcc0','right','700');
  for(const c of B.coins){const k=Math.min(1,c.t/.55),e2=k*k,[c0x,c0y]=w2s(c.x,c.y),x=c0x+(96-c0x)*e2,y=c0y+(TOP/2-c0y)*e2-Math.sin(k*Math.PI)*40;if(!icon('coin',x,y,14-k*3)){g.fillStyle='#ffd34d';g.beginPath();g.arc(x,y,4,0,TAU);g.fill()}}
  if(B.goldPulse>0){g.save();g.globalAlpha=B.goldPulse*5;g.fillStyle='#ffe08a';g.beginPath();g.arc(96,TOP/2,15,0,TAU);g.fill();g.restore()}
  drawHeroBadge();if(B.S.carts){txt(L('수레 ','车 ')+B.cartsSafe+'/'+B.S.carts.length,232,TOP/2,11,'#ffd27a','left','800')}
@@ -766,7 +783,7 @@ function drawBattle(dt){
   if(b.id==='speed'&&imgs.icon_fast){g.globalAlpha=speed===2?1:.75;icon('fast',b.x+b.w/2,b.y+22,30);g.globalAlpha=1;txt('x'+speed,b.x+b.w/2,b.y+44,11,speed===2?'#ffe08a':'#f2e6c9','center','900');continue}
   if(b.id==='menu'&&imgs.icon_pause){icon('pause',b.x+b.w/2,b.y+b.h/2,32);continue}
   if(b.sub){txt(b.label,b.x+b.w/2+ix,b.y+20,b.w<125&&ix?12.5:14,'#f2e6c9','center','800');txt(b.sub,b.x+b.w/2+ix,b.y+40,ix?10:11,b.id==='wave'?'#ffd34d':'#bcd8f0','center','600')}else txt(b.label,b.x+b.w/2,b.y+b.h/2,b.w<60?15:14,b.on?'#f2e6c9':'#777','center','800')}
- const inf=nextWaveInfo();if(inf&&(B.nextT!=null||!B.started)){const w=B.S.waves[B.wave],hb=w.some(x=>x[0]==='b'||x[0]==='k'),hh=w.some(x=>x[0]==='h');rr(8,BOT-30,VW-16,22,8,'rgba(20,18,15,.8)');txt((hb?L('⚠ 대장 출현  ','⚠ 大将出现  '):hh?L('⚠ 기마대  ','⚠ 骑兵  '):L('다음: ','下一波：'))+inf,VW/2,BOT-19,10.5,hb?'#ff8080':hh?'#ffd34d':'#e8dcc0','center','700')}
+ const inf=nextWaveInfo();if(inf&&(B.nextT!=null||!B.started)){const w=B.S.waves[B.wave],hb=w.some(x=>x[0]==='b'||x[0]==='k'),hh=w.some(x=>x[0]==='h');rr(8,TOP+6,VW-58,22,8,'rgba(20,18,15,.8)');txt((hb?L('⚠ 대장 출현  ','⚠ 大将出现  '):hh?L('⚠ 기마대  ','⚠ 骑兵  '):L('다음: ','下一波：'))+inf,8+(VW-58)/2,TOP+17,10.5,hb?'#ff8080':hh?'#ffd34d':'#e8dcc0','center','700')}
  if(B.banner&&B.banner.t>0){g.globalAlpha=Math.min(1,B.banner.t*2);rr(60,TOP+40,VW-120,36,10,'rgba(20,18,15,.85)');txt(B.banner.txt,VW/2,TOP+58,14,'#f2e6c9','center','800');g.globalAlpha=1}
  if(B.bossWarn>0){const a=.35+.25*Math.sin(B.bossWarn*12);g.strokeStyle='rgba(220,40,40,'+a+')';g.lineWidth=10;g.strokeRect(5,TOP+5,VW-10,BOT-TOP-10);txt(L('북소리가 울린다… 대장이 온다!','战鼓响起……大将来了！'),VW/2,TOP+100,14,'#ff9090','center','900')}
  if(B.leakFlash>0){g.fillStyle='rgba(200,30,30,'+(B.leakFlash*.5)+')';g.fillRect(0,BOT-40,VW,40)}
@@ -820,7 +837,7 @@ function drawFieldHero(){const H=B.H;if(!H)return;
  if(H.hitT>0){g.save();g.globalAlpha=.5;g.globalCompositeOperation='lighter';draw();g.restore()}
  if(H.swing>0){const k=1-H.swing/.26;if(k>.35&&k<.85){const a=(k-.35)/.5,d=H.swDir||0,cx=H.x+Math.cos(d)*8,cy=H.y-8+Math.sin(d)*6;g.save();g.globalAlpha=1-a;g.lineCap='round';
   g.strokeStyle='#fff6d0';g.lineWidth=5*(1-a)+1;g.beginPath();g.arc(cx,cy,20+a*6,d-1.1+a*.4,d+1.1*a+.2);g.stroke();g.strokeStyle='rgba(255,200,90,.8)';g.lineWidth=2;g.beginPath();g.arc(cx,cy,26+a*6,d-.9+a*.4,d+.9*a+.2);g.stroke();g.restore()}}
- const mx=heroMax();g.fillStyle='#102030';g.fillRect(H.x-14,H.y-34,28,3.5);g.fillStyle='#5ab0f0';g.fillRect(H.x-14,H.y-34,28*Math.max(0,H.hp/mx),3.5);txt('Lv'+B.heroLv,H.x,H.y+16,8.5,'#cfe8ff','center','800')}
+ const mx=heroMax();g.fillStyle='#102030';g.fillRect(H.x-14,H.y-34,28,3.5);g.fillStyle='#5ab0f0';g.fillRect(H.x-14,H.y-34,28*Math.max(0,H.hp/mx),3.5);txt(''+B.heroLv,H.x-19,H.y-32.5,8,'#cfe8ff','center','900')}
 function drawHeroBadge(){const H=B.H;if(!H)return;const x=170,y=TOP/2;g.save();if(H.dead)g.globalAlpha=.45;icon(HERO.ic,x,y,26);g.restore();
  if(H.dead)txt(Math.ceil(H.respawn)+'',x+20,y,12,'#ff9a8a','left','900');else{const mx=heroMax();g.fillStyle='#102030';g.fillRect(x+15,y-2,36,5);g.fillStyle='#5ab0f0';g.fillRect(x+15,y-2,36*Math.max(0,H.hp/mx),5)}}
 // 배치·강화 메뉴 단추: 나무 원판 + 금테 + 그림 + 이름·가격 띠
@@ -921,7 +938,7 @@ function failScreen(){const ci=imgs.story_lose;if(ci)cover('story_lose','rgba(6,
 
 // ---------------------------------------------------------------- 입력
 function touch(x,y){AudioFx.init();if(AudioFx.ctx&&AudioFx.ctx.state==='suspended'&&AudioFx.ctx.resume)AudioFx.ctx.resume();
- if(adShow)return;if(histCard!=null){if(histT>.4)histCard=null;return}if(guideTip){if(guideTip.t>.3)guideTip=null;return}
+ if(adShow)return;if(offer){tapOffer(x,y);return}if(histCard!=null){if(histT>.4)histCard=null;return}if(guideTip){if(guideTip.t>.3)guideTip=null;return}
  if(sc==='loading')return;
  if(sc==='title'){if(hit(x,y,270,10,80,26)){toggleLang();return}const by=imgs.bg_title?462:330,by2=by+(imgs.bg_title?62:66);if(hit(x,y,80,by,200,54)){AudioFx.cue('ui');if(!save.stars[0]&&!save.tips.firstplay){save.tips.firstplay=1;startStage(0)}else{sc='map';tip('map',[['별을 모으면 다음 전투가 열려요','获得星级即可解锁下一场战斗'],['전투에서 얻은 공적으로 본영에서 타워를 영구 강화해요','用战斗获得的功勋在本营永久强化防御塔'],['포상에서 매일 봉화·장계·둔전 보상을 챙기세요','每天在奖赏中领取烽火、诏令和屯田奖励']])}return}
   if(hit(x,y,80,by2,96,40)){sc='guide';guidePage=0;guideRet='title';track('guide_open',{from:'title'});return}if(hit(x,y,184,by2,96,40)){sc='settings';retSc='title';resetArm=0;return}return}
@@ -930,7 +947,7 @@ function touch(x,y){AudioFx.init();if(AudioFx.ctx&&AudioFx.ctx.state==='suspende
   if(hit(x,y,16,500,104,58)){sc='base';tip('base',[['공적을 써서 타워를 영구 강화해요','消耗功勋永久强化防御塔'],['강화는 모든 전투에 적용돼요','强化对所有战斗生效']]);return}
   if(hit(x,y,128,500,104,58)){sc='reward';ordersInit();tip('reward',[['봉화 7일: 하루 한 번 눌러 공적 받기','七日烽火：每天点一次领取功勋'],['오늘의 장계: 조정의 명령 3개, 매일 바뀜','今日诏令：朝廷的3道命令，每日更新'],['둔전: 쉬는 동안에도 공적이 쌓임','屯田：离线时也会积累功勋']]);return}
   if(hit(x,y,240,500,104,58)){if(cartLeft()<=0){message(L('오늘 보급 수레는 모두 받았어요','今日补给车已领完'),1.2);return}showAd('cart',()=>{save.cart.n++;gainMerit(cartReward());AudioFx.cue('reward');message(L('의병 보급 수레 도착! 공적 +','义兵补给车到达！功勋 +')+cartReward(),1.4)});return}return}
- if(sc==='base'){UP_KEYS.forEach((k,i)=>{const yy=52+i*78;if(hit(x,y,252,yy+14,84,42)&&save.up[k]<UP_MAX&&save.merit>=upCost(k)){save.merit-=upCost(k);save.up[k]++;persist();AudioFx.cue('up');track('base_up',{k,lv:save.up[k]})}});if(hit(x,y,80,530,200,50))sc='map';return}
+ if(sc==='base'){UP_KEYS.forEach((k,i)=>{const yy=52+i*78;if(hit(x,y,252,yy+14,84,42)&&save.up[k]<UP_MAX&&save.merit<upCost(k)){if(!offerMerit())message(L('공적이 모자라요. 전투에서 모아 오세요','功勋不足，去战斗中获取吧'),1.2);return}if(hit(x,y,252,yy+14,84,42)&&save.up[k]<UP_MAX&&save.merit>=upCost(k)){save.merit-=upCost(k);save.up[k]++;persist();AudioFx.cue('up');track('base_up',{k,lv:save.up[k]})}});if(hit(x,y,80,530,200,50))sc='map';return}
  if(sc==='reward'){if(hit(x,y,80,530,200,50)){sc='map';return}
   if(hit(x,y,270,96,70,36)&&beaconCan()){const r2=BEACON[save.beacon.n%7];save.beacon.n++;save.beacon.last=todayKey();gainMerit(r2);AudioFx.cue('reward');message(L('봉화를 올렸다! 공적 +','点燃烽火！功勋 +')+r2,1.4);return}
   save.orders.m.forEach((m,k)=>{const O=ORDERS[m.i],yy=170+k*50;if(hit(x,y,270,yy+6,70,32)&&!m.c&&m.p>=O.goal){m.c=true;gainMerit(O.r);AudioFx.cue('reward')}});
@@ -957,7 +974,7 @@ function touch(x,y){AudioFx.init();if(AudioFx.ctx&&AudioFx.ctx.state==='suspende
  if(paused){if(hit(x,y,80,240,200,46)){paused=false;return}if(hit(x,y,80,296,200,46)){paused=false;startStage(B.i);B.phase='play';return}if(hit(x,y,80,352,200,46)){paused=false;sc='map';return}
   if(hit(x,y,80,420,96,40)){Music.toggle();save.music=Music.on;persist();return}if(hit(x,y,184,420,96,40)){AudioFx.enabled=!AudioFx.enabled;save.sfx=AudioFx.enabled;persist();return}if(hit(x,y,80,468,200,40)){sc='guide';guidePage=1;guideRet='battle';return}return}
  if(y>=BOT){for(const b of uiButtons())if(hit(x,y,b.x,b.y,b.w,b.h)){if(b.id==='wave'&&b.on)callWave();else if(SK[b.id]){if(B.aim===b.id)B.aim=null;else if(b.on){B.aim=b.id;AudioFx.cue('ui');vib('light')}else message(L('아직 준비 중이에요','尚在准备中'),.9)}else if(b.id==='speed')speed=speed===1?2:1;else if(b.id==='menu')paused=true;popup=null;return}return}
- if(y<TOP)return;
+ if(y<TOP){if(x>78&&x<178&&!B.result){offerSupply(true)}return}
  if(hit(x,y,VW-41,TOP+6,34,28)&&!B.result){popup=null;CAM.zoomed=!CAM.zoomed;const [mx,my]=s2w(VW/2,(TOP+BOT)/2);CAM.z=CAM.zoomed?1.35:1;camLook(mx,my);AudioFx.cue('ui');return}
  [x,y]=s2w(x,y);
  if(B.aim){castSkill(B.aim,x,y);return}
@@ -966,11 +983,11 @@ function touch(x,y){AudioFx.init();if(AudioFx.ctx&&AudioFx.ctx.state==='suspende
  moveHero(x,y)}
 function doPopup(b){const sl=B.slots[popup.slot];
  if(b.k==='hero'){popup=null;return}
- if(b.k==='repair'){if(B.gold>=b.cost){save.tips.tutRep=1;B.gold-=b.cost;sl.t.hp=sl.t.max;sl.t.down=false;sl.t.pop=.3;AudioFx.cue('repair');puff(sl.x,sl.y-6,10,'#9fe0ff',50,.5,2,-40,'spark');popup=null}else addFloat(sl.x,sl.y-30,L('엽전 부족','铜钱不足'),'#ff8080');return}
- if(TOWERS[b.k]){if(B.gold>=b.cost){B.gold-=b.cost;sl.t={kind:b.k,lv:0,cd:0,spent:b.cost,pop:.3,hp:TOWER_HP[0],max:TOWER_HP[0]};puff(sl.x,sl.y+10,14,'rgba(170,140,100,.8)',45,.6,5,0,'smoke');if(!save.tips.tut1)track('tutorial_step',{step:1});save.tips.tut1=1;AudioFx.cue('build');vib('light');popup=null}else addFloat(sl.x,sl.y-30,L('엽전 부족','铜钱不足'),'#ff8080');return}
- if(b.k==='up'){if(B.gold>=b.cost){B.gold-=b.cost;sl.t.lv++;sl.t.spent+=b.cost;sl.t.max=TOWER_HP[sl.t.lv];sl.t.hp=sl.t.max;sl.t.down=false;puff(sl.x,sl.y-6,14,'#ffd34d',55,.6,2.2,-40,'spark');puff(sl.x,sl.y+10,8,'rgba(170,140,100,.7)',30,.5,5,0,'smoke');sl.t.pop=.3;if(sl.t.men)sl.t.men.forEach(m=>{m.hp=TOWERS.militia.hp[sl.t.lv]*upMul('militia',.12)});AudioFx.cue('up');order('upgrade');{const F=TOWERS[sl.t.kind].fx;if(F)addFloat(sl.x,sl.y-40,LL(F[sl.t.lv]),'#9fffbf')}B.fx.push({x:sl.x,y:sl.y,t:.3,r:18,c:'#ffd34d'});popup=null}else addFloat(sl.x,sl.y-30,L('엽전 부족','铜钱不足'),'#ff8080');return}
+ if(b.k==='repair'){if(B.gold>=b.cost){save.tips.tutRep=1;B.gold-=b.cost;sl.t.hp=sl.t.max;sl.t.down=false;sl.t.pop=.3;AudioFx.cue('repair');puff(sl.x,sl.y-6,10,'#9fe0ff',50,.5,2,-40,'spark');popup=null}else if(!offerSupply())addFloat(sl.x,sl.y-30,L('엽전 부족','铜钱不足'),'#ff8080');return}
+ if(TOWERS[b.k]){if(B.gold>=b.cost){B.gold-=b.cost;sl.t={kind:b.k,lv:0,cd:0,spent:b.cost,pop:.3,hp:TOWER_HP[0],max:TOWER_HP[0]};puff(sl.x,sl.y+10,14,'rgba(170,140,100,.8)',45,.6,5,0,'smoke');if(!save.tips.tut1)track('tutorial_step',{step:1});save.tips.tut1=1;AudioFx.cue('build');vib('light');popup=null}else if(!offerSupply())addFloat(sl.x,sl.y-30,L('엽전 부족','铜钱不足'),'#ff8080');return}
+ if(b.k==='up'){if(B.gold>=b.cost){B.gold-=b.cost;sl.t.lv++;sl.t.spent+=b.cost;sl.t.max=TOWER_HP[sl.t.lv];sl.t.hp=sl.t.max;sl.t.down=false;puff(sl.x,sl.y-6,14,'#ffd34d',55,.6,2.2,-40,'spark');puff(sl.x,sl.y+10,8,'rgba(170,140,100,.7)',30,.5,5,0,'smoke');sl.t.pop=.3;if(sl.t.men)sl.t.men.forEach(m=>{m.hp=TOWERS.militia.hp[sl.t.lv]*upMul('militia',.12)});AudioFx.cue('up');order('upgrade');{const F=TOWERS[sl.t.kind].fx;if(F)addFloat(sl.x,sl.y-40,LL(F[sl.t.lv]),'#9fffbf')}B.fx.push({x:sl.x,y:sl.y,t:.3,r:18,c:'#ffd34d'});popup=null}else if(!offerSupply())addFloat(sl.x,sl.y-30,L('엽전 부족','铜钱不足'),'#ff8080');return}
  if(b.k==='br'){if(B.gold>=b.cost){B.gold-=b.cost;const t=sl.t;t.lv=3;t.br=b.br;t.D=null;t.spent+=b.cost;t.max=TOWER_HP[3];t.hp=t.max;t.down=false;t.pop=.45;if(t.men){const Dm=towerD(t);t.men.forEach(m=>{m.hp=Dm.hp[3]*upMul('militia',.12)})}
-  puff(sl.x,sl.y-10,22,'#ffd34d',75,.8,2.6,-50,'spark');puff(sl.x,sl.y+10,12,'rgba(170,140,100,.8)',40,.6,6,0,'smoke');B.fx.push({x:sl.x,y:sl.y,t:.4,r:30,ring:true});shake(.12);vib('heavy');AudioFx.cue('up');AudioFx.cue('horn');order('upgrade');addFloat(sl.x,sl.y-44,LL(BR[t.kind][b.br].n)+'!','#ffe08a');track('branch',{k:t.kind,br:b.br});popup=null}else addFloat(sl.x,sl.y-30,L('엽전 부족','铜钱不足'),'#ff8080');return}
+  puff(sl.x,sl.y-10,22,'#ffd34d',75,.8,2.6,-50,'spark');puff(sl.x,sl.y+10,12,'rgba(170,140,100,.8)',40,.6,6,0,'smoke');B.fx.push({x:sl.x,y:sl.y,t:.4,r:30,ring:true});shake(.12);vib('heavy');AudioFx.cue('up');AudioFx.cue('horn');order('upgrade');addFloat(sl.x,sl.y-44,LL(BR[t.kind][b.br].n)+'!','#ffe08a');track('branch',{k:t.kind,br:b.br});popup=null}else if(!offerSupply())addFloat(sl.x,sl.y-30,L('엽전 부족','铜钱不足'),'#ff8080');return}
  if(b.k==='sell'){B.gold+=Math.floor(sl.t.spent*SELL);if(sl.t.men)sl.t.men.forEach(m=>{if(m.target)m.target.blocked=null});sl.t=null;AudioFx.cue('coin');popup=null;return}
  popup=null}
 function toggleLang(){LANG=LANG==='zh'?'ko':'zh';persist();AudioFx.cue('ui')}
@@ -994,7 +1011,7 @@ function draw(dt){if(API){g.setTransform(1,0,0,1,0,0);g.fillStyle='#05070c';g.fi
  else if(sc==='settings')settingsScreen();else if(sc==='privacy')privacyScreen();else if(sc==='guide')guideScreen();else if(sc==='codex')codexScreen();else if(sc==='heroes')heroScreen();
  else if(sc==='battle'){tick(dt);drawBattle(dt)}else if(sc==='clear'){B.endT+=dt;clearScreen()}else if(sc==='fail'){B.endT+=dt;failScreen()}
  for(const f of floats){f.life-=dt;f.y-=24*dt;g.globalAlpha=Math.max(0,Math.min(1,f.life*2));const [fx,fy]=f.w&&sc==='battle'?w2s(f.x,f.y):[f.x,f.y];if(!(f.w&&(sc!=='battle'||(B&&(B.choice||B.phase!=='play'))||fy>BOT-6||fy<TOP+6)))txt(f.t,fx,fy,13,f.c,'center','800');g.globalAlpha=1}for(let i=floats.length-1;i>=0;i--)if(floats[i].life<=0)floats.splice(i,1);
- if(histCard!=null)drawHistCard(dt);drawMsg(dt);if(guideTip)drawGuideTip(dt);if(adShow)drawAd(dt);wantMusic();Music.tick()}
+ if(histCard!=null)drawHistCard(dt);drawMsg(dt);if(guideTip)drawGuideTip(dt);if(offer&&!adShow)drawOffer(dt);if(adShow)drawAd(dt);wantMusic();Music.tick()}
 if(!API&&typeof location!=='undefined'&&location.search.indexOf('debug=1')>=0){globalThis.__bepaDebug={STAGES,TOWERS,save,persist,startStage,callWave,useSkill,revive,touch,showAd,order,gainMerit,
  get B(){return B},openHist,set histCard(v){histCard=v},set sc(v){sc=v},get sc(){return sc},set freeze(v){dbgFreeze=v},set guideTip(v){guideTip=v},get guideTip(){return guideTip},set paused(v){paused=v},
  CAM,camLook,pickPerk,branch(si,br){popup={slot:si};const t=B.slots[si].t;doPopup({k:'br',br,cost:BR[t.kind][br].cost})},castSkill,moveHero,repair(si){popup={slot:si};const t=B.slots[si].t;doPopup({k:'repair',cost:repairCost(t)})},build(si,k){popup={slot:si};doPopup({k,cost:k==='hero'?0:TOWERS[k].cost[0]})},up(si){popup={slot:si};const s=B.slots[si];doPopup({k:'up',cost:TOWERS[s.t.kind].cost[s.t.lv+1]})},
