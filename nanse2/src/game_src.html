@@ -6112,7 +6112,7 @@ function castleIcon(c, sel, adjMe, isMe, hidden){
   if (isMe) o += `<ellipse cx="${x}" cy="${f1(y+s*.75)}" rx="${f1(s+2)}" ry="1.3" fill="#a8822a" opacity=".55"/>`;
   const kind = !c.owner ? 'map_village' : capitalOf(c.owner)===c.id ? 'map_capital' : c.dev >= 6 ? 'map_city' : 'map_town', iw = s*2.9;
   if (c.owner) o += `<ellipse cx="${x}" cy="${f1(y+s*.62)}" rx="${f1(s*1.35)}" ry="${f1(s*.42)}" fill="${roof}" opacity=".55"/>`;
-  o += `<image href="art/ui/${kind}.webp" x="${f1(x-iw/2)}" y="${f1(y-s*1.55)}" width="${f1(iw)}" height="${f1(iw*.82)}" preserveAspectRatio="xMidYMax meet"/>`;
+  o += `<image href="art/ui/${kind}.webp" xlink:href="art/ui/${kind}.webp" x="${f1(x-iw/2)}" y="${f1(y-s*1.55)}" width="${f1(iw)}" height="${f1(iw*.82)}" preserveAspectRatio="xMidYMax meet"/>`;
   o += `<line x1="${f1(x+s)}" y1="${f1(y-s*.65)}" x2="${f1(x+s)}" y2="${f1(y-s*.65-3.2)}" stroke="${INK}" stroke-width=".25"/><path d="M${f1(x+s)} ${f1(y-s*.65-3.2)} L${f1(x+s+2.2)} ${f1(y-s*.65-2.6)} L${f1(x+s)} ${f1(y-s*.65-1.9)}Z" fill="${roof}"/>`;
   if (isMe) o += `<circle cx="${f1(x-s-1)}" cy="${f1(y-s*.9)}" r=".9" fill="#a8822a" stroke="${INK}" stroke-width=".2"/>`;
   const nw = c.n.length*3.1 + 2, ny = y-s*1.65-1.1;
@@ -6891,7 +6891,7 @@ const cuList = () => META.custom || (META.custom = []);
 const cuUsed = c => CU_STATS.reduce((a,[k]) => a + c.st[k], 0);
 const FACES = PORTRAITS.filter(x => x.startsWith('face'));
 const faceList = female => FACES.filter(x => female ? +x.slice(4) >= 13 : +x.slice(4) <= 12);
-const facePick = (cur, female, all) => `<div class="facepick">${(all ? [...faceList(false), ...faceList(true)] : faceList(female)).map(x => `<button class="fp" data-face="${x}" aria-pressed="${cur===x}"><img loading="lazy" decoding="async" src="portraits/${x}.webp" alt=""></button>`).join('')}<button class="fp brush" data-face="" aria-pressed="${!cur}">직접<br>꾸미기</button></div>`;
+const facePick = (cur, female, all) => `<div class="facepick">${(all ? [...faceList(false), ...faceList(true)] : faceList(female)).map(x => `<button class="fp" data-face="${x}" aria-pressed="${cur===x}"><img loading="lazy" decoding="async" src="portraits/${x}.webp" alt=""></button>`).join('')}</div>`;
 function cuBlank(){ return { id:'cu'+Date.now().toString(36), n:'', female:false, age:22, st:{ mu:10, yong:10, ji:10, jeong:10, in:10 }, tr:['ilgi'], pers:'uiri', w:'do', look:{ img:'face01', skin:'a', hat:'helmet', hc:'#666666', beard:'mustache', bc:'', eye:'sharp', extra:'' } }; }
 const cuPt = (c, size) => ptHTML(c.look, c.age, c.female, '#7a3b2a', size, 'sq');
 function openCustom(){

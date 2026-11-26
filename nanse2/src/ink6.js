@@ -103,7 +103,7 @@ function paFx(ctx, n, x, y, size, alpha, rot, flip){
   ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot); if (flip) ctx.scale(-1, 1); ctx.globalAlpha = Math.min(1, alpha);
   ctx.drawImage(im, -size/2, -size/2, size, size); ctx.restore();
 }
-setTimeout(() => ['fx_slash', 'fx_ink', 'fx_dust', 'fx_smoke', 'fx_fire', 'fx_arrows'].forEach(paUi), 900);
+setTimeout(() => ['map_town', 'map_city', 'map_capital', 'map_village', 'mk_battle', 'fx_slash', 'fx_ink', 'fx_dust', 'fx_smoke', 'fx_fire', 'fx_arrows'].forEach(paUi), 300);
 /* 배 */
 function paShip(c, x, y, col, ph){
   if (!paAll(['v_rock1', 'v_rock2'])) return false; const m = PA_MAN.v_rock1;
