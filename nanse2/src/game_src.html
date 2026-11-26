@@ -132,6 +132,8 @@ p{margin:0}
 .cpanel .grab i{width:40px;height:4px;border-radius:9px;background:#26201c33;display:block}
 .scene{margin:0 calc(-1 * max(12px,env(safe-area-inset-left,0px)));line-height:0;border-bottom:1px solid var(--line)}
 .scene svg{display:block;width:100%;height:auto;aspect-ratio:320/110;max-height:130px}
+.cscene{position:relative;width:100%;aspect-ratio:320/110;max-height:150px;overflow:hidden;background:#efe5cf}.cscene img{width:100%;height:100%;object-fit:cover;object-position:50% 22%;display:block;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.cscene i{position:absolute;left:0;right:0;bottom:0;height:4px;opacity:.85}.cscene.fog img{filter:blur(3px) grayscale(.6);opacity:.55}.cscene b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--ink);line-height:1}
 .acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .act{border:1.5px solid var(--line);background:var(--paper);border-radius:10px;padding:7px 4px;font-size:13px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
 .act small{font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -6080,12 +6082,12 @@ function viewTop(){
       <button class="icon" id="menuBtn" aria-label="메뉴">≡</button>
     </div>
     <div class="stats">
-      ${G.role!=='ronin' ? `<button class="stat pol ${polOf().on?'':'off'}" data-sheet="policy">내정 <b>${polOf().on ? POL[polOf().focus][0] : '수동'}</b></button>` : ''}
+      ${G.role!=='ronin' ? `<button class="stat pol ${polOf().on?'':'off'}" data-sheet="policy"><img class="sti" src="art/ui/res_food.webp" alt="">내정 <b>${polOf().on ? POL[polOf().focus][0] : '수동'}</b></button>` : ''}
       <span class="stat"><img class="sti" src="art/ui/res_gold.webp" alt="">금 <b>${fmt(G.gold)}</b></span>
       <span class="stat"><img class="sti" src="art/ui/res_troops.webp" alt="">${G.role==='ruler'?'총병력':'병력'} <b>${fmt(troops)}</b></span>
       <span class="stat ${G.role!=='ronin' && trv<35?'warn':''}"><img class="sti" src="art/ui/res_morale.webp" alt="">${tr} <b>${Math.round(trv)}</b></span>
       <span class="stat ${G.hp<35?'warn':''}"><img class="sti" src="art/ui/res_hp.webp" alt="">체력 <b>${Math.round(G.hp)}</b></span>
-      ${G.role==='officer' ? `<button class="stat dirb" data-sheet="dirs">지침 <b>${(G.dirs||[]).length + (G.mission ? 1 : 0)}${(G.dirOffer||[]).length && dirsOf(0).length < DIR_MAX ? '<i></i>' : ''}</b></button>` : ''}
+      ${G.role==='officer' ? `<button class="stat dirb" data-sheet="dirs"><img class="sti" src="art/ui/res_ap.webp" alt="">지침 <b>${(G.dirs||[]).length + (G.mission ? 1 : 0)}${(G.dirOffer||[]).length && dirsOf(0).length < DIR_MAX ? '<i></i>' : ''}</b></button>` : ''}
     </div>
     <div class="sub2">훈련 ${G.train}${G.role!=='ronin' ? ` · 공적 ${fmt(G.merit)}` : ''} · 무${SV(p.m)} 용${SV(p.l)} 지${SV(p.i)} 정${SV(p.g||p.i)} 인${SV(p.c)}</div>
   </header>`;
@@ -6110,7 +6112,7 @@ function castleIcon(c, sel, adjMe, isMe, hidden){
   if (sel) o += `<rect x="${f1(x-s-2.2)}" y="${f1(y-s*1.6-1.6)}" width="${f1(2*s+4.4)}" height="${f1(s*2.5+3)}" rx="1.4" fill="none" stroke="${INK}" stroke-width=".55"/>`;
   else if (false && adjMe) o += `<rect x="${f1(x-s-1.6)}" y="${f1(y-s*1.6-1.1)}" width="${f1(2*s+3.2)}" height="${f1(s*2.5+2)}" rx="1.2" fill="none" stroke="${INK}" stroke-opacity=".45" stroke-width=".3" stroke-dasharray=".8 .6"/>`;
   if (isMe) o += `<ellipse cx="${x}" cy="${f1(y+s*.75)}" rx="${f1(s+2)}" ry="1.3" fill="#a8822a" opacity=".55"/>`;
-  const kind = !c.owner ? 'map_village' : capitalOf(c.owner)===c.id ? 'map_capital' : c.dev >= 6 ? 'map_city' : 'map_town', iw = s*2.9;
+  const kind = !c.owner ? 'map_village' : capitalOf(c.owner)===c.id ? 'map_capital' : TERRAIN[c.id]==='pass' ? 'map_pass' : TERRAIN[c.id]==='river' && c.dev < 7 ? 'map_port' : c.dev >= 6 ? 'map_city' : 'map_town', iw = s*2.9;
   if (c.owner) o += `<ellipse cx="${x}" cy="${f1(y+s*.62)}" rx="${f1(s*1.35)}" ry="${f1(s*.42)}" fill="${roof}" opacity=".55"/>`;
   o += `<image href="art/ui/${kind}.webp" xlink:href="art/ui/${kind}.webp" x="${f1(x-iw/2)}" y="${f1(y-s*1.55)}" width="${f1(iw)}" height="${f1(iw*.82)}" preserveAspectRatio="xMidYMax meet"/>`;
   o += `<line x1="${f1(x+s)}" y1="${f1(y-s*.65)}" x2="${f1(x+s)}" y2="${f1(y-s*.65-3.2)}" stroke="${INK}" stroke-width=".25"/><path d="M${f1(x+s)} ${f1(y-s*.65-3.2)} L${f1(x+s+2.2)} ${f1(y-s*.65-2.6)} L${f1(x+s)} ${f1(y-s*.65-1.9)}Z" fill="${roof}"/>`;
@@ -6136,7 +6138,7 @@ function armyMark(a){
   if (a.state!=='siege') o += `<path d="M${f1(fromC.x+ux*3)} ${f1(fromC.y+uy*3)} L${f1(ex)} ${f1(ey)}" stroke="${col}" stroke-width="${threat?.7:.5}" stroke-dasharray="${a.state==='return'?'.6 .8':'none'}" opacity=".8"/>`
     + `<path d="M${f1(ex+ux*1.6)} ${f1(ey+uy*1.6)} L${f1(ex-ux*.6-uy*1.1)} ${f1(ey-uy*.6+ux*1.1)} L${f1(ex-ux*.6+uy*1.1)} ${f1(ey-uy*.6-ux*1.1)}Z" fill="${col}"/>`;
   const w = 8.4, h = 3.6;
-  o += icoS(x, y, `<rect x="${f1(x-w/2)}" y="${f1(y-h/2)}" width="${w}" height="${h}" rx=".8" fill="${col}" stroke="${threat?'#b3352a':'#efe5cf'}" stroke-width="${threat?.5:.3}"/>`
+  o += icoS(x, y, (a.state==='siege' ? `<image href="art/ui/map_camp.webp" xlink:href="art/ui/map_camp.webp" x="${f1(x-4.5)}" y="${f1(y-8.6)}" width="9" height="7.4"/>` : `<image href="art/ui/mk_flag.webp" xlink:href="art/ui/mk_flag.webp" x="${f1(x-3)}" y="${f1(y-8.4)}" width="6" height="6.6"/>`) + `<rect x="${f1(x-w/2)}" y="${f1(y-h/2)}" width="${w}" height="${h}" rx=".8" fill="${col}" stroke="${threat?'#b3352a':'#efe5cf'}" stroke-width="${threat?.5:.3}"/>`
     + `<text x="${f1(x)}" y="${f1(y+.95)}" text-anchor="middle" font-size="2.5" font-weight="800" fill="#f6eedc" font-family="Gothic A1, sans-serif">${a.state==='siege'?'⚔':''}${(a.troops/1000).toFixed(1)}k</text>`);
   return o + '</g>';
 }
@@ -6273,6 +6275,12 @@ let mapDrag = null, mapMoved = false, mapHandlersOn = false;
 
 /* ---------- 성 패널 ---------- */
 function cityScene(c, hidden){
+  const t = TERRAIN[c.id], cap = c.owner && capitalOf(c.owner)===c.id;
+  const bg = besieged(c.id) ? 'bg_siege' : !c.owner ? 'bg_field_dusk' : cap ? 'bg_gate' : (t==='pass' || t==='mountain') ? 'bg_pass' : t==='river' ? 'bg_ferry' : c.dev >= 6 ? 'bg_market' : 'bg_gate';
+  const col = c.owner ? facColor(c.owner) : '#8f8574';
+  return `<div class="cscene${hidden ? ' fog' : ''}"><img src="art/${bg}.webp" alt="${c.n} 풍경" decoding="async"><i style="background:${col}"></i>${hidden ? '<b>정찰이 필요하다</b>' : ''}</div>`;
+}
+function cityScene0(c, hidden){
   const t = TERRAIN[c.id], roof = c.owner ? mix(facColor(c.owner), INK, .15) : '#8f8574', ruined = !c.owner;
   const w = 120 + c.dev*10, x0 = 160 - w/2, x1 = 160 + w/2, top = 58, base = 90;
   let o = `<svg viewBox="0 0 320 110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${c.n} 풍경"><rect width="320" height="110" fill="#efe5cf"/>`;
@@ -7038,12 +7046,12 @@ function renderTitle0(){
   ${cont}
   <div class="tstats"><div><span>●</span><b>${jade()}</b><small>금화</small></div><div><span>★</span><b>${starTotal()}</b><small>숙명의 별</small></div><div><span>명</span><b>${fmt(META.fame)}</b><small>누적 명성</small></div></div>
   <div class="mgrid t4">
-    <button class="mt sm" id="btnDaily" style="--c:#b3352a">${dailyDot()?'<i class="dot"></i>':''}<span class="mg">일</span><b>매일 과제</b></button>
-    <button class="mt sm" id="btnCu" style="--c:#6b4a8a"><span class="mg">내</span><b>내 장수</b></button>
-    <button class="mt sm" id="btnHeir" style="--c:#a8822a"><span class="mg">가</span><b>가보</b></button>
-    <button class="mt sm" id="btnAch" style="--c:#2f6b5a"><span class="mg">업</span><b>업적 ${Object.keys(META.ach).length}/${ACH.length}</b></button>
-    <button class="mt sm" id="btnHelp" style="--c:#3b4f8a"><span class="mg">법</span><b>게임 방법</b></button>
-    <button class="mt sm" id="btnSet" style="--c:#5a6470"><span class="mg">⚙</span><b>설정</b></button>
+    <button class="mt sm" id="btnDaily" style="--c:#b3352a">${dailyDot()?'<i class="dot"></i>':''}<img class="mti" src="art/g_book.webp" alt="" style="mix-blend-mode:multiply;border-radius:10px"><b>매일 과제</b></button>
+    <button class="mt sm" id="btnCu" style="--c:#6b4a8a"><img class="mti" src="art/ui/m_officer.webp" alt=""><b>내 장수</b></button>
+    <button class="mt sm" id="btnHeir" style="--c:#a8822a"><img class="mti" src="art/g_yuxi.webp" alt="" style="mix-blend-mode:multiply;border-radius:10px"><b>가보</b></button>
+    <button class="mt sm" id="btnAch" style="--c:#2f6b5a"><img class="mti" src="art/ui/m_ach.webp" alt=""><b>업적 ${Object.keys(META.ach).length}/${ACH.length}</b></button>
+    <button class="mt sm" id="btnHelp" style="--c:#3b4f8a"><img class="mti" src="art/ui/m_help.webp" alt=""><b>게임 방법</b></button>
+    <button class="mt sm" id="btnSet" style="--c:#5a6470"><img class="mti" src="art/ui/m_set.webp" alt=""><b>설정</b></button>
   </div>
   <div class="card">
     <span class="lbl">시작 시점</span>
