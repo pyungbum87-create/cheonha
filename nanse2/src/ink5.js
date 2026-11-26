@@ -198,6 +198,7 @@ function runMelee(){
       const x = e.x - cam, col = e.side ? foCol : myCol;
       const cav = e.type==='cav', SS = .76, ax = cav ? 28 : 12, ay = cav ? 38 : 37, hv = e.k==='heavy' ? shade(col, .7) : col;
       if (e.k==='eleph'){ if (e.dead){ ctx.globalAlpha = Math.max(0, 1 - e.dead/.6); drawElephant(ctx, x, e.y + 4, .62, !!e.side, col, 0); ctx.globalAlpha = 1; } else drawElephant(ctx, x, e.y + 4, .62, !!e.side, col, tt*.8 + e.ph); continue; }
+      if (e.dead){ const pd = paFigDie(e.type, hv, Math.min(1, e.dead/.35)); if (pd){ blitFig(ctx, pd, x, e.y, SS, !!e.side, ax, ay, 1 - Math.max(0, e.dead - .35)/.25); continue; } }
       if (e.dead){ const k = Math.min(1, e.dead/.25); ctx.save(); ctx.translate(x, e.y); ctx.rotate((e.side ? 1 : -1)*1.4*k); ctx.translate(-x, -e.y); blitFig(ctx, figSprite(e.type, hv, 'idle'), x, e.y, SS, !!e.side, ax, ay, 1 - e.dead/.6); ctx.restore(); continue; }
       const on = Math.sin(tt*2.6 + e.ph) > 0, pose = cav ? (on ? 'a' : 'b') : (on ? 'charge' : 'idle');
       blitFig(ctx, figSprite(e.type, hv, pose), x, e.y - (e.fight ? 0 : Math.abs(Math.sin(tt*2.6 + e.ph))*1.4), SS, !!e.side, ax, ay);

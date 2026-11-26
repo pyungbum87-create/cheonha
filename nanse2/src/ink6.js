@@ -5,10 +5,23 @@ function paImg(c){
   let o = PA.img[c];
   if (o === undefined){
     const m = PA_MAN[c]; if (!m){ PA.img[c] = null; return null; }
-    o = new Image(); o.decoding = 'async'; o.src = 'art/anim/' + c + '.webp'; PA.img[c] = o;
-    if (m.m){ const k = new Image(); k.src = 'art/anim/' + c + '_m.webp'; PA.msk[c] = k; }
+    o = paNew('art/anim/' + c + '.webp'); PA.img[c] = o;
+    if (m.m) PA.msk[c] = paNew('art/anim/' + c + '_m.webp');
   }
   return o && o.complete && o.naturalWidth ? o : null;
+}
+/* 받기 실패하면 세 번까지 다시 받는다 */
+function paNew(url){
+  const o = new Image(); o.decoding = 'async'; let n = 0;
+  o.onerror = () => { if (++n <= 3) setTimeout(() => { o.src = url + '?r=' + n; }, 1200*n); };
+  o.src = url; return o;
+}
+/* 장면마다 그림이 섞이지 않게: 핵심 동작이 전부 받아진 뒤에만 그린 그림으로 바꾼다 */
+let PA_READY = false;
+function paReady(){
+  if (PA_READY) return true;
+  for (const c in PA_MAN) if (/^(r_|q_|s_|w_|a_|c_)/.test(c) && !(paImg(c) && (!PA.msk[c] || (PA.msk[c].complete && PA.msk[c].naturalWidth)))) return false;
+  return (PA_READY = true);
 }
 function paOk(c){ if (!paImg(c)) return false; const k = PA.msk[c]; return !k || k.complete; }
 function paAll(list){ for (const c of list) if (!paOk(c)) return false; return true; }
@@ -44,7 +57,7 @@ function paDraw(ctx, cf, x, y, D, flip, col, alpha){
 }
 /* 기마 장수: o.pa = { c:'strike'|'wind'|..., p } 가 있으면 그 동작, 없으면 달리기/서기 */
 function paRider(c, x, y, sc, flip, col, o){
-  if (o.noRider || o.vec) return null;
+  if (o.noRider || o.vec || !paReady()) return null;
   const f = o.weapon === 'spear' ? 'q' : 'r', man = PA_MAN[f + '_gal1']; if (!man) return null;
   let cf;
   if (o.pa){ const id = f + '_' + o.pa.c; if (!PA_MAN[id] || !paOk(id)) return null; cf = paAt(id, o.pa.p); }
@@ -62,6 +75,7 @@ function paRider(c, x, y, sc, flip, col, o){
 /* 보병·기병 무리: figSprite 대신 쓰는 채색 프레임 (blitFig가 알아봄) */
 const PA_FOOT = { spear:'s', shield:'w', bow:'a' };
 function paFig(type, col, pose){
+  if (!paReady()) return null;
   const now = performance.now()/1000, hk = type + '|' + col;
   if (type === 'cav'){
     if (!paAll(['c_gal1', 'c_gal2'])) return null;
@@ -89,15 +103,21 @@ function paBlit(ctx, p, x, y, sc, flip, alpha){
   if (p.col){ ctx.save(); ctx.globalAlpha *= .4; ctx.fillStyle = p.col; ctx.beginPath(); ctx.ellipse(0, 0, D*.2, D*.05, 0, 0, TWO_PI); ctx.fill(); ctx.restore(); }
   ctx.drawImage(p.src, p.f*p.s, 0, p.s, p.s, -p.ax*D, -p.ay*D, D, D); ctx.restore();
 }
+/* 쓰러짐: k 0~1 */
+const PA_DIE = { spear:'s_die', shield:'w_die', cav:'c_fall' };
+function paFigDie(type, col, k){
+  const c = PA_DIE[type]; if (!c || !paReady() || !paOk(c)) return null;
+  return paProxy(paAt(c, k), col, type === 'cav' ? 52 : 34);
+}
 /* 코끼리 */
 function paEleph(c, x, y, sc, flip, col, t){
   if (!paOk('e_walk')) return false; const m = PA_MAN.e_walk;
   return paDraw(c, paLoop(['e_walk'], t*.18), x, y, 92*sc/m.w, flip, col);
 }
-setTimeout(() => { try { for (const c in PA_MAN) if (/^(r_|q_|s_|w_|a_|c_|e_|v_)/.test(c)) paImg(c); } catch(e){} }, 1200);
+setTimeout(() => { try { for (const c in PA_MAN) if (/^(r_|q_|s_|w_|a_|c_|e_|v_)/.test(c)) paImg(c); } catch(e){} }, 300);
 /* 그린 효과 */
 const PA_UI = {};
-function paUi(n){ let o = PA_UI[n]; if (!o){ o = PA_UI[n] = new Image(); o.src = 'art/ui/' + n + '.webp'; } return o.complete && o.naturalWidth ? o : null; }
+function paUi(n){ let o = PA_UI[n]; if (!o){ o = PA_UI[n] = paNew('art/ui/' + n + '.webp'); } return o.complete && o.naturalWidth ? o : null; }
 function paFx(ctx, n, x, y, size, alpha, rot, flip){
   const im = paUi(n); if (!im || alpha <= 0) return;
   ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot); if (flip) ctx.scale(-1, 1); ctx.globalAlpha = Math.min(1, alpha);
