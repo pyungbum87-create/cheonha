@@ -16,7 +16,7 @@ if(API){const dpr=Math.min(2,info.pixelRatio||1);c.width=Math.max(1,Math.round((
  const s=Math.min(c.width/W,c.height/H);view={s,ox:(c.width-W*s)/2,oy:(c.height-H*s)/2};}
 else{c.width=W;c.height=H;}
 function mkCanvas(w,h){const cv=API?API.createCanvas():document.createElement('canvas');cv.width=w;cv.height=h;return cv}
-const BUILD='1126-1234';
+const BUILD='1126-1401';
 const QS=(!API&&typeof location!=='undefined')?location.search:'';
 // 안전장치: 반지름 음수·NaN이면 그리기 전체가 멈추는 문제 방지
 (function(){const P=Object.getPrototypeOf(g);if(!P||P.__safe)return;P.__safe=true;const oa=P.arc,oe=P.ellipse;
@@ -141,13 +141,13 @@ if(API){try{API.showShareMenu&&API.showShareMenu({withShareTicket:true});API.onS
 // ================================================================ 게임 데이터
 const STAGES=[
  {n:['주거 지구','住宅区'],d:['처음 감염이 퍼진 아파트 골목','感染最先蔓延的公寓小巷'],mul:1,rate:1,sp:{run:20,pred:45,cmd:75,blk:95}},
- {n:['상업 지구','商业区'],d:['셔터가 내려간 네온 거리','卷帘门紧闭的霓虹街'],mul:1.6,rate:1.06,sp:{run:15,pred:40,cmd:65,blk:85}},
- {n:['공장 단지','工厂区'],d:['꺼진 확성기가 우는 공장','关着的喇叭仍在鸣响的工厂'],mul:2.4,rate:1.12,sp:{run:12,pred:32,cmd:55,blk:75}},
- {n:['지하 시추 기지','地下钻探基地'],d:['모든 것이 깨어난 곳','一切苏醒的地方'],mul:3.4,rate:1.18,sp:{run:10,pred:26,cmd:48,blk:65}},
- {n:['방송탑','广播塔'],d:['마지막 헬기가 기다리는 곳','最后的直升机在等待'],mul:4.2,rate:1.22,sp:{run:14,pred:24,cmd:45,blk:60}}];
+ {n:['상업 지구','商业区'],d:['셔터가 내려간 네온 거리','卷帘门紧闭的霓虹街'],mul:1.4,rate:1.06,sp:{run:15,pred:40,cmd:65,blk:85}},
+ {n:['공장 단지','工厂区'],d:['꺼진 확성기가 우는 공장','关着的喇叭仍在鸣响的工厂'],mul:2,rate:1.12,sp:{run:12,pred:32,cmd:55,blk:75}},
+ {n:['지하 시추 기지','地下钻探基地'],d:['모든 것이 깨어난 곳','一切苏醒的地方'],mul:2.8,rate:1.18,sp:{run:10,pred:26,cmd:48,blk:65}},
+ {n:['방송탑','广播塔'],d:['마지막 헬기가 기다리는 곳','最后的直升机在等待'],mul:3.5,rate:1.22,sp:{run:14,pred:24,cmd:45,blk:60}}];
 const STAGE_RECTS={"1":[[0,0,55,193],[0,193,95,243],[296,0,514,218],[600,0,724,243],[588,88,625,128],[598,128,625,193],[0,243,97,878],[602,243,724,878],[152,350,202,438],[152,506,202,593],[152,661,202,753],[493,348,543,433],[493,505,543,593],[493,665,543,753]],"2":[[0,0,290,95],[435,0,724,95],[0,110,45,965],[685,110,724,320],[635,315,724,700],[680,700,724,965],[40,120,178,205],[215,128,515,202],[555,122,690,205],[330,195,428,290],[115,228,165,282],[590,228,645,282],[222,322,520,672],[530,355,555,385],[525,410,550,450],[580,395,615,440],[585,520,625,550],[535,560,565,590],[600,570,630,620],[100,760,150,845],[100,865,150,960],[590,760,635,845],[590,865,635,960]],"3":[[0,1,278,101],[445,1,724,101],[0,101,22,201],[22,136,172,201],[212,136,510,201],[550,136,724,201],[0,191,58,965],[58,321,80,591],[100,431,125,521],[100,546,125,611],[345,226,428,296],[215,246,300,326],[450,261,505,321],[185,341,505,669],[608,491,665,641],[665,271,724,965],[690,201,724,271],[105,736,160,921],[555,761,625,951]],"4":[[0,0,290,100],[435,0,724,100],[0,70,65,135],[660,70,724,135],[0,135,172,205],[208,135,515,205],[550,135,724,205],[0,185,92,690],[0,690,70,965],[640,185,724,390],[605,390,724,665],[640,665,724,965],[285,235,445,330],[200,365,532,690],[530,410,552,545],[205,250,250,290],[550,300,595,345],[110,770,170,835],[555,790,610,860],[110,880,145,920],[575,875,615,910]],"5":[[0,1,345,141],[425,1,724,141],[50,176,185,213],[218,176,508,213],[542,176,680,213],[680,141,724,261],[0,141,55,266],[0,266,18,521],[0,521,100,691],[0,691,180,931],[0,931,30,965],[205,346,285,451],[285,356,555,691],[610,301,724,701],[555,301,620,351],[550,691,724,965],[348,251,438,301],[270,291,310,323],[455,286,505,326]]};
 // 밸런스 기준값(한곳에서 조정): 레벨 필요 경험치, 칸 층마다 적 체력·숫자 증가, 칸 클리어 회복, 버티기 시간
-const BAL={need:[5,4,.85],l0:.7,lHm:.42,lHm2:.035,lRate:.14,lT:22,heal:.05,fightT:85};
+const BAL={need:[6,6,1.5],l0:.7,lHm:.7,lHm2:.07,lRate:.18,lT:22,lSpd:.03,cap:260,hpM:2.4,heal:.05,fightT:85};
 const BOSS_T=150;            // 문지기 등장 시간(초)
 const ZT={walk:{hp:12,spd:54,dmg:10,xp:1,r:10},run:{hp:9,spd:96,dmg:8,xp:1,r:10},pred:{hp:42,spd:52,dmg:14,xp:4,r:11},blk:{hp:230,spd:30,dmg:18,xp:14,r:17},cmd:{hp:130,spd:36,dmg:10,xp:12,r:15},boss:{hp:9000,spd:36,dmg:28,xp:80,r:32},spit:{hp:30,spd:42,dmg:8,xp:5,r:11,spr:'cmd',sc:.9},bomb:{hp:20,spd:62,dmg:6,xp:3,r:12,spr:'walk',sc:1.15},nest:{hp:300,spd:0,dmg:0,xp:12,r:24}};
 const ZN={walk:['감염자','感染者'],run:['추적자','追踪者'],pred:['덮치기형','扑击者'],cmd:['지휘형','指挥者'],blk:['거구','巨躯'],boss:['문지기','守门者'],spit:['침 뱉는 놈','喷吐者'],bomb:['폭탄 좀비','爆弹感染者'],nest:['포자 둥지','孢子巢']};
@@ -327,11 +327,13 @@ const AF={fast:{n:['빠름','迅捷'],c:'#7fd0ff'},split:{n:['분열','分裂'],
 function spawnElite(t,mid){const z=spawnRing(t)||spawnRing(t,240);if(!z)return null;z.el=mid?2:1;z.hp=z.mhp=(mid?1500:300+S.t*9)*S.hm;z.r=ZT[t].r*(mid?1.7:1.35);if(!mid&&!S.tut){const ks=Object.keys(AF);z.af=ks[(Math.random()*ks.length)|0]}return z}
 
 // ================================================================ 감염체
-function spawn(t,x,y){const T=ZT[t],hs=1+S.t/70+(S.t>100?(S.t-100)/40:0),hp=t==='boss'?9000*S.hm:T.hp*(1+(S.hm-1)*Math.min(1,S.t/75))*hs;
+function spawn(t,x,y){const T=ZT[t],hs=1+S.t/70+(S.t>100?(S.t-100)/40:0),hp=(t==='boss'?9000*S.hm:T.hp*(1+(S.hm-1)*Math.min(1,S.t/75))*hs)*(S.node&&t!=='nest'?1+(BAL.hpM-1)*Math.min(1,S.node.l/2):1);
  const z={t,x,y,hp,mhp:hp,r:T.r,ph:Math.random()*6,ang:0,fl:0,kx:0,ky:0,hitT:0,sawT:0,st:0,stT:rand(1.5,3.5),slowT:0,frz:0};S.zs.push(z);return z}
 function spawnRing(t,R0){for(let i=0;i<10;i++){let x,y;if(R0){const a=Math.random()*TAU;x=P.x+Math.cos(a)*R0;y=P.y+Math.sin(a)*R0}
   else{const hw=VW/2+26,hh=VH/2+26,e=Math.random()*(hw+hh)*2;if(e<hw*2){x=S.cam.x+VW/2-hw+e;y=S.cam.y+VH/2+(Math.random()<.5?-hh:hh)}else{y=S.cam.y+VH/2-hh+(e-hw*2);x=S.cam.x+VW/2+(Math.random()<.5?-hw:hw)}}
-  if(!solid(x,y,14)&&FD[((y/FC)|0)*FWc+((x/FC)|0)]>=0)return spawn(t,x,y)}return null}
+  if(!solid(x,y,14)&&FD[((y/FC)|0)*FWc+((x/FC)|0)]>=0)return spawn(t,x,y)}
+ // 구석·지도 끝에 붙어 있어도 놈들이 끊기지 않게: 화면 가장자리가 막히면 주변 고리에서 나옴
+ if(!R0)for(let i=0;i<16;i++){const a=Math.random()*TAU,r=rand(250,380),x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r*1.3;if(!solid(x,y,14)&&FD[((y/FC)|0)*FWc+((x/FC)|0)]>=0)return spawn(t,x,y)}return null}
 function pickType(){const t=S.t+(S.node?S.node.l*BAL.lT:0),r=Math.random(),sp=S.sp,q=Math.random(),dp=S.st+(S.node?S.node.l*.5:0)+(S.endless?S.t/120:0);if(!S.tut&&t>15){if(q<.035+.006*dp+(S.daily&&S.daily.k==='bomb'?.08:0))return 'bomb';if(dp>=1&&q<.07+.008*dp)return 'spit'}if(t>sp.blk&&r<.035)return 'blk';if(t>sp.cmd&&r<.06)return 'cmd';if(t>sp.pred&&r<.16)return 'pred';if(t>sp.run&&r<.16+Math.min(.25,(t-sp.run)/400))return 'run';return 'walk'}
 function spark(x,y,n,col,spd,life,size,grav){if(!S)return;const cap=qualityLow?160:480;if(S.pt.length>cap)return;if(qualityLow)n=Math.ceil(n/2);for(let i=0;i<n;i++){const a=Math.random()*TAU,v=spd*(.35+Math.random()*.65);S.pt.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,life:life*(.6+Math.random()*.6),s:size,c:col,g:grav||0})}}
 const ZCOL=t=>t==='cmd'?'#d9cba8':t==='pred'?'#ffd166':save.mild?'#9fb4c8':'#3ef2d0';
@@ -386,11 +388,11 @@ function randomNear(x,y,R){let tg=null,k=0;near(x,y,R,z=>{if(Math.random()<1/(++
 function overlayOn(){return !S||paused||S.pick||S.chest||adShow||guideTip||confirmQuit||S.over}
 function tick(dt){if(!S||(dbgFreeze&&!stepping))return;if(overlayOn())return;
  if(S.winT>=0){S.winT-=dt;dt*=.3;if(S.winT<0){if(S.node&&S.node.t!=='boss'){nodeClear();return}finishRun(true);return}}
- const p=P;S.t+=dt;svTick(dt);nodeTick(dt);acidTick(dt);if(S.helmT>0)S.helmT-=dt;DSRC='etc';if(S.od>0)S.od-=dt;flashT=Math.max(0,flashT-dt);shakeT=Math.max(0,shakeT-dt);
+ const p=P;S.t+=dt;S.cam.x=clamp(p.x-VW/2,0,WW-VW);S.cam.y=clamp(p.y-VH/2,0,WH-VH);svTick(dt);nodeTick(dt);acidTick(dt);if(S.helmT>0)S.helmT-=dt;DSRC='etc';if(S.od>0)S.od-=dt;flashT=Math.max(0,flashT-dt);shakeT=Math.max(0,shakeT-dt);
  // 이동
  const v=input(),m=hyp(v.x,v.y),sp=118*S.spdM*(1+.08*lv('spd'))*(S.od>0?1.12:1);if(m>.1){const ox=p.x,oy=p.y;moveE(p,v.x*sp*dt,v.y*sp*dt,7);S.moved+=hyp(p.x-ox,p.y-oy);{const ta=Math.atan2(v.y,v.x);let da=ta-p.ang;while(da>PI)da-=TAU;while(da<-PI)da+=TAU;p.ang+=da*Math.min(1,dt*14)}p.phase+=dt*9*m}p.mv=m;p.inv=Math.max(0,p.inv-dt);
  // 등장
- if(!S.win){const cap=(qualityLow?150:210)+(S.endless?Math.min(90,S.t/6):0),rate=(2.6+(S.node?Math.min(S.t,80)+S.node.l*6:S.t)*.13)*S.rate*(S.tut&&S.t<20?.6:1);S.spawn+=rate*dt;while(S.spawn>=1){S.spawn--;if(S.zs.length<cap)spawnRing(pickType())}
+ if(!S.win){const cap=(qualityLow?170:BAL.cap)+(S.endless?Math.min(90,S.t/6):0),rate=S.node?(3+(Math.min(S.t,80)+S.node.l*8)*.15):(2.6+S.t*.13)*S.rate*(S.tut&&S.t<20?.6:1);S.spawn+=rate*dt;while(S.spawn>=1){S.spawn--;if(S.zs.length<cap)spawnRing(pickType())}
   if(S.t>=S.wave){S.wave+=25;AudioFx.cue('surge',.8);const wk=S.tut?0:S.wn++%3;
    if(wk===1){message(L('포위당했다! 뚫고 나가요','被包围了！冲出去'),1.8);const n=20+((S.t/12)|0);for(let i=0;i<n;i++){const a=i/n*TAU,x=p.x+Math.cos(a)*235,y=p.y+Math.sin(a)*235;if(!solid(x,y,12)&&S.zs.length<280)spawn('walk',x,y)}}
    else if(wk===2){message(L('질주 떼가 달려온다!','狂奔尸群冲来了！'),1.8);const a=Math.random()*TAU,n=10+((S.t/15)|0);for(let i=0;i<n;i++){const o=(i-n/2)*16,x=p.x+Math.cos(a)*270-Math.sin(a)*o,y=p.y+Math.sin(a)*270+Math.cos(a)*o;if(!solid(x,y,12)&&S.zs.length<280)spawn('run',x,y)}}
@@ -408,7 +410,7 @@ function tick(dt){if(!S||(dbgFreeze&&!stepping))return;if(overlayOn())return;
  const cmds=S.zs.filter(z=>z.t==='cmd');
  for(const z of S.zs){const T=ZT[z.t];const dx=p.x-z.x,dy=p.y-z.y,d=hyp(dx,dy)||1;z.fl=Math.max(0,z.fl-dt);if(z.burn>0){z.burn-=dt;z.bT=(z.bT||0)-dt;if(z.bT<=0){z.bT=.4;DSRC='saw';hurt(z,6+lv('saw')*2,0,0,0)}}z.hitT-=dt;z.sawT-=dt;
   if(z.af){if(z.af==='regen')z.hp=Math.min(z.mhp,z.hp+z.mhp*.035*dt);else if(z.af==='thorn'&&d<z.r+42)hitP(6*(1+.15*S.st))}
-  let s=T.spd*(z.t==='boss'&&S.rage?1.7:1)*(z.af==='fast'?1.6:1)*(S.daily&&S.daily.k==='fast'?1.25:1)*(S.endless?Math.min(1.6,1+S.t/700):1);if(z.slowT>0){z.slowT-=dt;s*=z.frz?.12:.42;if(z.slowT<=0)z.frz=0}for(const cm of cmds)if(cm!==z&&hyp(cm.x-z.x,cm.y-z.y)<130){s*=1.45;break}
+  let s=T.spd*(z.t==='boss'&&S.rage?1.7:1)*(z.af==='fast'?1.6:1)*(S.daily&&S.daily.k==='fast'?1.25:1)*(S.endless?Math.min(1.6,1+S.t/700):1)*(S.node?1+BAL.lSpd*S.node.l:1);if(z.slowT>0){z.slowT-=dt;s*=z.frz?.12:.42;if(z.slowT<=0)z.frz=0}for(const cm of cmds)if(cm!==z&&hyp(cm.x-z.x,cm.y-z.y)<130){s*=1.45;break}
   if(z.t==='boss'&&!S.tut&&bossExtra(z,dt,d,dx,dy)){continue}
   if(z.t==='pred'||z.t==='boss'){z.stT-=dt;if(z.st===0&&z.stT<=0&&d<(z.t==='boss'?150:190)){z.st=1;z.stT=z.t==='boss'?.9:.5;z.tx=p.x;z.ty=p.y}
    else if(z.st===1){s=0;if(z.stT<=0){if(z.t==='boss'){z.st=0;z.stT=4;shake(.45);AudioFx.cue('slam');S.fx.push({k:'wave',x:z.x,y:z.y,t:0,life:.45,R:95,c:'#ff8a3d'});S.dec.push({k:'crack',x:z.x,y:z.y,t:0,life:3,R:95,a:Math.random()*6});spark(z.x,z.y,22,'#c9b39a',200,.6,3.5);if(d<95+9)hitP(T.dmg*(1+.15*S.st))}
@@ -425,7 +427,9 @@ function tick(dt){if(!S||(dbgFreeze&&!stepping))return;if(overlayOn())return;
   if(T.dmg&&d<z.r+9&&z.hitT<=0&&!(z.stun>0)){z.hitT=.7;hitP(T.dmg*(1+.15*S.st))}
   if(z.t==='boss'&&z.hp<z.mhp*.65){z.shT=(z.shT==null?2:z.shT)-dt;if(z.shT<=0){z.shT=z.hp<z.mhp*.3?3.2:4.6;const n=12,o=Math.random();for(let i=0;i<n;i++){const a=(i+o)/n*TAU;S.eb.push({x:z.x,y:z.y,vx:Math.cos(a)*105,vy:Math.sin(a)*105,t:0})}AudioFx.cue('shock',.5);S.fx.push({k:'wave',x:z.x,y:z.y,t:0,life:.3,R:50,c:'#ff8a3d'})}}
   if(z.t==='boss'){z.chk=(z.chk||0)+dt;if(z.chk>3){if(hyp(z.x-(z.cx||0),z.y-(z.cy||0))<20&&d>220){const q=spawnRing('walk',260);if(q){z.x=q.x;z.y=q.y;q.dead=true}}z.chk=0;z.cx=z.x;z.cy=z.y}}
-  if(d>hyp(VW,VH)*.95&&z.t!=='boss'&&z.t!=='nest'){z.dead=true;z.gone=true}}
+  if(d>hyp(VW,VH)*.95&&z.t!=='boss'&&z.t!=='nest'){z.dead=true;z.gone=true}
+  // 건물 모서리에 걸려 화면 밖에서 멈춘 놈은 다른 쪽에서 다시 나오게(구석에 숨으면 텅 비던 문제)
+  if(z.t!=='boss'&&z.t!=='nest'&&!z.el){z.sk=(z.sk||0)+dt;if(z.sk>2.5){const off=Math.abs(z.x-S.cam.x-VW/2)>VW/2+20||Math.abs(z.y-S.cam.y-VH/2)>VH/2+20;if(off&&hyp(z.x-(z.sx0||0),z.y-(z.sy0||0))<30){const q=spawnRing('walk');if(q){z.x=q.x;z.y=q.y;q.dead=true;q.gone=true}}z.sk=0;z.sx0=z.x;z.sy0=z.y}}}
  for(const a of grid.values())for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++){const A=a[i],B=a[j],dx=B.x-A.x,dy=B.y-A.y,d=hyp(dx,dy)||.01,mn=(A.r+B.r)*.85;if(d<mn){const o=(mn-d)*.5,ux=dx/d,uy=dy/d,fa=A.t==='nest'?0:B.t==='nest'?1:.5,fb=B.t==='nest'?0:A.t==='nest'?1:.5;A.x-=ux*o*fa;A.y-=uy*o*fa;B.x+=ux*o*fb;B.y+=uy*o*fb}}
  weapons(dt);
  // 탄 · 불 · 번개
@@ -512,15 +516,15 @@ function revive(){S.over=false;S.revived=true;sc='battle';save.sup=Math.max(0,sa
 // 노드 종류: 전투형(fight 버티기, elite 정예 사냥, defend 발전기 지키기, collect 연료 모으기, rescue 생존자 구출, boss) / 쉼터형(shop, event, rest)
 const NT={
  fight:{i:'⚔',c:'#c8d2de',n:['버티기','坚守'],d:['85초 동안 버티면 길이 열려요','坚持85秒即可通过'],b:1},
- elite:{i:'☠',c:'#ffd166',n:['정예 사냥','精英狩猎'],d:['금빛 정예 3마리를 쓰러뜨려요 · 부품 많이','击倒3个金色精英 · 零件更多'],b:1},
+ elite:{i:'☠',c:'#ffd166',n:['정예 사냥','精英狩猎'],d:['금빛 정예들을 쓰러뜨려요 · 부품 많이','击倒金色精英 · 零件更多'],b:1},
  defend:{i:'⚡',c:'#7fd0ff',n:['발전기 지키기','守护发电机'],d:['60초 동안 발전기를 지켜요 · 놈들이 발전기를 부숴요','守护发电机60秒 · 敌人会破坏它'],b:1},
- collect:{i:'⛽',c:'#ff9a5a',n:['연료 모으기','收集燃料'],d:['흩어진 연료통 5개를 모아요','收集散落的5个燃料桶'],b:1},
- rescue:{i:'🆘',c:'#7fe0b0',n:['생존자 구출','营救幸存者'],d:['생존자 2명을 구해요 · 동료가 될 수 있어요','营救2名幸存者 · 可成为同伴'],b:1},
+ collect:{i:'⛽',c:'#ff9a5a',n:['연료 모으기','收集燃料'],d:['흩어진 연료통을 모두 모아요','收集散落的所有燃料桶'],b:1},
+ rescue:{i:'🆘',c:'#7fe0b0',n:['생존자 구출','营救幸存者'],d:['생존자 3명을 구해요 · 동료가 될 수 있어요','营救3名幸存者 · 可成为同伴'],b:1},
  shop:{i:'🛒',c:'#ffe2a0',n:['떠돌이 상인','流浪商人'],d:['부품으로 회복·강화·동료를 사요','用零件购买回复、强化、同伴']},
  event:{i:'❓',c:'#b9a6ff',n:['사건','事件'],d:['무슨 일이 생길지 몰라요 · 선택에 따라 달라져요','不知道会发生什么 · 结果取决于选择']},
  rest:{i:'🔥',c:'#ff8a3d',n:['모닥불','篝火'],d:['쉬어서 회복하거나 무기를 손봐요','休息回复或保养武器']},
  beacon:{i:'📡',c:'#7fd0ff',n:['중계기 세우기','架设中继器'],d:['중계기 3곳을 세워 신호를 이어요 · 원 안에 서 있어요','架设3个中继器接通信号 · 站在圈内即可'],b:1},
- nest:{i:'☣',c:'#b98aff',n:['둥지 부수기','摧毁巢穴'],d:['포자 둥지 3개를 부숴요 · 둥지가 놈들을 계속 불러요','摧毁3个孢子巢 · 巢穴会不断引来敌人'],b:1},
+ nest:{i:'☣',c:'#b98aff',n:['둥지 부수기','摧毁巢穴'],d:['포자 둥지를 모두 부숴요 · 둥지가 놈들을 계속 불러요','摧毁所有孢子巢 · 巢穴会不断引来敌人'],b:1},
  supply:{i:'📦',c:'#ffd166',n:['보급 투하','空投补给'],d:['보급 상자 셋 중 하나를 골라요 · 싸움 없음','从3个补给箱中选1个 · 无需战斗']},
  boss:{i:'👹',c:'#ff6a5a',n:['문지기','守门者'],d:['이 구역의 문지기를 쓰러뜨리고 탈출해요','击倒本区守门者并撤离'],b:1}};
 const ROUTE_POOL=[['fight','collect','rescue','beacon'],['event','shop','elite','defend','supply'],['fight','defend','collect','event','rescue','nest','beacon'],['fight','collect','defend','event','nest','supply'],['rest','shop','elite','event','supply'],['fight','defend','elite','rescue','collect','nest','beacon']];
@@ -530,32 +534,35 @@ function genRoute(st,RN){RN=RN||Math.random;const L=[[{t:'fight'}]];for(let l=0;
   b.forEach((m,j)=>{if(!a.some(n=>n.nx.indexOf(j)>=0)){let bi=0,bd=99;a.forEach((n,i)=>{const d=Math.abs(n.x-m.x);if(d<bd){bd=d;bi=i}});a[bi].nx.push(j)}})}
  return{st,L,cur:null,sel:null}}
 function startChapter(st,diff,boost,RN){newRun(st,diff,false,boost);if(!S)return;S.route=genRoute(st,RN);S.hm0=S.hm;S.rate0=S.rate;S.scrap=0;S.tt=0;clearBig();sc='route';track('chapter_start',{st:st+1,diff})}
-function findOpen(){let best=null,bs=-1;for(let k=0;k<60;k++){const x=rand(180,WW-180),y=rand(180,WH-180);if(solid(x,y,18))continue;let o=0;for(let a=0;a<TAU;a+=.5)for(let r=40;r<=160;r+=40)if(!solid(x+Math.cos(a)*r,y+Math.sin(a)*r,10))o++;if(o>bs){bs=o;best={x,y}}}return best||{x:P.x,y:P.y}}
+// 시작 자리: 넓고, 지도 대부분과 이어진 곳(막힌 마당에 갇히면 놈들이 오지 못해 칸이 텅 빔)
+function reachFrac(x,y){const ox=P.x,oy=P.y;P.x=x;P.y=y;flowUpdate();P.x=ox;P.y=oy;let r=0,f=0;for(let k=0;k<FD.length;k++){if(!FBL[k]){f++;if(FD[k]>=0)r++}}return f?r/f:0}
+function findOpen(){const c=[];for(let k=0;k<80;k++){const x=rand(360,WW-360),y=rand(400,WH-400);if(solid(x,y,18))continue;let o=0;for(let a=0;a<TAU;a+=.5)for(let r=40;r<=160;r+=40)if(!solid(x+Math.cos(a)*r,y+Math.sin(a)*r,10))o++;c.push({x,y,o})}c.sort((a,b)=>b.o-a.o);
+ for(let i=0;i<Math.min(10,c.length);i++){if(reachFrac(c[i].x,c[i].y)>.6)return c[i]}return c[0]||{x:P.x,y:P.y}}
 function nodeReachable(n){const R=S.route;if(!R.cur)return n.l===0;return n.l===R.cur.l+1&&R.cur.nx.indexOf(n.i)>=0}
 function enterNode(n){const R=S.route;R.cur=n;R.sel=null;track('node',{t:n.t,l:n.l});if(!NT[n.t].b){if(n.t==='shop')openShop();else if(n.t==='event')openEvent();else if(n.t==='supply')openSupply();else{sc='rest'}return}
  // 전투 칸 준비: 판 상태는 이어지고(레벨·무기·체력·동료), 맵 위의 것만 새로
  for(const k of['zs','bul','gems','pk','pools','tur','bolts','fx','num','pt','dec','eb','air','fp','dead','sfx','mines','rays'])S[k]=[];
- const o=findOpen();P.x=o.x;P.y=o.y;P.inv=1.5;S.sv=(S.sv||[]).filter(v=>v.st===1);S.sv.forEach((v,i)=>{v.x=P.x+(i?30:-30);v.y=P.y+20});
- Object.assign(S,{t:0,spawn:0,wave:22,elT:30,elN:0,drops:n.t==='fight'?[38]:[],bossOut:n.t!=='boss',bT:14,boss:null,win:false,winT:-1,svT:n.t==='rescue'?[2,16]:(Math.random()<.35?[25]:[]),node:n,eK:0,nodeRes:0,cans:null,canMv:0,gen:null,eNext:4,od:0,rage:0,tc:0});
- S.hm=S.hm0*(BAL.l0+BAL.lHm*n.l+BAL.lHm2*n.l*n.l);S.rate=S.rate0*(1+BAL.lRate*n.l);
+ const o=findOpen();P.x=o.x;P.y=o.y;flowUpdate();P.inv=1.5;S.sv=(S.sv||[]).filter(v=>v.st===1);S.sv.forEach((v,i)=>{v.x=P.x+(i?30:-30);v.y=P.y+20});
+ Object.assign(S,{t:0,spawn:0,wave:22,elT:30,elN:0,drops:n.t==='fight'?[38]:[],bossOut:n.t!=='boss',bT:14,boss:null,win:false,winT:-1,svT:n.t==='rescue'?[6,28,50]:(Math.random()<.35?[25]:[]),node:n,eK:0,nodeRes:0,cans:null,canMv:0,gen:null,eNext:4,od:0,rage:0,tc:0});
+ S.hm=S.hm0*(BAL.l0+BAL.lHm*n.l+BAL.lHm2*n.l*n.l);S.objN=n.l>=4?4:3;S.rate=S.rate0*(1+BAL.lRate*n.l);
  nodeSetup2(n);
  if(n.t==='defend')S.gen={x:P.x+46,y:P.y,hp:100,mhp:100};
- if(n.t==='collect')S.cans=placeSpots(5,180,400,150);
+ if(n.t==='collect'){S.cans=placeSpots(6+(n.l>=4?1:0),300,650,220);S.cansN=S.cans.length}
  flowUpdate();sc='battle';announce(LL(NT[n.t].n),LL(NT[n.t].d),NT[n.t].c);AudioFx.cue('surge',.6)}
 function nodeTick(dt){const n=S.node;if(!n||S.win)return;const p=P;let done=false;modTick(dt);
  if(n.t==='fight')done=S.t>=BAL.fightT;
- else if(n.t==='elite'){if(S.t>=S.eNext&&S.zs.filter(z=>z.el&&!z.dead).length<2){S.eNext=S.t+11;spawnElite(['cmd','pred','blk'][(Math.random()*3)|0],false)}done=S.eK>=3}
+ else if(n.t==='elite'){if(S.t>=S.eNext&&S.zs.filter(z=>z.el&&!z.dead).length<2){S.eNext=S.t+11;spawnElite(['cmd','pred','blk'][(Math.random()*3)|0],false)}done=S.eK>=S.objN}
  else if(n.t==='defend'){const G=S.gen;near(G.x,G.y,34,z=>{G.hp-=ZT[z.t].dmg*dt*.35});if(G.hp<=0){S.win=true;S.winT=1;S.nodeFail=1;message(L('발전기가 부서졌어요! 체력을 잃고 물러나요','发电机被毁！损失生命并撤退'),2);AudioFx.cue('lose',.6);return}done=S.t>=60}
  else if(n.t==='collect'){if(S.t>80&&!S.canMv){S.canMv=1;for(const c of S.cans){for(let k=0;k<40;k++){const a=Math.random()*TAU,r=rand(110,200),x=p.x+Math.cos(a)*r,y=p.y+Math.sin(a)*r;if(!solid(x,y,18)){c.x=x;c.y=y;break}}}message(L('남은 연료통을 가까이에서 찾았어요','在附近找到了剩下的燃料桶'),1.6)}S.cans=S.cans.filter(c=>{if(hyp(c.x-p.x,c.y-p.y)<34){AudioFx.cue('pick',.7);vib('light');S.cansGot=(S.cansGot||0)+1;P.hp=Math.min(P.maxHp,P.hp+P.maxHp*.04);return false}return true});done=!S.cans.length}
  else if(n.t==='beacon')done=beaconTick(dt);
  else if(n.t==='nest')done=nestTick(dt);
- else if(n.t==='rescue')done=S.nodeRes>=2||(S.t>20&&!S.svT.length&&!S.sv.some(v=>v.st===0));
+ else if(n.t==='rescue')done=S.nodeRes>=3||(S.t>56&&!S.svT.length&&!S.sv.some(v=>v.st===0));
  if(done){S.win=true;S.winT=1.6;for(const gm of S.gems)gm.pull=true;for(const z of S.zs)if(!z.dead&&z.t!=='boss')killZ(z);announce(L('구역 확보!','区域已控制！'),L('다음 길을 고르세요','选择下一条路'),'#7fe0b0');AudioFx.cue('win',.6)}}
 function nodeClear(){const n=S.node,R=S.route;S.tt+=S.t;mission('time',Math.round(S.t-(S.tc||0)));S.tc=0;let g2=0;
  if(S.nodeFail){P.hp=Math.max(1,P.hp-P.maxHp*.25)}else{g2=Math.round((22+9*n.l+(n.t==='elite'?20:0)+(S.cansGot||0)*2)*(HR('scrap')?1.5:1)*(HR('doll')?1.4:1)*(1+.06*RL('scout'))*(S.daily&&S.daily.k==='rich'?2:1)*(n.m?MODS[n.m].mul:1));S.scrap+=g2;P.hp=Math.min(P.maxHp,P.hp+P.maxHp*((HR('bag')?BAL.heal+.06:BAL.heal)+.02*RL('doc')));if(n.t==='elite'||n.m==='hunt'||(n.l===1&&!(S.rel&&S.rel.length)))offerRelic('node')}
  S.nodeFail=0;S.cansGot=0;n.done=1;S.acid=[];S.bea=null;S.huntT=null;S.node=null;S.win=false;S.winT=-1;S.zs=[];sc='route';if(g2)message(L('부품 +','零件 +')+g2,1.6)}
 // ---- 그리기: 칸 목표(HUD) · 발전기 · 연료통
-function drawObj(){const n=S.node;if(!n)return;let s='';if(n.t==='fight')s=L('버티기 ','坚守 ')+Math.max(0,Math.ceil(BAL.fightT-S.t))+L('초','秒');else if(n.t==='elite')s=L('정예 ','精英 ')+S.eK+'/3';else if(n.t==='defend')s=L('발전기 ','发电机 ')+Math.max(0,Math.round(S.gen.hp))+'% · '+Math.max(0,Math.ceil(60-S.t))+L('초','秒');else if(n.t==='collect')s=L('연료 ','燃料 ')+(5-S.cans.length)+'/5';else if(n.t==='rescue')s=L('생존자 ','幸存者 ')+S.nodeRes+'/2';else if(n.t==='beacon'){const B=S.bea&&S.bea[S.beI];s=L('중계기 ','中继器 ')+S.beI+'/'+(S.bea?S.bea.length:3)+(B&&B.p>0?' · '+Math.round(B.p*100)+'%':'')}else if(n.t==='nest')s=L('둥지 ','巢穴 ')+(S.nestN-S.zs.filter(z=>z.t==='nest'&&!z.dead).length)+'/'+S.nestN;else if(n.t==='boss')s=S.bossOut?L('문지기를 쓰러뜨려요','击倒守门者'):L('문지기가 다가와요 ','守门者逼近 ')+Math.max(0,Math.ceil(S.bT-S.t));
+function drawObj(){const n=S.node;if(!n)return;let s='';if(n.t==='fight')s=L('버티기 ','坚守 ')+Math.max(0,Math.ceil(BAL.fightT-S.t))+L('초','秒');else if(n.t==='elite')s=L('정예 ','精英 ')+S.eK+'/'+S.objN;else if(n.t==='defend')s=L('발전기 ','发电机 ')+Math.max(0,Math.round(S.gen.hp))+'% · '+Math.max(0,Math.ceil(60-S.t))+L('초','秒');else if(n.t==='collect')s=L('연료 ','燃料 ')+(S.cansN-S.cans.length)+'/'+S.cansN;else if(n.t==='rescue')s=L('생존자 ','幸存者 ')+S.nodeRes+'/3';else if(n.t==='beacon'){const B=S.bea&&S.bea[S.beI];s=L('중계기 ','中继器 ')+S.beI+'/'+(S.bea?S.bea.length:3)+(B&&B.p>0?' · '+Math.round(B.p*100)+'%':'')}else if(n.t==='nest')s=L('둥지 ','巢穴 ')+(S.nestN-S.zs.filter(z=>z.t==='nest'&&!z.dead).length)+'/'+S.nestN;else if(n.t==='boss')s=S.bossOut?L('문지기를 쓰러뜨려요','击倒守门者'):L('문지기가 다가와요 ','守门者逼近 ')+Math.max(0,Math.ceil(S.bT-S.t));
  rr(175,106,400,44,14,'rgba(0,0,0,.6)',NT[n.t].c,2);g.save();g.beginPath();g.arc(200,128,19,0,TAU);g.fillStyle='#141a24';g.fill();g.restore();nodeIcon(n.t,200,128,19);txt(s,388,128,20,'#fff','center',false,800);if(n.m)modGlyph(n.m,552,128,15)}
 // ---- 경로 화면
 function routeScreen(){const R=S.route;bgMap(R.st,.7);const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(5,7,12,.7)');gr.addColorStop(1,'rgba(5,7,12,.9)');g.fillStyle=gr;g.fillRect(0,0,W,H);
@@ -772,11 +779,11 @@ function nodeIcon(t,x,y,R,al){g.save();g.beginPath();g.arc(x,y,R-2,0,TAU);g.clip
  g.restore()}
 
 // ---- 칸 시작/진행 확장
-function placeSpots(n,r0,r1,gap){const out=[];for(let k=0;k<300&&out.length<n;k++){const a=Math.random()*TAU,r=rand(r0,r1),x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;if(x<90||y<90||x>WW-90||y>WH-90||solid(x,y,22))continue;if(out.some(c=>hyp(c.x-x,c.y-y)<gap))continue;out.push({x,y})}return out}
+function placeSpots(n,r0,r1,gap){const out=[];for(let k=0;k<300&&out.length<n;k++){const a=Math.random()*TAU,r=rand(r0,r1),x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;if(x<90||y<90||x>WW-90||y>WH-90||solid(x,y,22)||FD[((y/FC)|0)*FWc+((x/FC)|0)]<0)continue;if(out.some(c=>hyp(c.x-x,c.y-y)<gap))continue;out.push({x,y})}return out}
 function nodeSetup2(n){S.bea=null;S.beI=0;S.nestN=0;S.huntT=null;S.amT=0;const m=n.m;
  if(m==='horde')S.rate*=1.6;if(m==='drop')S.drops=[12,34,58];if(m==='hunt')S.huntT=[8,30];if(m==='acid')S.amT=5;
  if(n.t==='beacon'){S.bea=placeSpots(3,230,430,210).map(o=>Object.assign(o,{p:0,on:0}))}
- if(n.t==='nest'){const sp=placeSpots(3,250,460,240);S.nestN=sp.length;for(const s of sp){const z=spawn('nest',s.x,s.y);z.hp=z.mhp=(190+45*n.l)*(1+(S.hm-1)*.5)*(S.diff>1?1.3:1);z.spT=rand(1,3)}}
+ if(n.t==='nest'){const sp=placeSpots(S.objN,320,620,260);S.nestN=sp.length;for(const s of sp){const z=spawn('nest',s.x,s.y);z.hp=z.mhp=(480+140*n.l)*(1+(S.hm-1)*.6)*(S.diff>1?1.3:1);z.spT=rand(1,3)}}
  if(m&&!save.tips.route2)message(LL(MODS[m].n)+' · '+LL(MODS[m].d),2.4)}
 function modTick(dt){const n=S.node;
  if(S.huntT&&S.huntT.length&&S.t>=S.huntT[0]){S.huntT.shift();spawnElite(['cmd','pred','blk'][(Math.random()*3)|0],false);message(L('현상금 정예가 나타났어요!','悬赏精英出现了！'),1.4);AudioFx.cue('scream',.4)}
@@ -1169,7 +1176,7 @@ function drawInner(dt){g.clearRect(0,0,W,H);frame+=Math.min(dt,.05);HITS=[];
  drawConfirmBox();if(guideTip)drawGuideTip();if(adShow)drawAd();drawBanner();wantMusic()}
 let drawErr=0;
 if(QS.indexOf('debug=1')>=0){globalThis.__bepaDebug={STAGES,WP,UPG,ZT,save,persist,newRun,finishRun,revive,tap,pDown,pMove,pUp,showAd,mission,levelUp,applyPick,openChest,takeChest,killZ,spawn,spawnRing,drawBattle,tick,
- get S(){return S},get P(){return P},get sc(){return sc},set sc(v){sc=v},set bot(v){autoBot=v},set freeze(v){dbgFreeze=v},get guideTip(){return guideTip},set guideTip(v){guideTip=v},set guidePage(v){guidePage=v},set paused(v){paused=v},get paused(){return paused},set lang(v){LANG=v},get lang(){return LANG},get hits(){return HITS},get drawErr(){return drawErr},set confirmQuit(v){confirmQuit=v},set patrolPop(v){patrolPop=v},spawnElite,startOD,useUlt,startDaily,dailyInfo,offerRelic,takeRelic,startChapter,enterNode,genRoute,nodeReachable,openShop,openEvent,openSupply,MODS,spawnSurvivor,newEndless,playStory,get story(){return story},set quality(v){qualityLow=v},
+ get FD(){return FD},get BAL(){return BAL},get FBL(){return FBL},get FWc(){return FWc},get S(){return S},get P(){return P},get sc(){return sc},set sc(v){sc=v},set bot(v){autoBot=v},set freeze(v){dbgFreeze=v},get guideTip(){return guideTip},set guideTip(v){guideTip=v},set guidePage(v){guidePage=v},set paused(v){paused=v},get paused(){return paused},set lang(v){LANG=v},get lang(){return LANG},get hits(){return HITS},get drawErr(){return drawErr},set confirmQuit(v){confirmQuit=v},set patrolPop(v){patrolPop=v},spawnElite,startOD,useUlt,startDaily,dailyInfo,offerRelic,takeRelic,startChapter,enterNode,genRoute,nodeReachable,openShop,openEvent,openSupply,MODS,spawnSurvivor,newEndless,playStory,get story(){return story},set quality(v){qualityLow=v},
  step(n,dt=1/60){stepping=true;for(let i=0;i<n;i++){guideTip=null;if(adShow){const f=adShow.cb;adShow=null;f()}if(autoBot)botTick();if(sc!=='battle'||!S)break;tick(dt)}stepping=false},
  drawOnce(){draw(0)},get state(){return S?{sc,st:S.st,t:+S.t.toFixed(1),hp:Math.round(P.hp),maxHp:P.maxHp,lv:S.lv,kills:S.kills,zs:S.zs.length,w:Object.assign({},S.w),evo:Object.keys(S.evo),won:!!S.won,over:S.over,pick:!!S.pick,chest:!!S.chest,boss:S.boss?Math.round(S.boss.hp):null,reward:S.reward,sup:save.sup}:{sc,sup:save.sup}}}}
 function loop(now){let dt=last?(now-last)/1000:0;last=now;perf(Math.min(dt,.25));try{draw(Math.min(dt,.1))}catch(e){drawErr++;try{g.restore();g.restore();g.restore()}catch(e2){}if(drawErr<5&&typeof console!=='undefined')console.error('draw error',e);if(drawErr===1)track('draw_error',{m:String(e&&e.message||e).slice(0,80),sc})}
