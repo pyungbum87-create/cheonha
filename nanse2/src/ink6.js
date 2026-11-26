@@ -129,7 +129,71 @@ function paFx(ctx, n, x, y, size, alpha, rot, flip){
 }
 setTimeout(() => ['map_town', 'map_city', 'map_capital', 'map_village', 'mk_battle', 'fx_slash', 'fx_ink', 'fx_dust', 'fx_smoke', 'fx_fire', 'fx_arrows'].forEach(paUi), 300);
 /* 배 */
-function paShip(c, x, y, col, ph){
+function paShip(c, x, y, col, ph, flip){
   if (!paAll(['v_rock1', 'v_rock2'])) return false; const m = PA_MAN.v_rock1;
-  return paDraw(c, paLoop(['v_rock1', 'v_rock2'], ph), x, y, 118/m.w, false, col);
+  return paDraw(c, paLoop(['v_rock1', 'v_rock2'], ph), x, y, 118/m.w, !!flip, col);
+}
+/* ---------- 그린 배경 (전장·행군·성벽) ---------- */
+const PA_ART = {};
+function paArt(n){ let o = PA_ART[n]; if (!o) o = PA_ART[n] = paNew('art/' + n + '.webp'); return o.complete && o.naturalWidth ? o : null; }
+const PA_BG = { plain:'bf_plain', mountain:'bf_mountain', river:'bf_river', pass:'bf_pass' };
+function paBg(terr){ return paArt(PA_BG[terr] || 'bf_plain'); }
+function paTod(x, tod, W, H){
+  const k = tod===TOD.night ? ['#6a77a0', 1] : tod===TOD.dusk ? ['#f7dcc0', 1] : tod===TOD.dawn ? ['#f3d6cc', 1] : null;
+  if (!k) return;
+  x.save(); x.globalCompositeOperation = 'multiply'; x.fillStyle = k[0]; x.fillRect(0, 0, W, H);
+  if (tod===TOD.dusk){ x.globalCompositeOperation = 'screen'; const g = x.createLinearGradient(0, 0, 0, H*.5); g.addColorStop(0, 'rgba(255,140,70,.22)'); g.addColorStop(1, 'rgba(255,140,70,0)'); x.fillStyle = g; x.fillRect(0, 0, W, H*.5); }
+  if (tod===TOD.night){ x.globalCompositeOperation = 'source-over'; x.fillStyle = '#f4efd8'; x.beginPath(); x.arc(W*.8, H*.14, 12, 0, TWO_PI); x.fill(); }
+  x.restore();
+}
+function paBgPaint(x, im, tod){
+  const sw = im.naturalWidth, sh = sw*VH/VW, sy = Math.max(0, Math.min(im.naturalHeight - sh, im.naturalHeight*.42 - sh*HZ/VH));
+  x.drawImage(im, 0, sy, sw, sh, 0, 0, VW, VH);
+  paTod(x, tod, VW, VH);
+}
+/* 성벽: 그림 한 장(성벽+문루). left면 왼쪽에 뒤집어 그린다 */
+const PA_WALL = { top:.45, base:1 };
+function paWall(x, left, h){
+  const im = paArt('siege_wall'); if (!im) return false;
+  const baseY = GY0 + 34, top = baseY - h, k = (baseY - top)/((PA_WALL.base - PA_WALL.top)*im.naturalHeight);
+  const w = im.naturalWidth*k, hh = im.naturalHeight*k, y = baseY - PA_WALL.base*hh;
+  x.save(); if (left){ x.translate(VW, 0); x.scale(-1, 1); }
+  const x0 = 524 - w/2; x.drawImage(im, 0, 0, im.naturalWidth*.3, im.naturalHeight, x0 - w*.3 + 1, y, w*.3, hh); x.drawImage(im, x0, y, w, hh); x.restore(); return true;
+}
+/* 행군 길: 좌우 뒤집어 이어 붙여 끝없이 흐르게 */
+const PA_TK = { main:'tk_land', hill:'tk_hill', water:'tk_water' };
+function paTrek(ctx, road, sc, W, H){
+  const im = paArt(PA_TK[road] || 'tk_land'); if (!im) return false;
+  const th = H*1.12, tw = im.naturalWidth*th/im.naturalHeight, y = H - th + (road==='water' ? H*.02 : 26);
+  let ox = -((sc*.6) % (tw*2));
+  for (let i = 0; ox + i*tw < W; i++){
+    const x0 = ox + i*tw; if (x0 + tw < 0) continue;
+    ctx.save(); if (i % 2){ ctx.translate(x0 + tw, 0); ctx.scale(-1, 1); ctx.drawImage(im, 0, y, tw, th); } else ctx.drawImage(im, x0, y, tw, th); ctx.restore();
+  }
+  return true;
+}
+setTimeout(() => { try { ['bf_plain', 'bf_mountain', 'bf_river', 'bf_pass', 'siege_wall', 'tk_land', 'tk_hill', 'tk_water', 'parapet'].forEach(paArt); ['bn_tall', 'bn_pennant', 'bn_std'].forEach(paUi); } catch(e){} }, 600);
+/* 그림 한 장을 바닥 기준(가운데 아래)으로 */
+function paUiDraw(c, n, x, y, w){ const im = paUi(n); if (!im) return false; const h = w*im.naturalHeight/im.naturalWidth; c.drawImage(im, x - w/2, y - h, w, h); return true; }
+/* 공성 장비(사다리 l, 충차 m, 투석기 k) */
+function paSiegeOk(f){ if (!paReady()) return false; for (const c in PA_MAN) if (c.startsWith(f + '_') && !paHas(c)) return false; return !!PA_MAN[f === 'l' ? 'l_up1' : f === 'm' ? 'm_hit' : 'k_fire']; }
+setTimeout(() => { try { for (const c in PA_MAN) if (/^(l_|m_|k_|t_)/.test(c)) paImg(c); } catch(e){} }, 2500);
+/* 깃발: 흰 천만 진영색으로 물들인다 */
+const PA_BN = new Map();
+function paBanner(n, col){
+  const im = paUi(n); if (!im) return null; const key = n + '|' + col; let cv = PA_BN.get(key); if (cv) return cv;
+  cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight; const x = cv.getContext('2d'); x.drawImage(im, 0, 0);
+  try {
+    const d = x.getImageData(0, 0, cv.width, cv.height), p = d.data, c = parseInt(col.slice(1), 16), cr = c >> 16 & 255, cg = c >> 8 & 255, cb = c & 255;
+    for (let i = 0; i < p.length; i += 4){ const r = p[i], g = p[i+1], b = p[i+2], mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (p[i+3] < 10 || mn < 150 || mx - mn > 80) continue; const L = (r + g + b)/765; p[i] = cr*L*1.05; p[i+1] = cg*L*1.05; p[i+2] = cb*L*1.05; }
+    x.putImageData(d, 0, 0);
+  } catch(e){}
+  if (PA_BN.size > 40) PA_BN.clear(); PA_BN.set(key, cv); return cv;
+}
+function paDrawBanner(c, x, y, h, col, t, dir, ph, s){
+  if (!/^#[0-9a-f]{6}$/i.test(col || '')) return false;
+  const cv = paBanner('bn_tall', col); if (!cv) return false;
+  const H = h*1.08, W = H*cv.width/cv.height;
+  c.save(); c.translate(x, y); c.scale(dir, 1); c.transform(1, 0, Math.sin(t*3 + (ph||0))*.04, 1, 0, 0);
+  c.drawImage(cv, -W*.07, -H, W, H); c.restore(); return true;
 }

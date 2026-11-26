@@ -2678,7 +2678,7 @@ function viewTheater(){
   const RN = seeded(hashStr('th' + ef + G.pfac));
   const deco = sorted.map((F, q) => { const t = frTerr(F), y0 = q*bandH; let o = '';
     if (t==='mountain'){ for (let m = 0; m < 7; m++){ const x = 14 + m*52 + RN()*22, w = 26 + RN()*18, h = 16 + RN()*14, y = y0 + bandH - 6 - RN()*(bandH*.55);
-        o += `<path d="M${f1(x)} ${f1(y)} l${f1(w/2)} ${f1(-h)} l${f1(w/2)} ${f1(h)}z" fill="#4a3c2c" fill-opacity=".26"/><path d="M${f1(x + w/2)} ${f1(y - h)} l${f1(w/2)} ${f1(h)} h${f1(-w*.28)}z" fill="#2a2018" fill-opacity=".2"/><path d="M${f1(x + w/2 - w*.12)} ${f1(y - h*.76)} L${f1(x + w/2)} ${f1(y - h)} l${f1(w*.12)} ${f1(h*.24)} l${f1(-w*.07)} ${f1(-h*.06)}z" fill="#fff" fill-opacity=".6"/>`; } }
+        const dk = m%3===1 ? 'dk_peak' : m%3===2 ? 'dk_pine' : 'dk_range', ww = w*1.5; o += `<image href="art/ui/${dk}.webp" xlink:href="art/ui/${dk}.webp" x="${f1(x + w/2 - ww/2)}" y="${f1(y - ww*.7)}" width="${f1(ww)}" height="${f1(ww*.75)}" preserveAspectRatio="xMidYMax meet" opacity=".9"/>`; } }
     else if (t==='river'){ const rx = W/2 - 8 + RN()*16; const rp = `M${f1(rx - 14)} ${f1(y0 - 4)} C${f1(rx + 26)} ${f1(y0 + bandH*.3)} ${f1(rx - 30)} ${f1(y0 + bandH*.62)} ${f1(rx + 10)} ${f1(y0 + bandH + 4)}`;
       o += `<path d="${rp}" fill="none" stroke="#3f6f88" stroke-opacity=".5" stroke-width="20" stroke-linecap="round"/><path d="${rp}" fill="none" stroke="#8fbdd2" stroke-opacity=".75" stroke-width="13" stroke-linecap="round"/><path d="${rp}" fill="none" stroke="#e8f4f8" stroke-opacity=".7" stroke-width="1.4" stroke-dasharray="7 9" stroke-linecap="round"/>`; }
     else { for (let m = 0; m < 16; m++){ const x = 10 + RN()*(W - 20), y = y0 + 10 + RN()*(bandH - 20); o += `<path d="M${f1(x)} ${f1(y)} l-2 -5 M${f1(x)} ${f1(y)} l0 -6 M${f1(x)} ${f1(y)} l2 -5" stroke="#5c6b2e" stroke-opacity=".38" stroke-width="1" stroke-linecap="round"/>`; }
@@ -5704,7 +5704,7 @@ function afterEvent(){
    ===================================================================== */
 const $app = SIM ? null : document.getElementById('app');
 let titleTab = 'reg', peopleTab = 'mine', lastToastT = 0;
-const MAP_W = 175, MAP_H = 165;
+const MAP_W = 175, MAP_H = 165, MAP_DK = ['dk_range', 'dk_range', 'dk_peak', 'dk_pine', 'dk_range', 'dk_trees', 'dk_hills', 'dk_rock'];
 const MOUNTS = [[12,50],[22,58],[18,68],[10,78],[30,66],[56,67],[64,72],[68,66],[40,108],[30,108],[16,112],[34,132],[52,122],[60,108],[55,112],[70,108],[66,128],[100,114],[104,128],[120,112],[128,104],[120,124],[108,132],[84,132],[74,140],[80,26],[93,29],[80,46],[95,40],[106,80],[112,79],[22,22],[36,24],[52,40],[64,42],[58,49],[55,142],[28,142],[136,108],[74,84],[62,96],[20,96],[8,104],[130,8],[144,26]];
 const RIVER_PTS = [
   [[22,44],[32,40],[42,32],[52,24],[62,18],[70,19],[73,28],[73,42],[71,52],[76,55],[87,53],[98,55],[110,48],[121,42],[129,38.5]],
@@ -6202,10 +6202,10 @@ function mapSvg(){
   const sel = G.panel ? G.sel : null;
   const here = G.inArmy ? null : G.city;
   let o = `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" aria-label="천하 지도" id="mapsvg">
-    <defs><radialGradient id="mapv" cx=".45" cy=".45" r=".8"><stop offset=".55" stop-color="#efe5cf"/><stop offset="1" stop-color="#e0d1b0"/></radialGradient></defs>
-    <rect width="${MAP_W}" height="${MAP_H}" fill="url(#mapv)"/>
+    <defs><radialGradient id="mapv" cx=".45" cy=".45" r=".8"><stop offset=".55" stop-color="#efe5cf"/><stop offset="1" stop-color="#e0d1b0"/></radialGradient><pattern id="mtex" patternUnits="userSpaceOnUse" width="58" height="58"><image href="art/map_tex.webp" xlink:href="art/map_tex.webp" width="58" height="58"/></pattern><radialGradient id="mapvg" cx=".45" cy=".45" r=".8"><stop offset=".6" stop-color="#3a2a14" stop-opacity="0"/><stop offset="1" stop-color="#3a2a14" stop-opacity=".22"/></radialGradient></defs>
+    <rect width="${MAP_W}" height="${MAP_H}" fill="url(#mapv)"/><rect width="${MAP_W}" height="${MAP_H}" fill="url(#mtex)" opacity=".85"/>
     <path d="${SEA}" fill="#9fb6c0" opacity=".45"/><path d="${SEA}" fill="none" stroke="${INK}" stroke-opacity=".35" stroke-width=".35"/>`;
-  for (const [x,y] of MOUNTS) o += icoS(x, y, `<path d="M${x-3.4} ${y+1.6} L${x-1} ${y-1.8} L${x+.4} ${y} L${x+1.6} ${y-1.2} L${x+3.6} ${y+1.6}Z" fill="${INK}" opacity=".07"/>` + brush([[x-3.4,y+1.6],[x-1,y-1.8],[x+.4,y],[x+1.6,y-1.2],[x+3.6,y+1.6]], .35, 'both', INK, .35));
+  MOUNTS.forEach(([x,y], i) => { const k = MAP_DK[(i*7 + Math.round(x*3 + y)) % MAP_DK.length], w = k==='dk_peak' ? 11 : 14; o += icoS(x, y, `<image href="art/ui/${k}.webp" xlink:href="art/ui/${k}.webp" x="${f1(x - w/2)}" y="${f1(y - w*.62)}" width="${w}" height="${f1(w*.8)}" preserveAspectRatio="xMidYMax meet" opacity=".92"/>`); });
   for (const pts of RIVER_PTS) o += brush(pts, 1.25, 'flat', '#7f9fae', .85) + brush(pts, .3, 'flat', '#d9e6ea', .7);
   o += brush(HAN_PTS, .7, 'flat', '#7f9fae', .75);
   const terrLayer = terrSvg();

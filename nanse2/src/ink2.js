@@ -192,6 +192,7 @@ function riderHead(c, L, col, cf, run){
 }
 /* 깃발 (펄럭임) */
 function drawBanner(c, x, y, h, col, t, dir, ph, s){
+  if (paDrawBanner(c, x, y, h, col, t, dir, ph, s)) return;
   c.save(); c.translate(x, y); c.scale(dir, 1);
   c.strokeStyle = INK; c.lineWidth = 2.2*s; c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -h); c.stroke();
   const w = 26*s, hh = 38*s, wv = k => Math.sin(t*9 + ph + k*2.2)*3.4*s*k;

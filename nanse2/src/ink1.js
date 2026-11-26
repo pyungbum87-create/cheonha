@@ -81,13 +81,15 @@ function drawWall(x, left, h, tod){
   x.restore();
 }
 function inkBg(A){
-  const key = [A.terr, A.castle||'-', A.castle ? Math.round((A.wall||0)/10) : 0, A.kind, todOf(A)===TOD.night?'n':todOf(A)===TOD.dusk?'u':todOf(A)===TOD.dawn?'a':'d', A.seed].join('|');
+  const pb = paBg(A.terr), pw = !A.castle || paArt('siege_wall');
+  const key = [A.terr, A.castle||'-', A.castle ? Math.round((A.wall||0)/10) : 0, A.kind, todOf(A)===TOD.night?'n':todOf(A)===TOD.dusk?'u':todOf(A)===TOD.dawn?'a':'d', A.seed, pb && pw ? 'P' : 'V'].join('|');
   let c = BGC.get(key); if (c) return c;
   if (BGC.size > 5) BGC.clear();
   const tod = todOf(A), R = seeded(hashStr('bg'+key)), terr = A.terr;
   c = document.createElement('canvas'); c.width = VW; c.height = VH;
   const x = c.getContext('2d');
   x.lineCap = 'round'; x.lineJoin = 'round';
+  if (pb && pw){ paBgPaint(x, pb, tod); if (A.castle) paWall(x, A.castle==='L', 54 + Math.round((A.wall||0)/3.2)); BGC.set(key, c); return c; }
   // 하늘
   let g = x.createLinearGradient(0, 0, 0, HZ+40); g.addColorStop(0, tod.top); g.addColorStop(.6, tod.mid); g.addColorStop(1, tod.low);
   x.fillStyle = g; x.fillRect(0, 0, VW, HZ+60);

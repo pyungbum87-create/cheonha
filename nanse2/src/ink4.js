@@ -47,16 +47,24 @@ function pxAssault(ctx, A){
     if (gateOpen){ const k = cl01((t - (plan==='inside' ? .42 : .7))/.08); glow(ctx, gx + gw/2, baseY - gh/2, 60*k, .7*k, '255,220,150'); ctx.fillStyle = `rgba(255,235,190,${.55*k})`; ctx.fillRect(gx + 6, baseY - gh + 14, gw - 12, gh - 14); }
     // 사다리
     ctx.strokeStyle = '#5a3a1c'; ctx.lineWidth = 2.2;
-    for (const L of ladders){ if (t < .36) continue; const k = ease(cl01((t - .36)/.06)), lean = (meWin || t < .62) ? 0 : ease(cl01((t - .62)/.08))*.5; ctx.save(); ctx.translate(L - 8, baseY + 6); ctx.rotate(-.18 - lean); const lh = (baseY - top + 12)*k; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -lh); ctx.moveTo(8, 0); ctx.lineTo(8, -lh); for (let r = 6; r < lh; r += 8){ ctx.moveTo(0, -r); ctx.lineTo(8, -r); } ctx.stroke(); ctx.restore(); }
+    const paL = paSiegeOk('l');
+    if (paL) for (const L of ladders){ if (t < .36) continue; const k = ease(cl01((t - .36)/.06)), lean = (meWin || t < .62) ? 0 : ease(cl01((t - .62)/.08))*.5, lh = (baseY - top + 16);
+      ctx.save(); ctx.translate(L - 8, baseY + 6); ctx.rotate(-lean); ctx.globalAlpha = k; paDraw(ctx, paLoop(['l_up1', 'l_up2'], tt*.25 + L*.01), 0, 0, lh/PA_MAN.l_up1.h, false, A.myCol); ctx.restore(); }
+    else for (const L of ladders){ if (t < .36) continue; const k = ease(cl01((t - .36)/.06)), lean = (meWin || t < .62) ? 0 : ease(cl01((t - .62)/.08))*.5; ctx.save(); ctx.translate(L - 8, baseY + 6); ctx.rotate(-.18 - lean); const lh = (baseY - top + 12)*k; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -lh); ctx.moveTo(8, 0); ctx.lineTo(8, -lh); for (let r = 6; r < lh; r += 8){ ctx.moveTo(0, -r); ctx.lineTo(8, -r); } ctx.stroke(); ctx.restore(); }
     // 충차
-    if (plan==='rams' || A.myU==='spear'){ const arrive = ease(cl01((t - .1)/.3)), hit = [.47, .57, .67].reduce((s, h) => s + (t > h && t < h + .04 ? Math.sin((t - h)/.04*Math.PI) : 0), 0);
+    if ((plan==='rams' || A.myU==='spear') && paSiegeOk('m')){ const arrive = ease(cl01((t - .1)/.3)), hit = [.47, .57, .67].reduce((s, h) => s + (t > h && t < h + .04 ? Math.sin((t - h)/.04*Math.PI) : 0), 0);
+      const rx = lerp(240, gx - 52, arrive) + hit*10; paDraw(ctx, ['m_hit', Math.min(3, Math.round(hit*3))], rx, baseY + 16, 120/PA_MAN.m_hit.w, false, A.myCol);
+      if (hit > .5){ puff(ctx, gx + 4, baseY - 10, 20, .5, '160,140,110'); sparkBurst(ctx, gx + 2, baseY - 12, hit, seeded(hashStr('r' + Math.floor(t*30))), 6); } }
+    else if (plan==='rams' || A.myU==='spear'){ const arrive = ease(cl01((t - .1)/.3)), hit = [.47, .57, .67].reduce((s, h) => s + (t > h && t < h + .04 ? Math.sin((t - h)/.04*Math.PI) : 0), 0);
       const rx = lerp(260, gx - 46, arrive) + hit*10, ry = baseY + 14; ctx.fillStyle = '#5a3a1c'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(rx - 30, ry); ctx.lineTo(rx - 22, ry - 26); ctx.lineTo(rx + 26, ry - 26); ctx.lineTo(rx + 34, ry); ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(rx - 16, ry - 10); ctx.lineTo(rx + 44 + hit*6, ry - 10); ctx.stroke(); ctx.fillStyle = '#6a625a'; ctx.beginPath(); ctx.arc(rx + 46 + hit*6, ry - 10, 5, 0, TWO_PI); ctx.fill();
       ctx.fillStyle = '#2a1a10'; for (const wx of [-20, 0, 22]){ ctx.beginPath(); ctx.arc(rx + wx, ry + 2, 5, 0, TWO_PI); ctx.fill(); }
       if (hit > .5){ puff(ctx, gx + 4, baseY - 10, 20, .5, '160,140,110'); sparkBurst(ctx, gx + 2, baseY - 12, hit, seeded(hashStr('r' + Math.floor(t*30))), 6); } }
+    if (paSiegeOk('k')) paDraw(ctx, paAt('k_fire', ((t*2.2) % 1)), 96, 258, 130/PA_MAN.k_fire.w, false, A.myCol);
     // 공격군
     const list = atk.map(m => [pos(m, t), m]).sort((a, b) => a[0][1] - b[0][1]);
     for (const [[x, y, mv, climb], m] of list){
+      if (paL && m.lad != null && climb > 0 && climb < 1 && !(m.fallT != null && t > m.fallT)) continue;
       if (m.lad != null && climb > 0 && m.fallT == null && !meWin && t > .66 && m.climbIdx===0){}
       if (m.fallT != null && t > m.fallT){ const k = cl01((t - m.fallT)/.08); const fy = m.lad != null && climb > 0 ? lerp(y, baseY + 8, ease(k)) : y; ctx.save(); ctx.translate(x, fy); ctx.rotate(-1.4*k); ctx.translate(-x, -fy); blitFig(ctx, figSprite(m.type, A.myCol, 'idle'), x, fy, .62, false, 12, 37, 1 - cl01((t - m.fallT - .1)/.2)*.8); ctx.restore(); continue; }
       const pose = climb > 0 ? 'charge' : mv ? (Math.sin(tt*14 + m.ph) > 0 ? 'charge' : 'idle') : (m.type==='bow' ? 'charge' : Math.sin(tt*8 + m.ph) > .3 ? 'charge' : 'idle');
@@ -142,12 +150,14 @@ function pxWallTop(ctx, A){
       blitFig(ctx, figSprite(m.bow || cvM==='ranged' ? 'bow' : cvM==='heavy' ? 'shield' : 'spear', cvM==='heavy' && !m.bow ? shade(A.myCol, .7) : A.myCol, shoot || (!m.bow && Math.sin(tt*7 + m.ph) > .4) ? 'charge' : 'idle'), m.x, PY + 42, 1.35, m.x > 320 && !m.bow ? true : false, 12, 37);
     }
     // 성가퀴 (앞쪽 돌 난간)
-    const stone = '#b9a988', dk = '#7d6f56';
+    const pp_ = paArt('parapet');
+    if (pp_){ const ww = VW + 40, hh = ww*pp_.naturalHeight/pp_.naturalWidth; ctx.drawImage(pp_, -20, PY - 12, ww, hh); }
+    else { const stone = '#b9a988', dk = '#7d6f56';
     ctx.fillStyle = stone; ctx.strokeStyle = INK; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.rect(-10, PY + 16, VW + 20, VH - PY); ctx.fill(); ctx.stroke();
     for (let x = -6; x < VW; x += 70){ ctx.beginPath(); ctx.rect(x, PY - 6, 44, 24); ctx.fill(); ctx.stroke(); }
     ctx.strokeStyle = 'rgba(30,20,12,.3)'; ctx.lineWidth = 1; for (let y = PY + 28; y < VH; y += 12){ ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(VW, y); ctx.stroke(); }
-    ctx.fillStyle = dk; ctx.fillRect(-10, PY + 16, VW + 20, 4);
+    ctx.fillStyle = dk; ctx.fillRect(-10, PY + 16, VW + 20, 4); }
     // 사다리 끝이 난간 위로 올라온다
     for (const L of ladders){
       if (t < L.t0) continue;
