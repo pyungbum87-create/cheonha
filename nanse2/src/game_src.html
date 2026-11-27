@@ -3187,7 +3187,7 @@ function resolveSiege(B, ff){
     if (!ff) news(`${facName(B.fid)}이(가) ${old ? facName(old)+'의 ' : ''}${J(t.n,'을')} 함락했다.`, true, old===G.pfac || B.fid===G.pfac);
     if (dg && dg!==G.pid && active(person(dg)) && person(dg).fac===old){
       if (pAtt && Math.random()<.5) res.captive = dg;
-      else if (Math.random()<.25){ const p = person(dg); if (Math.random()<.5){ p.fac = B.fid; p.city = t.id; if (!ff) news(`${J(p.n,'이')} 포로가 되어 ${facName(B.fid)}에 항복했다.`, false, B.fid===G.pfac); } }
+      else if (Math.random()<.25){ const p = person(dg); if (!aliveFacs().some(f => f.ruler===p.id) && Math.random()<.5){ p.fac = B.fid; p.city = t.id; if (!ff) news(`${J(p.n,'이')} 포로가 되어 ${facName(B.fid)}에 항복했다.`, false, B.fid===G.pfac); } }
     }
     if (pAtt){ res.win = true; const mer = Math.round((30 + t.dev*5)*k); G.merit += mer; G.wins++; G.flags.sieges = (G.flags.sieges||0)+1; if (list.length>1) G.flags.joint = 1;
       res.chips.push([`공적 +${mer}`, true]); res.lines.push(`${J(t.n,'을')} 함락했다!${old ? ' '+facName(old)+'의 깃발이 내려갔다.' : ''}`);
@@ -3217,6 +3217,8 @@ function govFill(){
   for (const c of citiesOf(G.pfac)) if (!c.gov){ const best = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && p.city===c.id).sort((a,b) => ((b.g||b.i)*1.5+b.l*.5)-((a.g||a.i)*1.5+a.l*.5))[0]; if (best) c.gov = best.id; }
 }
 function dataClean(){
+  // 군주가 죽었거나 다른 세력에 넘어갔는데 세력의 군주로 남아 있으면 후계를 세운다 (예: 원소가 항복했는데 여전히 원소군)
+  for (const f of aliveFacs()){ const r = person(f.ruler); if (f.id!==G.pfac && citiesOf(f.id).length && (!r || !r.alive || (r.fac!==f.id && !f.guest))) succeedFaction(f.id); }
   for (const c of allCities()) if (c.gov){ const g = person(c.gov); if (!g || !g.alive || g.fac!==c.owner || g.city!==c.id) c.gov = null; }
   if (G.gov && (city(G.gov).owner!==G.pfac || city(G.gov).gov!==G.pid)) G.gov = null;
   if (G.pfac && G.fronts){
