@@ -9,6 +9,7 @@ html = html.replace('/*@@INK@@*/', ink);
 const scripts = [...html.matchAll(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 const code = scripts.sort((a, b) => b.length - a.length)[0];
 
+const citiesOf_ = f => Object.values(T.G.cities).filter(c => c.owner === f);
 function makeCtx() {
   const store = {};
   const el = () => ({ style: {}, classList: { add() {}, remove() {}, toggle() {} }, addEventListener() {}, appendChild() {}, setAttribute() {}, querySelector: () => null, querySelectorAll: () => [] });
@@ -40,6 +41,15 @@ function check() {
   for (const c of Object.values(G.cities)) { if (!Number.isFinite(c.troops) || c.troops < 0) bad('도시 병력', new Error(`${c.id} troops=${c.troops}`)); }
   for (const p of Object.values(G.people)) if (p.active && p.alive && !G.cities[p.city]) bad('인물 위치', new Error(`${p.id} city=${p.city}`));
   if (!Number.isFinite(G.gold)) bad('금', new Error('gold=' + G.gold));
+  // 데이터 정합성: 성을 잃거나 얻은 뒤 남는 낡은 값 (플레이어가 지도를 보는 'act' 단계 기준)
+  if (G.phase !== 'act') return;
+  const own = id => G.cities[id] && G.cities[id].owner;
+  for (const c of Object.values(G.cities)) if (c.gov) { const g = G.people[c.gov]; if (!g || !g.alive || g.fac !== c.owner) bad('정합: 태수가 다른 세력', new Error(c.id)); }
+  if (G.gov && own(G.gov) !== G.pfac) bad('정합: 내 태수 성을 잃음', new Error(G.gov));
+  if (G.pfac && G.fronts) { const ids = new Set(T.frontsOf(G.pfac).map(f => f.id)); for (const [fid, S] of Object.entries(G.fronts)) for (const [k, g] of Object.entries(S.r || {})) if (g) { const pp = G.people[g]; if (!pp || !pp.alive || pp.fac !== G.pfac) bad('정합: 전선 자리에 남의 장수/죽은 장수', new Error(fid + ' ' + k)); else if (!ids.has(fid)) bad('정합: 사라진 전선에 장수 배치', new Error(fid + ' ' + k)); } }
+  for (const a of G.armies) { if (a.state !== 'return' && !G.cities[a.to]) bad('정합: 군단 목적지 없음', new Error(a.id)); if (a.state === 'return' && own(a.home) !== a.fac && citiesOf_(a.fac).length) bad('정합: 귀환지가 남의 성', new Error(a.id)); }
+  if (G.campaign && own(G.campaign.target) === G.pfac) bad('정합: 이미 얻은 성에 공략 허가 남음', new Error(G.campaign.target));
+  if (G.pfac && G.city && own(G.city) && own(G.city) !== G.pfac && !G.inArmy && !G.jail && G.role !== 'ronin') bad('정합: 내가 적 성에 있음', new Error(G.city));
 }
 for (let r = 0; r < Math.min(runs, plans.length * 2); r++) {
   const [pid, sc] = plans[r % plans.length];

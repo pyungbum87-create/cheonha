@@ -1902,6 +1902,7 @@ function monthStep(ff){
   }
   aiDiplomacy(ff);
   allyAutoAid(ff);
+  dataClean();
   frontStep(ff);
   tribeStep(ff);
   vassalStep(ff);
@@ -3201,8 +3202,28 @@ function resolveSiege(B, ff){
   if (!G.dead && G.hp<=0) G.dead = '전사';
   B.res = res;
 }
+/* 데이터 정리: 성이 바뀌거나 장수가 떠난 뒤 남는 낡은 값(전선 자리·태수·귀환지·공략 허가)을 지운다 */
+function dataClean(){
+  for (const c of allCities()) if (c.gov){ const g = person(c.gov); if (!g || !g.alive || g.fac!==c.owner || g.city!==c.id) c.gov = null; }
+  if (G.gov && (city(G.gov).owner!==G.pfac || city(G.gov).gov!==G.pid)) G.gov = null;
+  if (G.pfac && G.fronts){
+    const cur = Object.fromEntries(frontsOf(G.pfac).map(F => [F.id, F]));
+    for (const [fid, S] of Object.entries(G.fronts)){
+      const F = cur[fid];
+      if (!F){ delete G.fronts[fid]; continue; }
+      for (const k of Object.keys(S.r||{})){ const p = person(S.r[k]); if (S.r[k] && (!p || !p.alive || !active(p) || p.fac!==G.pfac || (p.id===G.pid ? !F.my.includes(G.city) : !F.my.includes(p.city)))) S.r[k] = null; }
+      S.gens = Object.values(S.r||{}).filter(Boolean);
+      if (S.deps) S.deps = S.deps.filter(id => { const p = person(id); return p && p.alive && p.fac===G.pfac; });
+    }
+  }
+  for (const a of G.armies) if (a.state==='return' && city(a.home).owner!==a.fac){
+    const h = citiesOf(a.fac).sort((x, y) => travel(a.to, x.id) - travel(a.to, y.id))[0]; if (h){ a.home = h.id; a.eta = Math.max(1, Math.min(a.eta, travel(a.to, h.id))); } }
+  if (G.campaign && (city(G.campaign.target).owner===G.pfac || allied(G.pfac, city(G.campaign.target).owner))) G.campaign = null;
+}
 function transferCity(t, nf, troops, ff){
   const of = t.owner;
+  // 잃은 성에 있던 우리 장수는 전선 자리에서 내려온다(물러난 뒤 그대로 선봉으로 남지 않게)
+  if (of && of===G.pfac && G.fronts) for (const S of Object.values(G.fronts)) for (const k of Object.keys(S.r||{})){ const p = person(S.r[k]); if (p && (p.id===G.pid ? G.city===t.id : p.city===t.id)) S.r[k] = null; }
   t.owner = nf; t.troops = Math.round(troops);
   if (nf && G.facs[nf] && G.facs[nf].guest) delete G.facs[nf].guest;
   if (t.gov===G.pid) G.gov = null;
@@ -3221,6 +3242,7 @@ function transferCity(t, nf, troops, ff){
     if (dest){ G.city = dest.id; me().city = dest.id; if (!ff) news(`그대는 ${dest.n}(으)로 물러났다.`, true, true); }
   }
   if (!saved && of && G.facs[of] && G.facs[of].alive && citiesOf(of).length===0 && !armiesOf(of).some(a => a.state!=='return')) destroyFaction(of, ff);
+  dataClean();
 }
 function destroyFaction(f, ff){
   const F = fac(f); if (!F.alive) return;
@@ -5210,6 +5232,7 @@ function endMonth(){
   nextQueue();
 }
 function nextQueue(){
+  dataClean();
   while (G.queue.length){
     const q = G.queue.shift();
     if (q.kind==='siege'){
@@ -5233,6 +5256,7 @@ function afterReport(){
   if (G.over) return endGame();
   if (G.dead){ G.phase = 'succession'; G.deadAt = 'report'; return save(); }
   startMonth(false);
+  if (G.pfac) dataClean();
   if (!G.dead && G.mnews.length && G.phase==='act') toast(`${dateStr()} · ${G.mnews[0].t}${G.mnews.length>1?` 외 ${G.mnews.length-1}건`:''}`);
   else if (!G.dead && G.autoRep && G.phase==='act') toast(G.autoRep.msg, G.autoRep.spent ? [[`금 -${fmt(G.autoRep.spent)}`, false]] : []);
   save();
@@ -5746,6 +5770,7 @@ function chooseEvent(i){
   const { chips, extra } = applyEff(eff);
   G.ev.res = { t:c.t, ok, msg:(msg||'') + extra, chips };
   if (G.hp<=0 && !G.dead) G.dead = '병사';
+  if (G.pfac) dataClean();
   save();
 }
 function afterEvent(){
@@ -7706,7 +7731,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
    ===================================================================== */
 if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
-  globalThis.T = { tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { frontsOf, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
