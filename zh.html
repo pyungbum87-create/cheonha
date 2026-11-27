@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
+<script src="guard.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2147,7 +2148,7 @@ window.sell=(orig=>function(i){const u=G.slots[i];if(u&&u.d.g>=2&&!(G.sellArm===
     else if(G.paused&&!anyOpen())showOnly('pause');},700);
   // 게임 중에 약관을 열면 판이 날아가지 않도록 새 창으로
   const lb=document.getElementById('optLegal');if(lb)lb.onclick=()=>{const u=V30ZH?'legal-zh.html':'legal.html';if(G&&!G.over){if(!window.open(u,'_blank'))flash(u);}else location.href=u;};
-  window.__verTxt='v37.2 · 1125';
+  window.__verTxt='v38 · 1128';
 })();
 document.getElementById('stGo').onclick=()=>{auInit();newGame('scn',storyI,storyTier);};
 document.getElementById('campBack').onclick=()=>{showOnly(campFrom);if(campFrom==='title')updateTitle();};
@@ -2179,5 +2180,6 @@ window.__dmg=(e,v)=>dmgEnemy(e,v,false);window.__sg={get G(){return G;},newGame,
 <script src="v32.js"></script>
 <script src="v33.js"></script>
 <script src="v34.js"></script>
+<script src="v38.js"></script>
 <script>if('serviceWorker' in navigator&&location.protocol.startsWith('http')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body></html>
