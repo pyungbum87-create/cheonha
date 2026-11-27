@@ -74,6 +74,10 @@ p{margin:0}
 .stats{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
 .etal{display:block;font-size:11px;font-weight:800}.etal.ok{color:var(--good,#2e7d4f)}.etal.bad{color:#b3352a}
 .taxs{display:block;font-size:11px;color:var(--muted);font-weight:700;font-family:var(--body)}
+.sortbar{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;align-items:center;padding:2px 0 4px}.sortbar::-webkit-scrollbar{display:none}
+.sortbar .sbl{flex:none;font-size:11px;font-weight:800;color:var(--muted);margin-right:2px}
+.sbt{flex:none;border:1px solid var(--line);background:var(--paper2);border-radius:999px;padding:0 11px;min-height:34px;font-size:12px;font-weight:700;color:var(--ink)}
+.sbt[aria-pressed="true"]{background:var(--ink);color:#f7f0e1;border-color:var(--ink)}.sbt i{font-style:normal;opacity:.7}
 .gstat{position:relative}.gstat .adp{position:absolute;top:-4px;right:-3px;width:17px;height:17px;border-radius:50%;background:#c0392b;color:#fff;font-style:normal;font-size:12px;line-height:17px;text-align:center;font-weight:900;box-shadow:0 0 0 2px #f7f0e1;animation:adp 1.8s ease-in-out infinite}@keyframes adp{50%{transform:scale(1.15)}}
 .adoffer{display:flex;align-items:center;gap:10px;width:100%;margin-top:5px;padding:7px 10px;border-radius:10px;border:1.5px solid #c9a24a;background:linear-gradient(90deg,#fff3cf,#f7e6b8);text-align:left;min-height:44px;color:var(--ink)}
 .adoffer .adtv{flex:none;width:28px;height:28px;border-radius:50%;background:#b3352a;color:#fff;display:grid;place-items:center;font-size:12px}
@@ -1677,6 +1681,7 @@ function newGame(pid, sc, mode){
   saveMeta();
   news(`${dateStr()}, ${p0.n}의 이야기가 시작된다.`, true, true);
   G.mnews = [];
+  govFill();
   startMonth(true);
 }
 function setupPlayer(pid){
@@ -3206,6 +3211,11 @@ function resolveSiege(B, ff){
   B.res = res;
 }
 /* 데이터 정리: 성이 바뀌거나 장수가 떠난 뒤 남는 낡은 값(전선 자리·태수·귀환지·공략 허가)을 지운다 */
+/* 비어 있는 태수 자리는 그 성에 있는 장수 중 정무·용병이 나은 사람이 맡는다(직접 임명한 태수는 그대로) */
+function govFill(){
+  if (G.role!=='ruler' || !G.pfac) return;
+  for (const c of citiesOf(G.pfac)) if (!c.gov){ const best = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && p.city===c.id).sort((a,b) => ((b.g||b.i)*1.5+b.l*.5)-((a.g||a.i)*1.5+a.l*.5))[0]; if (best) c.gov = best.id; }
+}
 function dataClean(){
   for (const c of allCities()) if (c.gov){ const g = person(c.gov); if (!g || !g.alive || g.fac!==c.owner || g.city!==c.id) c.gov = null; }
   if (G.gov && (city(G.gov).owner!==G.pfac || city(G.gov).gov!==G.pid)) G.gov = null;
@@ -3221,6 +3231,8 @@ function dataClean(){
   }
   for (const a of G.armies) if (a.state==='return' && city(a.home).owner!==a.fac){
     const h = citiesOf(a.fac).sort((x, y) => travel(a.to, x.id) - travel(a.to, y.id))[0]; if (h){ a.home = h.id; a.eta = Math.max(1, Math.min(a.eta, travel(a.to, h.id))); } }
+  if (G.pfac && G.role!=='ronin' && !G.inArmy && !G.jail && city(G.city).owner && city(G.city).owner!==G.pfac){
+    const d = citiesOf(G.pfac).sort((x, y) => travel(G.city, x.id) - travel(G.city, y.id))[0]; if (d){ G.city = d.id; me().city = d.id; } }
   if (G.campaign && (city(G.campaign.target).owner===G.pfac || allied(G.pfac, city(G.campaign.target).owner))) G.campaign = null;
 }
 function transferCity(t, nf, troops, ff){
@@ -5266,7 +5278,7 @@ function afterReport(){
   if (G.over) return endGame();
   if (G.dead){ G.phase = 'succession'; G.deadAt = 'report'; return save(); }
   startMonth(false);
-  if (G.pfac) dataClean();
+  if (G.pfac){ dataClean(); govFill(); }
   if (!G.dead && G.mnews.length && G.phase==='act') toast(`${dateStr()} · ${G.mnews[0].t}${G.mnews.length>1?` 외 ${G.mnews.length-1}건`:''}`);
   else if (!G.dead && G.autoRep && G.phase==='act') toast(G.autoRep.msg, G.autoRep.spent ? [[`금 -${fmt(G.autoRep.spent)}`, false]] : []);
   save();
@@ -6506,11 +6518,39 @@ function viewArmy(){
 const gradeCls = v => v>=90 ? 'g5' : v>=80 ? 'g4' : v>=70 ? 'g3' : v>=50 ? 'g2' : 'g1';
 const statBars = p => `<div class="sbars">${[['무용',p.m],['용병',p.l],['지략',p.i],['정무',p.g||p.i],['인망',p.c]].map(([k,v]) => `<div class="${gradeCls(SV(v))}"><span>${k}</span><i><b style="width:${SV(v)}%"></b></i><em>${SV(v)}</em></div>`).join('')}</div>`;
 const stat5 = p => `<span class="stat5">${[['무',p.m],['용',p.l],['지',p.i],['정',p.g||p.i],['인',p.c]].map(([k,v]) => `<span class="${gradeCls(SV(v))}"><i>${k}</i>${SV(v)}</span>`).join('')}</span>`;
+/* ---------- 장수 목록 정렬·거르기: 줄마다 값(data-*)을 달고 화면에서 바로 다시 줄 세운다 ---------- */
+const SORTK = { bond:['인연',1], loy:['충성 낮은',0], m:['무용',1], l:['용병',1], i:['지략',1], g:['정무',1], c:['인망',1], tot:['종합',1], age:['젊은',0] };
+const FILK = { all:'전체', gov:'태수', army:'원정 중', idle:'놀고 있음', risk:'충성 위험' };
+function srowAttrs(p){
+  const loy = p.fac===G.pfac ? Math.round(p.loy??70) : 100, gov = city(p.city).gov===p.id && !p.army, role = Object.values(G.fronts||{}).some(S => Object.values(S.r||{}).includes(p.id));
+  const fl = [gov ? 'gov' : '', p.army ? 'army' : '', !gov && !p.army && !role ? 'idle' : '', G.role==='ruler' && loy < 45 ? 'risk' : ''].filter(Boolean).join(' ');
+  return `data-bond="${bond(p.id)}" data-loy="${loy}" data-m="${SV(p.m)}" data-l="${SV(p.l)}" data-i="${SV(p.i)}" data-g="${SV(p.g||p.i)}" data-c="${SV(p.c)}" data-tot="${SV(p.m)+SV(p.l)+SV(p.i)+SV(p.g||p.i)+SV(p.c)}" data-age="${ageOf(p)}" data-fl="${fl}"`;
+}
+function sortBarHtml(key, keys, fil){
+  const pr = prefs(), st = (pr.srt||{})[key] || keys[0], fv = (pr.fil||{})[key] || 'all';
+  return `<div class="sortbar" data-sk="${key}"><span class="sbl">정렬</span>${keys.map(k => `<button class="sbt" data-sort="${k}" aria-pressed="${k===st}">${SORTK[k][0]}</button>`).join('')}</div>${fil ? `<div class="sortbar" data-fk="${key}"><span class="sbl">보기</span>${Object.keys(FILK).filter(k => G.role==='ruler' || k!=='risk').map(k => `<button class="sbt" data-fil="${k}" aria-pressed="${k===fv}">${FILK[k]}<i data-cnt="${k}"></i></button>`).join('')}</div>` : ''}`;
+}
+function sortApply(root, key){
+  const list = root.querySelector(`[data-slist="${key}"]`); if (!list) return;
+  const pr = prefs(), st = (pr.srt||{})[key], fv = (pr.fil||{})[key] || 'all';
+  const rows = [...list.querySelectorAll(':scope > [data-tot]')];
+  if (st && SORTK[st]){ const dir = SORTK[st][1] ? -1 : 1; rows.sort((a, b) => dir*((+a.dataset[st]) - (+b.dataset[st]))).forEach(r => list.appendChild(r)); }
+  for (const r of rows) r.style.display = fv==='all' || (r.dataset.fl||'').split(' ').includes(fv) ? '' : 'none';
+  root.querySelectorAll(`[data-fk="${key}"] [data-cnt]`).forEach(i => { const k = i.dataset.cnt; i.textContent = ' ' + (k==='all' ? rows.length : rows.filter(r => (r.dataset.fl||'').split(' ').includes(k)).length); });
+  root.querySelectorAll(`[data-sk="${key}"] [data-sort]`).forEach(b => b.setAttribute('aria-pressed', b.dataset.sort===st));
+  root.querySelectorAll(`[data-fk="${key}"] [data-fil]`).forEach(b => b.setAttribute('aria-pressed', b.dataset.fil===fv));
+}
+function sortWire(root){
+  root.querySelectorAll('[data-sk]').forEach(bar => { const key = bar.dataset.sk; const pr = prefs(); pr.srt = pr.srt || {}; if (!pr.srt[key]) pr.srt[key] = bar.querySelector('[data-sort]').dataset.sort;
+    bar.querySelectorAll('[data-sort]').forEach(b => b.onclick = e => { e.stopPropagation(); pr.srt[key] = b.dataset.sort; saveMeta(); sortApply(root, key); }); sortApply(root, key); });
+  root.querySelectorAll('[data-fk]').forEach(bar => { const key = bar.dataset.fk; const pr = prefs(); pr.fil = pr.fil || {};
+    bar.querySelectorAll('[data-fil]').forEach(b => b.onclick = e => { e.stopPropagation(); pr.fil[key] = b.dataset.fil; saveMeta(); sortApply(root, key); }); sortApply(root, key); });
+}
 function prowHtml(p){
   const bd = bond(p.id), col = bd>=60 ? 'var(--good)' : bd<0 ? 'var(--red)' : 'var(--gold)';
   const badges = [isSworn(p.id)?'<span class="badge">의형제</span>':'', aliveFacs().some(f=>f.ruler===p.id)?'<span class="badge" style="background:var(--ink)">군주</span>':'', p.fam?'<span class="badge" style="background:var(--good)">가족</span>':'', p.army?'<span class="badge" style="background:var(--red)">원정</span>':''].join(' ');
   const loy = G.role==='ruler' && p.fac===G.pfac ? Math.round(p.loy) : null;
-  return `<button class="rcard" data-person="${p.id}">${pp(p,52)}<span class="rc-main">
+  return `<button class="rcard" data-person="${p.id}" ${srowAttrs(p)}>${pp(p,52)}<span class="rc-main">
       <span class="rc-top"><b class="rc-nm">${esc(p.n)}</b>${badges}<span class="rc-sub">${p.army ? '원정 중' : esc(city(p.city).n)}${city(p.city).gov===p.id && !p.army?' · 태수':''} · ${ageOf(p)}세</span></span>
       ${stat5(p)}
       <span class="rc-bot"><span class="rc-bar"><i style="width:${clamp((bd+100)/2)}%;background:${col}"></i></span><span class="tiny">인연 ${bd}</span>${loy!=null?`<span class="rc-bar"><i style="width:${loy}%;background:${loy<45?'var(--red)':'#5a7d9a'}"></i></span><span class="tiny">충성 ${loy}</span>`:''}</span>
@@ -6521,7 +6561,7 @@ function viewPeople(){
   let body = '';
   if (peopleTab==='free'){
     const frees = npcs().filter(p => p.fac==='free' && !p.army && (visible(p.city))).sort((a,b)=>(b.m+b.i+b.l+b.c)-(a.m+a.i+a.l+a.c));
-    body = `<div class="card"><div class="small muted">재야 인물은 우리 성에 있을 때 등용할 수 있다.</div>${frees.length ? frees.map(prowHtml).join('') : '<p class="small muted">보이는 재야 인물이 없다.</p>'}</div>`;
+    body = `${frees.length > 3 ? sortBarHtml('free', ['tot','m','l','i','g','c','bond','age'], false) : ''}<div class="card" data-slist="free"><div class="small muted">재야 인물은 우리 성에 있을 때 등용할 수 있다.</div>${frees.length ? frees.map(prowHtml).join('') : '<p class="small muted">보이는 재야 인물이 없다.</p>'}</div>`;
   } else if (peopleTab==='world'){
     const fs = aliveFacs().filter(f => citiesOf(f.id).length || armiesOf(f.id).length).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length);
     body = `<div class="card">${fs.map(f => { const r = person(f.ruler); return `<div class="prow">${r?pp(r,38):''}<span class="mini" style="color:var(--ink)"><b>${esc(facName(f.id))}</b> · ${citiesOf(f.id).length}성 · 병력 ${fmt(totalTroops(f.id))}${allied(G.pfac,f.id)?` · <b style="color:var(--good)">동맹 ${fac(G.pfac).ally[f.id]}개월</b>`:''}</span>
@@ -6530,7 +6570,8 @@ function viewPeople(){
   } else {
     const mine = (G.pfac ? npcs().filter(p => p.fac===G.pfac) : peopleIn(G.city)).sort((a,b)=>bond(b.id)-bond(a.id));
     body = `${G.role==='ruler' ? `<div class="row between"><span class="small muted">장수를 눌러 교류·배치·포상</span><button class="ghost" data-act="autoAssign">빈 성에 자동 배치</button></div>` : '<span class="small muted">장수를 눌러 교류하자. 인연이 깊으면 전투를 돕고 의형제를 맺는다.</span>'}
-      <div class="card">${mine.length ? mine.map(prowHtml).join('') : '<p class="small muted">아무도 없다.</p>'}</div>`;
+      ${mine.length > 3 ? sortBarHtml('mine', ['bond','loy','m','l','i','g','c','tot','age'].filter(k => G.role==='ruler' || k!=='loy'), !!G.pfac) : ''}
+      <div class="card" data-slist="mine">${mine.length ? mine.map(prowHtml).join('') : '<p class="small muted">아무도 없다.</p>'}</div>`;
   }
   return `<div class="pane"><div class="seg">${tabs.map(([k,n])=>`<button data-ptab="${k}" aria-pressed="${peopleTab===k}">${n}</button>`).join('')}</div>${body}</div>`;
 }
@@ -7453,8 +7494,9 @@ function openSheet(kind, arg){
   } else if (kind==='assign'){
     const c = city(arg), gens = npcs().filter(p => p.fac===G.pfac && !p.army && p.city!==arg).sort((a,b)=>(b.m+b.l)-(a.m+a.l));
     const bg = sheet(`<h3>${c.n}에 장수 배치</h3><p class="small muted">행동력이 들지 않는다. 성에 있는 장수가 출진을 지휘하고 수비를 맡는다.</p>
-      ${gens.map(p=>`<div class="prow">${pp(p,34)}<span class="nm">${esc(p.n)}</span><span class="mini">무${SV(p.m)} 지${SV(p.i)} 용${SV(p.l)} · ${aptLine(p)}<br>지금 ${esc(city(p.city).n)}${city(p.city).gov===p.id?' 태수':''}</span><button class="ghost" data-to="${p.id}">이리로</button></div>`).join('') || '<p class="small muted">보낼 장수가 없다.</p>'}
+      ${gens.length > 3 ? sortBarHtml('assign', ['tot','m','l','i','g','c','loy'], true) : ''}<div data-slist="assign">${gens.map(p=>`<div class="prow" ${srowAttrs(p)}>${pp(p,34)}<span class="nm">${esc(p.n)}</span><span class="mini">무${SV(p.m)} 지${SV(p.i)} 용${SV(p.l)} 정${SV(p.g||p.i)} · ${aptLine(p)}<br>지금 ${esc(city(p.city).n)}${city(p.city).gov===p.id?' 태수':''}</span><button class="ghost" data-to="${p.id}">이리로</button></div>`).join('') || '<p class="small muted">보낼 장수가 없다.</p>'}</div>
       <button class="btn2" data-close>닫기</button>`);
+    sortWire(bg);
     bg.querySelectorAll('[data-to]').forEach(b => b.onclick = () => { doAct('assign', b.dataset.to, arg); b.closest('.prow').remove(); });
   } else if (kind==='appoint'){
     const c = city(arg), gens = peopleIn(arg, G.pfac).sort((a,b)=>(b.i+b.l)-(a.i+a.l));
@@ -7553,6 +7595,7 @@ function bind(){
   on('[data-sheet]', b => openSheet(b.dataset.sheet, b.dataset.arg));
   on('[data-person]', b => openSheet('person', b.dataset.person));
   on('[data-ptab]', b => { peopleTab = b.dataset.ptab; render(); });
+  sortWire($app);
   on('[data-heir]', b => { G.heir = b.dataset.heir; save(); render(); });
   on('[data-ev]', b => { chooseEvent(+b.dataset.ev); render(); });
   on('#evNext', () => { afterEvent(); render(); });
@@ -7606,7 +7649,7 @@ function bind(){
   on('[data-tale]', b => { taleChoose(b.dataset.tale); render(); });
   on('#taleClose', () => { taleClose(); save(); render(); });
   on('[data-jail]', b => { const r = jailAct(b.dataset.jail); if (G.dead && G.phase==='act'){ G.phase = 'succession'; G.deadAt = 'act'; } else if (r==='month'){ G.panel = false; endMonth(); } save(); render(); });
-  on('#bNext', () => { const B = G.battle; if (B && (B.kind==='raise' || B.kind==='hduel')){ G.battle = null; G.phase = G.dead ? 'succession' : 'act'; save(); render(); return; } afterBattle(); render(); });
+  on('#bNext', () => { const B = G.battle; if (B && (B.kind==='raise' || B.kind==='hduel')){ G.battle = null; G.phase = G.dead ? 'succession' : 'act'; if (G.pfac) dataClean(); save(); render(); return; } afterBattle(); render(); });
   on('#skipAnim', () => { if (anim && anim.finish) anim.finish(); });
   on('#reportNext', () => { afterReport(); render(); });
 }
@@ -7744,7 +7787,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
    ===================================================================== */
 if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
-  globalThis.T = { frontsOf, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { frontsOf, dataClean, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();

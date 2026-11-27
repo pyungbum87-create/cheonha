@@ -62,7 +62,7 @@ for (let r = 0; r < Math.min(runs, plans.length * 2); r++) {
       else if (ph === 'report') T.afterReport();
       else if (ph === 'event') { stats.events++; const ch = T.evChoices(); let i = ch.findIndex(c => !c.cost || G.gold >= c.cost); T.chooseEvent(Math.max(0, i)); T.afterEvent(); }
       else if (ph === 'battle') { stats.battles++; if (G.battle.stage === 'unit' && Math.random() < .6) { stats.tb = (stats.tb || 0) + 1; T.tbStart(); T.tbAuto(); if (T.G.phase === 'battle') throw new Error('전장 지휘가 끝나지 않음 turn=' + (T.G.battle.tb && T.G.battle.tb.turn)); } else T.autoBattle(); }
-      else if (ph === 'battleEnd') { if (G.battle && G.battle.cap && !G.battle.capDone) try { T.captiveDo('release'); } catch (e) { bad('captive', e); } if (G.battle && (G.battle.kind === 'raise' || G.battle.kind === 'hduel')) { G.battle = null; G.phase = G.dead ? 'succession' : 'act'; } else T.afterBattle(); }
+      else if (ph === 'battleEnd') { if (G.battle && G.battle.cap && !G.battle.capDone) try { T.captiveDo('release'); } catch (e) { bad('captive', e); } if (G.battle && (G.battle.kind === 'raise' || G.battle.kind === 'hduel')) { G.battle = null; G.phase = G.dead ? 'succession' : 'act'; if (G.pfac) T.dataClean(); } else T.afterBattle(); }
       else if (ph === 'succession') { stats.deaths++; const c = T.heirCands(); if (c.length) T.succeed(c[0]); else { T.G.over = { kind: 'end' }; T.G.phase = 'over'; } }
       else if (ph === 'over') { stats.overs++; if (process.env.V) console.log('  종료', typeof pid==='object'?'회귀자 '+pid.role:pid, sc, '→', G.year+'.'+G.month, JSON.stringify(G.over).slice(0,80)); break; }
       else { bad('알 수 없는 단계', new Error(ph)); break; }
