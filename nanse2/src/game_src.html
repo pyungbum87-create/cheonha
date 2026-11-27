@@ -2239,7 +2239,7 @@ function aiWar(f, ff){
     const weak = t.owner ? clamp(mine/Math.max(1, theirs) - 1, 0, 1.5) : .5;   // 약한 세력일수록
     const cut = t.adj.filter(a => city(a).owner===t.owner).length <= 1 ? 1 : 0; // 고립된 성일수록 (원군이 못 온다)
     const val = 1 + B.s*((t.dev-5)/20 + (t.owner && citiesOf(t.owner).length===1 ? .2 : 0));
-    const score = avail/def * val * (t.owner ? 1 : 1.4) * (!ff && t.owner===G.pfac ? (big ? 1.3 : .9) : 1) * (1 + ai*(.25*weak + .25*cut)) * rnd(1 - .15*(1-ai*.6), 1 + .15*(1-ai*.6));
+    const score = avail/def * val * (t.owner ? 1 : 1.4) * (!ff && t.owner===G.pfac ? (big ? 1.3 : smallP() ? .55*(mi() - (G.flags.rStart ?? -99) < 12 ? .5 : 1) : .9) : 1) * (1 + ai*(.25*weak + .25*cut)) * rnd(1 - .15*(1-ai*.6), 1 + .15*(1-ai*.6));
     if (score > AI_THRESH*dif().thr*(1 + B.s*.08) && (!best || score > best.score)) best = { t, srcs, score };
   }
   if (!best) return;
@@ -2403,7 +2403,8 @@ function frontStep(ff){
   for (const F of FS){ const S = frState(F.id); S.pp = S.p; if (S.fNext==null){ S.fNext = Math.random() < .4 ? 'push' : 'hold'; S.fKnown = false; }
     if (S.st==='push') nPush[F.ef] = (nPush[F.ef]||0) + 1;
     if (S.st==='feint'){ const e = frEval(F), adv = frAdv(F, S), ok = Math.random() < clamp(.55 + ((adv ? adv.i : 45) - (e.en.best ? e.en.best.i : 50))/90, .2, .92); S.feintOk = ok; if (ok) lure[F.ef] = F.id; rep.push(`${F.sec} 양동 ${ok ? '성공' : '간파당함'}`); } }
-  const stratLog = [];
+  const stratLog = [], nFr = {}, nFrE = {};
+  for (const F of FS){ for (const id of F.my) nFr[id] = (nFr[id]||0) + 1; for (const id of F.foe) nFrE[id] = (nFrE[id]||0) + 1; }
   for (const F of FS){
     const stp = G.role==='ruler' ? frStrat(F) : null;
     if (aiRun || stp){ // 장수로 있을 때는 주공이, 군주일 때는 맡긴 군사가 전선을 지휘한다
@@ -2440,8 +2441,9 @@ function frontStep(ff){
     S.p = clamp(Math.round(S.p + d), -100, 100);
     // 소모: 미는 쪽이 더 잃는다. 집결한 적을 버텨 내면 적이 크게 다친다
     const lossMy = ((S.st==='push' ? .03 : .015) + (foePush ? .01 : 0))*(terr==='river' && S.st!=='push' ? .6 : 1), lossEn = (foePush ? .03 : .015) + (S.st==='push' ? .015 : 0) + (fi==='mass' && S.st!=='push' ? .03 : 0) + (cp && cp.bleed || 0) + (pr && pr.le || 0), lossMyX = (pr && pr.lm || 0);
-    for (const id of F.my) city(id).troops = Math.round(city(id).troops*(1 - lossMy - lossMyX));
-    for (const id of F.foe) city(id).troops = Math.round(city(id).troops*(1 - lossEn));
+    // 한 성이 여러 전선에 걸쳐 있으면 소모를 전선 수로 나눈다(전에는 전선마다 따로 깎여 성 하나짜리 세력이 녹아내렸다)
+    for (const id of F.my) city(id).troops = Math.round(city(id).troops*(1 - (lossMy + lossMyX)/(nFr[id]||1)));
+    for (const id of F.foe) city(id).troops = Math.round(city(id).troops*(1 - lossEn/(nFrE[id]||1)));
     S.last = Math.round(d); S.foePush = foePush; S.bonus = 0;
     const ph1 = frPhase(S.p)[0]; if (Math.abs(S.last) >= 8 || ph1!==ph0) rep.push(`${F.name.replace(' 전선', '')} ${S.last >= 0 ? '+' : ''}${S.last}${ph1!==ph0 ? `(${ph1})` : ''}${starve ? ' 군량 부족' : ''}`);
     if (S.p >= 100){ if (G.role==='ruler' && !G.frBreakOffer && !SIM){ G.frBreakOffer = { front:F.id }; S.p = 100; } else frBreak(F, S, true); }
@@ -3275,8 +3277,11 @@ function govFill(){
   if (G.role!=='ruler' || !G.pfac) return;
   for (const c of citiesOf(G.pfac)) if (!c.gov){ const best = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && p.city===c.id).sort((a,b) => ((b.g||b.i)*1.5+b.l*.5)-((a.g||a.i)*1.5+a.l*.5))[0]; if (best) c.gov = best.id; }
 }
+/* 작은 세력 보호: 성 2개 이하인 플레이어 세력은 적이 덜 노리고(처음 1년은 더), 성 3개 이하면 최소 세입을 보장한다 */
+const smallP = () => !!G.pfac && G.role==='ruler' && citiesOf(G.pfac).length <= 2;
 function dataClean(){
   courtClean();
+  if (G.role==='ruler' && G.flags && G.flags.rStart == null) G.flags.rStart = mi();
   // 군주가 죽었거나 다른 세력에 넘어갔는데 세력의 군주로 남아 있으면 후계를 세운다 (예: 원소가 항복했는데 여전히 원소군)
   for (const f of aliveFacs()){ const r = person(f.ruler); if (f.id!==G.pfac && citiesOf(f.id).length && (!r || !r.alive || (r.fac!==f.id && !f.guest))) succeedFaction(f.id); }
   for (const c of allCities()) if (c.gov){ const g = person(c.gov); if (!g || !g.alive || g.fac!==c.owner || g.city!==c.id) c.gov = null; }
@@ -5302,7 +5307,7 @@ function endMonth(){
   if (G.role==='ruler'){
     // 땅이 넓어질수록 관리가 어려워 걷히는 몫이 줄어든다(6성 초과분마다 5%)
     const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05);
-    const inc = Math.round(citiesOf(G.pfac).reduce((a,c)=>a+cityTax(c.dev),0)*taxMul()*courtIncMul());
+    const nC0 = citiesOf(G.pfac).length, inc = Math.max(Math.round(citiesOf(G.pfac).reduce((a,c)=>a+cityTax(c.dev),0)*taxMul()*courtIncMul()), nC0 <= 3 ? Math.round((140 + nC0*50)*dif().inc) : 0);
     // 유지비(군량·녹봉): 세력이 커질수록 같이 커져 금이 끝없이 쌓이지 않는다
     const offs = npcs().filter(p => p.fac===G.pfac && active(p)).length, up = Math.round(totalTroops(G.pfac)/1000*2 + offs*2);
     G.gold += inc - up; G.lastIncome = inc; G.lastUpkeep = up;
@@ -7992,7 +7997,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
    ===================================================================== */
 if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, doAct, openSheet, frontStep, court, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
-  globalThis.T = { frontsOf, dataClean, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
