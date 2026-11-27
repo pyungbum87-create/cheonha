@@ -73,6 +73,7 @@ p{margin:0}
 .icon{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--paper);font-size:18px;flex:none;display:grid;place-items:center}
 .stats{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
 .etal{display:block;font-size:11px;font-weight:800}.etal.ok{color:var(--good,#2e7d4f)}.etal.bad{color:#b3352a}
+.taxs{display:block;font-size:11px;color:var(--muted);font-weight:700;font-family:var(--body)}
 .gstat{position:relative}.gstat .adp{position:absolute;top:-4px;right:-3px;width:17px;height:17px;border-radius:50%;background:#c0392b;color:#fff;font-style:normal;font-size:12px;line-height:17px;text-align:center;font-weight:900;box-shadow:0 0 0 2px #f7f0e1;animation:adp 1.8s ease-in-out infinite}@keyframes adp{50%{transform:scale(1.15)}}
 .adoffer{display:flex;align-items:center;gap:10px;width:100%;margin-top:5px;padding:7px 10px;border-radius:10px;border:1.5px solid #c9a24a;background:linear-gradient(90deg,#fff3cf,#f7e6b8);text-align:left;min-height:44px;color:var(--ink)}
 .adoffer .adtv{flex:none;width:28px;height:28px;border-radius:50%;background:#b3352a;color:#fff;display:grid;place-items:center;font-size:12px}
@@ -4728,7 +4729,7 @@ const ACT = {
   rest(){ if (!spend(0)) return; G.hp = clamp(G.hp+8); toast('푹 쉬며 몸을 추슬렀다.', [['체력 +8',true]]); },
   develop(cid){
     const c = city(cid||G.city);
-    if (G.role==='ruler'){ if (c.owner!==G.pfac || c.dev>=10 || !spend(300)) return; c.dev++; trustAdd(1); toast(`${c.n}의 논밭과 시장을 넓혔다.`, [[`개발 ${c.dev}`,true],['금 -300',false]]); return; }
+    if (G.role==='ruler'){ if (c.owner!==G.pfac || c.dev>=10) return; const gain = devGain(c), cost = devCost(c); if (!spend(cost)) return; c.dev++; trustAdd(1); toast(`${c.n}의 논밭과 시장을 넓혔다.`, [[`개발 ${c.dev}`,true],[`세금 월 +${gain}`,true],[`금 -${cost}`,false]]); return; }
     if (G.gov!==c.id || G.city!==c.id || c.dev>=10 || !spend(0)) return;
     if (roll(me().g!=null?'g':'i', 75)){ c.dev++; G.merit += 8; toast(`태수로서 ${c.n}을(를) 잘 다스렸다.`, [[`개발 ${c.dev}`,true],['공적 +8',true]]); }
     else { G.merit += 1; toast('공사가 지지부진했다.', [['공적 +1',true]], true); }
@@ -5111,7 +5112,7 @@ function autoDomestic(){
     const mine = citiesOf(G.pfac), front = c => c.adj.some(a => { const o = city(a).owner; return !o || hostile(G.pfac, o); });
     const devd = [], slots = Math.max(P.dev, P.devLow ? 1 : 0) * Math.ceil(mine.length/4);
     for (const c of mine.filter(c => c.dev<10 && (!P.backOnly || !front(c)) && (P.dev>0 || c.dev<(P.devLow||0))).sort((a,b) => a.dev-b.dev)){
-      if (devd.length >= slots) break; if (pay(300)){ c.dev++; devd.push(c.n); } }
+      if (devd.length >= slots) break; if (pay(devCost(c))){ c.dev++; devd.push(c.n); } }
     if (devd.length) L.push(`개발 ${devd.join('·')}`);
     let drafted = 0; const dn = [];
     for (const c of mine.filter(c => (c.pool||0) >= 200).sort((a,b) => (front(b)-front(a)) || (b.pool-a.pool))){
@@ -5171,6 +5172,12 @@ function startMonth(first){
   if (G.role==='officer' && !G.dirOfferAt && lordOf()){ G.dirOffer = dirOffers(); G.dirOfferAt = mi(); G.dirSeen = 0; }
   queueCouncil();
 }
+/* 세금: 개발이 높을수록 장사·인구가 함께 늘어 한 단계 올릴 때 더 많이 오른다 (1→12+1.6, 10→280) */
+const cityTax = d => d*12 + d*d*1.6;
+function taxMul(){ const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05); return (.6+G.trust/250)*dif().inc*eff; }
+const cityTaxNow = c => Math.round(cityTax(c.dev)*taxMul());
+const devCost = c => 150 + c.dev*30;
+const devGain = c => Math.round((cityTax(c.dev+1) - cityTax(c.dev))*taxMul());
 function endMonth(){
   Snd.sfx('month'); mp('month', 1);
   if (!SIM && G.month===12 && hl('med')) G.hp = clamp(G.hp + hl('med')*4);
@@ -5180,7 +5187,7 @@ function endMonth(){
   if (G.role==='ruler'){
     // 땅이 넓어질수록 관리가 어려워 걷히는 몫이 줄어든다(6성 초과분마다 5%)
     const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05);
-    const inc = Math.round(citiesOf(G.pfac).reduce((a,c)=>a+c.dev*14,0)*(.6+G.trust/250)*dif().inc*eff);
+    const inc = Math.round(citiesOf(G.pfac).reduce((a,c)=>a+cityTax(c.dev),0)*taxMul());
     // 유지비(군량·녹봉): 세력이 커질수록 같이 커져 금이 끝없이 쌓이지 않는다
     const offs = npcs().filter(p => p.fac===G.pfac && active(p)).length, up = Math.round(totalTroops(G.pfac)/1000*2 + offs*2);
     G.gold += inc - up; G.lastIncome = inc; G.lastUpkeep = up;
@@ -6029,7 +6036,7 @@ function councilRuler(){
     const low = npcs().filter(p => p.fac===G.pfac && active(p) && !p.fam && p.loy<55).sort((a,b)=>a.loy-b.loy)[0];
     if (low) props.push([1.6, [cv.id, `${low.n}의 마음이 흔들립니다(충성 ${Math.round(low.loy)}). 상을 내려 붙잡으십시오.`], { t:`${cv.n}: ${low.n} 포상`, sub:'금 120', act:'reward', arg:low.id, by:cv.id, again:1, off:G.ap<=0 || G.gold<120 }]);
     const dv = mineC.filter(c => c.dev<10).sort((a,b)=>a.dev-b.dev)[0];
-    if (dv && G.gold>=300) props.push([.8, [cv.id, `${dv.n}의 개발이 ${dv.dev}에 머물러 있습니다. 금 300을 들여 다듬으시지요.`], { t:`${cv.n}: ${dv.n} 내정`, sub:'금 300', act:'develop', arg:dv.id, by:cv.id, again:1, off:G.ap<=0 }]);
+    if (dv && G.gold>=devCost(dv)) props.push([.8, [cv.id, `${dv.n}의 개발이 ${dv.dev}에 머물러 있습니다. 금 ${devCost(dv)}을 들이면 세금이 달마다 ${devGain(dv)}씩 늡니다.`], { t:`${cv.n}: ${dv.n} 내정`, sub:`금 ${devCost(dv)}`, act:'develop', arg:dv.id, by:cv.id, again:1, off:G.ap<=0 }]);
     const dr = mineC.filter(c => (c.pool||0)>=600).sort((a,b)=>(b.pool||0)-(a.pool||0))[0];
     if (dr) props.push([.9, [cv.id, `${dr.n}에 장정 ${fmt(dr.pool)}명이 모여 있습니다. 병사를 모으시지요.`], { t:`${cv.n}: ${dr.n} 징병`, sub:'금 24~', act:'draft', arg:dr.id, by:cv.id, again:1, off:G.ap<=0 || G.gold<24 }]);
     const fr = npcs().find(p => p.fac==='free' && active(p) && !p.army && city(p.city).owner===G.pfac && notable(p));
@@ -6367,7 +6374,7 @@ function viewPanel(){
       b.push(actBtn('병력 받기','인접 성에서',`data-sheet="transport" data-arg="${cid}"`,ap && c.adj.some(a=>city(a).owner===G.pfac && city(a).troops>=1000)));
       b.push(actBtn('훈련','금 60','data-act="train"',ap && G.gold>=60));
       b.push(actBtn('태수 임명','행동력 없이',`data-sheet="appoint" data-arg="${cid}"`,peopleIn(cid,G.pfac).length>0));
-      b.push(actBtn('내정','금 300 · 개발+1',`data-act="develop" data-arg="${cid}"`,ap && G.gold>=300 && c.dev<10));
+      b.push(actBtn('내정',c.dev<10 ? `금 ${devCost(c)} · 세금 월 +${devGain(c)}` : '개발 최고',`data-act="develop" data-arg="${cid}"`,ap && G.gold>=devCost(c) && c.dev<10));
       if (here && !G.inArmy) b.push(actBtn('하야','나라를 넘긴다','data-sheet="abdicate"',ap));
     } else {
       if (c.owner) b.push(actBtn('사관',`${person(fac(c.owner).ruler).n}에게`,'data-act="seek"',ap));
@@ -6386,7 +6393,7 @@ function viewPanel(){
       b.push(ambushBtn());
       b.push(actBtn('병력 받기','인접 성에서',`data-sheet="transport" data-arg="${cid}"`,ap && c.adj.some(a=>city(a).owner===G.pfac && city(a).troops>=1000)));
       b.push(actBtn('태수 임명','행동력 없이',`data-sheet="appoint" data-arg="${cid}"`,peopleIn(cid,G.pfac).length>0));
-      b.push(actBtn('내정','금 300',`data-act="develop" data-arg="${cid}"`,ap && G.gold>=300 && c.dev<10));
+      b.push(actBtn('내정',c.dev<10 ? `금 ${devCost(c)} · 세금 월 +${devGain(c)}` : '개발 최고',`data-act="develop" data-arg="${cid}"`,ap && G.gold>=devCost(c) && c.dev<10));
     }
     if (G.role==='officer' && adj && c.owner && c.owner!==G.pfac) b.push(actBtn('망명',`${facName(c.owner)}로`,`data-sheet="defect" data-arg="${c.owner}"`,ap));
   }
@@ -6399,7 +6406,7 @@ function viewPanel(){
     <div class="row between"><div class="row"><span class="seal" style="width:30px;height:30px;font-size:18px;background:${facColor(c.owner)}">${facSeal(c.owner)}</span>
       <div><h3 style="font-size:21px">${c.n}</h3><div class="small muted">${esc(facName(c.owner))}${c.owner && allied(G.pfac,c.owner)?' · 동맹':''}${here?' · 지금 있는 곳':''}</div></div></div>
       <button class="icon" id="closePanel" aria-label="닫기">✕</button></div>
-    <div class="kv"><div><span>병력</span><b>${vis ? fmt(c.troops) : '?'}</b></div><div><span>성벽</span><b>${vis ? c.wall : '?'}</b></div><div><span>개발</span><b>${c.dev}</b></div><div><span>지형</span><b>${ter[0]}</b></div></div>
+    <div class="kv"><div><span>병력</span><b>${vis ? fmt(c.troops) : '?'}</b></div><div><span>성벽</span><b>${vis ? c.wall : '?'}</b></div><div><span>개발</span><b>${c.dev}${G.role==='ruler' && c.owner===G.pfac ? `<small class="taxs">세금 월 ${fmt(cityTaxNow(c))}</small>` : ''}</b></div><div><span>지형</span><b>${ter[0]}</b></div></div>
     <div class="small muted">${ter[1]} · 병종 기${UTERR[TERRAIN[cid]].cav}·창${UTERR[TERRAIN[cid]].spear}·궁${UTERR[TERRAIN[cid]].bow}·수${UTERR[TERRAIN[cid]].navy}</div>
     ${sieges.length ? `<div class="small" style="color:var(--red)">⚔ ${sieges.map(a => `${esc(armyName(a))} ${fmt(a.troops)} · ${a.siege}개월째`).join(', ')}</div>` : ''}
     ${incoming.length ? `<div class="small" style="color:var(--red)">▸ 진군 중: ${incoming.map(a => `${esc(facName(a.fac))} ${fmt(a.troops)} (${a.eta}개월)`).join(', ')}</div>` : ''}
