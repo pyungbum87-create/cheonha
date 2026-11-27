@@ -5797,7 +5797,7 @@ function chooseEvent(i){
 }
 function afterEvent(){
   if (G.dead){ G.phase = 'succession'; save(); return; }
-  G.ev = null; G.phase = 'act';
+  G.ev = null; G.phase = 'act'; if (G.pfac) dataClean();
   if (G.hduelGo){ const o = G.hduelGo; G.hduelGo = null; beginHDuel(o); save(); return; }
   save();
 }
@@ -5996,10 +5996,68 @@ function openCodex(){
 }
 
 /* 교류 · 등용의 대화 */
+/* ---------- 교류 대화: 화제(상황에 맞게) → 상대의 말 → 내 대답 셋 중 하나(성격에 맞으면 인연↑) → 맺음말 ---------- */
+// 대답 결: w 공감 · b 호기 · j 재치 · d 진지(계책)
+const SOC_LIKE = { uiri:{ w:2, d:1, j:-1 }, sinjung:{ d:2, b:-1, j:0 }, yongjang:{ b:2, j:1, d:-1 }, gyohwal:{ j:2, d:1, w:-1 }, onhwa:{ w:2, j:1, b:-1 }, yasim:{ b:2, d:1, w:-1 } };
+const SOC_END = {
+  uiri:{ g:['그대와는 말이 통하는구려. 오늘 일은 잊지 않겠소.','이런 이야기를 나눌 사람이 곁에 있어 다행이오.'], n:['그렇구려. 생각해 보겠소.','음… 그런 길도 있겠지요.'], b:['그 말은 내 뜻과는 다르오.','…그렇게 가볍게 넘길 일은 아니오.'] },
+  sinjung:{ g:['과연, 허투루 하는 말이 아니구려.','오늘 얘기는 따로 적어 두어야겠소.'], n:['일리는 있소.','그것도 한 방법이겠지요.'], b:['서두르면 일을 그르치오.','그 말엔 빈틈이 보이오.'] },
+  yongjang:{ g:['하하하! 바로 그거요! 마음에 드는군!','좋다! 그 기개면 함께 싸울 만하오!'], n:['흠, 그렇소?','뭐, 나쁘지 않군.'], b:['머리 아픈 얘기는 그만하시오.','에잇, 하품이 나오는군.'] },
+  gyohwal:{ g:['후후, 제법이오. 그대가 재밌어졌소.','그 말솜씨, 쓸모가 있겠구려.'], n:['그렇다 해 두지요.','속내는 아직 모르겠구려.'], b:['그런 뻔한 말로는 날 못 움직이오.','순진하시구려.'] },
+  onhwa:{ g:['따뜻한 말씀, 고맙소. 마음이 놓이오.','그대 곁이라 편하구려.'], n:['그렇군요. 그런 생각도 있겠지요.','네, 무슨 뜻인지 알겠소.'], b:['…조금 거친 말씀이구려.','다들 그렇게 싸우자고만 하니.'] },
+  yasim:{ g:['크게 보는 분이시군. 나도 그 판에 끼고 싶소.','그 그릇이면 천하를 담겠소.'], n:['흥, 그 정도는 누구나 하오.','두고 보겠소.'], b:['그렇게 소심해서야.','작은 정에 매이면 큰일을 못 하오.'] } };
+const SEASON = () => G.month<=2 || G.month===12 ? '겨울' : G.month<=5 ? '봄' : G.month<=8 ? '여름' : '가을';
+const SOC_TOPICS = {
+  drink:[
+    { id:'season', me:p => `${SEASON()} 밤이 깊었구려. 이 계절엔 무슨 생각이 나오?`, him:p => pick([`${SEASON()}이면 고향 들판이 떠오르오. 한 해 농사를 걱정하던 어른들 얼굴도.`, `이맘때면 늘 행군 중이었소. 이렇게 앉아 마시는 게 오랜만이오.`]),
+      r:[['w','나도 그렇소. 고향 술 한 잔 따르리다.'],['j','그럼 오늘은 행군 대신 술잔으로 진격합시다!'],['d','이 계절을 넘기면 싸움도 바뀌겠지요. 그 얘기도 좀 합시다.']] },
+    { id:'old', ok:p => ageOf(p) >= 45, me:p => `${ageOf(p)}이면 많은 걸 보셨겠소. 가장 오래 남는 기억이 뭐요?`, him:p => pick(['젊어서 처음 전장에 나갔을 때요. 손이 떨려 창을 놓칠 뻔했지.','먼저 간 벗들이오. 술만 들면 그 얼굴이 보이오.']),
+      r:[['w','그 벗들 몫까지 함께 마십시다.'],['b','이제 남은 싸움은 이 몸이 앞장서겠소.'],['j','그래도 지금 잔 쥔 손은 하나도 안 떨리시는구려!']] },
+    { id:'young', ok:p => ageOf(p) < 30, me:p => '젊은 나이에 이름을 얻었소. 꿈이 뭐요?', him:p => pick(['언젠가 천하가 내 이름을 알게 하고 싶소!','부모님께 부끄럽지 않은 사람이 되는 것이오.']),
+      r:[['b','좋소! 그 꿈, 내 곁에서 이루시오.'],['w','부모님이 자랑스러워하실 거요.'],['d','이름보다 오래 남는 건 쌓은 공이오. 하나씩 해 봅시다.']] },
+    { id:'bet', me:p => '술 내기 한판 어떻소? 먼저 잔을 내려놓는 쪽이 지는 거요.', him:p => pick(['하! 나한테 술 내기를 걸다니, 후회할 거요.','좋소. 다만 내일 아침 일은 책임 못 지오.']),
+      r:[['b','사양 마시오. 한 동이 더!'],['j','지는 쪽이 내일 보초 서기로 합시다.'],['w','이기고 지는 게 뭐 대수요. 천천히 마십시다.']] },
+    { id:'lord', ok:p => !!lordOf() && lordOf().id!==p.id && lordOf().id!==G.pid, me:p => `${lordOf().n} 공을 어찌 보오? 솔직히 말해 보시오.`, him:p => pick([`큰 그릇이지요. 다만 가끔 속을 알 수 없소.`, `모시기 어렵지만 배울 게 많은 분이오.`]),
+      r:[['d','속을 알 수 없으니 큰일을 하시는 거겠지요.'],['j','쉿, 벽에도 귀가 있소.'],['w','그대 같은 사람이 곁에 있으니 든든하실 거요.']] },
+    { id:'war', ok:p => (G.wins||0) > 0, me:p => '지난 싸움 얘기나 합시다. 그대는 어땠소?', him:p => pick(['솔직히 그날은 죽는 줄 알았소. 운이 좋았지.','적의 기세가 대단했소. 다음엔 더 잘할 수 있소.']),
+      r:[['b','다음엔 우리가 먼저 몰아칩시다!'],['d','그날 진형이 문제였소. 다음엔 이렇게 해 보면 어떻겠소?'],['w','살아 돌아온 것만으로도 고맙소.']] } ],
+  talk:[
+    { id:'enemy', ok:p => !!socEnemy(), me:p => `${facName(socEnemy())}을 어찌 보시오?`, him:p => pick([`병력은 많으나 장수들 사이가 좋지 않다고 들었소.`, `저들은 지금이 가장 강할 때요. 섣불리 건드리면 안 되오.`]),
+      r:[['d','그렇다면 틈을 벌리는 계책부터 씁시다.'],['b','강할 때 꺾어야 기가 꺾이는 법이오!'],['j','저들 장수들에게 술이나 한 동이 보내 볼까요? 취하면 다 털어놓겠지.']] },
+    { id:'people', me:p => `${city(p.city).n} 백성들 살림은 어떻소?`, him:p => pick(['장터는 붐비지만 세금이 무겁다는 말이 돕니다.','올해 작황이 나빠 걱정입니다.','요즘은 도적이 줄어 다들 한숨 돌렸소.']),
+      r:[['w','백성이 편해야 싸움도 이기는 법이오. 살피겠소.'],['d','곳간을 열 때와 닫을 때를 잘 가려야겠구려.'],['b','도적이든 흉년이든 우리가 막아 주면 되오.']] },
+    { id:'world', me:p => '천하가 결국 누구 손에 들어갈 것 같소?', him:p => { const t = aliveFacs().filter(f => citiesOf(f.id).length).sort((a,b) => citiesOf(b.id).length - citiesOf(a.id).length)[0]; return t ? `지금 형세로는 ${facName(t.id)}이 가장 앞서 있소. 그러나 판은 아직 모르오.` : '아직은 누구도 모르오.'; },
+      r:[['b','그 판, 우리가 뒤집읍시다.'],['d','앞선 자는 표적이 되오. 우리는 때를 기다립시다.'],['j','앞서 달리는 말이 먼저 지치는 법이지요.']] },
+    { id:'scholar', ok:p => !!socFree(p), me:p => '요즘 쓸 만한 인재 소문은 없소?', him:p => { const q = socFree(p); return `${city(q.city).n}에 ${q.n}이란 자가 있소. 재주가 남다르다 들었소.`; }, tip:'scout',
+      r:[['w','좋은 사람을 알려 주어 고맙소.'],['d','그 사람의 장단점을 좀 더 말해 주시오.'],['j','그대보다 낫소? 그럼 곤란한데.']] },
+    { id:'book', me:p => '병법서는 무얼 즐겨 읽으시오?', him:p => pick(['손자요. 싸우지 않고 이기는 게 가장 좋다 했지요.','오자요. 장수는 병사와 함께 먹고 자야 한다 했소.','책보다 전장에서 배운 게 더 많소.']),
+      r:[['d','그 말을 우리 진영에 어떻게 쓸지 함께 궁리합시다.'],['b','책은 책이고, 결국 칼끝에서 갈리지요.'],['w','그 마음가짐이 그대를 믿게 하오.']] },
+    { id:'worry', me:p => '요즘 마음에 걸리는 일이 있소?', him:p => pick(['식솔들이 먼 곳에 있어 늘 걱정이오.','내가 맡은 일을 제대로 하고 있는지 모르겠소.','솔직히… 다음 싸움이 두렵소.']),
+      r:[['w','걱정 마시오. 그대 일은 내 일이기도 하오.'],['b','두려움은 칼을 쥐면 사라지오. 함께 갑시다.'],['d','무엇이 걸리는지 하나씩 풀어 봅시다.']] } ],
+  spar:[
+    { id:'weapon', me:p => '그 무기, 손에 잘 맞소?', him:p => pick(['십 년을 쥐었소. 이제 팔의 일부요.','무게가 좀 아쉽소. 대장장이를 바꿔야겠소.']),
+      r:[['b','어디 그 팔 솜씨 한번 다시 봅시다!'],['d','무게중심을 조금 앞으로 옮기면 어떻겠소?'],['j','무기 자랑은 술자리에서 마저 하시오, 하하.']] },
+    { id:'horse', me:p => '말 다루는 솜씨가 좋던데, 비결이 뭐요?', him:p => pick(['말과 먼저 친해져야 하오. 먹이를 직접 주지요.','겁먹지 않는 거요. 말은 사람 마음을 다 아오.']),
+      r:[['w','말도 사람도 마음이 먼저구려.'],['b','다음 돌격 때 그 솜씨를 보여 주시오!'],['j','나는 말이 나를 다루는 쪽이라…']] },
+    { id:'scar', me:p => '팔의 그 흉터, 어디서 얻었소?', him:p => pick(['젊을 적 도적 떼와 싸우다 얻었소. 셋을 베고 하나에게 당했지.','국경 싸움에서 적 기병의 창끝이 스친 자리요.']),
+      r:[['j','그 적이 운 좋게 한 번 맞힌 거구려!'],['w','그 상처 덕에 지금 살아 있는 거겠지요.'],['d','그때 무엇을 놓쳤는지 기억하오? 배울 게 있겠소.']] },
+    { id:'rematch', me:p => '한 판 더 합시다. 이번엔 내가 이기겠소.', him:p => pick(['좋소! 대신 지면 술을 사시오.','하하, 그 말 벌써 세 번째요.']),
+      r:[['b','좋소, 이번엔 끝까지 갑시다!'],['j','술은 이긴 쪽이 사는 걸로 바꿉시다.'],['d','아까 그 수, 어떻게 받으셨는지 먼저 알려 주시오.']] },
+    { id:'teach', ok:p => SV(p.m) < SV(me().m), me:p => '자세를 조금 고쳐 보시겠소? 내가 봐 드리리다.', him:p => pick(['…부탁드리오. 늘 거기서 막혔소.','흥, 가르침은 필요 없소. 하지만 들어는 보지.']),
+      r:[['w','천천히 하시오. 금방 늘 거요.'],['d','발끝을 반 보 앞으로. 거기서 힘이 실리오.'],['b','말보다 몸으로 배우는 게 빠르오. 다시!']] } ],
+  gift:[
+    { id:'gift', me:p => '작은 정성이오. 받아 주시오.', him:p => lnP('gift', p),
+      r:[['w','늘 고마운 마음이오.'],['j','다음엔 더 좋은 걸로 갚으시오!'],['d','앞으로 더 큰 일을 함께하자는 뜻이오.']] } ] };
+function socEnemy(){ if (!G.pfac) return null; const nb = [...new Set(citiesOf(G.pfac).flatMap(c => c.adj).map(city).filter(c => c.owner && hostile(G.pfac, c.owner)).map(c => c.owner))]; return nb.sort((a,b) => totalTroops(b)-totalTroops(a))[0] || null; }
+function socFree(p){ return npcs().filter(q => q.fac==='free' && active(q) && !q.army && dist(q.city, p.city) < 40).sort((a,b) => (b.m+b.i+b.l)-(a.m+a.i+a.l))[0] || null; }
 function socialTalk(p, mode, ok){
-  const mine = { drink:'한잔 받으시오. 오늘은 마음껏 마십시다.', talk:'요즘 천하의 형세를 어찌 보시오?', spar:'창 한번 맞대 봅시다.', gift:'작은 정성이오. 받아 주시오.' }[mode];
-  const key = mode==='gift' ? 'gift' : ok ? mode : mode+'X';
-  talkQ({ title: ({ drink:'술자리', talk:'담론', spar:'무예 겨루기', gift:'선물' })[mode] + ' · ' + p.n, bg: mode==='drink' ? 'bg_tavern' : mode==='gift' ? 'bg_market' : mode==='spar' ? campBg() : 'bg_house', lines:[['me', mine], [p.id, lnP(key, p)]] });
+  const all = SOC_TOPICS[mode] || SOC_TOPICS.talk, seen = p.tk || [];
+  let pool = all.filter(t => (!t.ok || t.ok(p)) && !seen.includes(t.id)); if (!pool.length) pool = all.filter(t => !t.ok || t.ok(p));
+  const T = pick(pool); p.tk = [T.id, ...seen].slice(0, Math.min(3, all.length - 1));
+  const lines = [['me', T.me(p)], [p.id, T.him(p)]];
+  const opts = T.r.slice().sort(() => Math.random() - .5);
+  talkQ({ title: ({ drink:'술자리', talk:'담론', spar:'무예 겨루기', gift:'선물' })[mode] + ' · ' + p.n, bg: mode==='drink' ? 'bg_tavern' : mode==='gift' ? 'bg_market' : mode==='spar' ? campBg() : 'bg_house',
+    lines, choices: opts.map(([k, t]) => ({ t, cn:'socRep', arg:p.id, arg2: k + '|' + T.id + '|' + mode + '|' + (ok ? 1 : 0) })) });
 }
 function recruitTalk(p, ok){
   talkQ({ title:'등용 · '+p.n, bg:'bg_house', lines:[['me', `${p.n}, 그대의 재주가 필요하오. 나와 함께 천하를 바로잡지 않겠소?`], [p.id, lnP(ok ? 'join' : 'joinX', p)]] });
@@ -6100,6 +6158,17 @@ function councilRuler(){
 }
 // 상소 처리
 const CN = {
+  socRep(pid, a2){
+    const p = person(pid); if (!p) return;
+    const [k, tid, mode, okf] = a2.split('|'), ps = persOf(p), lk = ((SOC_LIKE[ps] || SOC_LIKE.uiri)[k] || 0) - (okf==='0' ? 1 : 0), E = SOC_END[ps] || SOC_END.uiri;
+    const v = lk >= 2 ? ri(4, 6) : lk === 1 ? ri(2, 3) : lk < 0 ? -2 : 1;
+    addBond(pid, v); if (G.role==='ruler' && p.fac===G.pfac && v > 0) p.loy = clamp(p.loy + Math.ceil(v/2));
+    const T = (SOC_TOPICS[mode] || []).find(t => t.id===tid); let extra = '';
+    if (T && T.tip==='scout' && v > 0){ const q = socFree(p); if (q){ G.scout[q.city] = Math.max(G.scout[q.city]||0, mi() + 3); extra = ` ${q.n}이(가) ${city(q.city).n}에 있다는 것을 알았다.`; } }
+    talkQ({ title: ({ drink:'술자리', talk:'담론', spar:'무예 겨루기', gift:'선물' })[mode] + ' · ' + p.n, bg: mode==='drink' ? 'bg_tavern' : mode==='spar' ? campBg() : 'bg_house', lines:[[pid, pick(E[lk >= 2 ? 'g' : lk < 0 ? 'b' : 'n'])]] });
+    toast(`${p.n}: ${lk >= 2 ? '마음이 통했다' : lk < 0 ? '말이 엇갈렸다' : '고개를 끄덕였다'}.${extra}`, [[`인연 ${v >= 0 ? '+' : ''}${v}`, v > 0]], v < 0);
+    return null;
+  },
   relief(cid){ const c = city(cid); G.gold -= 150; c.morale = Math.min(100, (c.morale??100) + 20); c.pool = (c.pool||0) + c.dev*80; me().c = clamp(me().c + 1); return `${c.n}의 백성이 주공의 은혜에 감읍했다. 민심이 오르고 장정이 모여든다. (인망 +1)`; },
   ignoreFamine(cid){ const c = city(cid); c.morale = Math.max(30, (c.morale??100) - 15); const n = Math.round(c.troops*.04); c.troops -= n; return `${c.n}의 민심이 흉흉하다. 굶주린 병사 ${fmt(n)}이 달아났다.`; },
   bandits(cid, gid){ const c = city(cid), g = person(gid), ok = Math.random() < clamp(.55 + ((g ? g.m+g.l : 100) - 120)/200, .3, .95), loss = Math.round(c.troops*(ok ? .03 : .08)); c.troops -= loss;
@@ -7785,7 +7854,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
 /* =====================================================================
    BOOT
    ===================================================================== */
-if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
+if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, doAct, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
   globalThis.T = { frontsOf, dataClean, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
