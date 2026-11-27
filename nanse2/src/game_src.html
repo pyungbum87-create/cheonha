@@ -72,6 +72,10 @@ p{margin:0}
 .top .date b{font-family:var(--display);font-weight:400;font-size:18px;line-height:1.15;font-variant-numeric:tabular-nums}
 .icon{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--paper);font-size:18px;flex:none;display:grid;place-items:center}
 .stats{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
+.gstat{position:relative}.gstat .adp{position:absolute;top:-4px;right:-3px;width:17px;height:17px;border-radius:50%;background:#c0392b;color:#fff;font-style:normal;font-size:12px;line-height:17px;text-align:center;font-weight:900;box-shadow:0 0 0 2px #f7f0e1;animation:adp 1.8s ease-in-out infinite}@keyframes adp{50%{transform:scale(1.15)}}
+.adoffer{display:flex;align-items:center;gap:10px;width:100%;margin-top:5px;padding:7px 10px;border-radius:10px;border:1.5px solid #c9a24a;background:linear-gradient(90deg,#fff3cf,#f7e6b8);text-align:left;min-height:44px;color:var(--ink)}
+.adoffer .adtv{flex:none;width:28px;height:28px;border-radius:50%;background:#b3352a;color:#fff;display:grid;place-items:center;font-size:12px}
+.adoffer b{display:block;font-size:13px}.adoffer small{display:block;font-size:11px;color:var(--muted)}.adoffer .adn{flex:none;font-size:11px;font-weight:800;color:#8a6a1e}
 .stats::-webkit-scrollbar{display:none}
 .stat{flex:none;display:flex;align-items:baseline;gap:4px;padding:3px 8px;border-radius:8px;background:#26201c0c;font-size:11px;font-weight:800;color:var(--muted)}
 .stat b{font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -2147,11 +2151,11 @@ function histTerr(ff){
 
 /* ---------------- AI 전쟁 ---------------- */
 let AI_SEND = .65, AI_THRESH = 1.0, AI_RATE = .10;
-const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { rate:.55, thr:1.05, grow:.8, inc:1.3, plot:.10, ai:.1, adMul:1.2, adCap:5, pg:1 }],
-  normal:['보통','기본 균형. 적도 가끔 계략을 쓴다', { rate:1, thr:1, grow:1, inc:1, plot:0, ai:.35, adMul:1, adCap:4, pg:.8 }],
-  hard:['어려움','적이 약한 곳을 노리고 동맹을 맺는다', { rate:1.5, thr:.85, grow:1.2, inc:.85, plot:-.05, ai:.6, adMul:.85, adCap:3, pg:.6 }],
-  nanse:['난세','모두가 그대를 노린다. 계략도 잘 안 통한다', { rate:2.2, thr:.7, grow:1.5, inc:.7, plot:-.10, ai:.8, adMul:.7, adCap:3, pg:.45 }],
-  tianming:['천명','천하의 영웅들이 명장처럼 싸운다. 계략·동맹·배신이 쉴 새 없다', { rate:2.6, thr:.62, grow:1.7, inc:.6, plot:-.15, ai:1, adMul:.6, adCap:2, pg:.35 }] };
+const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { rate:.55, thr:1.05, grow:.8, inc:1.3, plot:.10, ai:.1, adMul:1.2, adCap:6, pg:1 }],
+  normal:['보통','기본 균형. 적도 가끔 계략을 쓴다', { rate:1, thr:1, grow:1, inc:1, plot:0, ai:.35, adMul:1, adCap:5, pg:.8 }],
+  hard:['어려움','적이 약한 곳을 노리고 동맹을 맺는다', { rate:1.5, thr:.85, grow:1.2, inc:.85, plot:-.05, ai:.6, adMul:.85, adCap:5, pg:.6 }],
+  nanse:['난세','모두가 그대를 노린다. 계략도 잘 안 통한다', { rate:2.2, thr:.7, grow:1.5, inc:.7, plot:-.10, ai:.8, adMul:.7, adCap:4, pg:.45 }],
+  tianming:['천명','천하의 영웅들이 명장처럼 싸운다. 계략·동맹·배신이 쉴 새 없다', { rate:2.6, thr:.62, grow:1.7, inc:.6, plot:-.15, ai:1, adMul:.6, adCap:4, pg:.35 }] };
 const dif = () => (DIFF[(G && G.diff) || 'normal'] || DIFF.normal)[2];
 function aiWar(f, ff){
   const cs = citiesOf(f.id);
@@ -6084,12 +6088,13 @@ function viewTop(){
     </div>
     <div class="stats">
       ${G.role!=='ronin' ? `<button class="stat pol ${polOf().on?'':'off'}" data-sheet="policy"><img class="sti" src="art/ui/res_food.webp" alt="">내정 <b>${polOf().on ? POL[polOf().focus][0] : '수동'}</b></button>` : ''}
-      <span class="stat"><img class="sti" src="art/ui/res_gold.webp" alt="">금 <b>${fmt(G.gold)}</b></span>
+      <button class="stat gstat" data-adq="1" aria-label="금 · 광고 보고 군자금 받기"><img class="sti" src="art/ui/res_gold.webp" alt="">금 <b>${fmt(G.gold)}</b>${adLeft() > 0 ? '<i class="adp">+</i>' : ''}</button>
       <span class="stat"><img class="sti" src="art/ui/res_troops.webp" alt="">${G.role==='ruler'?'총병력':'병력'} <b>${fmt(troops)}</b></span>
       <span class="stat ${G.role!=='ronin' && trv<35?'warn':''}"><img class="sti" src="art/ui/res_morale.webp" alt="">${tr} <b>${Math.round(trv)}</b></span>
       <span class="stat ${G.hp<35?'warn':''}"><img class="sti" src="art/ui/res_hp.webp" alt="">체력 <b>${Math.round(G.hp)}</b></span>
       ${G.role==='officer' ? `<button class="stat dirb" data-sheet="dirs"><img class="sti" src="art/ui/res_ap.webp" alt="">지침 <b>${(G.dirs||[]).length + (G.mission ? 1 : 0)}${(G.dirOffer||[]).length && dirsOf(0).length < DIR_MAX ? '<i></i>' : ''}</b></button>` : ''}
     </div>
+    ${(() => { const o = adOffer(); return o ? `<button class="adoffer" id="adOffer"><span class="adtv">▶</span><span class="grow"><b>${o.t}</b><small>${o.s} · 광고 보기</small></span><span class="adn">오늘 ${adLeftS(o.k)}회</span></button>` : ''; })()}
     <div class="sub2">훈련 ${G.train}${G.role!=='ronin' ? ` · 공적 ${fmt(G.merit)}` : ''} · 무${SV(p.m)} 용${SV(p.l)} 지${SV(p.i)} 정${SV(p.g||p.i)} 인${SV(p.c)}</div>
   </header>`;
 }
@@ -6582,6 +6587,7 @@ function viewBattle(){
         <div class="row">${G.pfac?`<button class="btn2 grow" data-cap="recruit">등용</button>`:''}<button class="btn2 grow" data-cap="release">석방</button><button class="btn2 grow" data-cap="execute">처형</button></div></div>`;
     } else {
       if (r.capMsg) ctrl += `<p class="small">${esc(r.capMsg)}</p>`;
+      if (!r.win && !G.dead && !B.rallied && !B.blockade && adLeftS('rally') && G.pfac !== undefined) ctrl += `<button class="mad" id="bRally"><span class="mg">병</span><span class="grow"><b>패잔병 수습 · 병력 +${fmt(Math.round(aidTroops()*.8/50)*50)}</b><small>광고를 보고 흩어진 병사를 다시 모은다 · 오늘 ${adLeftS('rally')}회</small></span><span class="mplay">▶</span></button>`;
       ctrl += `<button class="btn" id="bNext">${G.dead?'생의 끝':'계속'}</button>`;
     }
   }
@@ -6710,6 +6716,57 @@ function adGold(){ // 그때 처지에 맞는 군자금: 군주는 한 달 수�
 }
 function adDay(){ const d = new Date().toISOString().slice(0,10); if (!META.ad || META.ad.d!==d) META.ad = { d, n:0 }; return META.ad; }
 const adLeft = () => Math.max(0, adCapNow() - adDay().n);
+/* 상황 광고: 후원(금)과 따로 센다. 위급할 때 원군, 행동력이 바닥났을 때, 싸움에 졌을 때 */
+const AD_CAPS = { aid:3, ap:3, rally:3 };
+const adLeftS = k => Math.max(0, AD_CAPS[k] - ((adDay().s||{})[k]||0));
+function adUse(k){ const d = adDay(); d.s = d.s || {}; d.s[k] = (d.s[k]||0) + 1; saveMeta(); }
+const monthIdx = () => G.year*12 + G.month;
+function aidTroops(){
+  if (G.role==='ruler'){ const tot = citiesOf(G.pfac).reduce((a, c) => a + c.troops, 0); return clamp(Math.round(tot*.08/100)*100, 600, 5000); }
+  if (G.role==='officer') return 300 + G.rank*150;
+  return 300;
+}
+function aidGold(){ return Math.max(100, Math.round(adGold()*.5/50)*50); }
+function giveTroops(n){
+  if (G.role==='ruler'){ const cs = citiesOf(G.pfac); const c = cs.find(x => x.id===G.city) || city(capitalOf(G.pfac)) || cs[0]; if (c) c.troops += n; }
+  else G.troops = (G.troops||0) + n;
+}
+function inDanger(){
+  if (!G.pfac || G.role!=='ruler') return G.gold < 150 || (G.role!=='ronin' && (G.troops||0) < 300);
+  const cs = citiesOf(G.pfac); if (!cs.length) return false;
+  const hit = G.armies.some(a => a.fac!==G.pfac && city(a.to).owner===G.pfac && a.state!=='return');
+  return cs.length <= 2 || G.gold < 200 || (hit && cs.length <= 4);
+}
+function adOffer(){
+  if (!G || G.phase!=='act' || G.taleBack || G.jail) return null;
+  const fl = G.flags || (G.flags = {}), mi = monthIdx();
+  if (G.ap <= 0 && adLeftS('ap') && fl.adApM!==mi) return { k:'ap', t:'밤을 새워 일한다', s:'행동력 +1' };
+  if (inDanger() && adLeftS('aid') && fl.adAidM!==mi) return { k:'aid', t:'급보 · 원군을 청한다', s:`병력 +${fmt(aidTroops())} · 금 +${fmt(aidGold())}` };
+  return null;
+}
+function adOfferClaim(){
+  const o = adOffer(); if (!o) return render();
+  showAd(o.k, () => {
+    if (!adLeftS(o.k)) return; adUse(o.k); const mi = monthIdx();
+    if (o.k==='ap'){ G.flags.adApM = mi; G.ap++; toast('밤을 새워 한 가지 일을 더 할 수 있다.', [['행동력 +1', true]]); }
+    else { G.flags.adAidM = mi; const tr = aidTroops(), g = aidGold(); giveTroops(tr); G.gold += g; Snd.sfx('coin'); toast('의병과 군자금이 모여들었다.', [[`병력 +${fmt(tr)}`, true], [`금 +${fmt(g)}`, true]]); }
+    save(); render();
+  });
+}
+function adAsk(){
+  const o = adOffer(), L = adLeft();
+  const bg = sheet(`<h3>군자금이 모자랄 때</h3><p class="small muted">광고를 보면 후원자가 금을 보낸다. 횟수는 날마다 다시 찬다.</p>
+    <button class="mad" id="aqGold" ${L > 0 ? '' : 'disabled'}><span class="mg">금</span><span class="grow"><b>군자금 +${fmt(adGold())}</b><small>광고 보기 · 오늘 ${L}/${adCapNow()}</small></span><span class="mplay">▶</span></button>
+    ${o ? `<button class="mad" id="aqOffer"><span class="mg">${o.k==='ap' ? '행' : '병'}</span><span class="grow"><b>${o.t}</b><small>${o.s} · 광고 보기 · 오늘 ${adLeftS(o.k)}회</small></span><span class="mplay">▶</span></button>` : ''}
+    <p class="tiny muted">위급할 때(성이 적거나 금이 바닥날 때)는 원군 요청, 행동력이 다 떨어지면 밤샘 일, 싸움에 지면 패잔병 수습 광고가 따로 열린다.</p>
+    <button class="btn2" data-close>닫기</button>`);
+  const g = bg.querySelector('#aqGold'); if (g) g.onclick = () => { bg.remove(); adGoldClaim(); };
+  const f = bg.querySelector('#aqOffer'); if (f) f.onclick = () => { bg.remove(); adOfferClaim(); };
+}
+function adRallyClaim(){
+  const B = G.battle; if (!B || B.rallied || !adLeftS('rally')) return render();
+  showAd('rally', () => { if (!adLeftS('rally')) return; adUse('rally'); B.rallied = 1; const tr = Math.round(aidTroops()*.8/50)*50; giveTroops(tr); toast('흩어진 병사들을 다시 모았다.', [[`병력 +${fmt(tr)}`, true]]); save(); render(); });
+}
 function showAd(spot, reward){
   track('ad_open', { spot });
   const done = () => { track('ad_reward', { spot }); reward(); };
@@ -7416,6 +7473,9 @@ function bind(){
   on('[data-ths]', b => { G.thSel = b.dataset.ths; render(); });
   on('[data-frauto]', () => { G.frAuto = !G.frAuto; toast(G.frAuto ? '전선을 군사에게 맡겼다. 달마다 알아서 배치하고 명령한다. 계책·투자·돌파 뒤 선택은 직접 한다.' : '전선을 다시 직접 지휘한다.', []); save(); render(); });
   on('[data-adg]', () => adGoldClaim());
+  on('#adOffer', () => adOfferClaim());
+  on('[data-adq]', () => adAsk());
+  on('#bRally', () => adRallyClaim());
   on('[data-melee]', () => openMeleePick());
   on('[data-tht]', b => { G.thTab = b.dataset.tht; render(); });
   on('[data-inv]', b => { const F = frontsOf(G.pfac).find(f => f.id===G.thSel) || frontsOf(G.pfac).filter(f => f.ef===G.thEf).sort((a, b2) => Math.abs(frState(b2.id).p) - Math.abs(frState(a.id).p))[0]; if (F){ frInvest(F.id, b.dataset.inv); save(); render(); } });
