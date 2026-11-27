@@ -88,6 +88,9 @@ p{margin:0}
 .wr-frs{display:grid;grid-template-columns:1fr 1fr;gap:6px}.wr-fr{border:1px solid var(--line);border-radius:8px;background:var(--paper2);padding:6px 8px;text-align:left;display:flex;flex-direction:column;gap:2px}.wr-fr b{font-size:12px}.wr-fr small{font-size:11px;color:var(--muted)}
 .wr-el{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px}.wr-el small{font-size:11px}
 .civ{display:grid;grid-template-columns:1fr 1fr;gap:6px}.civb{border:1px solid var(--line);border-radius:8px;background:var(--paper2);padding:7px 9px;text-align:left;min-height:52px}.civb b{display:block;font-size:13px}.civb small{display:block;font-size:11px;color:var(--muted);line-height:1.3}.civb:disabled{opacity:.5}
+.mybar{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0;padding:8px 12px;border-radius:12px;border:1.5px solid #b3352a55;background:#fff8ec;box-shadow:0 2px 8px #26201c14;text-align:left;min-height:46px;pointer-events:auto;color:var(--ink)}
+.mybar .mydot{color:#b3352a;font-size:14px}.mybar b{font-size:14px}.mybar small{font-size:12px;color:var(--muted)}.mybar .mygo{flex:none;font-size:12px;font-weight:800;color:#fff;background:#b3352a;border-radius:999px;padding:6px 10px}
+.wr-hr{display:flex;align-items:center;gap:8px;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:6px 0;text-align:left;min-height:46px}.wr-hr b{font-size:13px}.wr-hr small{font-size:11px;color:var(--muted)}
 .gstat{position:relative}.gstat .adp{position:absolute;top:-4px;right:-3px;width:17px;height:17px;border-radius:50%;background:#c0392b;color:#fff;font-style:normal;font-size:12px;line-height:17px;text-align:center;font-weight:900;box-shadow:0 0 0 2px #f7f0e1;animation:adp 1.8s ease-in-out infinite}@keyframes adp{50%{transform:scale(1.15)}}
 .adoffer{display:flex;align-items:center;gap:10px;width:100%;margin-top:5px;padding:7px 10px;border-radius:10px;border:1.5px solid #c9a24a;background:linear-gradient(90deg,#fff3cf,#f7e6b8);text-align:left;min-height:44px;color:var(--ink)}
 .adoffer .adtv{flex:none;width:28px;height:28px;border-radius:50%;background:#b3352a;color:#fff;display:grid;place-items:center;font-size:12px}
@@ -1582,7 +1585,7 @@ const facSeal = f => f && G.facs[f] ? G.facs[f].seal : '야';
 const allied = (a,b) => !!(a && b && G.facs[a] && (G.facs[a].ally[b]||0) > 0);
 const hostile = (a,b) => !!(b && a!==b && !allied(a,b));
 const ageOf = p => G.year - p.b;
-const active = p => p && p.alive && p.active;
+const active = p => p && p.alive && p.active && !p.cell;
 const npcs = () => Object.values(G.people).filter(p => active(p) && p.id!==G.pid);
 const peopleIn = (cid, f) => npcs().filter(p => p.city===cid && !p.army && (f===undefined || p.fac===f));
 const bestGen = (cid, f) => peopleIn(cid, f).sort((a,b) => (b.m+b.l)-(a.m+a.l))[0];
@@ -1944,7 +1947,13 @@ function monthStep(ff){
     for (const p of npcs().filter(q => q.fac===G.pfac)){
       p.loy = clamp(p.loy + (55 + bond(p.id)/2 - p.loy)*.02);
       if (p.inlaw || isInlawId(p.id)){ p.loy = Math.max(p.loy, 70); G.bond[p.id] = Math.max(G.bond[p.id]||0, 60); }
-      if (p.loy < (hasT(p,'yamang') ? 45 : 30) && !hasT(p,'chungjeol') && !isSworn(p.id) && !p.army && Math.random()<(hasT(p,'yamang') ? .06 : .03)){ p.fac = 'free'; news(`${J(p.n,'이')} 불만을 품고 떠났다.`, true, true); }
+      if (p.cell) continue;
+      // 불만: 충성 30 미만(야망가는 45)이 이어지면 달수가 쌓인다. 3달째 경고, 6달이면 성을 들고 반란(태수)하거나 군사를 끌고 떠난다
+      const th = hasT(p,'yamang') ? 45 : 30;
+      if (p.loy < th && !hasT(p,'chungjeol') && !isSworn(p.id) && !p.fam){ p.dis = (p.dis||0) + 1;
+        if (p.dis===3) news(`${J(p.n,'이')} 불만을 숨기지 않는다. 이대로 두면 일을 낼 것이다. (충성 ${Math.round(p.loy)})`, true, true);
+        if (p.dis >= 6 && !p.army && Math.random() < .5) rebel(p); }
+      else p.dis = Math.max(0, (p.dis||0) - 1);
     }
   }
   if (!ff && G.pfac){
@@ -2391,7 +2400,7 @@ function frStrat(F){
 /* 군사 자리가 빈 전선에는 대군사·군사중랑장의 지략이 70%로 보탠다 */
 function frAdv(F, S){ const a = frRoleP(F, S, 'adv'); if (a) return a; const st = frStrat(F) || (G.court && courtP(G.court.gun) ? person(G.court.gun) : null); return st ? { id:st.id, n:st.n, i:Math.round(st.i*.7), virt:1 } : null; }
 /* 지략이 높을수록 적의 낌새·병력비·군량을 정확히 따져 명령한다 */
-function frSmart(F, S, st){
+function frSmart(F, S, st, PB){
   const q = clamp((SV(st.i) - 40)/55, 0, 1), e = frEval(F), r = e.ratio, knows = S.fKnown || Math.random() < q*.7, fi = knows ? S.fNext : null;
   let push;
   if (S.sup < 1) push = false;
@@ -2402,6 +2411,10 @@ function frSmart(F, S, st){
   else push = Math.random() < .3 + q*.4;
   if (S.p <= -60 && r < .5) push = false;
   S.st = push ? 'push' : 'hold'; if (push) S.bonus = Math.round(rnd(2, 8) + q*5);
+  // 계책: 아는 적의 낌새에 맞는 것만, 성공률이 60% 넘을 때
+  const capP = G.court && G.court.gun===st.id ? 2 : 1; PB = PB || {};
+  if (!S.plan && (PB[st.id]||0) < capP){ const c = frCtx(F, S), best = Object.keys(FR_PLANS).filter(k => FR_PLANS[k].can(c) && !((k==='ambush' || k==='lure') && fi!=='push' && fi!=='mass') && !(k==='night' && fi!=='hold') && !(k==='lure' && push)).map(k => [k, frPlanCh(c, k)]).sort((a, b) => b[1] - a[1])[0];
+    if (best && best[1] >= .65 - q*.05){ S.plan = best[0]; PB[st.id] = (PB[st.id]||0) + 1; } }
   return `${F.sec}: ${push ? '공세' : '수비'}${knows && fi ? `(적 ${FR_INT[fi][0]})` : ''}`;
 }
 function courtIncMul(){ if (G.role!=='ruler' || !G.court) return 1; const C = G.court, s = courtP(C.sang); let k = 1 + (s ? clamp((SV(s.g||s.i) - 60)/200, -.05, .2) : 0); for (const id of C.sangS){ const p = courtP(id); if (p) k += SV(p.g||p.i)/100*.04; } return k; }
@@ -2418,15 +2431,18 @@ function frontStep(ff){
   for (const F of FS){ const S = frState(F.id); S.pp = S.p; if (S.fNext==null){ S.fNext = Math.random() < .4 ? 'push' : 'hold'; S.fKnown = false; }
     if (S.st==='push') nPush[F.ef] = (nPush[F.ef]||0) + 1;
     if (S.st==='feint'){ const e = frEval(F), adv = frAdv(F, S), ok = Math.random() < clamp(.55 + ((adv ? adv.i : 45) - (e.en.best ? e.en.best.i : 50))/90, .2, .92); S.feintOk = ok; if (ok) lure[F.ef] = F.id; rep.push(`${F.sec} 양동 ${ok ? '성공' : '간파당함'}`); } }
-  const stratLog = [], nFr = {}, nFrE = {};
+  const stratLog = [], nFr = {}, nFrE = {}, planB = {};
   for (const F of FS){ for (const id of F.my) nFr[id] = (nFr[id]||0) + 1; for (const id of F.foe) nFrE[id] = (nFrE[id]||0) + 1; }
   for (const F of FS){
     const stp = G.role==='ruler' ? frStrat(F) : null;
     if (aiRun || stp){ // 장수로 있을 때는 주공이, 군주일 때는 맡긴 군사가 전선을 지휘한다
       const pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city));
       for (const [k, f] of [['van', p => p.m*1.2 + p.l*.8], ['adv', p => p.i], ['rear', p => p.g||p.i]]) if (!frRoleP(F, S0(F), k)){ const c = pool.filter(p => !Object.values(S0(F).r).includes(p.id)).sort((a, b) => f(b) - f(a))[0]; if (c) frSetRole(F.id, k, c.id); }
+      if (stp && !frRoleP(F, S0(F), 'van')){ const used = new Set(Object.values(G.fronts||{}).flatMap(o => Object.values(o.r||{}))), C = G.court || {};
+        const mv = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && !used.has(p.id) && p.id!==C.gun && p.id!==C.sang && !(C.gunS||[]).includes(p.id) && !(C.sangS||[]).includes(p.id) && city(p.city).gov!==p.id && !frontsOf(G.pfac).some(o => o.my.includes(p.city))).sort((a, b) => (b.m*1.2 + b.l*.8) - (a.m*1.2 + a.l*.8))[0];
+        if (mv){ mv.city = F.my[0]; frSetRole(F.id, 'van', mv.id); } }
       if (!frCorps(F, S0(F))){ const usedC = new Set(Object.values(G.fronts).map(o => o.corps).filter(Boolean)), ck = corpsAvail(G.pfac).filter(x => !usedC.has(x)).sort((a, b) => CORPS[b].p[frIdx(F)] - CORPS[a].p[frIdx(F)])[0]; if (ck) S0(F).corps = ck; }
-      const S1 = S0(F); if (stp){ frSmart(F, S1, stp); const L = stratLog.find(x => x.n===stp.n) || (stratLog.push({ n:stp.n, p:0, h:0 }), stratLog[stratLog.length-1]); L[S1.st==='push' ? 'p' : 'h']++; }
+      const S1 = S0(F); if (stp){ frSmart(F, S1, stp, planB); const L = stratLog.find(x => x.n===stp.n) || (stratLog.push({ n:stp.n, p:0, h:0 }), stratLog[stratLog.length-1]); L[S1.st==='push' ? 'p' : 'h']++; }
       else if (!S1.sug){ const r0 = frEval(F).ratio; S1.st = (r0 > .55 || Math.random() < .25) && S1.sup >= 1 ? 'push' : 'hold'; if (S1.st==='push') S1.bonus = Math.round(rnd(0, 10)); } S1.sug = false;
     }
     const { S, me_, en, ratio } = frEval(F), adv = frAdv(F, S), rear = frRoleP(F, S, 'rear'), ph0 = frPhase(S.p)[0];
@@ -5031,6 +5047,15 @@ const ACT = {
     chips.unshift([`${p.n} 인연 +${v}`, true]);
     toast(msg, chips);
   },
+  jail(id){ const p = person(id); if (G.role!=='ruler' || !p || p.fac!==G.pfac || p.army || p.cell || p.fam) return; if (!spend(0)) return;
+    p.cell = mi(); if (city(p.city).gov===p.id) city(p.city).gov = null; courtClean(); for (const S of Object.values(G.fronts||{})) for (const k of Object.keys(S.r||{})) if (S.r[k]===id) S.r[k] = null;
+    for (const q of npcs()) if (q.fac===G.pfac && active(q) && q.id!==id && !q.cell) q.loy = clamp(q.loy - (BONDS.some(b => (b[0]===id && b[1]===q.id) || (b[1]===id && b[0]===q.id)) ? 8 : 1));
+    toast(`${J(p.n,'을')} 옥에 가두었다.`, [['장수들 충성 -1', false]], true); },
+  release(id){ const p = person(id); if (!p || !p.cell) return; p.cell = 0; p.dis = 0; p.loy = clamp(p.loy + 12); addBond(id, 5); toast(`${J(p.n,'을')} 풀어 주었다. 은혜를 잊지 않겠다며 엎드렸다.`, [['충성 +12', true], ['인연 +5', true]]); },
+  executeGo(id){ const p = person(id); if (!p || p.fac!==G.pfac) return; const { ps } = execPlead(p); p.alive = false; p.active = false; p.cell = 0; G.flags.execs = (G.flags.execs||0) + 1;
+    for (const q of npcs()) if (q.fac===G.pfac && active(q)){ const close = BONDS.some(b => (b[0]===id && b[1]===q.id) || (b[1]===id && b[0]===q.id)); q.loy = clamp(q.loy + (close ? -20 : ps.includes(q) ? -8 : persOf(q)==='yasim' ? 2 : p.dis >= 3 ? 1 : -4)); q.dis = Math.max(0, (q.dis||0) - (p.dis >= 3 ? 2 : 0)); }
+    if (notable(p)) trustAdd(-3); dataClean();
+    toast(`${p.n}의 목이 떨어졌다.${p.dis >= 3 ? ' 불만을 품던 자들이 몸을 낮춘다.' : ' 장수들이 겁에 질렸다.'}`, [[p.dis >= 3 ? '다른 장수 불만 -2' : '장수들 충성 -4', p.dis >= 3]], true); },
   civic(k){
     if (G.role!=='ruler') return; const fl = G.flags.civ || (G.flags.civ = {}); if ((fl[k]||-99) + 3 > mi()) return toast('얼마 전에 한 일이다. 석 달 뒤에 다시 할 수 있다.', [], true);
     const C = CIVIC[k], cost = C.cost(); if (!spend(cost)) return; fl[k] = mi(); const chips = C.go(); if (cost) chips.push([`금 -${fmt(cost)}`, false]); toast(C.msg, chips); },
@@ -5040,6 +5065,8 @@ const ACT = {
     const cost = 80 + r*40; if (!spend(cost)) return; p.rk = r + 1; p.rkAt = mi(); p.loy = clamp((p.loy??70) + 10); addBond(id, 2);
     const up = rankUp(p); promoTalkN(p);
     toast(`${J(p.n,'을')} ${NRANKS[p.rk]}(으)로 올렸다.`, [[NRANKS[p.rk], true], ...up, ['충성 +10', true], [`금 -${cost}`, false]]); },
+  execute(id){ const p = person(id); if (G.role!=='ruler' || !p || p.fac!==G.pfac || p.army || p.fam) return; if (!spend(0)) return;
+    const { L } = execPlead(p); talkQ({ title:`${p.n} 처형`, bg:'bg_siege', lines:L, choices:[{ t:'그래도 벤다', sub:'다른 장수의 충성이 흔들린다', cn:'execY', arg:id }, { t:'살려 둔다', sub:'모든 장수 충성 +2', cn:'execN', arg:id }] }); },
   courtSet(slot, i, pid){ courtSet(slot, +i, pid); const p = person(pid); toast(`${J(p.n,'을')} ${slot==='elite' ? court().eName : OFFICES[slot][0]}에 임명했다.`, [['충성 +8', true]]); },
   courtOff(slot, i){ const C = court(); if (slot==='gun' || slot==='sang') C[slot] = null; else if (slot==='elite') C.elite.splice(+i, 1); else C[slot][+i] = null; },
   sendAid(to, from, pct){ const t = city(to), f = city(from); if (G.role!=='ruler' || t.owner!==G.pfac || f.owner!==G.pfac || f.troops < 1500) return; if (!spend(0)) return;
@@ -6325,6 +6352,8 @@ function councilRuler(){
 }
 // 상소 처리
 const CN = {
+  execY(id){ ACT.executeGo(id); return null; },
+  execN(id){ const p = person(id); if (p){ p.loy = clamp(p.loy + 6); for (const q of npcs()) if (q.fac===G.pfac && active(q)) q.loy = clamp(q.loy + 2); } return `${J(p.n,'을')} 살려 두었다. 장수들이 주공의 너그러움에 감복했다. (모든 장수 충성 +2)`; },
   famRep(who, ef){
     const f = famSpk(who); if (!f) return null; const chips = [];
     if (who.startsWith('kid:')){ const k = G.kids.find(x => x.id===who.slice(4)); if (!k) return null; const a = G.year - k.born;
@@ -6615,7 +6644,9 @@ function viewMap(){
   if (MAPZ==null) MAPZ = ((typeof innerWidth!=='undefined' && innerWidth >= 700) ? 1.3 : 2.2) * MAP_K;
   const hasTh = (G.role==='ruler' || G.role==='officer') && G.pfac && frontsOf(G.pfac).length;
   const seg = hasTh ? `<div class="mseg"><button class="${G.mapMode!=='world' ? 'on' : ''}" data-mm="front">전선</button><button class="${G.mapMode==='world' ? 'on' : ''}" data-mm="world">천하</button><button data-mtribe="1">부족</button></div>` : '';
-  if (hasTh && G.mapMode!=='world') return `<div class="mapview th">${seg}${viewTheater()}</div>`;
+  const here = city(G.city), myBar = G.phase==='act' && !G.inArmy && !G.jail ? `<button class="mybar" data-mycity="1"><span class="mydot">◉</span><span class="grow"><b>${here.n}</b>&nbsp; <small>${here.owner===G.pfac && G.pfac ? `병력 ${fmt(here.troops)} · ` : ''}행동력 ${G.ap}</small></span><span class="mygo">내 성 다스리기 ›</span></button>` : '';
+  if (hasTh && G.mapMode!=='world') return `<div class="mapview th">${seg}${myBar}${viewTheater()}</div>`;
+  if (myBar) notes.unshift(myBar);
   return `<div class="mapview">${seg}<div class="mapscroll" id="mapScroll"><div class="mapinner" id="mapInner" style="width:${Math.round(MAPZ*100)}%">${mapSvg()}</div></div>
     <div class="mapnote">${notes.join('')}</div>
     <div class="mapctl"><button id="zIn" aria-label="확대">+</button><button id="zOut" aria-label="축소">−</button><button class="me" id="toMe">내 위치</button></div></div>
@@ -6747,12 +6778,40 @@ function armyCard(a){
     ${btns}
   </div>`;
 }
+/* 반란: 태수면 성을 들고 이웃 적에게 붙고, 아니면 병사를 이끌고 떠난다 */
+function rebel(p){
+  const c = city(p.city), gov = c.gov===p.id && c.owner===G.pfac && capitalOf(G.pfac)!==c.id;
+  const to = gov ? c.adj.map(city).map(x => x.owner).filter(o => o && hostile(G.pfac, o)).sort((a, b) => totalTroops(b) - totalTroops(a))[0] : null;
+  if (gov && to){ const tr = c.troops; transferCity(c, to, tr, false); p.fac = to; p.city = c.id; p.loy = 70; c.gov = p.id;
+    news(`반란! ${J(p.n,'이')} ${J(c.n,'을')} 들고 ${facName(to)}에 붙었다!`, true, true);
+    talkQ({ title:`${c.n} 반란`, bg:'bg_wallnight', lines:[[null, `${c.n} 성문에 ${facName(to)}의 깃발이 올랐다.`], [p.id, '오래 참았소. 더는 그대를 주공으로 모실 수 없소!']] }); }
+  else { const n = Math.min(Math.round(c.troops*.2), 3000); if (c.owner===G.pfac) c.troops -= n; p.fac = 'free'; p.dis = 0; if (c.gov===p.id) c.gov = null;
+    news(`${J(p.n,'이')} 불만을 품고 병사 ${fmt(n)}을 이끌고 떠났다.`, true, true); }
+}
+/* 감옥과 참수: 군주만. 참수하려 하면 아끼던 장수들이 말린다 */
+function cellList(){ return npcs().filter(p => p.fac===G.pfac && p.cell && p.alive); }
+function execPlead(p){
+  const ps = npcs().filter(q => q.fac===G.pfac && active(q) && q.id!==p.id && !q.cell && (BONDS.some(b => (b[0]===p.id && b[1]===q.id) || (b[1]===p.id && b[0]===q.id)) || ['uiri','onhwa'].includes(persOf(q)) && q.loy >= 60)).sort((a, b) => b.loy - a.loy).slice(0, 2);
+  const why = p.dis >= 3 ? '불만을 품었다고는 하나' : '죄가 분명치 않은데';
+  const L = [[null, `${J(p.n,'을')} 끌어내어 형장에 세웠다. 장수들이 술렁인다.`]];
+  ps.forEach((q, i) => L.push([q.id, i===0 ? `주공, ${why} ${J(p.n,'은')} 쓸 만한 장수입니다. 목을 베면 다른 장수들도 마음이 떠납니다!` : '부디 거두어 주십시오. 이 몸이 대신 지켜보겠습니다.']));
+  if (!ps.length) L.push([null, '아무도 나서지 않는다. 모두 고개를 숙였다.']);
+  return { L, ps };
+}
 /* 민정: 민심을 직접 돌보는 일 넷. 각각 석 달에 한 번, 행동력 1 */
 const CIVIC = {
   relief:{ n:'구휼', d:'곳간을 열어 굶주린 백성에게 곡식을 푼다', cost:() => 60 + citiesOf(G.pfac).length*20, go(){ trustAdd(6); for (const c of citiesOf(G.pfac)) c.morale = Math.min(100, (c.morale??100) + 8); return [['민심 +6', true], ['성 사기 +8', true]]; }, msg:'곡식 수레가 마을마다 들어가자 백성들이 엎드려 절했다.' },
   taxcut:{ n:'세금 감면', d:'석 달 동안 세금을 40% 덜 걷는다', cost:() => 0, go(){ G.taxCut = mi() + 3; trustAdd(9); return [['민심 +9', true], ['석 달 세금 -40%', false]]; }, msg:'세금을 줄인다는 방이 붙자 장터에 웃음이 돌았다.' },
   feast:{ n:'잔치', d:'장수와 백성을 불러 크게 잔치를 연다', cost:() => 200, go(){ trustAdd(3); for (const p of npcs()) if (p.fac===G.pfac && active(p)) p.loy = clamp((p.loy??70) + 3); return [['민심 +3', true], ['모든 장수 충성 +3', true]]; }, msg:'사흘 밤낮 잔치가 이어졌다. 장수들의 얼굴에 웃음이 돌았다.' },
   tour:{ n:'순행', d:'직접 고을을 돌며 백성의 말을 듣는다', cost:() => 0, go(){ trustAdd(4); G.hp = clamp(G.hp - 6); const out = [['민심 +4', true], ['체력 -6', false]]; const q = npcs().filter(p => p.fac==='free' && active(p) && citiesOf(G.pfac).some(c => c.id===p.city)).sort((a,b) => (b.m+b.i+b.l)-(a.m+a.i+a.l))[0]; if (q && Math.random() < .5){ G.scout[q.city] = mi() + 6; out.push([`${q.n} 발견`, true]); } return out; }, msg:'고을마다 백성들이 몰려나와 하소연을 늘어놓았다.' } };
+function hrCard(){
+  const risk = npcs().filter(p => p.fac===G.pfac && p.alive && !p.cell && !p.fam && ((p.loy??70) < 45 || (p.dis||0) > 0)).sort((a, b) => (b.dis||0) - (a.dis||0) || a.loy - b.loy), cell = cellList();
+  if (!risk.length && !cell.length) return `<div class="card wr"><div class="row between"><b>인사</b><span class="small muted">불만을 품은 장수가 없다</span></div></div>`;
+  const row = (p, c) => `<button class="wr-hr" data-person="${p.id}">${pp(p, 34)}<span class="grow"><b>${esc(p.n)}</b> <small>${c ? '옥에 갇힘' : `충성 ${Math.round(p.loy)}${p.dis ? ` · 불만 ${p.dis}달${p.dis >= 4 ? ' · 위험' : ''}` : ''}`}${city(p.city).gov===p.id ? ' · 태수' : ''}</small></span><span class="mch">›</span></button>`;
+  return `<div class="card wr"><div class="row between"><b>인사 · 불만 ${risk.length}${cell.length ? ` · 옥 ${cell.length}` : ''}</b><span class="tiny muted">충성 30 미만이 6달 이어지면 반란·이탈</span></div>
+    ${risk.slice(0, 6).map(p => row(p, false)).join('')}${cell.map(p => row(p, true)).join('')}
+    <p class="tiny muted">눌러서 포상·승진으로 달래거나, 옥에 가두거나 참수한다. 참수하려 하면 아끼던 장수들이 말린다.</p></div>`;
+}
 function civicCard(){
   const t = Math.round(G.trust), fl = G.flags.civ || {}, mul = (.6 + t/250).toFixed(2), cut = (G.taxCut||0) > mi();
   return `<div class="card wr"><div class="row between"><b>민정 · 민심 ${t}</b><span class="small muted">세금 ×${mul}${cut ? ' · 감면 중' : ''}</span></div>
@@ -6773,7 +6832,7 @@ function warRoom(){
   const fs = frontsOf(G.pfac).map(F => { const S = frState(F.id), ph = frPhase(S.p), st = frStrat(F), v = frRoleP(F, S, 'van');
     return `<button class="wr-fr" data-view="map"><b>${esc(F.name)}</b><span class="chip ${({ bad:"red", warn:"gold" })[ph[1]] || ""}">${ph[0]} ${S.p > 0 ? '+' : ''}${S.p}</span><small>${S.st==='push' ? '공세' : '수비'}${st ? ` · ${st.n} 지휘` : ''}${v ? ` · 선봉 ${v.n}` : ''}</small></button>`; }).join('');
   const C = G.court, el = C ? C.elite.map(courtP).filter(Boolean) : [];
-  return civicCard() + `<div class="card wr"><div class="row between"><b>군무 본부</b><span class="small muted">총병력 ${fmt(tot)} · 위험한 성 ${danger}</span></div>
+  return civicCard() + hrCard() + `<div class="card wr"><div class="row between"><b>군무 본부</b><span class="small muted">총병력 ${fmt(tot)} · 위험한 성 ${danger}</span></div>
     ${cs.slice(0, 12).map(row).join('')}${cs.length > 12 ? `<p class="tiny muted">그 밖의 성 ${cs.length - 12}곳은 안정</p>` : ''}</div>
     ${fs ? `<div class="card wr"><div class="row between"><b>전선</b><button class="ghost" data-sheet="court">${C && courtP(C.gun) ? `대군사 ${person(C.gun).n}` : '대군사 임명'} ›</button></div><div class="wr-frs">${fs}</div></div>` : ''}
     <div class="card wr"><div class="row between"><b>${esc(C ? C.eName : '직속 친위군')}</b><button class="ghost" data-sheet="court">편성 ›</button></div>${el.length ? `<div class="row" style="gap:8px;flex-wrap:wrap">${el.map(p => `<button class="wr-el" data-person="${p.id}">${pp(p, 40)}<small>${esc(p.n)}${p.army ? ' · 출진' : ''}</small></button>`).join('')}</div>` : '<p class="small muted">아직 친위군이 없다. 최고의 무장을 뽑아 직속으로 두자.</p>'}</div>`;
@@ -7911,7 +7970,7 @@ function openSheet(kind, arg){
     bg.querySelector('#go').onclick = () => { bg.remove(); doAct('independence'); };
   } else if (kind==='person'){
     const p = person(arg), isMe = arg===G.pid, sameFac = G.pfac && p.fac===G.pfac;
-    const canTalk = !isMe && !p.army && (sameFac || p.city===G.city) && G.phase==='act';
+    const canTalk = !isMe && !p.army && !p.cell && (sameFac || p.city===G.city) && G.phase==='act';
     const modes = [['drink','술자리','c'],['talk','담론','i'],['spar','무예 겨루기','m'],['gift','선물 (금 60)',null]];
     let body = `<div class="row">${pp(p,84,'sq')}<div><h2 style="font-size:24px">${esc(p.n)}</h2><div class="small muted">${ageOf(p)}세 · ${p.tr} (${TRAITS[p.tr]})<br>${p.fac==='free'?'재야':esc(facName(p.fac))} · ${p.army?'원정 중':esc(city(p.city).n)}</div></div></div>
       ${statBars(p)}${(p.gear||[]).length ? `<div class="gears">${p.gear.map(n => { const gid = GEAR_ID[n], ic = GICON.includes(gid) ? gid : GEAR[gid] && GEAR[gid][1]==='book' ? 'book' : null; return `<span class="gear">${ic ? `<img loading="lazy" decoding="async" src="art/g_${ic}.webp" alt="">` : ''}<b>${esc(n)}</b></span>`; }).join('')}</div>` : ''}<p class="tiny muted" style="margin:2px 0 0">${({do:'대도',mo:'창·모',geuk:'극',geom:'검',gung:'활',pyeon:'편·추'})[p.wtype||'geom']}${(p.tr2||[]).length?' · 특성 '+p.tr2.map(t=>({ilgi:'일기당천',gima:'기마술',sujeon:'수전',gung:'궁술',hwagye:'화계',gangye:'간계',ganpa:'간파',susung:'수성',gongsung:'공성',sinsok:'신속',chise:'치세',dukmang:'덕망',yongmaeng:'용맹',chungjeol:'충절',yamang:'야망',jangsu:'강건'})[t]).join('·'):''}</p>
@@ -7921,10 +7980,11 @@ function openSheet(kind, arg){
       if (canTalk) body += `<div class="choices">${modes.map(([k,t,s])=>`<button class="choice" data-mode="${k}" ${G.ap>0&&(k!=='gift'||G.gold>=60)?'':'disabled'}><span>${t}</span>${s?`<span class="p">${ST[s]} ${Math.round(check(s,55)*100)}%</span>`:''}</button>`).join('')}</div>`;
       else body += '<p class="small muted">같은 세력이거나 같은 성에 있어야 교류할 수 있다.</p>';
       if (G.role==='ruler' && sameFac && !p.army && G.phase==='act'){
-        const dests = citiesOf(G.pfac).filter(c => c.id!==p.city);
+        const dests = p.cell ? [] : citiesOf(G.pfac).filter(c => c.id!==p.city);
         body += `<span class="lbl">다른 성으로 보내기 · 행동력 없이</span><div class="chips">${dests.map(c=>`<button class="ghost" data-send="${c.id}">${c.n}${peopleIn(c.id,G.pfac).length?'':' !'}</button>`).join('')}</div>`;
-        if (city(p.city).owner===G.pfac && city(p.city).gov!==p.id) body += `<button class="btn2" id="appointP">${city(p.city).n} 태수로 임명</button>`;
+        if (!p.cell && city(p.city).owner===G.pfac && city(p.city).gov!==p.id) body += `<button class="btn2" id="appointP">${city(p.city).n} 태수로 임명</button>`;
         if (!p.fam) body += `<button class="btn2" id="reward" ${G.ap>0&&G.gold>=120?'':'disabled'}>포상 (금 120 · 충성 +15)</button>`;
+        if (!p.fam) body += `<div class="row" style="gap:6px">${p.cell ? `<button class="btn2 grow" id="releaseP">옥에서 풀어 준다</button>` : `<button class="btn2 grow" id="jailP" ${G.ap>0?'':'disabled'}>옥에 가둔다</button>`}<button class="btn2 grow" id="execP" style="color:var(--red,#b3352a)" ${G.ap>0?'':'disabled'}>참수</button></div>`;
         { const r = rkOf(p), w = promoWait(p); if (r < NRANKS.length - 1) body += `<button class="btn2" id="promoteP" ${G.ap>0&&G.gold>=80+r*40&&!w?'':'disabled'}>${w ? `승진은 ${w}개월 뒤 (1년에 한 번)` : `승진: ${NRANKS[r]} → ${NRANKS[r+1]} (금 ${80+r*40} · 충성 +10 · 용병 +1)`}</button>`; }
       }
       if (G.role==='ruler' && p.fac==='free' && !p.army && city(p.city).owner===G.pfac && G.phase==='act') body += `<button class="btn fac" id="recruit" ${G.ap>0?'':'disabled'}>등용한다 (${Math.round(clamp(.45+(me().c-60)/80+bond(p.id)/200,.05,.95)*100)}%)</button>`;
@@ -7935,7 +7995,7 @@ function openSheet(kind, arg){
     const bg = sheet(body);
     bg.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { bg.remove(); doAct('social', arg, b.dataset.mode); });
     const on = (id, fn) => { const el = bg.querySelector(id); if (el) el.onclick = () => { bg.remove(); fn(); }; };
-    on('#reward', () => doAct('reward', arg)); on('#promoteP', () => doAct('promote', arg)); on('#recruit', () => doAct('recruit', arg)); on('#marryP', () => doAct('marry', arg)); on('#appointP', () => doAct('appoint', arg));
+    on('#reward', () => doAct('reward', arg)); on('#promoteP', () => doAct('promote', arg)); on('#jailP', () => doAct('jail', arg)); on('#releaseP', () => doAct('release', arg)); on('#execP', () => doAct('execute', arg)); on('#recruit', () => doAct('recruit', arg)); on('#marryP', () => doAct('marry', arg)); on('#appointP', () => doAct('appoint', arg));
     bg.querySelectorAll('[data-send]').forEach(b => b.onclick = () => { bg.remove(); doAct('assign', arg, b.dataset.send); });
   } else if (kind==='army'){
     const a = armyById(arg); if (!a) return;
@@ -7957,6 +8017,7 @@ function bind(){
   on('#memBtn', () => openMemory());
   on('[data-city]', b => { G.sel = b.dataset.city; G.panel = true; render(); });
   on('[data-fam]', b => famTalk(b.dataset.fam, b.dataset.arg));
+  on('[data-mycity]', () => { G.sel = G.city; G.panel = true; render(); });
   on('[data-wrc]', b => { G.view = 'map'; G.mapMode = 'world'; G.sel = b.dataset.wrc; G.panel = true; render(); });
   $app.querySelectorAll('[data-city]').forEach(el => el.onkeydown = e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); G.sel = el.dataset.city; G.panel = true; render(); } });
   on('[data-army]', (b, e) => { e.stopPropagation(); openSheet('army', b.dataset.army); });
@@ -8159,7 +8220,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
    ===================================================================== */
 if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, famTalk, makeKid, addSpouse, spouseLook, doAct, openSheet, frontStep, court, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
-  globalThis.T = { frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { rebel, frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
