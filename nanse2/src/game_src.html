@@ -72,6 +72,7 @@ p{margin:0}
 .top .date b{font-family:var(--display);font-weight:400;font-size:18px;line-height:1.15;font-variant-numeric:tabular-nums}
 .icon{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--paper);font-size:18px;flex:none;display:grid;place-items:center}
 .stats{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
+.etal{display:block;font-size:11px;font-weight:800}.etal.ok{color:var(--good,#2e7d4f)}.etal.bad{color:#b3352a}
 .gstat{position:relative}.gstat .adp{position:absolute;top:-4px;right:-3px;width:17px;height:17px;border-radius:50%;background:#c0392b;color:#fff;font-style:normal;font-size:12px;line-height:17px;text-align:center;font-weight:900;box-shadow:0 0 0 2px #f7f0e1;animation:adp 1.8s ease-in-out infinite}@keyframes adp{50%{transform:scale(1.15)}}
 .adoffer{display:flex;align-items:center;gap:10px;width:100%;margin-top:5px;padding:7px 10px;border-radius:10px;border:1.5px solid #c9a24a;background:linear-gradient(90deg,#fff3cf,#f7e6b8);text-align:left;min-height:44px;color:var(--ink)}
 .adoffer .adtv{flex:none;width:28px;height:28px;border-radius:50%;background:#b3352a;color:#fff;display:grid;place-items:center;font-size:12px}
@@ -1899,6 +1900,7 @@ function monthStep(ff){
     aiPlot(f, ff);
   }
   aiDiplomacy(ff);
+  allyAutoAid(ff);
   frontStep(ff);
   tribeStep(ff);
   vassalStep(ff);
@@ -2018,6 +2020,28 @@ function lastStand(fid){
   return 1 + heroFac(fid) * (n<=1 ? .55 : n===2 ? .35 : .15);
 }
 // 국경 위협: 이웃 적성의 병력과 이쪽으로 오는 적 군단
+/* ---------- 원군: 동맹이 보내는 구원병, 도착 시점 비교 ---------- */
+function mostThreatened(){
+  const cs = citiesOf(G.pfac).map(c => [c, threatOf(c, G.pfac) - c.troops - G.armies.filter(a => a.to===c.id && a.state!=='return' && (a.fac===G.pfac || allied(G.pfac, a.fac))).reduce((t, a) => t + a.troops, 0)]);
+  const hit = cs.filter(([c]) => besieged(c.id) || G.armies.some(a => a.to===c.id && a.fac!==G.pfac && !allied(G.pfac, a.fac) && a.state!=='return'));
+  const pool = (hit.length ? hit : cs.filter(x => x[1] > 0)).sort((a, b) => b[1] - a[1]);
+  return pool.length ? pool[0][0] : null;
+}
+function allyAidSrc(fid, tg){
+  return citiesOf(fid).filter(x => !besieged(x.id) && x.troops >= 3000).sort((a, b) => travel(a.id, tg.id) - travel(b.id, tg.id) || b.troops - a.troops)[0] || null;
+}
+function sendAllyAid(fid, src, tg, k){
+  const n = Math.round(Math.min(src.troops*k, Math.max(1500, src.troops - garrisonNeed(src, fid)*.8))/100)*100, g = bestGen(src.id, fid);
+  src.troops -= n; return createArmy({ fac:fid, gens:g ? [g.id] : [], troops:n, from:src.id, to:tg.id, kind:'reinforce', food:3 });
+}
+/* 그 성으로 오는 적·아군(원군) 도착 시점 */
+function etaLine(c){
+  const foe = G.armies.filter(a => a.to===c.id && a.state==='march' && a.fac!==G.pfac && !allied(G.pfac, a.fac));
+  const ours = G.armies.filter(a => a.to===c.id && a.state==='march' && a.fac!==undefined && (a.fac===G.pfac || allied(G.pfac, a.fac)) && a.kind==='reinforce');
+  if (!ours.length) return foe.length ? '원군 없음' : '';
+  const fe = foe.length ? Math.min(...foe.map(a => a.eta)) : 99, oe = Math.min(...ours.map(a => a.eta)), n = ours.reduce((t, a) => t + a.troops, 0);
+  return `원군 ${fmt(n)} ${oe}개월 뒤${foe.length ? (oe <= fe ? ' · 제때 닿는다' : ' · 늦는다') : ''}`;
+}
 function threatOf(c, fid){
   let t = 0;
   for (const a of c.adj){ const n = city(a); if (n.owner && n.owner!==fid && !allied(fid, n.owner)) t += n.troops*.55; }
@@ -2157,6 +2181,15 @@ const DIFF = { easy:['쉬움','적이 느긋하고 계략이 잘 통한다', { r
   nanse:['난세','모두가 그대를 노린다. 계략도 잘 안 통한다', { rate:2.2, thr:.7, grow:1.5, inc:.7, plot:-.10, ai:.8, adMul:.7, adCap:4, pg:.45 }],
   tianming:['천명','천하의 영웅들이 명장처럼 싸운다. 계략·동맹·배신이 쉴 새 없다', { rate:2.6, thr:.62, grow:1.7, inc:.6, plot:-.15, ai:1, adMul:.6, adCap:4, pg:.35 }] };
 const dif = () => (DIFF[(G && G.diff) || 'normal'] || DIFF.normal)[2];
+/* 동맹은 내 성이 포위되면 가끔 스스로 원군을 보낸다 */
+function allyAutoAid(ff){
+  if (ff || G.role!=='ruler' || !G.pfac) return;
+  for (const f of aliveFacs()) if (f.id!==G.pfac && allied(G.pfac, f.id)) for (const c of citiesOf(G.pfac)){
+    if (!besieged(c.id) || Math.random() > .12 || G.armies.some(a => a.fac===f.id && a.to===c.id)) continue;
+    const src = allyAidSrc(f.id, c); if (!src || travel(src.id, c.id) > 3) continue;
+    const a = sendAllyAid(f.id, src, c, .22); news(`동맹 ${facName(f.id)}이(가) ${c.n}에 원군 ${fmt(a.troops)}을 보냈다! (${a.eta}개월 뒤)`, true, true); break;
+  }
+}
 function aiWar(f, ff){
   const cs = citiesOf(f.id);
   const B = brain(f.id);
@@ -4883,6 +4916,17 @@ const ACT = {
     if (ok){ p.fac = G.pfac; if (!free) p.city = G.city; p.loy = 55; addBond(id, 10); toast(`${J(p.n,'이')} 그대의 뜻에 함께하기로 했다!`, [[`${p.n} 합류`,true]]); news(`${J(p.n,'이')} ${facName(G.pfac)}에 합류했다.`, true, true); }
     else { addBond(id, -3); toast(`${J(p.n,'은')} 정중히 거절했다.`, [], true); }
   },
+  askAid(fid){
+    if (G.role!=='ruler' || !allied(G.pfac, fid) || !fac(fid).alive) return;
+    const fl = G.flags, key = 'aid_' + fid; if ((fl[key]||0) > mi()) return toast('얼마 전에 원군을 청했다. 조금 더 기다리자.', [], true);
+    const tg = mostThreatened(); if (!tg) return toast('지금은 원군이 필요할 만큼 위태로운 성이 없다.', [], true);
+    const src = allyAidSrc(fid, tg); if (!src) return toast(`${facName(fid)}에는 내줄 병력이 없다.`, [], true);
+    if (!spend(150)) return;
+    fl[key] = mi() + 3;
+    const ch = clamp(.55 + (fac(G.pfac).ally[fid] > 12 ? .1 : 0) + (me().c - 60)/200 - (threatOf(src, fid) > src.troops*.7 ? .3 : 0), .15, .9);
+    if (Math.random() < ch){ const a = sendAllyAid(fid, src, tg, .3); toast(`${J(facName(fid),'이')} 원군 ${fmt(a.troops)}을 보냈다. ${tg.n}에 ${a.eta}개월 뒤 도착.`, [['원군', true], ['금 -150', false]]); news(`동맹 ${facName(fid)}의 원군이 ${J(tg.n,'으로')} 향한다.`, true, true); }
+    else toast(`${J(facName(fid),'이')} 제 코가 석 자라며 원군을 미뤘다.`, [['금 -150', false]], true);
+  },
   diplo(fid){
     if (G.role!=='ruler' || !fac(fid).alive || allied(G.pfac, fid) || !spend(200)) return;
     const ch = clamp(.2 + (citiesOf(G.pfac).length - citiesOf(fid).length)*.04 + (me().c-60)/150, .05, .8);
@@ -6099,7 +6143,7 @@ function viewTop(){
   </header>`;
 }
 function viewNav(){
-  const threats = G.armies.filter(a => a.fac!==G.pfac && G.pfac && city(a.to).owner===G.pfac && a.state!=='return').length;
+  const threats = G.armies.filter(a => a.fac!==G.pfac && G.pfac && !allied(G.pfac, a.fac) && city(a.to).owner===G.pfac && a.state!=='return').length;
   const mine = G.armies.filter(a => a.fac===G.pfac).length;
   const b = (v, ic, t, extra='') => `<button data-view="${v}" ${G.view===v?'aria-current="page"':''}><i>${ic}</i>${t}${extra}</button>`;
   return `<nav class="nav">
@@ -6237,8 +6281,17 @@ function mapSvg(){
 }
 function viewMap(){
   const notes = [];
-  const threats = G.pfac ? G.armies.filter(a => a.fac!==G.pfac && city(a.to).owner===G.pfac && a.state!=='return') : [];
-  for (const a of threats.slice(0,2)) notes.push(`<button class="note danger" data-army="${a.id}"><span class="chip red">${a.state==='siege'?'공성':'접근'}</span><span class="grow"><b>${esc(facName(a.fac))}</b> ${visible(a.from)||a.state==='siege'?fmt(a.troops):'?'} → ${city(a.to).n}${a.state==='siege'?` · ${a.siege}개월째`:` · ${a.eta}개월 뒤 도착`}</span></button>`);
+  const threats = G.pfac ? G.armies.filter(a => a.fac!==G.pfac && !allied(G.pfac, a.fac) && city(a.to).owner===G.pfac && a.state!=='return') : [];
+  for (const a of threats.slice(0,2)) notes.push(`<button class="note danger" data-army="${a.id}"><span class="chip red">${a.state==='siege'?'공성':'접근'}</span><span class="grow"><b>${esc(facName(a.fac))}</b> ${visible(a.from)||a.state==='siege'?fmt(a.troops):'?'} → ${city(a.to).n}${a.state==='siege'?` · ${a.siege}개월째`:` · ${a.eta}개월 뒤 도착`}${(() => { const e = etaLine(city(a.to)); return e ? `<small class="etal ${/늦는다|없음/.test(e) ? 'bad' : 'ok'}">${e}</small>` : ''; })()}</span></button>`);
+  if (threats.length && G.role==='ruler'){
+    const al = aliveFacs().filter(f => f.id!==G.pfac && allied(G.pfac, f.id) && citiesOf(f.id).length);
+    if (al.length) notes.push(`<button class="note" data-sheet="aidReq"><span class="chip gold">원군</span><span class="grow"><b>동맹에 원군을 청한다</b>&nbsp;<span class="small muted">${al.map(f => esc(facName(f.id))).join('·')} · 금 150</span></span></button>`);
+    else notes.push(`<div class="note"><span class="chip">원군</span><span class="grow small muted">동맹이 없어 원군을 청할 곳이 없다. 인물 › 천하에서 동맹을 맺어 두자.</span></div>`);
+  }
+  // 내가 치는 성으로 오는 적 원군
+  const mineT = new Set(G.armies.filter(a => a.fac===G.pfac && a.state!=='return').map(a => a.to));
+  for (const a of G.armies.filter(a => a.kind==='reinforce' && a.state==='march' && mineT.has(a.to) && hostile(G.pfac, a.fac)).slice(0,2))
+    notes.push(`<button class="note danger" data-army="${a.id}"><span class="chip red">적 원군</span><span class="grow"><b>${esc(facName(a.fac))}</b> ${armyVisible(a) ? fmt(a.troops) : '?'} → ${city(a.to).n} · ${a.eta}개월 뒤 도착</span></button>`);
   if (G.role==='officer' && G.mission){
     const m = G.mission, pr = missionProg();
     const prog = m.t==='capture'||m.t==='defend' ? (pr?'완료':'') : `${fmt(Math.max(0,pr))}/${fmt(m.goal)}`;
@@ -6427,6 +6480,7 @@ function viewPeople(){
   } else if (peopleTab==='world'){
     const fs = aliveFacs().filter(f => citiesOf(f.id).length || armiesOf(f.id).length).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length);
     body = `<div class="card">${fs.map(f => { const r = person(f.ruler); return `<div class="prow">${r?pp(r,38):''}<span class="mini" style="color:var(--ink)"><b>${esc(facName(f.id))}</b> · ${citiesOf(f.id).length}성 · 병력 ${fmt(totalTroops(f.id))}${allied(G.pfac,f.id)?` · <b style="color:var(--good)">동맹 ${fac(G.pfac).ally[f.id]}개월</b>`:''}</span>
+      ${G.role==='ruler' && allied(G.pfac,f.id) ? `<button class="ghost" data-act="askAid" data-arg="${f.id}" ${G.ap>0&&G.gold>=150?'':'disabled'}>원군 요청</button>` : ''}
       ${G.role==='ruler' && f.id!==G.pfac && !allied(G.pfac,f.id) ? `<button class="ghost" data-act="diplo" data-arg="${f.id}" ${G.ap>0&&G.gold>=200?'':'disabled'}>동맹 제안</button>` : ''}</div>`; }).join('')}</div>`;
   } else {
     const mine = (G.pfac ? npcs().filter(p => p.fac===G.pfac) : peopleIn(G.city)).sort((a,b)=>bond(b.id)-bond(a.id));
@@ -7363,6 +7417,13 @@ function openSheet(kind, arg){
       ${gens.map(p=>`<div class="prow">${pp(p,34)}<span class="nm">${esc(p.n)}</span><span class="mini">지${SV(p.i)} 용${SV(p.l)}</span>${c.gov===p.id?'<span class="badge">현재 태수</span>':`<button class="ghost" data-gov="${p.id}">임명</button>`}</div>`).join('')}
       <button class="btn2" data-close>닫기</button>`);
     bg.querySelectorAll('[data-gov]').forEach(b => b.onclick = () => { bg.remove(); doAct('appoint', b.dataset.gov); });
+  } else if (kind==='aidReq'){
+    const tg = mostThreatened(), al = aliveFacs().filter(f => f.id!==G.pfac && allied(G.pfac, f.id) && citiesOf(f.id).length);
+    const bg = sheet(`<h3>동맹에 원군 청하기</h3><p class="small muted">${tg ? `가장 위태로운 성: <b>${tg.n}</b> (병력 ${fmt(tg.troops)}${etaLine(tg) ? ' · ' + etaLine(tg) : ''})` : '지금 위태로운 성이 없다.'}<br>행동력 1 · 금 150. 동맹이 제 앞가림에 바쁘면 거절할 수 있다. 같은 동맹에는 석 달에 한 번.</p>
+      ${al.map(f => { const src = tg && allyAidSrc(f.id, tg), cd = (G.flags['aid_' + f.id]||0) > mi();
+        return `<div class="prow"><span class="nm">${esc(facName(f.id))}</span><span class="mini">${src ? `${src.n}에서 약 ${fmt(Math.round(src.troops*.3/100)*100)} · ${travel(src.id, tg.id)}개월` : '보낼 병력 없음'}${cd ? ' · 대기 중' : ''}</span><button class="ghost" data-af="${f.id}" ${src && !cd && G.ap>0 && G.gold>=150 ? '' : 'disabled'}>요청</button></div>`; }).join('')}
+      <button class="btn2" data-close>닫기</button>`);
+    bg.querySelectorAll('[data-af]').forEach(b => b.onclick = () => { bg.remove(); doAct('askAid', b.dataset.af); });
   } else if (kind==='transport'){
     const c = city(arg), srcs = c.adj.map(city).filter(o => o.owner===G.pfac && o.troops>=1000);
     const bg = sheet(`<h3>${c.n}(으)로 병력 옮기기</h3><p class="small muted">인접한 우리 성에서 병력을 보낸다. 바로 도착한다. 행동력 1.</p>
@@ -7636,7 +7697,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
 /* =====================================================================
    BOOT
    ===================================================================== */
-if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
+if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
   globalThis.T = { tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
