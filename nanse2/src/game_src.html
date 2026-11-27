@@ -1587,6 +1587,9 @@ const growth = a => clamp((a-3)/14, .15, 1);
 const kidStat = (k, s) => Math.round(k.st[s]*growth(G.year-k.born));
 const mi = () => G.year*12 + G.month;
 const dateStr = () => `${G.year}년 ${G.month}월`;
+/* 성벽 보수: 한 번에 최고치의 1/3(포위 중이면 절반 효과), 금 = 올리는 양 × 5 */
+const wallGain = c => Math.max(1, Math.min(maxWall(c) - c.wall, Math.round(maxWall(c)/3*(besieged(c.id) ? .5 : 1))));
+const wallCost = c => Math.max(30, wallGain(c)*5);
 const maxWall = c => 30 + c.dev*5 + ({ pass:30, mountain:15, river:5 }[TERRAIN[c.id]] || 0);
 const cityCap = c => c.dev*2200 + 3000;
 const besieged = cid => G.armies.some(a => a.state==='siege' && a.to===cid);
@@ -4749,6 +4752,13 @@ const ACT = {
   study(stat){ if (!spend(0)) return; if (me()[stat]==null) me()[stat] = me().i; const v0 = me()[stat], up = Math.random() < (clamp(.75 - v0/160, .12, .6)*(dif().pg ?? 1) + (G.reg && FOCUS[G.reg.focus] && FOCUS[G.reg.focus][2]===stat ? .15 : 0)), gain = up ? (v0<60 ? ri(1,3) : v0<80 ? ri(1,2) : 1) : 0; if (up) me()[stat] = clamp(v0+gain, 1, 100); G.hp = clamp(G.hp-1);
     toast(up ? `${ST[stat]} 수련이 결실을 맺었다. (${v0} → ${me()[stat]})` : `${ST[stat]} 수련에 매진했다. 아직 큰 변화는 없다.`, up ? [[`${ST[stat]} +${gain}`,true]] : []); },
   rest(){ if (!spend(0)) return; G.hp = clamp(G.hp+8); toast('푹 쉬며 몸을 추슬렀다.', [['체력 +8',true]]); },
+  repair(cid){
+    const c = city(cid||G.city);
+    if (c.owner!==G.pfac || c.wall >= maxWall(c) || (G.role!=='ruler' && G.gov!==c.id)) return;
+    const g = wallGain(c), cost = wallCost(c); if (!spend(cost)) return;
+    c.wall = Math.min(maxWall(c), c.wall + g); if (G.role!=='ruler') G.merit += 4;
+    toast(besieged(c.id) ? `포위 속에서 무너진 성벽을 급히 메웠다.` : `${c.n}의 성벽을 보수했다.`, [[`성벽 ${c.wall}/${maxWall(c)}`, true], [`금 -${cost}`, false]]);
+  },
   develop(cid){
     const c = city(cid||G.city);
     if (G.role==='ruler'){ if (c.owner!==G.pfac || c.dev>=10) return; const gain = devGain(c), cost = devCost(c); if (!spend(cost)) return; c.dev++; trustAdd(1); toast(`${c.n}의 논밭과 시장을 넓혔다.`, [[`개발 ${c.dev}`,true],[`세금 월 +${gain}`,true],[`금 -${cost}`,false]]); return; }
@@ -6390,6 +6400,7 @@ function viewPanel(){
       if (own) b.push(ambushBtn());
       b.push(actBtn('알현','주공을 뵙다','data-sheet="audience"',ap));
       if (G.gov===cid) b.push(actBtn('내정','정무 판정','data-act="develop"',ap && c.dev<10));
+      if (G.gov===cid) b.push(actBtn('성벽 보수', c.wall < maxWall(c) ? `금 ${wallCost(c)} · 성벽 +${wallGain(c)}` : `성벽 최고 ${maxWall(c)}`, `data-act="repair" data-arg="${cid}"`, ap && c.wall < maxWall(c) && G.gold >= wallCost(c)));
       if (G.gov===cid && G.rank>=3) b.push(actBtn('독립','군주가 된다','data-sheet="indep"',ap,'war'));
       if (here && !G.inArmy) b.push(actBtn('하야','주군을 떠난다','data-sheet="resign"',ap));
     } else if (G.role==='ruler'){
@@ -6400,6 +6411,7 @@ function viewPanel(){
       b.push(actBtn('훈련','금 60','data-act="train"',ap && G.gold>=60));
       b.push(actBtn('태수 임명','행동력 없이',`data-sheet="appoint" data-arg="${cid}"`,peopleIn(cid,G.pfac).length>0));
       b.push(actBtn('내정',c.dev<10 ? `금 ${devCost(c)} · 세금 월 +${devGain(c)}` : '개발 최고',`data-act="develop" data-arg="${cid}"`,ap && G.gold>=devCost(c) && c.dev<10));
+      b.push(actBtn('성벽 보수', c.wall < maxWall(c) ? `금 ${wallCost(c)} · 성벽 +${wallGain(c)}` : `성벽 최고 ${maxWall(c)}`, `data-act="repair" data-arg="${cid}"`, ap && c.wall < maxWall(c) && G.gold >= wallCost(c)));
       if (here && !G.inArmy) b.push(actBtn('하야','나라를 넘긴다','data-sheet="abdicate"',ap));
     } else {
       if (c.owner) b.push(actBtn('사관',`${person(fac(c.owner).ruler).n}에게`,'data-act="seek"',ap));
@@ -6419,6 +6431,7 @@ function viewPanel(){
       b.push(actBtn('병력 받기','인접 성에서',`data-sheet="transport" data-arg="${cid}"`,ap && c.adj.some(a=>city(a).owner===G.pfac && city(a).troops>=1000)));
       b.push(actBtn('태수 임명','행동력 없이',`data-sheet="appoint" data-arg="${cid}"`,peopleIn(cid,G.pfac).length>0));
       b.push(actBtn('내정',c.dev<10 ? `금 ${devCost(c)} · 세금 월 +${devGain(c)}` : '개발 최고',`data-act="develop" data-arg="${cid}"`,ap && G.gold>=devCost(c) && c.dev<10));
+      b.push(actBtn('성벽 보수', c.wall < maxWall(c) ? `금 ${wallCost(c)} · 성벽 +${wallGain(c)}` : `성벽 최고 ${maxWall(c)}`, `data-act="repair" data-arg="${cid}"`, ap && c.wall < maxWall(c) && G.gold >= wallCost(c)));
     }
     if (G.role==='officer' && adj && c.owner && c.owner!==G.pfac) b.push(actBtn('망명',`${facName(c.owner)}로`,`data-sheet="defect" data-arg="${c.owner}"`,ap));
   }
