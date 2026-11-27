@@ -6,7 +6,7 @@ s=s.replace('@@BUILD@@',(datetime.datetime.utcnow()+datetime.timedelta(hours=9))
 EB=os.environ.get('ESBUILD','esbuild')
 def run(code,args):
     r=subprocess.run([EB,*args],input=code.encode(),capture_output=True)
-    if r.returncode: sys.exit(r.stderr.decode())
+    if r.returncode: sys.exit(r.stderr.decode("utf8","replace"))
     return r.stdout.decode().rstrip('\n')
 def js(body):
     b=body.strip()
