@@ -30,7 +30,7 @@ function runTrekCv(){
   const rocks = Array.from({ length: 6 }, () => ({ x: 200 + R()*400, d: R()*1.2, r: 5 + R()*7 }));
   const frame = now => {
     if (tkcv!==st || !document.body.contains(cv)) return;
-    const t = (now - st.t0)/1000, road = T.road || 'main', ev = T.road && !T.done ? T.nodes[T.i] : null, halt = !T.road, sp = halt ? 0 : 46, sc = t*sp;
+    const t = (now - st.t0)/1000, road = T.road || 'main', ev = T.road && !T.done ? T.nodes[T.i] : null, halt0 = !T.road, sp = halt0 ? 0 : 46, scRaw = t*sp, EVS = 260, sc = ev ? Math.min(scRaw, EVS) : scRaw, halt = halt0 || (ev && scRaw >= EVS), evDx = ev ? (EVS - sc)*.6 : 0;
     if (!paTrek(ctx, road, sc, W, H)){ const sky = ctx.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, road==='water' ? '#cfdfe6' : '#eadfc4'); sky.addColorStop(1, '#f4ecd8'); ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
     // 먼 산
     for (const h of hills){ const x = ((h.x - sc*.15) % 900 + 900) % 900 - 130, hh = h.h*(road==='hill' ? 1.6 : road==='water' ? .6 : 1); ctx.fillStyle = 'rgba(90,80,64,.22)'; ctx.beginPath(); ctx.moveTo(x, 120); ctx.lineTo(x + h.w/2, 120 - hh); ctx.lineTo(x + h.w, 120); ctx.fill(); }
@@ -42,8 +42,10 @@ function runTrekCv(){
     if (T.done && paUiDraw(ctx, 'map_capital', W - 76, 124, 110)){} else if (T.done){ const x = W - 110; ctx.fillStyle = '#b9a988'; ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 1.5; ctx.fillRect(x, 92, 70, 30); ctx.strokeRect(x, 92, 70, 30); for (let i = 0; i < 5; i++) ctx.fillRect(x + i*15, 86, 9, 7); drawBanner(ctx, x + 35, 90, 30, '#a3322a', t*5, 1, 1, .8); }
     // 고비의 그림
     const hazard = ev && ['ambushR','bandit','pirates','scout','toll','deserter','rival','spycatch'].includes(ev), camp = ev && ['supply','refugee','inn','hermit','fisher','shortcut','merchant','veteran','harvest','defect','omen'].includes(ev);
+    ctx.save(); ctx.translate(evDx, 0);
     if (hazard && road==='water' && paShip(ctx, W - 90, 176, '#5a5048', t*.25, true)){} else if (hazard) for (let i = 0; i < 5; i++){ const x = W - 150 + i*24, y = (road==='water' ? 150 : 160) + (i%2)*10; if (road==='water'){ ctx.fillStyle = '#4a3a28'; ctx.beginPath(); ctx.moveTo(x - 14, y); ctx.lineTo(x + 14, y); ctx.lineTo(x + 9, y + 6); ctx.lineTo(x - 9, y + 6); ctx.fill(); } blitFig(ctx, figSprite(i%2 ? 'bow' : 'spear', '#5a5048', Math.sin(t*6 + i) > 0 ? 'charge' : 'idle'), x, y, .62, true, 12, 37); }
     if (camp && paUiDraw(ctx, 'map_camp', W - 120, 168, 96)){} else if (camp){ const x = W - 130; ctx.fillStyle = '#8a6a44'; ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(x - 22, 150); ctx.lineTo(x, 128); ctx.lineTo(x + 22, 150); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e6d8b4'; ctx.fillRect(x - 16, 150, 32, 16); ctx.strokeRect(x - 16, 150, 32, 16); puff(ctx, x + 8, 120 - (t*14 % 26), 6 + (t*4 % 6), .3, '120,110,100'); blitFig(ctx, figSprite('spear', '#8a7a5a', 'idle'), x + 36, 170, .56, true, 12, 37); }
+    ctx.restore();
     if (ev==='ambushR' || ev==='cliff') for (const r of rocks){ const k = ((t + r.d) % 1.4)/1.4, y = 40 + k*130; ctx.fillStyle = '#6a5c48'; ctx.beginPath(); ctx.arc(r.x + k*30, y, r.r, 0, TWO_PI); ctx.fill(); if (k > .9) puff(ctx, r.x + 30, 172, 14, .35, '150,130,100'); }
     // 행군 대열
     const baseY = road==='water' ? 158 : 168, bob = halt ? 0 : Math.sin(t*9)*1.5;
