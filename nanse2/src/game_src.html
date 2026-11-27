@@ -91,6 +91,7 @@ p{margin:0}
 .mybar{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0;padding:8px 12px;border-radius:12px;border:1.5px solid #b3352a55;background:#fff8ec;box-shadow:0 2px 8px #26201c14;text-align:left;min-height:46px;pointer-events:auto;color:var(--ink)}
 .mybar .mydot{color:#b3352a;font-size:14px}.mybar b{font-size:14px}.mybar small{font-size:12px;color:var(--muted)}.mybar .mygo{flex:none;font-size:12px;font-weight:800;color:#fff;background:#b3352a;border-radius:999px;padding:6px 10px}
 .wr-hr{display:flex;align-items:center;gap:8px;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:6px 0;text-align:left;min-height:46px}.wr-hr b{font-size:13px}.wr-hr small{font-size:11px;color:var(--muted)}
+.gscore summary{cursor:pointer;color:var(--muted);margin:4px 0}.gs-grid{display:grid;grid-template-columns:1fr auto 1fr auto;gap:3px 10px;font-size:12px;margin:4px 0}.gs-grid b{text-align:right}
 .gstat{position:relative}.gstat .adp{position:absolute;top:-4px;right:-3px;width:17px;height:17px;border-radius:50%;background:#c0392b;color:#fff;font-style:normal;font-size:12px;line-height:17px;text-align:center;font-weight:900;box-shadow:0 0 0 2px #f7f0e1;animation:adp 1.8s ease-in-out infinite}@keyframes adp{50%{transform:scale(1.15)}}
 .adoffer{display:flex;align-items:center;gap:10px;width:100%;margin-top:5px;padding:7px 10px;border-radius:10px;border:1.5px solid #c9a24a;background:linear-gradient(90deg,#fff3cf,#f7e6b8);text-align:left;min-height:44px;color:var(--ink)}
 .adoffer .adtv{flex:none;width:28px;height:28px;border-radius:50%;background:#b3352a;color:#fff;display:grid;place-items:center;font-size:12px}
@@ -1557,6 +1558,13 @@ function kidLook(k){
   const P = lookOf(me()), r = seeded(hashStr(k.id + k.n));
   return { skin: P.skin==='c' ? 'b' : (r()<.7 ? P.skin : 'abde'[Math.floor(r()*4)]), hat: r()<.55 ? (P.hat==='crown' ? 'cap' : P.hat) : (r()<.5 ? 'helmet' : 'cap'), hc: r()<.6 ? P.hc : '#666666',
     beard: ['none','stub','mustache','goatee','full'][Math.floor(r()*5)], bc:'', eye: r()<.6 ? (P.eye==='closed' ? 'sharp' : P.eye) : ['sharp','calm','round'][Math.floor(r()*3)], extra:'' };
+}
+/* 아내 초상: 그림 초상(여성 얼굴 4종) 중 다른 아내와 겹치지 않게. 예전 붓 그림 얼굴도 여기서 바꾼다 */
+function spLook(sp){
+  if (sp.look && sp.look.img) return sp.look;
+  const used = new Set(spList().filter(x => x!==sp && x.look && x.look.img).map(x => x.look.img)), all = ['face13','face14','face15','face16'];
+  const free = all.filter(f => !used.has(f)), img = (free.length ? free : all)[hashStr(sp.id + sp.n) % (free.length || all.length)];
+  sp.look = { img, skin:'a', hat:'none', hc:'', beard:'none', bc:'', eye:'calm', extra:'' }; return sp.look;
 }
 function spouseLook(){ return { skin: Math.random()<.5 ? 'e' : 'a', hat:'none', hc:'', beard:'none', bc:'', eye:'calm', extra:'' }; }
 const PT_CACHE = new Map();
@@ -5511,13 +5519,12 @@ function makeKid(mom){
 }
 
 /* ---------------- 계승 ---------------- */
-function genScore(){
-  const p = me(), yrs = G.year - G.startYear;
-  let s = G.merit + G.rank*60 + yrs*3 + G.kids.length*20;
-  if (G.role==='ruler') s += citiesOf(G.pfac).length*40;
-  if (p.d && G.year > p.d && G.mode==='real') s += 100;
-  return Math.round(s);
+function genParts(){
+  const p = me(), yrs = G.year - G.startYear, love = spList().reduce((a, x) => a + (x.love||0), 0) + G.kids.reduce((a, k) => a + (k.love||0), 0);
+  return [['공적', G.merit], ['계급', G.rank*60], ['살아온 해', yrs*3], ['자녀', G.kids.length*20], ['출사한 자녀', G.kids.filter(k => k.pid && !k.dead).length*30],
+    ['가족의 정', Math.min(60, love*2)], ['다스리는 성', G.role==='ruler' && G.pfac ? citiesOf(G.pfac).length*40 : 0], ['역사보다 장수', p.d && G.year > p.d && G.mode==='real' ? 100 : 0]];
 }
+function genScore(){ return Math.round(genParts().reduce((a, x) => a + x[1], 0)); }
 function heirCands(){
   const adults = G.kids.filter(k => G.year-k.born>=15 && !k.dead && !k.out);
   const list = [];
@@ -6354,24 +6361,25 @@ function councilRuler(){
 const CN = {
   execY(id){ ACT.executeGo(id); return null; },
   execN(id){ const p = person(id); if (p){ p.loy = clamp(p.loy + 6); for (const q of npcs()) if (q.fac===G.pfac && active(q)) q.loy = clamp(q.loy + 2); } return `${J(p.n,'을')} 살려 두었다. 장수들이 주공의 너그러움에 감복했다. (모든 장수 충성 +2)`; },
-  famRep(who, ef){
-    const f = famSpk(who); if (!f) return null; const chips = [];
-    if (who.startsWith('kid:')){ const k = G.kids.find(x => x.id===who.slice(4)); if (!k) return null; const a = G.year - k.born;
+  famRep(who, a2){
+    const f = famSpk(who); if (!f) return null; const [ef, tid, ix] = String(a2).split('|'), chips = []; let reply = '';
+    if (who.startsWith('kid:')){ const k = G.kids.find(x => x.id===who.slice(4)); if (!k) return null; const a = G.year - k.born, band = a < 3 ? 'baby' : a < 15 ? 'child' : 'adult';
+      const T = (FAM_KID[band] || []).find(t => t.id===tid); reply = T && T.r[+ix] ? T.r[+ix][3] : '';
       if (!k.pid && k.st[ef] != null){ k.st[ef] = clamp(k.st[ef] + 1, 1, 100); chips.push([`${k.n} ${ST[ef]} 잠재력 +1`, true]); }
-      else if (k.pid && person(k.pid)){ const q = person(k.pid); q[ef] = Math.min(100, q[ef] + (Math.random() < .5 ? 1 : 0)); addBond(q.id, 3); chips.push(['인연 +3', true]); }
-      k.love = (k.love||0) + 1;
-      talkQ({ title:f.n, bg:'bg_house', lines:[['kid:' + k.id, pick(a < 5 ? ['(까르르 웃는다)', '(품에 안겨 잠이 든다)'] : a < 15 ? ['네! 알겠어요!', '헤헤, 다음에 또 해 주세요!', '…생각해 볼게요.'] : ['명심하겠습니다.', '감사합니다. 실망시키지 않겠습니다.', '…네, 뜻 알겠습니다.'])]] });
+      else if (k.pid && person(k.pid)){ addBond(k.pid, 3); chips.push(['인연 +3', true]); }
+      k.love = (k.love||0) + 1; if (k.love % 5 === 0) chips.push([`${k.n}와(과)의 정이 깊어졌다`, true]);
     } else { const sp = spList().find(x => x.id===who.slice(3)); if (!sp) return null; sp.love = (sp.love||0) + 1;
+      const T = FAM_SP.find(t => t.id===tid); reply = T && T.r[+ix] ? T.r[+ix][3] : '';
       if (ef==='hp' || ef==='hp2'){ const v = ef==='hp2' ? 10 : 5; G.hp = clamp(G.hp + v); chips.push([`체력 +${v}`, true]); }
-      else if (ef==='gold'){ if (G.gold >= 60){ G.gold -= 60; chips.push(['금 -60', false], ['민심 +2', true]); trustAdd(2); } }
+      else if (ef==='gold'){ if (G.gold >= 60){ G.gold -= 60; chips.push(['금 -60', false], [G.role==='ruler' ? '민심 +2' : '명성 +', true]); trustAdd(2); } }
       else if (ef==='gold2'){ G.gold += 150; chips.push(['금 +150', true]); }
-      else if (ef==='loy'){ const low = G.pfac ? npcs().filter(p => p.fac===G.pfac && active(p)).sort((a, b) => (a.loy??70) - (b.loy??70))[0] : null; if (low){ chips.push([`${low.n} 충성 ${Math.round(low.loy)}`, false]); } }
+      else if (ef==='loy'){ const low = G.pfac ? npcs().filter(p => p.fac===G.pfac && active(p)).sort((a, b) => (a.loy??70) - (b.loy??70))[0] : null; if (low){ chips.push([`귀띔: ${low.n} 충성 ${Math.round(low.loy)}`, false]); } }
       else if (ef==='tip'){ G.hp = clamp(G.hp + 3); chips.push(['체력 +3', true]); }
       else if (ef==='kid'){ const k = G.kids.filter(k => !k.dead && G.year-k.born < 15)[0]; if (k){ const st = pick(['m','i','l','c']); k.st[st] = clamp(k.st[st] + 1, 1, 100); chips.push([`${k.n} ${ST[st]} +1`, true]); } }
-      else chips.push(['정 +1', true]);
+      else chips.push(['정이 깊어졌다', true]);
       if (ef==='love' && Math.random() < .12 && G.kids.length < 8 && ageOf(me()) < 56){ const k = makeKid(sp); G.kids.push(k); chips.push([`${k.sex==='남'?'아들':'딸'} ${k.n} 탄생`, true]); news(`${k.sex==='남'?'아들':'딸'} ${J(k.n,'이')} 태어났다.`, true, true); }
-      talkQ({ title:f.n, bg:'bg_house', lines:[[who, pick(['고마워요. 그 말이면 충분해요.', '당신은 늘 그렇게 말하지요. 그래서 좋아요.', '후후, 알겠어요.', '…네, 믿을게요.'])]] });
     }
+    talkQ({ title:f.n, bg:'bg_house', lines:[[who, reply || '…네.'], [null, pick(['잠시 말없이 함께 앉아 있었다. 바깥의 난세가 잠깐 멀게 느껴졌다.', '등불이 낮게 흔들렸다. 오랜만에 마음이 편안했다.', '창밖으로 바람이 지나갔다. 오늘 밤은 깊이 잠들 수 있을 것 같다.', '짧은 시간이었지만, 다시 싸울 힘이 생겼다.'])]] });
     toast(`${f.n}와(과) 따뜻한 시간을 보냈다.`, chips); return null;
   },
   socRep(pid, a2){
@@ -6929,45 +6937,74 @@ function viewPeople(){
 /* ---------- 가족과 보내는 시간: 아내·자녀와의 대화(한 달에 한 번씩, 행동력 없이) ---------- */
 function famSpk(id){
   if (typeof id!=='string') return null;
-  if (id.startsWith('sp:')){ const sp = spList().find(x => x.id===id.slice(3)); return sp ? { n:sp.n, pt:z => ptHTML(sp.look||spouseLook(), Math.max(16, ageOf(me())-3), true, facColor(G.pfac), z) } : null; }
+  if (id.startsWith('sp:')){ const sp = spList().find(x => x.id===id.slice(3)); return sp ? { n:sp.n, pt:z => ptHTML(spLook(sp), Math.max(16, ageOf(me())-3), true, facColor(G.pfac), z) } : null; }
   if (id.startsWith('kid:')){ const k = G.kids.find(x => x.id===id.slice(4)); return k ? { n:k.n, pt:z => kp(k, z) } : null; }
   return null;
 }
 const callMe = k => me().f ? '어머니' : '아버지';
+/* 아내 화제: r = [결, 내 말, 효과, 아내의 대답] — 대답이 내 말에 이어지도록 */
 const FAM_SP = [
-  { id:'war', ok:() => G.armies.some(a => a.fac!==G.pfac && G.pfac && city(a.to).owner===G.pfac), sp:'또 싸움이 난다는 소문이 돌아요. 이번엔 언제 떠나시나요?', r:[['w','걱정 마시오. 반드시 돌아오겠소.','hp'],['d','이번 싸움은 길게 끌지 않을 것이오. 계책이 있소.','tip'],['j','떠나기 전에 당신 밥부터 실컷 먹고 가야겠소.','hp']] },
-  { id:'tired', ok:() => G.hp < 70, sp:'얼굴이 많이 상하셨어요. 오늘 밤만이라도 쉬세요.', r:[['w','당신 말을 듣겠소. 오늘은 쉬리다.','hp2'],['b','쉴 틈이 없소. 그래도 당신이 있어 버티오.','hp'],['j','당신이 끓여 주는 탕 한 그릇이면 다 낫소.','hp2']] },
-  { id:'kids', ok:() => G.kids.some(k => !k.dead && G.year-k.born < 15), sp:() => { const k = G.kids.filter(k => !k.dead && G.year-k.born < 15).sort((a,b) => b.born-a.born)[0]; return `${k.n}이(가) 요즘 당신 흉내를 낸답니다. 막대기를 칼처럼 들고요.`; }, r:[['w','하하, 그 녀석. 내일은 같이 놀아 줘야겠소.','kid'],['d','그렇다면 제대로 된 스승을 붙여 줍시다.','kid'],['j','막대기로 나를 이기면 진짜 칼을 주겠다고 전하시오.','kid']] },
-  { id:'home', sp:'친정에서 기별이 왔어요. 다들 당신 소식을 궁금해한대요.', r:[['w','한번 함께 찾아뵙시다.','love'],['d','선물을 넉넉히 보내 안부를 전합시다.','gold'],['j','내 소문이 좋게 났길 바라오.','love']] },
-  { id:'money', ok:() => G.gold < 300, sp:'곳간이 비어 간다고 들었어요. 제 패물이라도 보탤까요?', r:[['w','그 마음만 받겠소. 당신 것은 당신이 지니시오.','love'],['d','고맙소. 이번만 빌리고 꼭 갚겠소.','gold2'],['b','걱정 마시오. 곧 적의 곳간을 털어 오겠소.','love']] },
-  { id:'moon', sp:'오늘 달이 참 밝네요. 우리 처음 만난 날도 이랬지요.', r:[['w','기억하오. 그날 당신은 붉은 옷을 입었지.','love'],['j','그날 내가 너무 떨어서 말도 못 했던 것도 기억하오?','love'],['d','천하가 평정되면 매일 이렇게 달을 봅시다.','love']] },
-  { id:'advice', sp:'저도 사람들 말을 좀 들었는데요… 당신 휘하에 마음이 떠난 이가 있대요.', r:[['d','누구인지 짚이는 데가 있소?','loy'],['w','당신이 내 귀가 되어 주는구려. 고맙소.','loy'],['b','마음이 떠났다면 붙잡지 않겠소.','love']] },
-  { id:'season', sp:() => `${SEASON()}이에요. 올해는 집에서 ${SEASON()==='겨울' ? '설' : '명절'}을 함께 보낼 수 있을까요?`, r:[['w','이번엔 꼭 함께하겠소.','hp'],['d','싸움이 끝나는 대로 돌아오리다.','love'],['j','당신 떡국이면 적군도 휴전할 거요.','hp']] } ];
+  { id:'war', ok:() => G.pfac && G.armies.some(a => a.fac!==G.pfac && city(a.to).owner===G.pfac && a.state!=='return'), sp:'또 적이 쳐들어온다는 소문이 돌아요. 이번엔 언제 떠나시나요?',
+    r:[['w','걱정 마시오. 반드시 돌아오겠소.','hp','…그 말, 꼭 지키셔야 해요. 문 앞에 등불을 켜 두고 기다릴게요.'],['d','이번 싸움은 길게 끌지 않을 것이오. 계책이 있소.','tip','당신 눈빛을 보니 마음이 놓이네요. 계책이 잘 맞기를 빌게요.'],['j','떠나기 전에 당신 밥부터 실컷 먹고 가야겠소.','hp','어머, 그럼 오늘은 당신 좋아하는 걸로 상을 차릴게요.']] },
+  { id:'tired', ok:() => G.hp < 70, sp:'얼굴이 많이 상하셨어요. 오늘 밤만이라도 쉬세요.',
+    r:[['w','당신 말을 듣겠소. 오늘은 쉬리다.','hp2','그래요. 제가 곁에서 부채질해 드릴게요.'],['b','쉴 틈이 없소. 그래도 당신이 있어 버티오.','hp','…그럼 약탕이라도 드시고 가세요. 억지로라도요.'],['j','당신이 끓여 주는 탕 한 그릇이면 다 낫소.','hp2','후후, 그럼 세 그릇은 드셔야겠네요.']] },
+  { id:'kids', ok:() => G.kids.some(k => !k.dead && G.year-k.born >= 3 && G.year-k.born < 15), sp:() => { const k = G.kids.filter(k => !k.dead && G.year-k.born >= 3 && G.year-k.born < 15).sort((a,b) => b.born-a.born)[0]; return `${J(k.n,'이')} 요즘 당신 흉내를 내요. 막대기를 칼처럼 들고 마당을 뛰어다닌답니다.`; },
+    r:[['w','하하, 그 녀석. 내일은 같이 놀아 줘야겠소.','kid','아이가 들으면 밤새 잠을 못 잘 거예요. 기다리던 말이거든요.'],['d','그렇다면 제대로 된 스승을 붙여 줍시다.','kid','좋아요. 글도 같이 배우게 해 주세요. 칼만 알면 안 되니까요.'],['j','막대기로 나를 이기면 진짜 칼을 주겠다고 전하시오.','kid','그 말 하시면 정말 덤빌걸요? 다치지 않게 봐 주세요.']] },
+  { id:'baby', ok:() => G.kids.some(k => !k.dead && G.year-k.born < 3), sp:() => { const k = G.kids.filter(k => !k.dead && G.year-k.born < 3)[0]; return `${J(k.n,'이')} 오늘 처음으로 걸음마를 떼었어요! 당신이 봤어야 했는데.`; },
+    r:[['w','못 본 게 한이오. 다음엔 꼭 곁에 있겠소.','love','괜찮아요. 내일 또 걸을 테니 그때 손뼉 쳐 주세요.'],['j','벌써 걷다니, 날 닮아 성미가 급한가 보오.','love','어머, 저를 닮아 야무진 거예요.'],['d','건강하게 자라니 그것으로 됐소. 고맙소, 당신 덕이오.','hp','…그 말 들으니 그동안 고생이 다 녹네요.']] },
+  { id:'home', sp:sp => sp.from && person(sp.from) && person(sp.from).alive ? `아버님(${person(sp.from).n})께서 기별을 보내셨어요. 당신 소식을 궁금해하신대요.` : '친정에서 기별이 왔어요. 다들 당신 소식을 궁금해한대요.',
+    r:[['w','한번 함께 찾아뵙시다.','love','정말요? 어머니께서 무척 기뻐하실 거예요.'],['d','선물을 넉넉히 보내 안부를 전합시다.','gold','고마워요. 친정에서도 당신을 다시 볼 거예요.'],['j','내 소문이 좋게 났길 바라오.','love','후후, 제가 좋게만 말씀드렸으니 걱정 마세요.']] },
+  { id:'money', ok:() => G.gold < 300, sp:'곳간이 비어 간다고 들었어요. 제 패물이라도 보탤까요?',
+    r:[['w','그 마음만 받겠소. 당신 것은 당신이 지니시오.','love','…당신은 늘 그러시지요. 그래도 필요하면 꼭 말해 주세요.'],['d','고맙소. 이번만 빌리고 꼭 갚겠소.','gold2','갚긴요. 당신 일이 곧 우리 집 일인걸요.'],['b','걱정 마시오. 곧 적의 곳간을 털어 오겠소.','love','그 말이 더 무서워요. 무사히만 돌아오세요.']] },
+  { id:'moon', sp:'오늘 달이 참 밝네요. 우리 처음 만난 날도 이랬지요.',
+    r:[['w','기억하오. 그날 당신은 고운 옷을 입었었지.','love','그걸 기억하세요? …괜히 얼굴이 뜨거워지네요.'],['j','그날 내가 너무 떨어서 말도 못 했던 것도 기억하오?','love','기억하고말고요. 인사만 세 번 하셨잖아요.'],['d','천하가 평정되면 매일 이렇게 달을 봅시다.','love','약속이에요. 그날까지 제가 기다릴게요.']] },
+  { id:'advice', ok:() => G.role==='ruler' && npcs().some(p => p.fac===G.pfac && active(p) && p.loy < 50), sp:'사람들 말을 좀 들었는데요… 당신 휘하에 마음이 떠난 이가 있대요.',
+    r:[['d','누구인지 짚이는 데가 있소?','loy','이름까지는… 다만 요즘 당신을 피한다고 하더군요.'],['w','당신이 내 귀가 되어 주는구려. 고맙소.','loy','안채에서 들리는 말도 쓸모가 있답니다.'],['b','마음이 떠났다면 붙잡지 않겠소.','love','…그래도 너무 매정하게는 마세요. 사람 마음은 돌아오기도 하니까요.']] },
+  { id:'season', sp:() => `${SEASON()}이에요. 올해는 집에서 ${SEASON()==='겨울' ? '설' : '명절'}을 함께 보낼 수 있을까요?`,
+    r:[['w','이번엔 꼭 함께하겠소.','hp','그럼 아이들한테도 말해 둘게요. 다들 좋아할 거예요.'],['d','싸움이 끝나는 대로 돌아오리다.','love','…늘 그 말씀이시죠. 그래도 믿을게요.'],['j','당신 떡국이면 적군도 휴전할 거요.','hp','그럼 적진에도 한 솥 보내 드릴까요?']] },
+  { id:'garden', sp:'뒤뜰에 매화를 심었어요. 내년 봄이면 필 거예요.',
+    r:[['w','꽃 피면 그 아래서 술 한잔합시다.','love','좋아요. 그날은 아무 일도 없었으면 좋겠네요.'],['j','매화보다 당신이 먼저 피었구려.','love','…정말, 그런 말은 어디서 배우셨어요?'],['d','매화는 추위를 견뎌야 피지요. 우리도 그렇소.','hp','그 말, 오래 기억할게요.']] },
+  { id:'jealous', ok:() => spList().length >= 2, sp:'요즘 다른 방에만 자주 가시던데요…',
+    r:[['w','미안하오. 오늘은 당신 곁에 있겠소.','love','…말로만 하지 마세요. 오늘은 놓아 드리지 않을 거예요.'],['j','당신 얼굴 보면 일이 손에 안 잡혀서 피했소.','love','핑계도 참… 그래도 듣기 싫진 않네요.'],['b','집안일로 다툴 때가 아니오.','gold','…알겠어요. 다만 저도 사람이라는 건 잊지 마세요.']] },
+  { id:'dream', sp:'어젯밤 꿈에 커다란 용이 우리 집 지붕에 앉았어요.',
+    r:[['d','길몽이구려. 집안에 좋은 일이 있을 거요.','love','그렇죠? 아침부터 마음이 들떴어요.'],['j','용이 지붕을 부수진 않았소?','hp','어머, 그런 걸 왜 물으세요! …안 부쉈어요.'],['w','당신이 그런 꿈을 꿔 주니 든든하오.','love','당신한테 좋은 일만 생기라고 빌었더니 그런가 봐요.']] } ];
+const SP_HI = [sp => '오셨어요? 마침 차를 끓이던 참이에요.', sp => '어머, 오늘은 일찍 들어오셨네요.', sp => '당신 발소리는 멀리서도 알겠어요.', sp => '잠깐만 앉아 계세요. 할 얘기가 있어요.'];
+const KID_HI = { baby:['(엄마 품에서 고개를 돌려 이쪽을 본다)', '(옹알옹알 무언가를 말한다)'], child:k => [`${callMe(k)}! 오셨어요?`, `${callMe(k)}, 오늘은 저랑 놀아 주시는 거예요?`, '(문 뒤에 숨었다가 와락 튀어나온다)'], adult:k => [`${callMe(k)}, 부르셨습니까.`, `오셨습니까, ${callMe(k)}. 마침 여쭐 게 있었습니다.`] };
+/* 자녀 화제: r = [결, 내 말, 능력(m/i/l/c), 아이의 대답] */
 const FAM_KID = {
-  baby:[ { id:'hold', me:'어디 보자, 우리 아기.', kid:'(방긋 웃으며 손가락을 꼭 쥔다)', r:[['w','이 작은 손으로 나를 붙잡는구나.','c'],['b','손힘이 세구나! 장수가 되겠어.','m'],['d','네가 자랄 세상은 지금보다 평안하게 해 주마.','i']] } ],
+  baby:[
+    { id:'hold', me:'어디 보자, 우리 아기.', kid:'(방긋 웃으며 손가락을 꼭 쥔다)', r:[['w','이 작은 손으로 나를 붙잡는구나.','c','(손가락을 놓지 않고 꼭 쥐고 있다)'],['b','손힘이 세구나! 장수가 되겠어.','m','(까르르 웃으며 발을 버둥거린다)'],['d','네가 자랄 세상은 지금보다 평안하게 해 주마.','i','(눈을 깜빡이며 가만히 바라본다)']] },
+    { id:'cry', me:'왜 우느냐, 어디 아프냐?', kid:'(으앙— 하고 더 크게 운다)', r:[['w','그래그래, 아비가 왔다.','c','(울음을 그치고 품에 얼굴을 묻는다)'],['j','이 울음소리면 적군도 도망가겠구나.','m','(딸꾹질을 하며 울음을 멈춘다)'],['d','배가 고픈 게로구나. 유모를 부르마.','i','(유모 품에 안기자 금세 잠이 든다)']] },
+    { id:'word', me:'자, 말해 보거라. 아—버—지.', kid:'아… 아빠!', r:[['w','오냐, 내 새끼!','c','(아빠! 아빠! 하고 계속 부른다)'],['j','하하, 첫마디가 나라니. 어미가 서운하겠구나.','c','(뭔지도 모르고 따라 웃는다)'],['d','말이 빠르구나. 글도 일찍 깨치겠어.','i','(무슨 뜻인지 아는 듯 고개를 끄덕인다)']] } ],
   child:[
-    { id:'why', kid:k => `${callMe(k)}는 왜 맨날 싸우러 가요?`, r:[['w','너희가 웃으며 살 수 있게 하려고 그런단다.','c'],['d','싸우지 않고 이기는 게 제일이지만, 아직은 그럴 수가 없구나.','i'],['b','나쁜 사람들이 우리 땅을 넘보니까 혼내 주러 가지!','m']] },
-    { id:'sword', kid:k => `${callMe(k)}, 저도 칼 쓰는 거 가르쳐 주세요!`, r:[['b','좋다! 먼저 발 디디는 법부터다.','m'],['d','칼보다 먼저 왜 칼을 드는지부터 생각해 보자.','i'],['w','다치면 안 되니 나무칼로 하자꾸나.','c']] },
-    { id:'book', kid:k => '이 책은 너무 어려워요. 꼭 읽어야 해요?', r:[['d','어려운 걸 견디는 게 공부란다. 같이 읽어 보자.','i'],['w','오늘은 재밌는 옛이야기부터 들려주마.','c'],['j','다 읽으면 말 타러 데려가 주마.','m']] },
-    { id:'friend', kid:k => '동무랑 싸웠어요… 걔가 먼저 놀렸단 말이에요.', r:[['w','먼저 손 내미는 쪽이 더 큰 사람이란다.','c'],['b','맞서는 건 좋다. 하지만 약한 아이를 괴롭히면 안 된다.','m'],['d','왜 놀렸는지 먼저 물어보았느냐?','i']] },
-    { id:'star', kid:k => '밤하늘 별은 왜 저렇게 많아요?', r:[['d','옛사람들은 별을 보고 길을 찾고 날씨를 읽었단다.','i'],['w','먼저 간 사람들이 우리를 지켜보는 거란다.','c'],['j','네가 착하게 굴 때마다 하나씩 늘어난단다.','c']] } ],
+    { id:'why', kid:k => `${callMe(k)}는 왜 맨날 싸우러 가요?`, r:[['w','너희가 웃으며 살 수 있게 하려고 그런단다.','c','그럼 제가 크면 대신 싸워 드릴게요!'],['d','싸우지 않고 이기는 게 제일이지만, 아직은 그럴 수가 없구나.','i','싸우지 않고 이기는 방법… 저도 생각해 볼래요.'],['b','나쁜 사람들이 우리 땅을 넘보니까 혼내 주러 가지!','m','저도 혼내 줄래요! 이얍!']] },
+    { id:'sword', kid:k => `${callMe(k)}, 저도 칼 쓰는 거 가르쳐 주세요!`, r:[['b','좋다! 먼저 발 디디는 법부터다.','m','이렇게요? …으앗, 넘어졌어요!'],['d','칼보다 먼저 왜 칼을 드는지부터 생각해 보자.','i','음… 지키려고요? 맞아요?'],['w','다치면 안 되니 나무칼로 하자꾸나.','c','나무칼도 좋아요! 대신 매일 해 주세요!']] },
+    { id:'book', kid:k => '이 책은 너무 어려워요. 꼭 읽어야 해요?', r:[['d','어려운 걸 견디는 게 공부란다. 같이 읽어 보자.','i','…같이 읽으니까 조금 알 것 같아요.'],['w','오늘은 재밌는 옛이야기부터 들려주마.','c','와! 호랑이 나오는 걸로요!'],['j','다 읽으면 말 타러 데려가 주마.','m','정말요? 그럼 오늘 밤 안에 다 읽을래요!']] },
+    { id:'friend', kid:k => '동무랑 싸웠어요… 걔가 먼저 놀렸단 말이에요.', r:[['w','먼저 손 내미는 쪽이 더 큰 사람이란다.','c','…내일 제가 먼저 사과할게요.'],['b','맞서는 건 좋다. 하지만 약한 아이를 괴롭히면 안 된다.','m','저 안 괴롭혔어요! 걔가 저보다 커요!'],['d','왜 놀렸는지 먼저 물어보았느냐?','i','…아니요. 내일 물어볼게요.']] },
+    { id:'star', kid:k => '밤하늘 별은 왜 저렇게 많아요?', r:[['d','옛사람들은 별을 보고 길을 찾고 날씨를 읽었단다.','i','그럼 저도 별 보는 법 배울래요!'],['w','먼저 간 사람들이 우리를 지켜보는 거란다.','c','그럼 할아버지도 저기 계세요?'],['j','네가 착하게 굴 때마다 하나씩 늘어난단다.','c','그럼 오늘 하나 늘었겠네요!']] },
+    { id:'horse', kid:k => `${callMe(k)} 말 타 보고 싶어요! 큰 말이요!`, r:[['b','좋다, 내 앞에 태워 주마. 꽉 잡거라!','m','우와아— 빨라요! 더 빨리요!'],['w','처음엔 조랑말부터 친해지자꾸나.','c','조랑말 이름은 제가 지어도 돼요?'],['d','말을 타려면 먼저 말을 돌보는 법을 알아야 한다.','l','그럼 오늘부터 제가 여물 줄게요!']] },
+    { id:'lie', kid:k => '…사실 아까 꽃병, 제가 깼어요.', r:[['w','솔직하게 말해 줘서 고맙다. 그거면 됐다.','c','(눈물을 글썽이며 고개를 끄덕인다)'],['d','숨기지 않은 것은 잘했다. 다음엔 조심하거라.','i','네… 다음엔 뛰지 않을게요.'],['b','사내라면 제 잘못은 제가 치우는 거다.','m','네! 조각은 제가 다 주울게요!']] },
+    { id:'war_game', kid:k => '동무들이랑 전쟁놀이 했는데 제가 대장 했어요!', r:[['b','이겼느냐? 그럼 장수감이로구나!','m','네! 제가 맨 앞에서 돌격했어요!'],['d','어떤 진을 쳤느냐? 말해 보거라.','l','음… 언덕에 숨었다가 한꺼번에 나갔어요!'],['w','다친 동무는 없고?','c','다들 괜찮아요. 진 애들한테 떡도 나눠 줬어요.']] } ],
   adult:[
-    { id:'dream', kid:k => `${callMe(k)}, 저도 이제 어른이에요. 제 뜻대로 살아도 될까요?`, r:[['w','네 뜻을 들어 보자. 무엇을 하고 싶으냐?','c'],['b','가문의 이름에 걸맞게만 하거라.','m'],['d','뜻을 세웠다면 먼저 계획을 들고 오너라.','i']] },
-    { id:'wed', kid:k => '혼담이 들어온다던데… 저는 아직 마음이 없어요.', r:[['w','네 마음이 먼저다. 서두르지 말거라.','c'],['d','혼인은 가문의 일이기도 하니 잘 생각해 보거라.','i'],['j', k => k.sex==='남' ? '그럼 이 아비가 대신 장가가랴?' : '그럼 이 아비가 대신 시집가랴?','c']] },
-    { id:'serve', kid:k => `${callMe(k)} 곁에서 싸우고 싶습니다. 저를 데려가 주세요.`, r:[['b','좋다. 다음 출진에 함께 가자.','m'],['d','먼저 병법을 익히고 와라. 그래야 살아 돌아온다.','i'],['w','네가 다칠까 겁이 나는구나… 그래도 네 뜻이라면.','c']] } ] };
+    { id:'dream', kid:k => `${callMe(k)}, 저도 이제 어른입니다. 제 뜻대로 살아도 되겠습니까?`, r:[['w','네 뜻을 들어 보자. 무엇을 하고 싶으냐?','c','…천하를 돌며 사람들을 만나 보고 싶습니다.'],['b','가문의 이름에 걸맞게만 하거라.','m','명심하겠습니다. 이름을 더럽히는 일은 없을 겁니다.'],['d','뜻을 세웠다면 먼저 계획을 들고 오너라.','i','알겠습니다. 정리해서 다시 여쭙겠습니다.']] },
+    { id:'wed', kid:k => '혼담이 들어온다던데… 저는 아직 마음이 없습니다.', r:[['w','네 마음이 먼저다. 서두르지 말거라.','c','감사합니다. 그 말씀이 제일 듣고 싶었습니다.'],['d','혼인은 가문의 일이기도 하니 잘 생각해 보거라.','i','…예. 가문을 생각해서 신중히 고르겠습니다.'],['j', k => k.sex==='남' ? '그럼 이 아비가 대신 장가가랴?' : '그럼 이 아비가 대신 시집가랴?','c','하하, 그건 어머니께서 가만 안 두실 겁니다.']] },
+    { id:'serve', kid:k => `${callMe(k)} 곁에서 싸우고 싶습니다. 저를 데려가 주십시오.`, r:[['b','좋다. 다음 출진에 함께 가자.','m','감사합니다! 실망시키지 않겠습니다!'],['d','먼저 병법을 익히고 와라. 그래야 살아 돌아온다.','l','…예. 병서부터 다시 읽겠습니다.'],['w','네가 다칠까 겁이 나는구나… 그래도 네 뜻이라면.','c','걱정 마십시오. 반드시 살아서 곁을 지키겠습니다.']] },
+    { id:'heir', kid:k => `언젠가 제가 ${callMe(k)}의 뒤를 이을 수 있을까요?`, r:[['d','그 자리는 받는 게 아니라 증명하는 것이다.','i','…예. 증명해 보이겠습니다.'],['w','네가 원한다면 그 길을 함께 닦아 주마.','c','그 말씀, 평생 잊지 않겠습니다.'],['b','먼저 장수들이 너를 따르게 만들어라.','l','장수들과 먼저 어울리겠습니다.']] },
+    { id:'mother', kid:k => '요즘 어머니께서 많이 적적해하십니다.', r:[['w','오늘 저녁은 다 같이 먹자꾸나.','c','어머니께서 기뻐하실 겁니다. 제가 말씀드리겠습니다.'],['d','네가 자주 찾아뵙거라. 그게 효도다.','i','예, 매일 문안드리겠습니다.'],['j','내가 너무 바빴구나. 네가 대신 혼 좀 나 주련?','c','하하, 그건 사양하겠습니다.']] } ] };
 function famTalk(kind, id){
   const fl = G.flags.famT || (G.flags.famT = {}); if (fl[id]===mi()) return toast('이번 달에는 이미 함께 시간을 보냈다.', [], true), render();
   fl[id] = mi();
   if (kind==='sp'){
     const sp = spList().find(x => x.id===id); if (!sp) return; const seen = sp.tk || [];
     let pool = FAM_SP.filter(t => (!t.ok || t.ok()) && !seen.includes(t.id)); if (!pool.length) pool = FAM_SP.filter(t => !t.ok || t.ok());
-    const T = pick(pool); sp.tk = [T.id, ...seen].slice(0, 3); const txt = typeof T.sp==='function' ? T.sp() : T.sp;
-    talkQ({ title:`${sp.n}와(과) 보내는 저녁`, bg:'bg_house', lines:[['sp:' + sp.id, txt]], choices: T.r.slice().sort(() => Math.random() - .5).map(([k, t, ef]) => ({ t, cn:'famRep', arg:'sp:' + sp.id, arg2: ef })) });
+    const T = pick(pool); sp.tk = [T.id, ...seen].slice(0, 5); const txt = typeof T.sp==='function' ? T.sp(sp) : T.sp, w = 'sp:' + sp.id;
+    talkQ({ title:`${sp.n}와(과) 보내는 저녁`, bg:'bg_house', lines:[[w, pick(SP_HI)(sp)], [w, txt]], choices: T.r.map((r, i) => [r, i]).sort(() => Math.random() - .5).map(([[k, t, ef], i]) => ({ t, cn:'famRep', arg:w, arg2: ef + '|' + T.id + '|' + i })) });
   } else {
-    const k = G.kids.find(x => x.id===id); if (!k || k.dead) return; const a = G.year - k.born, band = a < 5 ? 'baby' : a < 15 ? 'child' : 'adult', L = FAM_KID[band], seen = k.tk || [];
-    let pool = L.filter(t => !seen.includes(t.id)); if (!pool.length) pool = L; const T = pick(pool); k.tk = [T.id, ...seen].slice(0, Math.min(3, L.length - 1));
-    const lines = T.me ? [['me', T.me], ['kid:' + k.id, T.kid]] : [['kid:' + k.id, T.kid(k)]];
-    talkQ({ title:`${k.n}와(과) 보내는 시간`, bg:'bg_house', lines, choices: T.r.slice().sort(() => Math.random() - .5).map(([kk, t, st]) => ({ t: typeof t==='function' ? t(k) : t, cn:'famRep', arg:'kid:' + k.id, arg2: st })) });
+    const k = G.kids.find(x => x.id===id); if (!k || k.dead) return; const a = G.year - k.born, band = a < 3 ? 'baby' : a < 15 ? 'child' : 'adult', L = FAM_KID[band], seen = k.tk || [], w = 'kid:' + k.id;
+    let pool = L.filter(t => !seen.includes(t.id)); if (!pool.length) pool = L; const T = pick(pool); k.tk = [T.id, ...seen].slice(0, Math.min(4, L.length - 1));
+    const hi = KID_HI[band], hiL = typeof hi==='function' ? pick(hi(k)) : pick(hi);
+    const lines = [[w, hiL]].concat(T.me ? [['me', T.me], [w, T.kid]] : [[w, T.kid(k)]]);
+    talkQ({ title:`${k.n}와(과) 보내는 시간`, bg:'bg_house', lines, choices: T.r.map((r, i) => [r, i]).sort(() => Math.random() - .5).map(([[kk, t, st], i]) => ({ t: typeof t==='function' ? t(k) : t, cn:'famRep', arg:w, arg2: st + '|' + T.id + '|' + i })) });
   }
   render();
 }
@@ -6987,10 +7024,11 @@ function viewFamily(){
   const allyFacs = G.role==='ruler' && canWed ? aliveFacs().filter(f=>f.id!==G.pfac && !(person(f.ruler) && isInlawId(f.ruler))).sort((a,b)=>citiesOf(b.id).length-citiesOf(a.id).length).slice(0,4) : [];
   const histKids = npcs().filter(q => PARENT[q.id]===G.pid);
   return `<div class="pane">
-  <div class="card"><div class="row between"><h3>${G.surname}씨 가문 · ${G.gen}대</h3><span class="chip gold">가문 점수 ${fmt(G.dynScore)}</span></div>
+  <div class="card"><div class="row between"><h3>${G.surname}씨 가문 · ${G.gen}대</h3><span class="chip gold">가문 점수 ${fmt(G.dynScore)} + 이번 대 ${fmt(genScore())}</span></div>
+    <details class="gscore"><summary class="small">가문 점수 올리는 법</summary><div class="gs-grid">${genParts().map(([k, v]) => `<span>${k}</span><b>${fmt(v)}</b>`).join('')}</div><p class="tiny muted">공적은 싸움·임무로, 계급은 승진으로 오른다. 해마다 +3, 자녀 한 명 +20, 출사한 자녀 +30, 아내·자녀와 시간을 보낼수록 '가족의 정'(최대 60). 군주면 성 하나에 +40. 대가 끝나면(죽거나 물려주면) 이번 대 점수가 가문 점수에 더해지고, 천하통일이면 +1500.</p></details>
     <p class="small muted">자식이 15세가 되면 장수로 출사시켜 곁에서 싸우게 하거나, 다른 가문과 혼인시켜 관계를 굳힐 수 있다. 그대가 죽으면 후계자가 이어서 플레이한다.</p>
     ${(G.creeds||[]).length ? `<div class="row" style="flex-wrap:wrap;gap:4px"><span class="small muted">가훈</span>${G.creeds.map(id => { const c = CREED.find(x=>x[0]===id); return `<span class="chip">${c[1]} ${c[2]}</span>`; }).join('')}</div>` : ''}
-    ${spList().length ? spList().map((sp,i) => `<div class="row between"><div class="row">${ptHTML(sp.look||spouseLook(), Math.max(16, ageOf(me())-3), true, facColor(G.pfac), 40)}<span>${i===0?'정실':'부인'} <b>${esc(sp.n)}</b> <span class="small muted">(${sp.y}년 혼인${sp.from&&person(sp.from)?' · '+esc(person(sp.from).n)+'의 딸':''})</span></span></div><span class="row" style="gap:5px"><button class="ghost" data-fam="sp" data-arg="${sp.id}" ${(G.flags.famT||{})[sp.id]===mi() ? 'disabled' : ''}>함께 시간 보내기</button><button class="ghost" data-sheet="divorce" data-arg="${sp.id}">이혼</button></span></div>`).join('') : '<div class="row"><span class="small">배우자 없음</span></div>'}
+    ${spList().length ? spList().map((sp,i) => `<div class="row between"><div class="row">${ptHTML(spLook(sp), Math.max(16, ageOf(me())-3), true, facColor(G.pfac), 40)}<span>${i===0?'정실':'부인'} <b>${esc(sp.n)}</b> <span class="small muted">(${sp.y}년 혼인${sp.from&&person(sp.from)?' · '+esc(person(sp.from).n)+'의 딸':''})</span></span></div><span class="row" style="gap:5px"><button class="ghost" data-fam="sp" data-arg="${sp.id}" ${(G.flags.famT||{})[sp.id]===mi() ? 'disabled' : ''}>함께 시간 보내기</button><button class="ghost" data-sheet="divorce" data-arg="${sp.id}">이혼</button></span></div>`).join('') : '<div class="row"><span class="small">배우자 없음</span></div>'}
     ${canWed && ageOf(me())>=15 ? `<div class="acts">${actBtn('명문가 혼담','금 300','data-act="marry" data-arg="noble"',G.ap>0&&G.gold>=300)}
       ${matches.map(p=>actBtn(`${p.n}의 딸`,`인연 ${bond(p.id)}`,`data-act="marry" data-arg="${p.id}"`,G.ap>0)).join('')}
       ${namedBrides().map(p=>actBtn(`${p.n}에게 청혼`,`인연 ${bond(p.id)}${bond(p.id)<50?' · 50부터':''}`,`data-act="wedNamed" data-arg="${p.id}"`,G.ap>0&&bond(p.id)>=50)).join('')}
