@@ -2430,15 +2430,16 @@ function frStrat(F){
 /* 군사 자리가 빈 전선에는 대군사·군사중랑장의 지략이 70%로 보탠다 */
 function frAdv(F, S){ const a = frRoleP(F, S, 'adv'); if (a) return a; const st = frStrat(F) || (G.court && courtP(G.court.gun) ? person(G.court.gun) : null); return st ? { id:st.id, n:st.n, i:Math.round(st.i*.7), virt:1 } : null; }
 /* 지략이 높을수록 적의 낌새·병력비·군량을 정확히 따져 명령한다 */
-function frSmart(F, S, st, PB){
+function frSmart(F, S, st, PB, weak){
   const q = clamp((SV(st.i) - 40)/55, 0, 1), e = frEval(F), r = e.ratio, knows = S.fKnown || Math.random() < q*.7, fi = knows ? S.fNext : null;
   let push;
+  // 약한 세력(성 둘 이하, 또는 다른 전선이 무너지는 중)은 지키며 버틴다: 공세는 병사를 두 배로 잃고 수비의 이점을 버린다
   if (S.sup < 1) push = false;
   else if (fi==='mass') push = false;
-  else if (fi==='hold') push = r > .38;
-  else if (r > .6) push = true;
-  else if (r < .4) push = false;
-  else push = Math.random() < .3 + q*.4;
+  else if (fi==='hold') push = r > (weak ? .5 : .4);
+  else if (r > (weak ? .62 : .6)) push = true;
+  else if (r < (weak ? .52 : .4)) push = false;
+  else push = Math.random() < (weak ? .15 + q*.25 : .3 + q*.4);
   if (S.p <= -60 && r < .5) push = false;
   S.st = push ? 'push' : 'hold'; if (push) S.bonus = Math.round(rnd(2, 8) + q*5);
   // 계책: 아는 적의 낌새에 맞는 것만, 성공률이 60% 넘을 때
@@ -2474,12 +2475,12 @@ function frontStep(ff){
       if (stp){ // 군사가 빈 부장 자리(넷)를 채운다: 먼저 전선 성에 노는 장수, 모자라면 후방에서 불러온다
         const S = S0(F); S.deps = frDeps(F, S).map(p => p.id); let need = 4 - S.deps.length;
         if (need > 0){ const busy = new Set(Object.values(G.fronts||{}).flatMap(o => Object.values(o.r||{}).concat(o.deps||[]))), frontC = new Set(FS.flatMap(o => o.my));
-          const ok = p => p.fac===G.pfac && active(p) && !p.army && !busy.has(p.id) && !courtRole(p.id) && city(p.city).gov!==p.id, sc = p => p.m + p.l;
+          const ok = p => p.fac===G.pfac && active(p) && !p.army && !busy.has(p.id) && (!courtRole(p.id) || isElite(p.id)) /* 친위는 무관이라 부장으로 나간다 */ && city(p.city).gov!==p.id, sc = p => p.m + p.l;
           const here = npcs().filter(p => ok(p) && F.my.includes(p.city)).sort((a, b) => sc(b) - sc(a)), rear = npcs().filter(p => ok(p) && !frontC.has(p.city)).sort((a, b) => sc(b) - sc(a));
           for (const p of here.concat(rear)){ if (need <= 0) break; if (!F.my.includes(p.city)){ if (S.deps.length >= 2) break; /* 후방에서는 전선마다 둘까지만 */ p.city = F.my[0]; subLog.push(`${p.n}→${F.sec}`); } S.deps.push(p.id); busy.add(p.id); need--; } } }
       if (!frCorps(F, S0(F))){ const usedC = new Set(Object.values(G.fronts).map(o => o.corps).filter(Boolean)), ck = corpsAvail(G.pfac).filter(x => !usedC.has(x)).sort((a, b) => CORPS[b].p[frIdx(F)] - CORPS[a].p[frIdx(F)])[0]; if (ck) S0(F).corps = ck; }
-      const S1 = S0(F); if (stp){ frSmart(F, S1, stp, planB); const L = stratLog.find(x => x.n===stp.n) || (stratLog.push({ n:stp.n, p:0, h:0 }), stratLog[stratLog.length-1]); L[S1.st==='push' ? 'p' : 'h']++; }
-      else if (!S1.sug){ const r0 = frEval(F).ratio; S1.st = (r0 > .55 || Math.random() < .25) && S1.sup >= 1 ? 'push' : 'hold'; if (S1.st==='push') S1.bonus = Math.round(rnd(0, 10)); } S1.sug = false;
+      const S1 = S0(F); if (stp){ frSmart(F, S1, stp, planB, frWeak(F, FS)); const L = stratLog.find(x => x.n===stp.n) || (stratLog.push({ n:stp.n, p:0, h:0 }), stratLog[stratLog.length-1]); L[S1.st==='push' ? 'p' : 'h']++; }
+      else if (!S1.sug){ const r0 = frEval(F).ratio, wk = frWeak(F, FS); S1.st = (r0 > (wk ? .6 : .55) || (!wk && r0 > .45 && Math.random() < .2)) && S1.sup >= 1 ? 'push' : 'hold'; if (S1.st==='push') S1.bonus = Math.round(rnd(0, 10)); } S1.sug = false;
     }
     const { S, me_, en, ratio } = frEval(F), adv = frAdv(F, S), rear = frRoleP(F, S, 'rear'), ph0 = frPhase(S.p)[0];
     const cp = frCorps(F, S), ce = frFoeCorps(F), advI = adv ? adv.i : 40, foeI = en.best ? en.best.i : 50;
@@ -2529,6 +2530,8 @@ function frontStep(ff){
   }
 }
 const S0 = F => frState(F.id);
+// 세력이 약한가: 성 둘 이하이거나, 이 전선 말고 다른 전선이 크게 밀리는 중(양면 전쟁은 피한다)
+const frWeak = (F, FS) => citiesOf(G.pfac).length <= 2 || FS.some(o => o!==F && frState(o.id).p <= -40);
 function courtRole(id){ const C = G.court; if (!C || G.role!=='ruler') return ''; if (C.gun===id) return '대군사'; if ((C.gunS||[]).includes(id)) return '군사중랑장'; if (C.sang===id) return '승상'; if ((C.sangS||[]).includes(id)) return '상서'; if ((C.elite||[]).includes(id)) return '친위'; return ''; }
 const frVan = F => frRoleP(F, frState(F.id), 'van') || npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).sort((a, b) => b.m - a.m)[0] || null;
 // 전선이 무너지면 결전이 벌어진다
@@ -2537,7 +2540,9 @@ function frBreak(F, S, ours){
   if (ours){
     const tgt = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0], src = F.my.map(city).filter(c => c.adj.includes(tgt.id)).sort((a, b) => b.troops - a.troops)[0];
     if (!tgt || !src) return;
-    const n = Math.round(src.troops*.6); if (n < 800) return;
+    // 본성 수비병을 남긴다: 이웃 적 성 중 가장 큰 병력의 절반(최소 1,500). 남길 수 없으면 공성 대신 보급로를 끊는다
+    const keep = Math.max(1500, Math.round(Math.max(0, ...src.adj.map(city).filter(c => c.owner && c.owner!==G.pfac).map(c => c.troops))*.5)), n = Math.min(Math.round(src.troops*.6), src.troops - keep);
+    if (n < 800){ for (const id of F.foe){ const c = city(id); c.troops = Math.round(c.troops*.8); c.grain = Math.max(0, grainOf(c) - 2); } S.p = 72; news(`${F.name}이 무너졌지만 ${src.n}을 비울 수 없어, 성을 치는 대신 적의 보급로를 끊었다.`, true, true); return; }
     src.troops -= n;
     const gens = S.gens.filter(id => { const p = person(id); return p && active(p) && p.fac===G.pfac && !p.army; }).slice(0, 3).concat(frDeps(F, S).map(p => p.id)).slice(0, 6);
     if (!gens.length){ const g = bestGen(src.id, G.pfac); if (g && g.id!==G.pid) gens.push(g.id); }
@@ -5678,8 +5683,8 @@ const EVENTS = [
     c:()=>[ { t:'말을 달려 맞붙는다', ok:{ hduel:1, msg:'병기를 꼬나쥐고 진 앞으로 나섰다.' } }, { t:'물러선다', ok:{ hduel:0, msg:'그대는 나서지 않았다. 병사들 사이에 수군거림이 돈다.' } } ] },
   { id:'frbreak', s:'파', t:'전선 돌파', rep:true, forced:()=>{ const o = G.frBreakOffer, F = o && frontsOf(G.pfac).find(x => x.id===o.front); if (o && !F) G.frBreakOffer = null; return !!F; },
     x:()=>{ const F = frontsOf(G.pfac).find(x => x.id===G.frBreakOffer.front), t = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0]; return `${F.name}이 무너졌다! 적의 대열이 흩어져 달아난다. 이 기세를 어디에 쓸 것인가. 눈앞에는 ${t.n}(병력 ${fmt(t.troops)}, 성 안 군량 ${grainOf(t)}개월)이 있다.`; },
-    c:()=>{ const F = frontsOf(G.pfac).find(x => x.id===G.frBreakOffer.front), others = frontsOf(G.pfac).filter(x => x.ef===F.ef && x.id!==F.id), out = [
-        { t:'성을 친다 — 곧바로 결전(공성)', ok:{ frb:0, msg:'북소리와 함께 전군이 성벽으로 밀려간다.' } },
+    c:()=>{ const F = frontsOf(G.pfac).find(x => x.id===G.frBreakOffer.front), t = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0], others = frontsOf(G.pfac).filter(x => x.ef===F.ef && x.id!==F.id), out = [
+        { t:`성을 친다 — 곧바로 결전(공성)${(() => { const src = F.my.map(city).filter(c => c.adj.includes(t.id)).sort((a, b) => b.troops - a.troops)[0]; if (!src) return ''; const keep = Math.max(1500, Math.round(Math.max(0, ...src.adj.map(city).filter(c => c.owner && c.owner!==G.pfac).map(c => c.troops))*.5)), n = Math.min(Math.round(src.troops*.6), src.troops - keep); return n < 800 ? ' · 성을 비울 수 없어 보급로 끊기로 바뀜' : ` · ${fmt(n)}명 출진, ${src.n}에 ${fmt(src.troops - n)} 남김`; })()}`, ok:{ frb:0, msg:'북소리와 함께 전군이 성벽으로 밀려간다.' } },
         { t:'보급로를 끊는다 — 적 성의 병력 -20%·군량 -2개월, 전선은 우세로 유지', ok:{ frb:1, msg:'기병이 적의 군량 수레를 불태웠다. 성 안이 술렁인다.' } } ];
       if (others.length) out.push({ t:`옆 전선의 뒤를 친다 — ${others.map(o => o.sec).join('·')} 전선 +35`, ok:{ frb:2, msg:'돌파한 군이 방향을 틀어 옆 전선의 적 뒤를 덮쳤다!' } });
       return out; } },
