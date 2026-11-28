@@ -5,6 +5,16 @@
 테스트 주소: https://pyungbum87-create.github.io/cheonha/nanse2/
 설계서: 난세일생 게임 설계서 (claude.ai Docs)
 
+## ★ 새 대화 이어받기 (2026-11-28 14:00 기준, 이 절만 먼저 읽기)
+**호칭·태도**: 사용자 = 사장님, 나 = 베파. 한국어만. 결론 먼저, 짧게, 압축(사용량 아끼기, 파일 다시 읽기 최소화). 묻는 것만 하지 말고 놓친 것 먼저 찾기, 스스로 꼼꼼히 점검("놓치는 게 너무 많아" 지적 받음). 모든 요청은 아래 「요청 장부」에 번호로 기록.
+**금지**: cheonha 저장소의 다른 게임 폴더 건드리지 않기. 비밀(키) 커밋·출력 금지. 런팟 키는 ~/.rp/key에만, 쓰고 나면 Stop → Terminate 후 비용 보고(지난번 $0.54, 서버 삭제 완료).
+**게임**: 난세2(삼국지 장수/군주 전략, 모바일 웹). 주소 https://pyungbum87-create.github.io/cheonha/nanse2/ — 제목·메뉴의 '버전'(KST MMDD-HHMM)으로 폰 캐시 확인.
+**빌드**: `cd nanse2/src && ESBUILD=/opt/npm-tools/node_modules/@esbuild/linux-x64/bin/esbuild bash rebuild.sh; cp min.html ../index.html` (주 파일 src/game_src.html, 그림 그리기 ink1~6.js, ink6에 art/anim/man.json 삽입)
+**점검**: `node tools/sim.js 30 300` → "오류 없음" / 서버 `(python3 -m http.server 8765 &)`(nanse2에서) 후 `AUDIT_URL=http://localhost:8765/index.html node tools/ui_audit.js` → 합계 모두 0(cover가 튜토리얼 탓에 가끔 튐 → 재실행) / `tools/econ.js`(ONE=1 성 하나 시작) 경제 점검 / 디버그 `?dbg=1` → globalThis.D(G, render, famTalk, court, frontStep…), sim은 T.
+**커밋**: `git -c user.name="Claude" -c user.email="noreply@anthropic.com" commit` + Co-Authored-By 줄 → fetch·rebase·`push origin HEAD:main`.
+**최근 완성(11-27~28)**: 그림 스프라이트·배경 그림체 통일, Pretendard+고운바탕 폰트, 광고(상황별·횟수), 원군·동맹 지원, 성 개발 세금식(dev×12+dev²×1.6, 비용 150+dev×30), 성벽 수리, 장수 정렬·필터, 자동 태수, 교류 대화(의형제·직급별 말투), 조정 관직(대군사·군사중랑장·승상·상서·친위대), 계급 NRANKS 13단계(모두 백인장 시작, 1년 1회 승진), 군단=작전실(민정·인사·군무), 반란·옥·참수(만류), 대군사가 부장 자동 배치·계책 선택, 거짓 항복·거짓 귀순 계책, 가족(아내·자녀 대화, 가문 점수 내역, 아내 초상), 지도: 가까운 성 터치·가장자리 여백·깃발 세력 글자·색 겹침 자동 교체·세력 정보 창·상단 한 줄 HUD.
+**남은 일**: ①econ 점검에서 난세 성 하나 시작 시 '조정 위주'(4/8 생존)가 '내정 위주'(6/8)보다 약함 → 원인 조사 ②큰 세력이 가만히 있으면 금이 8만까지 쌓임 → 금 쓸 곳 추가 ③군사 권한 수준은 사장님이 직접 시험 중 ④새 계책(거짓 항복·귀순) 세기 사장님 피드백 대기.
+
 ## 지금 있는 것 (2026-11-17)
 
 | 파일 | 내용 |
