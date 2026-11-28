@@ -16,7 +16,8 @@ window.DX = window.DX || {};
   DX.store = {
     get(k) { try { if (API && API.getStorageSync) return API.getStorageSync(k) || null; return localStorage.getItem(k); } catch (e) { return null; } },
     set(k, v) { try { if (API && API.setStorageSync) API.setStorageSync(k, v); else localStorage.setItem(k, v); } catch (e) {} },
-    clear() { try { if (API && API.clearStorageSync) API.clearStorageSync(); else localStorage.clear(); } catch (e) {} },
+    // 같은 주소의 다른 게임 저장까지 지우지 않게, 둠스데이 자기 저장(doomsday로 시작)만 지운다. 위챗은 게임마다 저장 공간이 따로라 clearStorageSync 그대로
+    clear() { try { if (API && API.clearStorageSync) API.clearStorageSync(); else Object.keys(localStorage).filter(k => k.indexOf('doomsday') === 0).forEach(k => localStorage.removeItem(k)); } catch (e) {} },
   };
 
   /* ---------------- 통계 ----------------

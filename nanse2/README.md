@@ -544,3 +544,9 @@ node tools/era_check.js                # 184년 시작 → 190년 시대 전환 
 - 시험(Playwright): 둠스데이식 localStorage.clear() 뒤 다시 열면 내 장수 자동 복원 / 파일 저장 → 모두 삭제 → 파일 불러오기 복원 — 통과. sim·act_test·화면 점검 0
 - build_dbg.py marker를 '} else { renderTitle(); storageGuard(); }'로 바꿈
 - 남은 일: doomsday 초기화를 자기 키만 지우게 고치기 — **다른 게임 폴더라 사장님 허락 필요**. 이미 지워진 내 장수는 되살릴 사본이 없으면 복구 불가
+
+## 요청 장부 (2026-11-28 21:00) "각각의 게임에 맞게 수정" — 저장소 전체 저장 공간 분리
+1. 조사(tools/storage_scan.py, 26개 게임): 전체 삭제는 doomsday 하나, 훑어 지우기는 deadroute(dr_만 지움 → 안전), 이름 충돌은 garden↔garden3d(vegdef_ 9개), town↔town2(tt-photo-v2). 루트 서비스 워커는 루트 파일만 다룸(안전), town sw는 스스로 해제(안전)
+2. 수정: doomsday js/platform.js·js/all.min.js clear() → doomsday로 시작하는 키만 삭제(위챗 clearStorageSync는 그대로), 로더 버전 1119-1301→1128-2110 / garden3d 저장 이름 23곳 vegdef3d_로, 첫 로드 때 vegdef_→vegdef3d_ 옮겨 담기 / town2 KEY tt-photo-v2-town2, 첫 로드 때 옮겨 담기
+3. 시험(Playwright, 같은 주소 서버): 둠스데이 초기화 뒤 난세 내 장수·정원·데드루트 저장 남음 / 정원3D가 정원 진행 옮겨 받고 정원 저장 그대로 / 마을2가 마을 진행 옮겨 받고 이후 서로 안 덮음 / 세 게임 페이지 오류 0
+4. 루트 README에 '저장 공간 규칙' 추가(고유 앞말, clear 금지, 점검 도구)

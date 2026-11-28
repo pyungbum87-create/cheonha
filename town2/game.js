@@ -8,7 +8,7 @@ const now=()=>Date.now();
 const QS=(()=>{const o={};if(!PF&&typeof location!=='undefined')location.search.slice(1).split('&').forEach(p=>{const i=p.indexOf('=');if(i>0)o[p.slice(0,i)]=decodeURIComponent(p.slice(i+1));});return o;})();
 const TEST_OPEN_ALL=QS.all==='1'||QS.debug==='1';
 /* ---------- save ---------- */
-const KEY='tt-photo-v2';
+const KEY='tt-photo-v2-town2';/* 저장 분리(2026-11-28): 마을(town)과 같은 이름을 쓰던 것을 마을2 전용으로, 처음 한 번 옮겨 담기 */try{if(localStorage.getItem(KEY)===null){const o=localStorage.getItem('tt-photo-v2');if(o!==null)localStorage.setItem(KEY,o);}}catch(e){}
 function sget(){try{return PF?PF.getStorageSync(KEY):localStorage.getItem(KEY);}catch(e){return null;}}
 let SAVE={alb:{},last:{},found:{}};try{const s=JSON.parse(sget()||'null');if(s&&s.alb)SAVE=Object.assign(SAVE,s);}catch(e){}
 function persist(){try{const v=JSON.stringify(SAVE);PF?PF.setStorageSync(KEY,v):localStorage.setItem(KEY,v);}catch(e){}}
