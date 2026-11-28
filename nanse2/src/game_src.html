@@ -366,6 +366,7 @@ p{margin:0}
 .mlist{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}.mrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:#fffaf0;font:inherit;color:inherit;text-align:left;min-height:56px}.mrow:last-child{border-bottom:0}.mrow b{display:block;font-size:14px}.mrow small{display:block;font-size:12px;color:var(--muted)}.mi{width:30px;height:30px;border-radius:9px;background:#efe5cf;display:grid;place-items:center;font-size:16px;color:#5e5347}.mch{font-size:21px;color:#b7a789}.mrow.dim b{color:var(--muted)}.mrow.danger b{color:var(--red)}.mrow.danger .mi{background:#f6dcd6;color:var(--red)}
 .tgl{width:46px;height:28px;border-radius:14px;background:#cfc3a9;position:relative;flex:0 0 46px;transition:background .2s}.tgl i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}.tgl.on{background:#3d7a52}.tgl.on i{transform:translateX(18px)}
 .mapview.th{display:flex;flex-direction:column;gap:8px;padding:8px 10px 96px;overflow-y:auto}.mseg{display:flex;gap:4px;background:#e6dcc6;border-radius:12px;padding:3px;align-self:center;position:relative;z-index:3}.mapview:not(.th) .mseg{position:absolute;bottom:14px;left:12px;box-shadow:0 2px 8px rgba(40,25,10,.25)}.mseg button{border:0;background:none;font:inherit;font-size:13px;font-weight:700;padding:6px 18px;border-radius:9px;color:#5e5347;min-height:36px}.mseg button.on{background:#2a1f16;color:#f4ecdc}
+.lgc{margin:8px 0;border:1px solid #a8822a55;border-radius:12px;padding:6px 10px;background:#a8822a0d}.lgc summary{cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.lgrow{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}.lgs{flex:none;width:40px;height:40px;border-radius:10px;background:var(--c);color:#fff;display:grid;place-items:center;font-size:20px;font-weight:900}.lgt{display:flex;gap:4px;margin:4px 0}.lgt span{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;border:1.5px solid var(--c);color:var(--c)}.lgt span.on{background:var(--c);color:#fff}.lgt span.nx{box-shadow:0 0 0 3px #d4a01f66}.lgrow small{display:block;font-size:12.5px}.lgb{flex:none;min-height:44px}
 .budget{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}.budget summary{cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.bud{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13px;margin:4px 0}.bud b{color:#a33;text-align:right}
 .phase{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e6dcc6;color:#5e5347;margin-left:4px;vertical-align:2px}.phase.good{background:#dcefdf;color:#2f6b3a}.phase.hot{background:#2f6b3a;color:#fff}.phase.warn{background:#f6e3c4;color:#8a5a12}.phase.bad{background:#a3322a;color:#fff}
 .phase.terr{background:#e9e2f0;color:#5a4a7a}.thint{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:#f1e8d6}.thint .gl{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#6f6356;color:#fff;font-family:var(--seal);flex:0 0 28px}.thint b{display:block;font-size:13px}.thint small{display:block;font-size:12px;color:var(--muted)}.thint.warn{background:#f6e3c4}.thint.warn .gl{background:#b8791a}.thint.bad{background:#f6dcd6}.thint.bad .gl{background:#a3322a}
@@ -1630,7 +1631,7 @@ const armiesOf = f => G.armies.filter(a => a.fac===f);
 const armyById = id => G.armies.find(a => a.id===id);
 const totalTroops = f => citiesOf(f).reduce((a,c) => a+c.troops, 0) + armiesOf(f).reduce((a,x) => a+x.troops, 0);
 const growth = a => clamp((a-3)/14, .15, 1);
-const kidStat = (k, s) => Math.round(k.st[s]*growth(G.year-k.born));
+const kidStat = (k, s) => Math.min(100, Math.round(k.st[s]*growth(G.year-k.born)) + (lg('hy') >= 4 ? 4 : 0));
 const mi = () => G.year*12 + G.month;
 const dateStr = () => `${G.year}년 ${G.month}월`;
 /* 성벽 보수: 한 번에 최고치의 1/3(포위 중이면 절반 효과), 금 = 올리는 양 × 5 */
@@ -1907,6 +1908,7 @@ function calendar(ff){
       G.maxAge = Math.max(G.maxAge, a);
       let d = a<35 ? -6 : a<45 ? 2 : a<55 ? 5 : a<65 ? 8 : 12;
       if (me().tr==='장수' && d>0) d = Math.ceil(d/2);
+      if (d>0 && lg('hy')) d = Math.round(d*(lg('hy') >= 5 ? .5 : .75));
       if (d>0) d += ri(0,3);
       G.hp = clamp(G.hp - d);
       for (const k of G.kids) if (k.pid && person(k.pid) && person(k.pid).alive){ const q = person(k.pid); for (const st of ['m','i','l','c']) q[st] = Math.max(q[st], kidStat(k, st)); }
@@ -2347,6 +2349,7 @@ function createArmy(o){
   const a = { id, fac:o.fac, gens:(o.gens||[]).filter(Boolean), troops:Math.round(o.troops), max:Math.round(o.troops), morale:o.morale ?? 95, train:o.train ?? 55,
     food:o.food ?? 6, from:o.from, to:o.to, home:o.from, kind:o.kind||'attack', state:'march', eta, total:eta, siege:0, player:!!o.player, share:o.share ?? 0 };
   for (const g of a.gens){ const p = person(g); if (p) p.army = id; }
+  if (a.fac===G.pfac && lg('mu') >= 2) a.morale = Math.min(100, a.morale + 8);
   if (a.fac===G.pfac && a.gens.some(isElite)){ a.train = Math.min(100, a.train + 10); a.morale = Math.min(100, a.morale + 5); a.elite = 1; }
   if (a.player) G.inArmy = id;
   G.armies.push(a);
@@ -2430,6 +2433,7 @@ function frEval(F){
   if (S.rift > 0) en.k *= .8;
   if (S.mole > 0) en.k *= .88;
   if (S.merc && G.role==='ruler') me_.k *= 1.15;
+  if (lg('mu') >= 4) me_.k *= 1.06;
   const a = Math.pow(me_.t, .8)*me_.k, b = Math.pow(en.t, .8)*en.k; // 병력의 이점은 점점 줄어든다: 두 배의 병력이 두 배의 힘은 아니다
   return { S, me_, en, ratio: a/(a + b || 1) };
 }
@@ -3832,7 +3836,7 @@ function duelFinish(B, out){
     if (Math.random() < (ko ? .5 : .3)){ B.duelCap = foe.gid; B.lastDuel.cap = true; foe.morale = Math.max(0, foe.morale-20); B.log.push(`${J(foe.name,'을')} 사로잡았다!`); }
   } else if (out==='lose'){
     mine.morale = Math.max(0, mine.morale - 35); foe.morale = Math.min(130, foe.morale + 15);
-    let h = Math.round(rnd(15,30)*(ds.mh<=0 ? 1 : .6)); if (me().tr==='강철') h = Math.round(h*.6);
+    let h = Math.round(rnd(15,30)*(ds.mh<=0 ? 1 : .6)); if (me().tr==='강철') h = Math.round(h*.6); if (lg('mu') >= 5) h = Math.round(h*.6);
     G.hp = clamp(G.hp - h);
     B.log = [`${foe.name}의 창끝이 그대를 스쳤다. 체력 -${h}`];
     if (ds.mh<=0 && (G.hp<=0 || (me().tr!=='강철' && Math.random()<.06))){ G.dead = '전사'; B.lastDuel.died = true; B.log.push('그대는 말에서 떨어져 다시 일어나지 못했다.'); endB(B, B.ps==='att' ? 'def' : 'att'); }
@@ -4099,7 +4103,7 @@ function tbDuelFinish(B, out){
     if (ko && Math.random()<.4){ e.out = true; e.troops = Math.round(e.troops*.6); B.duelCap = e.gid; tb.log.push(`${J(e.name,'을')} 사로잡았다! 부대가 흩어진다.`); if (e.cmd) for (const o of tb.units) if (!o.out && o.side===e.side) o.morale = clamp(o.morale-22, 0, 130); }
     else tbCheckRout(B, e);
   } else if (out==='lose'){ u.morale = clamp(u.morale-30, 0, 130); e.morale = clamp(e.morale+12, 0, 130);
-    let h = Math.round(rnd(12,24)*(ds.mh<=0 ? 1 : .6)); if (me().tr==='강철') h = Math.round(h*.6); G.hp = clamp(G.hp - h);
+    let h = Math.round(rnd(12,24)*(ds.mh<=0 ? 1 : .6)); if (me().tr==='강철') h = Math.round(h*.6); if (lg('mu') >= 5) h = Math.round(h*.6); G.hp = clamp(G.hp - h);
     tb.log.push(`일기토에서 밀렸다. 체력 -${h}`);
     if (ds.mh<=0 && G.hp<=0){ G.dead = '전사'; B.lastDuel.died = true; return tbFinish(B, B.ps==='att' ? 'def' : 'att'); }
     tbCheckRout(B, u);
@@ -4947,7 +4951,7 @@ const roll = (stat, d) => Math.random() < check(stat, d);
 function trustAdd(v){ if (v<0 && me().tr==='충의') v = Math.round(v*.6); if (v<0 && G.path==='mun' && pathLv() >= 2) v = Math.round(v*.7); if (v>0 && me().tr==='인덕') v = Math.round(v*1.2); G.trust = clamp(G.trust+v); return v; }
 // 원정 군량: 평소 먹이는 값은 유지비에 들어 있으므로, 원정에서 더 드는 몫만 받는다
 const foodCost = (troops, months) => Math.round(troops/1000*months*6);
-const plotBonus = () => clamp((me().i-65)/300, -.05, .15) + dif().plot + (hasT(me(),'gangye') ? .08 : 0) + (G.role==='officer' && G.path==='chaek' ? pathLv()*.03 : 0);
+const plotBonus = () => clamp((me().i-65)/300, -.05, .15) + dif().plot + (hasT(me(),'gangye') ? .08 : 0) + (G.role==='officer' && G.path==='chaek' ? pathLv()*.03 : 0) + (lg('mun') >= 2 ? .06 : 0);
 function plotChance(kind, cid, gid){
   const c = city(cid), dg = bestGen(cid, c.owner), res = dg ? dg.i : 40;
   if (kind==='discord'){ const t = person(gid); return clamp(.15 + (me().i-60)/120 + (me().c-60)/200 + bond(gid)/200 - (t.loy||70)/250 + plotBonus(), .03, .85); }
@@ -5210,7 +5214,7 @@ const ACT = {
     const free = p.fac==='free';
     if (free && city(p.city).owner!==G.pfac) return;
     if (!spend(free?0:100)) return;
-    const ch = free ? clamp(.45 + (me().c-60)/80 + bond(id)/200, .05, .95) : clamp(.1 + (me().c-60)/100 + bond(id)/150 - p.loy/300, .03, .7);
+    const lb = lg('mun') >= 4 ? .12 : 0, ch = free ? clamp(.45 + (me().c-60)/80 + bond(id)/200 + lb, .05, .95) : clamp(.1 + (me().c-60)/100 + bond(id)/150 - p.loy/300 + lb, .03, .75);
     const ok = Math.random()<ch; recruitTalk(p, ok);
     if (ok){ p.fac = G.pfac; if (!free) p.city = G.city; p.loy = 55; addBond(id, 10); toast(`${J(p.n,'이')} 그대의 뜻에 함께하기로 했다!`, [[`${p.n} 합류`,true]]); news(`${J(p.n,'이')} ${facName(G.pfac)}에 합류했다.`, true, true); }
     else { addBond(id, -3); toast(`${J(p.n,'은')} 정중히 거절했다.`, [], true); }
@@ -5472,7 +5476,7 @@ function startMonth(first){
 }
 /* 세금: 개발이 높을수록 장사·인구가 함께 늘어 한 단계 올릴 때 더 많이 오른다 (1→12+1.6, 10→280) */
 const cityTax = d => d*12 + d*d*1.6;
-function taxMul(){ const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05); return (.6+G.trust/250)*dif().inc*eff; }
+function taxMul(){ const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05); return (.6+G.trust/250)*dif().inc*eff*(lg('mun') >= 3 ? 1.05 : 1); }
 const cityTaxNow = c => Math.round(cityTax(c.dev)*taxW(c)*taxMul());
 const devCost = c => 150 + c.dev*30;
 const devGain = c => Math.round((cityTax(c.dev+1) - cityTax(c.dev))*taxW(c)*taxMul());
@@ -5495,6 +5499,7 @@ function endMonth(){
   }
   else if (G.role==='officer'){ const s = Math.round((30 + G.rank*25 + (G.gov?20:0))*dif().inc); G.gold += s; G.lastIncome = s; if (G.month===12) G.trust = clamp(G.trust-3); }
   if (G.month%6===0 && G.role==='ruler') G.trust = clamp(G.trust + (G.trust<60 ? 2 : -1));
+  if (G.month===12 && lg('mun') >= 5){ G.trust = clamp(G.trust + 3); for (const p of npcs()) if (p.fac===G.pfac && active(p)) p.loy = clamp((p.loy??70) + 2); }
   if (G.month===12 && G.role==='ruler') for (const c of citiesOf(G.pfac)){
     if (hasW(c, 'hak')){ const L = npcs().filter(p => p.fac===G.pfac && active(p) && p.city===c.id).sort(() => Math.random() - .5).slice(0, 3), up = [];
       for (const p of L){ const k = (p.g ?? p.i) < p.i ? 'g' : 'i'; if (p[k]==null) p[k] = p.i; if (p[k] < 100){ p[k]++; up.push(`${p.n} ${ST[k]}`); } }
@@ -5655,6 +5660,25 @@ function genParts(){
     ['가족의 정', Math.min(60, love*2)], ['다스리는 성', G.role==='ruler' && G.pfac ? citiesOf(G.pfac).length*40 : 0], ['역사보다 장수', p.d && G.year > p.d && G.mode==='real' ? 100 : 0]];
 }
 function genScore(){ return Math.round(genParts().reduce((a, x) => a + x[1], 0)); }
+/* 가문 유산: 대를 이으며 쌓은 업적이 '명망'이 되고, 명망으로 이번 판 모든 가주에게 이어지는 특전을 연다(3갈래 × 5단계) */
+const LG = {
+  mu:{ n:'무가', gl:'武', c:'#a3322a', d:'칼로 가문을 세운다', t:[['무예 전승','가주 무력 +3'],['군문의 기세','우리 부대 출진 사기 +8'],['일문 무장','가문 출신 장수 무력·통솔 +4'],['백전의 가풍','전선 미는 힘 +6%'],['천하무쌍','가주가 싸움·일기토에서 받는 피해 -40%']] },
+  mun:{ n:'문가', gl:'文', c:'#3d5a7a', d:'붓과 지혜로 가문을 지킨다', t:[['서향 전승','가주 지략 +3'],['책사의 피','계략 성공률 +6%p'],['경세의 가풍','세금 +5%'],['명문 인맥','인재 등용 성공 +12%p'],['천하의 명망','해마다 민심 +3, 장수 충성 +2']] },
+  hy:{ n:'혈맥', gl:'血', c:'#3d6b47', d:'핏줄을 길고 굳게 잇는다', t:[['튼튼한 핏줄','나이 들어 깎이는 체력 -25%'],['가산 보전','대를 이을 때 금 90% 유지(원래 70%)'],['가신의 의리','대를 이을 때 인연 80% 유지, 계급이 내려가지 않음'],['영재 교육','자녀 능력 +4'],['장수 가문','나이 들어 깎이는 체력 -50%, 새 가주 능력 +3']] } };
+const LG_COST = [150, 300, 450, 650, 900];
+const lg = k => ((typeof G!=='undefined' && G && G.lg) || {})[k] || 0;
+const renown = () => Math.max(0, Math.floor(((G.dynScore||0) + genScore())*.5) - (G.lgSpent||0));
+function lgHeadBonus(p){ if (!p) return; if (lg('mu') >= 1) p.m = clamp(p.m + 3); if (lg('mun') >= 1) p.i = clamp(p.i + 3); if (lg('hy') >= 5) for (const k of ['m','i','l','c']) p[k] = clamp(p[k] + 3); }
+function lgFamBonus(p){ if (p && lg('mu') >= 3 && !p.lgFam){ p.lgFam = 1; p.m = clamp(p.m + 4); p.l = clamp(p.l + 4); } }
+function buyLegacy(k){
+  G.lg = G.lg || {}; const lv = lg(k); if (!LG[k] || lv >= 5) return; const cost = LG_COST[lv]; if (renown() < cost) return toast('명망이 모자란다.', [], true);
+  G.lgSpent = (G.lgSpent||0) + cost; G.lg[k] = lv + 1; const T = LG[k].t[lv];
+  if (k==='mu' && lv===0) me().m = clamp(me().m + 3);
+  if (k==='mun' && lv===0) me().i = clamp(me().i + 3);
+  if (k==='hy' && lv===4) for (const x of ['m','i','l','c']) me()[x] = clamp(me()[x] + 3);
+  if (k==='mu' && lv===2) for (const p of npcs()) if (p.fam && p.alive && p.fac===G.pfac) lgFamBonus(p);
+  Snd.sfx('win'); toast(`가문 유산 · ${LG[k].n} ${lv+1}단계 「${T[0]}」`, [[T[1], true], [`명망 -${fmt(cost)}`, false]]); news(`${G.surname}씨 가문이 ${LG[k].n}의 길을 넓혔다: 「${T[0]}」 — ${T[1]}`, false, true); save(); render();
+}
 function heirCands(){
   const adults = G.kids.filter(k => G.year-k.born>=15 && !k.dead && !k.out);
   const list = [];
@@ -5690,12 +5714,13 @@ function succeed(ch){
   if (np.army){ const a = armyById(np.army); if (a) a.gens = a.gens.filter(g => g!==np.id); np.army = null; }
   G.pid = np.id; np.city = G.city; np.fac = G.pfac || 'free';
   if (!SIM && hl('blood')) for (const k of ['m','i','l','c']) np[k] = clamp(np[k] + hl('blood'));
+  lgHeadBonus(np); for (const q of npcs()) if (q.fam && q.alive && q.fac===G.pfac) lgFamBonus(q);
   if (G.role==='ruler') fac(G.pfac).ruler = np.id;
   else if (G.pfac && fac(G.pfac) && fac(G.pfac).ruler===np.id){ G.role = 'ruler'; G.rank = 0; G.mission = null; G.campaign = null; G.trust = 70; if (G.gov){ city(G.gov).gov = null; G.gov = null; } }
-  if (G.role==='officer'){ G.rank = Math.max(0, G.rank-2); G.trust = 50; G.troops = Math.round(G.troops*.5); if (G.gov){ city(G.gov).gov = null; G.gov = null; } }
-  G.gold = Math.round(G.gold*.7); G.merit = 0; G.hp = 100; G.train = Math.round(G.train*.8);
+  if (G.role==='officer'){ G.rank = Math.max(0, G.rank - (lg('hy') >= 3 ? 0 : 2)); G.trust = 50; G.troops = Math.round(G.troops*.5); if (G.gov){ city(G.gov).gov = null; G.gov = null; } }
+  G.gold = Math.round(G.gold*(lg('hy') >= 2 ? .9 : .7)); G.merit = 0; G.hp = 100; G.train = Math.round(G.train*.8);
   G.spouse = null; G.spouses = []; G.kids = []; G.heir = null; G.gen++; G.startYear = G.year;
-  for (const k of Object.keys(G.bond)) G.bond[k] = Math.round(G.bond[k]/2);
+  for (const k of Object.keys(G.bond)) G.bond[k] = Math.round(G.bond[k]*(lg('hy') >= 3 ? .8 : .5));
   G.sworn = []; delete G.bond[np.id];
   G.dead = null;
   news(`${J(np.n,'이')} 가문을 이었다. (${G.gen}대)`, true, true);
@@ -6629,7 +6654,7 @@ function viewNav(){
     ${b('army','<img class="nvi" src="art/ui/nav_army.webp" alt="">','군단', threats ? `<span class="badge">${threats}</span>` : mine ? `<span class="badge" style="background:var(--ink)">${mine}</span>` : '')}
     <button class="next" id="nextBtn" ${G.phase!=='act'?'disabled':''}><img class="nvn" src="art/ui/nav_next.webp" alt=""><b>다음 달 ▸</b><span class="ap">${Array.from({length:apMax()},(_,i)=>`<i class="${i<G.ap?'':'off'}"></i>`).join('')}</span></button>
     ${b('people','<img class="nvi" src="art/ui/nav_people.webp" alt="">','인물')}
-    ${b('family','<img class="nvi" src="art/ui/nav_family.webp" alt="">','가문')}
+    ${b('family','<img class="nvi" src="art/ui/nav_family.webp" alt="">','가문', Object.keys(LG).some(k => lg(k) < 5 && renown() >= LG_COST[lg(k)]) ? '<span class="badge" style="background:#a8822a" aria-label="가문 유산을 열 수 있음">유</span>' : '')}
   </nav>`;
 }
 
@@ -7151,6 +7176,17 @@ function famTalk(kind, id){
   }
   render();
 }
+function lgCard(){
+  const r = renown(), nx = Object.keys(LG).some(k => lg(k) < 5 && r >= LG_COST[lg(k)]);
+  return `<details class="lgc" ${nx ? 'open' : ''}><summary><b>가문 유산</b> <span class="chip gold">명망 ${fmt(r)}</span>${nx ? ' <span class="chip up">열 수 있음</span>' : ''}</summary>
+    <p class="tiny muted">명망 = (지난 대의 가문 점수 + 이번 대 점수)의 절반 − 쓴 명망. 한 번 연 유산은 이번 판의 모든 가주에게 이어진다.</p>
+    ${Object.entries(LG).map(([k, L]) => { const lv = lg(k), cost = LG_COST[lv];
+      return `<div class="lgrow" style="--c:${L.c}"><span class="lgs">${L.gl}</span><div class="grow"><b>${L.n}</b><span class="small muted"> · ${L.d} · ${lv}/5</span>
+        <div class="lgt">${L.t.map((t, i) => `<span class="${i < lv ? 'on' : i===lv ? 'nx' : ''}" title="${esc(t[1])}">${i+1}</span>`).join('')}</div>
+        ${lv < 5 ? `<small>다음: <b>${L.t[lv][0]}</b> — ${L.t[lv][1]}</small>` : '<small>모두 열었다</small>'}</div>
+        ${lv < 5 ? `<button class="btn2 lgb" data-lg="${k}" ${r >= cost ? '' : 'disabled'}>명망 ${fmt(cost)}</button>` : ''}</div>`; }).join('')}
+  </details>`;
+}
 function viewFamily(){
   const kids = G.kids.map(k => {
     const a = G.year-k.born, canEdu = a>=5 && a<=16 && G.ap>0, adult = a>=15;
@@ -7170,6 +7206,7 @@ function viewFamily(){
   <div class="card"><div class="row between"><h3>${G.surname}씨 가문 · ${G.gen}대</h3><span class="chip gold">가문 점수 ${fmt(G.dynScore)} + 이번 대 ${fmt(genScore())}</span></div>
     <details class="gscore"><summary class="small">가문 점수 올리는 법</summary><div class="gs-grid">${genParts().map(([k, v]) => `<span>${k}</span><b>${fmt(v)}</b>`).join('')}</div><p class="tiny muted">공적은 싸움·임무로, 계급은 승진으로 오른다. 해마다 +3, 자녀 한 명 +20, 출사한 자녀 +30, 아내·자녀와 시간을 보낼수록 '가족의 정'(최대 60). 군주면 성 하나에 +40. 대가 끝나면(죽거나 물려주면) 이번 대 점수가 가문 점수에 더해지고, 천하통일이면 +1500.</p></details>
     <p class="small muted">자식이 15세가 되면 장수로 출사시켜 곁에서 싸우게 하거나, 다른 가문과 혼인시켜 관계를 굳힐 수 있다. 그대가 죽으면 후계자가 이어서 플레이한다.</p>
+    ${lgCard()}
     ${(G.creeds||[]).length ? `<div class="row" style="flex-wrap:wrap;gap:4px"><span class="small muted">가훈</span>${G.creeds.map(id => { const c = CREED.find(x=>x[0]===id); return `<span class="chip">${c[1]} ${c[2]}</span>`; }).join('')}</div>` : ''}
     ${spList().length ? spList().map((sp,i) => `<div class="row between"><div class="row">${ptHTML(spLook(sp), Math.max(16, ageOf(me())-3), true, facColor(G.pfac), 40)}<span>${i===0?'정실':'부인'} <b>${esc(sp.n)}</b> <span class="small muted">(${sp.y}년 혼인${sp.from&&person(sp.from)?' · '+esc(person(sp.from).n)+'의 딸':''})</span></span></div><span class="row" style="gap:5px"><button class="ghost" data-fam="sp" data-arg="${sp.id}" ${(G.flags.famT||{})[sp.id]===mi() ? 'disabled' : ''}>함께 시간 보내기</button><button class="ghost" data-sheet="divorce" data-arg="${sp.id}">이혼</button></span></div>`).join('') : '<div class="row"><span class="small">배우자 없음</span></div>'}
     ${canWed && ageOf(me())>=15 ? `<div class="acts">${actBtn('명문가 혼담','금 300','data-act="marry" data-arg="noble"',G.ap>0&&G.gold>=300)}
@@ -7324,6 +7361,7 @@ function renderSuccession(){
     <p>${p.b}–${G.year}. ${ageOf(p)}세에 ${EPI[G.dead]||'세상을 떠났다'}.</p>
     ${p.d && G.mode==='real' ? `<p class="small muted">${G.year>p.d?`역사 속 ${p.n}보다 ${G.year-p.d}년 더 살았다.`:G.year<p.d?`역사 속 ${p.n}보다 ${p.d-G.year}년 일찍 떠났다.`:'역사와 같은 해에 떠났다.'}</p>` : ''}
     <div class="scorebox"><div><span>이번 대 점수</span><b>${fmt(sc)}</b></div><div><span>공적</span><b>${fmt(G.merit)}</b></div><div><span>자녀</span><b>${G.kids.length}</b></div></div>
+    <p class="small" style="text-align:center">이 대의 업적으로 가문의 <b>명망 ${fmt(renown())}</b>을 쓸 수 있다. 새 가주가 되면 <b>가문 화면 → 가문 유산</b>에서 이어지는 특전을 열자.${G.lg && Object.keys(G.lg).length ? ` 지금까지 연 유산: ${Object.entries(G.lg).map(([k, v]) => `${LG[k].n} ${v}단계`).join(', ')}` : ''}</p>
   </div>
   ${G.dead!=='숙청' && G.flags.revGen!==G.gen ? `<div class="card"><h3>천명을 붙잡는다</h3><p class="small muted">광고를 보면 이번 대에 한 번, 죽음의 문턱에서 돌아온다.</p><button class="btn2" id="reviveBtn">▶ 광고 보고 되살아나기</button></div>` : ''}
   <div class="card"><h3>${cands.length ? '누가 뒤를 이을 것인가' : '가문의 대가 끊겼다'}</h3>
@@ -8229,6 +8267,7 @@ function bind(){
   on('#closePanel', () => { G.panel = false; render(); });
   on('#panelBg', () => { G.panel = false; render(); });
   on('[data-act]', b => doAct(b.dataset.act, b.dataset.arg, b.dataset.arg2));
+  on('[data-lg]', b => buyLegacy(b.dataset.lg));
   on('#cnBtn', () => { if (G.talks && G.talks.length) return; queueCouncil(true); if (!(G.talks && G.talks.length)) toast('평정에 나올 장수가 없다.', [], true); render(); });
   on('[data-sheet]', b => openSheet(b.dataset.sheet, b.dataset.arg));
   on('[data-facinfo]', b => openFacInfo(b.dataset.facinfo));
@@ -8424,9 +8463,9 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
 /* =====================================================================
    BOOT
    ===================================================================== */
-if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, mi, famTalk, makeKid, addSpouse, spouseLook, doAct, openSheet, frontStep, court, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
+if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, mi, renown, famTalk, makeKid, addSpouse, spouseLook, doAct, openSheet, frontStep, court, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
-  globalThis.T = { WORKS, workWhyNot, frState, frCorps, corpsAvail, FR_INV, frInvest, rebel, frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { LG, lg, renown, buyLegacy, WORKS, workWhyNot, frState, frCorps, corpsAvail, FR_INV, frInvest, rebel, frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
