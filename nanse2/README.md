@@ -525,3 +525,9 @@ node tools/era_check.js                # 184년 시작 → 190년 시대 전환 
 3. C(먹 원 돌격 기마) → 가주가 전사했을 때 대 잇기 화면 그림(art/end_charge.webp, 예전 bg_field_dusk 대신)
 4. B(투구) → art/icon_alt_helmet.webp로 보관(예비 아이콘)
 - 점검: sim 오류 없음, 화면 점검 fail 0·문제 0, 두 화면 직접 촬영 확인
+
+## 요청 장부 (2026-11-28 20:31~20:33) 홈 화면 아이콘 — 버전 1128-2035
+1. 홈 화면 추가 설정: 아이폰 이름 '난세일생', 전체 화면(standalone), 상태 표시줄, manifest id·설명, 큰 아이콘 링크(192·512)
+2. 사장님 폰 홈 화면 아이콘이 '난' 글자로 나옴 → 원인: **game_src.html 맨 앞의 작은 <head>가 먼저 닫혀서(</head><body>), 제목·아이콘·manifest·아이폰 설정·본 스타일이 전부 <body> 안에 있었음** → 브라우저가 manifest를 못 찾음(CDP Page.getAppManifest url 빈칸). </head><body>를 <div id="app"> 바로 앞으로 옮김 → manifest 인식, 설치 가능 오류 0. (새 아이콘 전부터 있던 문제)
+- 점검: sim·act_test·화면 점검 0, 대화 장면 촬영 정상
+- 사장님 할 일: 예전 '난' 아이콘 지우고 다시 '홈 화면에 추가'

@@ -1,4 +1,5 @@
 {
+  "id": "./",
   "name": "난세일생 2",
   "short_name": "난세일생",
   "lang": "ko",
@@ -26,5 +27,6 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "description": "한 사람의 일생과 가문으로 살아가는 삼국지 전략 게임"
 }
