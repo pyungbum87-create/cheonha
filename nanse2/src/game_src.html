@@ -1635,8 +1635,33 @@ const dateStr = () => `${G.year}년 ${G.month}월`;
 /* 성벽 보수: 한 번에 최고치의 1/3(포위 중이면 절반 효과), 금 = 올리는 양 × 5 */
 const wallGain = c => Math.max(1, Math.min(maxWall(c) - c.wall, Math.round(maxWall(c)/3*(besieged(c.id) ? .5 : 1))));
 const wallCost = c => Math.max(30, wallGain(c)*5);
-const maxWall = c => 30 + c.dev*5 + ({ pass:30, mountain:15, river:5 }[TERRAIN[c.id]] || 0);
-const cityCap = c => c.dev*2200 + 3000;
+const maxWall = c => 30 + c.dev*5 + ({ pass:30, mountain:15, river:5 }[TERRAIN[c.id]] || 0) + (c.bld && c.bld.gwan ? 40 : 0);
+/* =====================================================================
+   대형 사업: 성마다 한 번에 하나씩, 몇 달에 걸쳐 짓는다. 지은 시설은 성에 남는다(성을 빼앗기면 적의 것이 된다).
+   큰 세력이 쌓아 둔 금을 쓰는 곳. 시설마다 달마다 유지비가 든다.
+   ===================================================================== */
+const WORKS = {
+  tun:{ n:'둔전', gl:'둔', cost:c => 1800 + c.dev*120, mo:6, up:10, d:'병사가 농사를 짓는다. 성 안 군량 상한 +3개월, 장정(징병 인구) 상한·회복 +30%.' },
+  si:{ n:'대시장', gl:'시', cost:c => 2400 + c.dev*220, mo:8, up:0, need:c => c.dev >= 5 ? '' : '개발 5 이상', d:'큰 저잣거리를 연다. 이 성 세금 +25%.' },
+  ying:{ n:'병영', gl:'영', cost:c => 2600 + c.dev*150, mo:8, up:20, d:'병사가 묵을 큰 군영. 이 성 최대 병력 +30%, 달마다 병력 회복 +50%.' },
+  gwan:{ n:'관문 요새', gl:'관', cost:c => 3000 + c.dev*100, mo:9, up:15, d:'성 밖에 관문과 망루를 쌓는다. 성벽 상한 +40, 이 성을 지키는 싸움에서 힘 +8%.' },
+  hak:{ n:'태학', gl:'학', cost:() => 5000, mo:12, up:25, one:1, d:'나라의 큰 학당(나라에 하나). 해마다 이 성에 있는 우리 장수 셋의 지략 또는 정무 +1.' },
+  gung:{ n:'궁궐 증축', gl:'궁', cost:() => 8000, mo:12, up:30, one:1, cap:1, d:'도읍에만(나라에 하나). 군주의 위엄이 선다. 해마다 민심 +4, 우리 장수 모두 충성 +2.' }
+};
+const hasW = (c, k) => !!(c && c.bld && c.bld[k]);
+const worksUp = fid => citiesOf(fid).reduce((a, c) => a + Object.keys(c.bld||{}).reduce((b, k) => b + (WORKS[k] ? WORKS[k].up : 0), 0), 0);
+const taxW = c => hasW(c, 'si') ? 1.25 : 1;
+function workWhyNot(c, k){ const W = WORKS[k]; if (!W) return '없는 사업';
+  if (hasW(c, k)) return '완공됨'; if (c.work) return `${WORKS[c.work.k].n} 공사 중`;
+  if (W.need && W.need(c)) return W.need(c);
+  if (W.cap && capitalOf(c.owner)!==c.id) return '도읍에만';
+  if (W.one && citiesOf(c.owner).some(o => hasW(o, k) || (o.work && o.work.k===k))) return '나라에 하나뿐';
+  if (besieged(c.id)) return '포위 중'; return ''; }
+// 공사가 끝났는가(달마다 모든 성). 성 주인이 바뀌면 짓던 공사는 무너진다
+function workStep(c, f, pr){ if (!c.work) return; if (c.work.f!==f.id){ delete c.work; return; }
+  if (mi() >= c.work.at){ const k = c.work.k; c.bld = c.bld || {}; c.bld[k] = 1; delete c.work; if (k==='gwan') c.wall = Math.min(maxWall(c), c.wall + 20);
+    if (f.id===pr) news(`${c.n}의 ${WORKS[k].n} 공사가 끝났다! ${WORKS[k].d.split('.')[1] ? WORKS[k].d.split('. ').slice(1).join('. ') : ''}`, true, true); } }
+const cityCap = c => Math.round((c.dev*2200 + 3000)*(hasW(c, 'ying') ? 1.3 : 1));
 const besieged = cid => G.armies.some(a => a.state==='siege' && a.to===cid);
 const travel = (a,b) => { const A = city(a), B = city(b); return Math.hypot(A.x-B.x, A.y-B.y) > 24 ? 2 : 1; };
 const dist = (a,b) => { const A = city(a), B = city(b); return Math.hypot(A.x-B.x, A.y-B.y); };
@@ -1930,12 +1955,13 @@ function monthStep(ff){
       if (f.guest && f.guest.until >= mi() && person(f.ruler) && person(f.ruler).alive){ guestStep(f, ff); continue; }
       if (!armiesOf(f.id).length) destroyFaction(f.id); continue; }
     for (const c of cs){
-      c.pool = Math.min(c.dev*600, (c.pool||0) + c.dev*45);
+      { const tk = c.bld && c.bld.tun ? 1.3 : 1; c.pool = Math.min(Math.round(c.dev*600*tk), (c.pool||0) + Math.round(c.dev*45*tk)); }
+      workStep(c, f, pr);
       if (!besieged(c.id)){ c.wall = Math.min(maxWall(c), c.wall + 3); c.morale = Math.min(100, (c.morale??100) + 5); }
       const cap = cityCap(c);
       if (f.id===pr){
         const g = c.gov && person(c.gov);
-        if (c.troops < cap) c.troops = Math.min(cap, c.troops + c.dev*15);
+        if (c.troops < cap) c.troops = Math.min(cap, c.troops + Math.round(c.dev*15*(hasW(c, 'ying') ? 1.5 : 1)));
         if (g && active(g) && g.fac===f.id && g.city===c.id && !g.army){
           if (c.troops < cap) c.troops += Math.round(g.l*1.2);
           if (c.dev<10 && Math.random() < ((g.g||g.i)-30)/1800*(hasT(g,'chise')?1.4:1)){ c.dev++; news(`${c.n} 태수 ${g.n}의 다스림으로 개발도가 ${c.dev}(으)로 올랐다.`, false, true); }
@@ -1946,6 +1972,7 @@ function monthStep(ff){
     aiRally(f);
     f.gold = (f.gold||0) + cs.reduce((a,c)=>a+c.dev*8, 0);
     if (f.gold >= 700 && Math.random()<.25){ const c = pick(cs); if (c.dev<10){ c.dev++; f.gold -= 700; } }
+    if (f.id!==pr && f.gold >= 5000 && Math.random() < .1){ const c = pick(cs), k = pick(['tun','si','ying','gwan']); if (!workWhyNot(c, k) && f.gold >= WORKS[k].cost(c) + 1500){ f.gold -= WORKS[k].cost(c); c.work = { k, f:f.id, at:mi() + WORKS[k].mo }; } }
     aiWar(f, ff);
     aiPlot(f, ff);
   }
@@ -2370,11 +2397,14 @@ const frDepK = (F, S) => 1 + frDeps(F, S).reduce((a, p) => a + (p.m + p.l)/2/100
 /* 금을 쓰는 곳: 진지(덜 밀림)·병종 숙련(미는 힘)·첩보망(적의 낌새가 늘 보임)·호궤(이번 달 +5) */
 const FR_INV = {
   fort:{ n:'진지 구축', gl:'진', max:3, cost:(F, S) => 180*((S.fort||0) + 1), lv:(F, S) => S.fort||0, d:'목책과 참호를 판다. 단계마다 버틸 때 12% 덜 밀린다. 전선이 무너지면 한 단계 잃는다.', ok:(F, S) => (S.fort||0) < 3, go:(F, S) => { S.fort = (S.fort||0) + 1; } },
-  drill:{ n:'병종 숙련', gl:'숙', max:3, cost:(F, S) => 220*((((G.corpsLv||{})[S.corps])||0) + 1), lv:(F, S) => ((G.corpsLv||{})[S.corps])||0, d:'이 전선의 정예 병종을 조련한다. 단계마다 미는 힘 +4%. 병종을 다른 전선으로 옮겨도 남는다.', ok:(F, S) => !!frCorps(F, S) && (((G.corpsLv||{})[S.corps])||0) < 3, go:(F, S) => { G.corpsLv = G.corpsLv || {}; G.corpsLv[S.corps] = (G.corpsLv[S.corps]||0) + 1; } },
+  drill:{ n:'병종 숙련', gl:'숙', max:10, cost:(F, S) => drillCost(((G.corpsLv||{})[S.corps])||0), lv:(F, S) => ((G.corpsLv||{})[S.corps])||0, d:'이 전선의 정예 병종을 조련한다. 미는 힘 1~3단계 +4%씩, 4~10단계 +3%씩. 5단계: 버틸 때 10% 덜 밀림 · 8단계: 이 전선 우리 병사 소모 -15% · 성 싸움에서 단계마다 힘 +2%. 병종을 다른 전선으로 옮겨도 남는다.', ok:(F, S) => !!frCorps(F, S) && (((G.corpsLv||{})[S.corps])||0) < 10, go:(F, S) => { G.corpsLv = G.corpsLv || {}; G.corpsLv[S.corps] = (G.corpsLv[S.corps]||0) + 1; } },
   spy:{ n:'첩보망', gl:'첩', max:1, cost:() => 150, lv:(F) => (G.spy||{})[F.ef] > mi() ? 1 : 0, d:'이 적의 진영에 세작을 심는다. 여섯 달 동안 이 적의 모든 전선에서 낌새가 읽힌다.', ok:(F) => !((G.spy||{})[F.ef] > mi()), go:(F) => { G.spy = G.spy || {}; G.spy[F.ef] = mi() + 6; for (const o of frontsOf(G.pfac)) if (o.ef===F.ef) frState(o.id).fKnown = true; } },
   feast:{ n:'호궤', gl:'호', max:1, cost:(F, S) => 60 + Math.round(frEval(F).me_.t/1000*3), lv:(F, S) => S.feast ? 1 : 0, d:'소를 잡고 술을 내려 병사를 배불리 먹인다. 이번 달 전선 +5, 군량 +0.5.', ok:(F, S) => !S.feast, go:(F, S) => { S.feast = 1; S.sup = Math.min(6, S.sup + .5); } }
 };
 function frInvest(id, k){ const F = frontsOf(G.pfac).find(f => f.id===id), I = FR_INV[k]; if (!F || !I || G.role!=='ruler') return; const S = frState(id); if (!I.ok(F, S)) return; const c = I.cost(F, S); if (G.gold < c) return toast('금이 모자란다. 투자 탭 위의 후원(광고)으로 군자금을 받을 수 있다.', [], true); G.gold -= c; I.go(F, S); Snd.sfx('coin'); toast(`${F.sec} 전선 · ${I.n}`, [[`금 -${fmt(c)}`, false]]); }
+// 숙련 비용: 1~3단계는 싸고(220·440·660), 그 뒤로 가파르게 오른다(10단계까지 합 약 3만 7천)
+const drillCost = lv => Math.round(220*(lv + 1)*(1 + Math.max(0, lv - 2)*.5));
+const drillK = lv => 1 + .04*Math.min(lv, 3) + .03*Math.max(0, lv - 3);
 const frSupCost = (F, S) => Math.round(frEval(F).me_.t/1000*6 + 40);
 const frPow = (ids, gens, fid) => { const t = ids.reduce((s, id) => s + (city(id).troops||0), 0); const g = (gens && gens.length ? gens.map(person).filter(Boolean) : ids.map(id => bestGen(id, fid)).filter(Boolean)); const best = g.sort((a, b) => (b.m + b.l) - (a.m + a.l))[0]; return { t, k: genFactor(best), best }; };
 function frEval(F){
@@ -2489,10 +2519,11 @@ function frontStep(ff){
     const foePush = fi!=='hold'; S.fDid = fi;
     const cons = S.st==='push' ? Math.max(.3, (rear ? clamp(1.3 - (rear.g||rear.i)/110, .4, 1) : 1) + (cp && cp.sup || 0)) : 0, starve = S.st==='push' && S.sup < cons;
     if (S.st==='push') S.sup = Math.max(0, S.sup - cons); else S.sup = Math.min(6, S.sup + .5);
-    const mk = (S.st==='push' ? (starve ? 1 : 1.25)*corpsPush(cp, terr, foeI)*(1 + .04*(((G.corpsLv||{})[S.corps])||0)) : .8), fk = ({ hold:.8, push:1.15, mass:1.45 })[fi]*(foePush ? corpsPush(ce, terr, advI) : 1)*(adv ? 1 - clamp((adv.i - 50)/250, 0, .2) : 1);
+    const mk = (S.st==='push' ? (starve ? 1 : 1.25)*corpsPush(cp, terr, foeI)*drillK(((G.corpsLv||{})[S.corps])||0) : .8), fk = ({ hold:.8, push:1.15, mass:1.45 })[fi]*(foePush ? corpsPush(ce, terr, advI) : 1)*(adv ? 1 - clamp((adv.i - 50)/250, 0, .2) : 1);
     const pincer = S.st==='push' && nPush[F.ef] >= 2 ? 5 : 0, lureB = S.st==='push' && lured ? 7 : 0;
     let d = ((ratio*mk) - ((1 - ratio)*fk))*34 + (S.st==='push' ? S.bonus*(starve ? .5 : 1) + pincer + lureB : 0) + rnd(-6, 6);
-    if (S.st!=='push' && d < 0) d *= (terr==='mountain' ? .4 : .6)*corpsHold(cp, terr, foeI)*(1 - .12*(S.fort||0));
+    const dLv = cp ? (((G.corpsLv||{})[S.corps])||0) : 0;
+    if (S.st!=='push' && d < 0) d *= (terr==='mountain' ? .4 : .6)*corpsHold(cp, terr, foeI)*(1 - .12*(S.fort||0))*(dLv >= 5 ? .9 : 1);
     if (S.feast){ d += 5; S.feast = 0; }
     { const vv = frRoleP(F, S, 'van'); if (S.st==='push' && vv && isElite(vv.id)) d += 4; }
     if (d > 0 && !foePush) d *= corpsHold(ce, terr, advI);
@@ -2511,7 +2542,7 @@ function frontStep(ff){
     // 소모: 미는 쪽이 더 잃는다. 집결한 적을 버텨 내면 적이 크게 다친다
     const lossMy = ((S.st==='push' ? .03 : .015) + (foePush ? .01 : 0))*(terr==='river' && S.st!=='push' ? .6 : 1), lossEn = (foePush ? .03 : .015) + (S.st==='push' ? .015 : 0) + (fi==='mass' && S.st!=='push' ? .03 : 0) + (cp && cp.bleed || 0) + (pr && pr.le || 0), lossMyX = (pr && pr.lm || 0);
     // 한 성이 여러 전선에 걸쳐 있으면 소모를 전선 수로 나눈다(전에는 전선마다 따로 깎여 성 하나짜리 세력이 녹아내렸다)
-    for (const id of F.my) city(id).troops = Math.round(city(id).troops*(1 - (lossMy + lossMyX)/(nFr[id]||1)));
+    for (const id of F.my) city(id).troops = Math.round(city(id).troops*(1 - (lossMy*(dLv >= 8 ? .85 : 1) + lossMyX)/(nFr[id]||1)));
     for (const id of F.foe) city(id).troops = Math.round(city(id).troops*(1 - lossEn/(nFrE[id]||1)));
     S.last = Math.round(d); S.foePush = foePush; S.bonus = 0;
     const ph1 = frPhase(S.p)[0]; if (Math.abs(S.last) >= 8 || ph1!==ph0) rep.push(`${F.name.replace(' 전선', '')} ${S.last >= 0 ? '+' : ''}${S.last}${ph1!==ph0 ? `(${ph1})` : ''}${starve ? ' 군량 부족' : ''}`);
@@ -2530,8 +2561,9 @@ function frontStep(ff){
   }
 }
 const S0 = F => frState(F.id);
-// 세력이 약한가: 성 둘 이하이거나, 이 전선 말고 다른 전선이 크게 밀리는 중(양면 전쟁은 피한다)
-const frWeak = (F, FS) => citiesOf(G.pfac).length <= 2 || FS.some(o => o!==F && frState(o.id).p <= -40);
+// 세력이 약한가: 성 둘 이하, 다른 전선이 크게 밀리는 중(양면 전쟁은 피한다), 또는 맞붙은 가장 큰 적보다 병력이 적다
+const frWeak = (F, FS) => citiesOf(G.pfac).length <= 2 || FS.some(o => o!==F && frState(o.id).p <= -40)
+  || totalTroops(G.pfac) < Math.max(0, ...[...new Set(FS.map(o => o.ef))].map(f => totalTroops(f)))*.9; // 맞붙은 적 중 가장 큰 세력보다 병력이 적어도 약하다
 function courtRole(id){ const C = G.court; if (!C || G.role!=='ruler') return ''; if (C.gun===id) return '대군사'; if ((C.gunS||[]).includes(id)) return '군사중랑장'; if (C.sang===id) return '승상'; if ((C.sangS||[]).includes(id)) return '상서'; if ((C.elite||[]).includes(id)) return '친위'; return ''; }
 const frVan = F => frRoleP(F, frState(F.id), 'van') || npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).sort((a, b) => b.m - a.m)[0] || null;
 // 전선이 무너지면 결전이 벌어진다
@@ -2741,6 +2773,7 @@ const CORPS = {
   xiang:{ n:'상병(코끼리)', gl:'상', p:[1.4,1.0,.9], h:.9, fire:1, tribe:'nanman', d:'코끼리 떼. 평야에서 막을 수 없다. 다만 지략 85 이상의 적 군사는 불로 코끼리를 되돌린다.' },
   tengjia:{ n:'등갑병', gl:'등', p:[1.05,1.15,1.15], h:.6, fire:1, tribe:'nanman', d:'기름 먹인 등나무 갑옷. 칼과 화살이 들지 않아 거의 밀리지 않는다. 불에는 속수무책.' },
   shanyue:{ n:'산월 정병', gl:'월', p:[1.0,1.25,1.15], h:.85, tribe:'shanyue', d:'산과 물에 익숙한 용사들.' },
+  zhishu:{ n:'직할 정예', gl:'직', p:[1.08,1.06,1.06], h:.88, any:1, d:'군주가 직접 가려 뽑은 상비군. 고유 병종이 없는 세력도 조련해 키울 수 있다.' },
   wuling:{ n:'무릉 만병', gl:'계', p:[1.0,1.25,1.05], h:.8, tribe:'wuling', d:'산길에서 나타났다 사라진다. 산악에서 강하다.' }
 };
 for (const k in CORPS) CORPS[k].k = k;
@@ -2750,12 +2783,14 @@ const tribeAlly = id => { const T = tribeSt(id); return T.rel >= 60 || T.vas > 0
 function tribeFriendOf(fid, tid){ if (fid===G.pfac) return tribeAlly(tid); const f = fac(fid); return !!(f && (TRIBES[tid].friend[f.ruler]||0) >= 50); }
 function corpsAvail(fid){
   const f = fac(fid); if (!f) return [];
-  return Object.keys(CORPS).filter(k => { const c = CORPS[k], byR = (c.rulers||[]).includes(f.ruler), byG = (c.gens||[]).some(g => { const p = G.people[g]; return p && p.alive!==false && p.fac===fid; }), byT = c.tribe ? tribeFriendOf(fid, c.tribe) : false;
+  const L = Object.keys(CORPS).filter(k => { const c = CORPS[k]; if (c.any) return false; const byR = (c.rulers||[]).includes(f.ruler), byG = (c.gens||[]).some(g => { const p = G.people[g]; return p && p.alive!==false && p.fac===fid; }), byT = c.tribe ? tribeFriendOf(fid, c.tribe) : false;
     return c.both ? (byG && byT) : (byR || byG || (c.tribe && !c.both && byT)); });
+  if (!L.length && fid===G.pfac && G.role==='ruler') L.push('zhishu');
+  return L;
 }
 for (const c of Object.values(CORPS)) c.gl = c.n[0]; CORPS.xiang.gl = '코'; CORPS.wuhuan.gl = '환'; CORPS.baima.gl = '마'; CORPS.wuling.gl = '릉'; CORPS.xiandeng.gl = '등';
 Object.assign(TRIBES.wuhuan, { gl:'오' }); TRIBES.xiongnu.gl = '흉'; TRIBES.qiang.gl = '강'; TRIBES.nanman.gl = '만'; TRIBES.shanyue.gl = '월'; TRIBES.wuling.gl = '릉';
-const CORPS_V = { hubao:'cav', baima:'cav', xiliang:'cav', wuhuan:'cav', qiang:'cav', xiongnu:'cav', feixiong:'cav', xiang:'eleph', qingzhou:'heavy', baier:'heavy', daji:'heavy', xianzhen:'heavy', tengjia:'heavy', huangjin:'heavy', xiandeng:'ranged', jiefan:'ranged', shanyue:'ranged', wuling:'ranged', wudang:'ranged' };
+const CORPS_V = { zhishu:'heavy', hubao:'cav', baima:'cav', xiliang:'cav', wuhuan:'cav', qiang:'cav', xiongnu:'cav', feixiong:'cav', xiang:'eleph', qingzhou:'heavy', baier:'heavy', daji:'heavy', xianzhen:'heavy', tengjia:'heavy', huangjin:'heavy', xiandeng:'ranged', jiefan:'ranged', shanyue:'ranged', wuling:'ranged', wudang:'ranged' };
 // 어느 싸움에서든 그 세력의 정예 병종이 나온다: 전선에 둔 병종이 먼저, 없으면 그 땅에 가장 맞는 병종
 function battleCorps(B, fid){
   if (!fid || !fac(fid)) return null; const L = corpsAvail(fid); if (!L.length) return null; const ti = TI[TERRAIN[B.to] || 'plain'] || 0;
@@ -2923,7 +2958,7 @@ function viewTheater(){
     <button class="thplan ${deps.length ? 'on' : ''}" data-deps="${selF.id}"><span class="mg" style="--c:${deps.length ? '#3b4f8a' : '#b7a789'}">부</span><span class="grow"><small>부장 ${deps.length}/4 · 미는 힘 +${Math.round((frDepK(selF, S) - 1)*100)}% · 결전에 함께 출진</small><b>${deps.length ? deps.map(p => esc(p.n)).join(' · ') : '부장 없음 — 눌러서 고른다'}</b></span><span class="mch">›</span></button>
     <div class="thcorps"><button data-corps="${selF.id}">${cpc ? `<img class="cimg" src="art/u_${cpc.k}.webp" alt="">` : `<span class="mg" style="--c:#b7a789">병</span>`}<span class="grow"><small>아군 정예</small><b>${cpc ? `${cpc.n} ×${cpc.p[tix]}` : '일반 병사'}</b></span><span class="mch">›</span></button><div class="foe">${cpe ? `<img class="cimg" src="art/u_${cpe.k}.webp" alt="">` : `<span class="mg" style="--c:#b7a789">병</span>`}<span class="grow"><small>적 정예</small><b>${cpe ? `${cpe.n} ×${cpe.p[tix]}` : '일반 병사'}</b></span></div></div>
     ${supBar}`;
-  const inv = `<p class="tiny muted" style="margin:0">금을 들여 전선을 다진다. 행동력은 들지 않는다. 가진 금 <b>${fmt(G.gold)}</b></p><button class="mad" data-adg="1" ${adLeft() > 0 ? '' : 'disabled'}><span class="mg">금</span><span class="grow"><b>군자금 +${fmt(adGold())}</b><small>광고를 보고 후원을 받는다 · 오늘 ${adLeft()}/${adCapNow()}</small></span><span class="mplay">▶</span></button><div class="mlist">${Object.keys(FR_INV).map(k => { const I = FR_INV[k], lv = I.lv(selF, S), ok = I.ok(selF, S), c = I.cost(selF, S); return `<button class="mrow" data-inv="${k}" ${ok && ruler && G.gold >= c ? '' : 'disabled'}><span class="mg" style="--c:#a8822a">${I.gl}</span><span class="grow"><b>${I.n} ${I.max > 1 ? `<span class="lvd">${'●'.repeat(lv)}${'○'.repeat(I.max - lv)}</span>` : lv ? '<span class="chip up">적용 중</span>' : ''}</b><small>${k==='drill' && !cpc ? '먼저 편성에서 정예 병종을 둔다.' : I.d}</small></span><b class="pv">${ok ? fmt(c) : '—'}</b></button>`; }).join('')}</div>
+  const inv = `<p class="tiny muted" style="margin:0">금을 들여 전선을 다진다. 행동력은 들지 않는다. 가진 금 <b>${fmt(G.gold)}</b></p><button class="mad" data-adg="1" ${adLeft() > 0 ? '' : 'disabled'}><span class="mg">금</span><span class="grow"><b>군자금 +${fmt(adGold())}</b><small>광고를 보고 후원을 받는다 · 오늘 ${adLeft()}/${adCapNow()}</small></span><span class="mplay">▶</span></button><div class="mlist">${Object.keys(FR_INV).map(k => { const I = FR_INV[k], lv = I.lv(selF, S), ok = I.ok(selF, S), c = I.cost(selF, S); return `<button class="mrow" data-inv="${k}" ${ok && ruler && G.gold >= c ? '' : 'disabled'}><span class="mg" style="--c:#a8822a">${I.gl}</span><span class="grow"><b>${I.n} ${I.max > 1 ? `<span class="lvd">${I.max > 3 ? `${lv}/${I.max}단계` : '●'.repeat(lv) + '○'.repeat(I.max - lv)}</span>` : lv ? '<span class="chip up">적용 중</span>' : ''}</b><small>${k==='drill' && !cpc ? '먼저 편성에서 정예 병종을 둔다.' : I.d}</small></span><b class="pv">${ok ? fmt(c) : '—'}</b></button>`; }).join('')}</div>
     ${`<details class="thhelp"><summary>전선 규칙</summary><p class="tiny">· 병력의 이점은 점점 줄어든다(두 배의 병력이 두 배의 힘은 아니다). 지형·계절·계책·적의 낌새가 맞으면 적은 병력으로도 민다.<br>· 계책: 화공(가을·평야·등갑), 매복(산악·적이 나올 때), 수공(강·여름), 거짓 퇴각(적이 쫓아올 때 +30), 야습(적이 지킬 때), 이간.<br>· 정예 병종은 전선에 하나. 지형마다 미는 힘이 다르고, 코끼리·등갑병은 지략 85 이상의 군사에게 불로 당한다. 이민족과 맹약하면 그들의 병종을 쓴다.<br>· 지형: ${tr[0]} — ${tr[3]}<br>· 적도 달마다 수비·공세·대군 집결을 정한다. 집결한 적은 버텨서 깎고, 수비하는 적은 밀어붙인다.<br>· 같은 적의 두 전선을 같은 달에 밀면 협공 +5. 양동이 통하면 옆 전선의 적 공세가 약해지고 우리 공세 +7.<br>· 돌파하면 성을 칠지, 보급로를 끊을지, 옆 전선의 뒤를 칠지 고른다.<br>· 밀어붙이면 원정길(큰길·산길·물길 → 고비 셋)을 거쳐 이번 달 미는 힘이 정해진다. 큰길은 군량 +1, 산길은 군량 -1 대신 기습.<br>· 공세 한 달에 군량 1개월분. 후방 장수의 정치가 높으면 덜 든다. 버티면 반 달분씩 찬다.<br>· 선봉은 미는 힘, 군사는 적의 공세를 꺾고 원정길 판정을 맡는다.<br>· 막대가 끝에 닿으면 결전. 이기면 같은 적의 다른 전선도 +12.</p></details>`}`;
   const card = `<div class="thcard">${head}${tab==='org' ? org : tab==='inv' ? inv : cmd}</div>`;
 
@@ -3103,7 +3138,7 @@ function armiesStep(ff){
   grainRegen(besieged);
 }
 // 성 안 군량(개월): 개발도와 성벽이 클수록 많이 쌓아 둔다. 포위되면 달마다 줄고, 풀리면 다시 찬다
-const grainCap = c => 3 + Math.round((c.dev||3)*.6) + ((c.wall||0) >= 60 ? 1 : 0);
+const grainCap = c => 3 + Math.round((c.dev||3)*.6) + ((c.wall||0) >= 60 ? 1 : 0) + (c.bld && c.bld.tun ? 3 : 0);
 const grainOf = c => c.grain ?? grainCap(c);
 function grainRegen(besieged){ for (const c of Object.values(G.cities)) if (c.grain!=null && !besieged.has(c.id)){ c.grain = Math.min(grainCap(c), c.grain + 1); if (c.grain >= grainCap(c)) delete c.grain; } }
 function genFactor(p){ return p ? .6 + (p.l+p.m)/400 : .55; }
@@ -3262,7 +3297,8 @@ function fight(B, tA, tD){
   let pa = sidePow(A, tA, false, B.to, D), pd = sidePow(D, tD, true, B.to, A);
   if (B.kind==='siege' && (B.wallK != null || (B.lure && B.round===1))){ const w = city(B.to).wall, wk = B.lure && B.round===1 ? 0 : B.wallK; pd = pd/(1 + w/300)*(1 + w*wk/300); }
   if (!B.tale){ const ti = TI[TERRAIN[B.to] || 'plain'] || 0, cA = battleCorps(B, A.fid), cD = battleCorps(B, D.fid);
-    if (cA) pa *= 1 + (CORPS[cA].p[ti] - 1)*.5; if (cD) pd *= 1 + (CORPS[cD].p[ti] - 1)*.5;
+    if (cA) pa *= (1 + (CORPS[cA].p[ti] - 1)*.5)*(A.fid===G.pfac ? 1 + .02*((G.corpsLv||{})[cA]||0) : 1); if (cD) pd *= (1 + (CORPS[cD].p[ti] - 1)*.5)*(D.fid===G.pfac ? 1 + .02*((G.corpsLv||{})[cD]||0) : 1);
+    if (B.to && city(B.to) && hasW(city(B.to), 'gwan') && city(B.to).owner===D.fid) pd *= 1.08;
     if (B.round===1 && (cA || cD)) lines.push(`${cA ? `${A.name}군의 ${CORPS[cA].n}` : ''}${cA && cD ? '과(와) ' : ''}${cD ? `${D.name}군의 ${CORPS[cD].n}` : ''}이(가) 싸움터에 나섰다.`); }
   if (B.per){ if (B.per.def) D.morale = clamp(D.morale + B.per.def, 0, 130); if (B.per.att) A.morale = clamp(A.morale + B.per.att, 0, 130); }
   const K = B.kind==='siege' ? .12 : .17;
@@ -4917,6 +4953,10 @@ const ACT = {
     c.wall = Math.min(maxWall(c), c.wall + g); if (G.role!=='ruler') G.merit += 4;
     toast(besieged(c.id) ? `포위 속에서 무너진 성벽을 급히 메웠다.` : `${c.n}의 성벽을 보수했다.`, [[`성벽 ${c.wall}/${maxWall(c)}`, true], [`금 -${cost}`, false]]);
   },
+  build(cid, k){ const c = city(cid), W = WORKS[k]; if (G.role!=='ruler' || !c || c.owner!==G.pfac || !W || workWhyNot(c, k)) return;
+    const cost = W.cost(c); if (G.gold < cost) return toast('금이 모자란다.', [], true); if (!spend(cost)) return;
+    c.work = { k, f:G.pfac, at:mi() + W.mo }; Snd.sfx('coin');
+    toast(`${c.n}에 ${W.n} 공사를 시작했다. ${W.mo}달 뒤 완공.`, [[`금 -${fmt(cost)}`, false], [W.up ? `완공 뒤 유지비 월 ${W.up}` : '유지비 없음', true]]); },
   develop(cid){
     const c = city(cid||G.city);
     if (G.role==='ruler'){ if (c.owner!==G.pfac || c.dev>=10) return; const gain = devGain(c), cost = devCost(c); if (!spend(cost)) return; c.dev++; trustAdd(1); toast(`${c.n}의 논밭과 시장을 넓혔다.`, [[`개발 ${c.dev}`,true],[`세금 월 +${gain}`,true],[`금 -${cost}`,false]]); return; }
@@ -5390,9 +5430,9 @@ function startMonth(first){
 /* 세금: 개발이 높을수록 장사·인구가 함께 늘어 한 단계 올릴 때 더 많이 오른다 (1→12+1.6, 10→280) */
 const cityTax = d => d*12 + d*d*1.6;
 function taxMul(){ const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05); return (.6+G.trust/250)*dif().inc*eff; }
-const cityTaxNow = c => Math.round(cityTax(c.dev)*taxMul());
+const cityTaxNow = c => Math.round(cityTax(c.dev)*taxW(c)*taxMul());
 const devCost = c => 150 + c.dev*30;
-const devGain = c => Math.round((cityTax(c.dev+1) - cityTax(c.dev))*taxMul());
+const devGain = c => Math.round((cityTax(c.dev+1) - cityTax(c.dev))*taxW(c)*taxMul());
 function endMonth(){
   Snd.sfx('month'); mp('month', 1);
   if (!SIM && G.month===12 && hl('med')) G.hp = clamp(G.hp + hl('med')*4);
@@ -5402,14 +5442,19 @@ function endMonth(){
   if (G.role==='ruler'){
     // 땅이 넓어질수록 관리가 어려워 걷히는 몫이 줄어든다(6성 초과분마다 5%)
     const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05);
-    const nC0 = citiesOf(G.pfac).length, inc = Math.max(Math.round(citiesOf(G.pfac).reduce((a,c)=>a+cityTax(c.dev),0)*taxMul()*courtIncMul()*((G.taxCut||0) > mi() ? .6 : 1)), nC0 <= 3 ? Math.round((140 + nC0*50)*dif().inc) : 0);
+    const nC0 = citiesOf(G.pfac).length, inc = Math.max(Math.round(citiesOf(G.pfac).reduce((a,c)=>a+cityTax(c.dev)*taxW(c),0)*taxMul()*courtIncMul()*((G.taxCut||0) > mi() ? .6 : 1)), nC0 <= 3 ? Math.round((140 + nC0*50)*dif().inc) : 0);
     // 유지비(군량·녹봉): 세력이 커질수록 같이 커져 금이 끝없이 쌓이지 않는다
-    const offs = npcs().filter(p => p.fac===G.pfac && active(p)).length, up = Math.round(totalTroops(G.pfac)/1000*2 + offs*2);
+    const offs = npcs().filter(p => p.fac===G.pfac && active(p)).length, up = Math.round(totalTroops(G.pfac)/1000*2 + offs*2 + worksUp(G.pfac));
     G.gold += inc - up; G.lastIncome = inc; G.lastUpkeep = up;
     if (G.gold < 0){ const loss = Math.round(totalTroops(G.pfac)*.03); for (const c of citiesOf(G.pfac)) c.troops = Math.round(c.troops*.97); G.gold = 0; news(`군량이 모자라 병사 ${fmt(loss)}이 흩어졌다.`, true, true); }
   }
   else if (G.role==='officer'){ const s = Math.round((30 + G.rank*25 + (G.gov?20:0))*dif().inc); G.gold += s; G.lastIncome = s; if (G.month===12) G.trust = clamp(G.trust-3); }
   if (G.month%6===0 && G.role==='ruler') G.trust = clamp(G.trust + (G.trust<60 ? 2 : -1));
+  if (G.month===12 && G.role==='ruler') for (const c of citiesOf(G.pfac)){
+    if (hasW(c, 'hak')){ const L = npcs().filter(p => p.fac===G.pfac && active(p) && p.city===c.id).sort(() => Math.random() - .5).slice(0, 3), up = [];
+      for (const p of L){ const k = (p.g ?? p.i) < p.i ? 'g' : 'i'; if (p[k]==null) p[k] = p.i; if (p[k] < 100){ p[k]++; up.push(`${p.n} ${ST[k]}`); } }
+      if (up.length) news(`${c.n} 태학에서 배움이 깊어졌다: ${up.join(', ')} +1`, false, true); }
+    if (hasW(c, 'gung')){ G.trust = clamp(G.trust + 4); for (const p of npcs()) if (p.fac===G.pfac && active(p)) p.loy = clamp((p.loy??70) + 2); news('궁궐에서 신년 하례가 열렸다. 민심 +4, 장수들 충성 +2', false, true); } }
   autoDomestic();
   G.repDate = dateStr();
   monthStep(false);
@@ -6737,6 +6782,7 @@ function cityScene(c, hidden){
   const col = c.owner ? facColor(c.owner) : '#8f8574';
   return `<div class="cscene${hidden ? ' fog' : ''}"><img src="art/${bg}.webp" alt="${c.n} 풍경" decoding="async"><i style="background:${col}"></i>${hidden ? '<b>정찰이 필요하다</b>' : ''}</div>`;
 }
+const worksBtn = c => actBtn('대형 사업', c.work ? `${WORKS[c.work.k].n} 공사 중 · ${Math.max(0, c.work.at - mi())}달 남음` : `시설 ${Object.keys(c.bld||{}).length}/${Object.keys(WORKS).length}`, `data-sheet="works" data-arg="${c.id}"`, true);
 function viewPanel(){
   const cid = G.sel; if (!cid) return '';
   const c = city(cid), here = !G.inArmy && cid===G.city, adj = !G.inArmy && city(G.city).adj.includes(cid);
@@ -6768,6 +6814,7 @@ function viewPanel(){
       b.push(actBtn('태수 임명','행동력 없이',`data-sheet="appoint" data-arg="${cid}"`,peopleIn(cid,G.pfac).length>0));
       b.push(actBtn('내정',c.dev<10 ? `금 ${devCost(c)} · 세금 월 +${devGain(c)}` : '개발 최고',`data-act="develop" data-arg="${cid}"`,ap && G.gold>=devCost(c) && c.dev<10));
       b.push(actBtn('성벽 보수', c.wall < maxWall(c) ? `금 ${wallCost(c)} · 성벽 +${wallGain(c)}` : `성벽 최고 ${maxWall(c)}`, `data-act="repair" data-arg="${cid}"`, ap && c.wall < maxWall(c) && G.gold >= wallCost(c)));
+      b.push(worksBtn(c));
       if (here && !G.inArmy) b.push(actBtn('하야','나라를 넘긴다','data-sheet="abdicate"',ap));
     } else {
       if (c.owner) b.push(actBtn('사관',`${person(fac(c.owner).ruler).n}에게`,'data-act="seek"',ap));
@@ -6788,6 +6835,7 @@ function viewPanel(){
       b.push(actBtn('태수 임명','행동력 없이',`data-sheet="appoint" data-arg="${cid}"`,peopleIn(cid,G.pfac).length>0));
       b.push(actBtn('내정',c.dev<10 ? `금 ${devCost(c)} · 세금 월 +${devGain(c)}` : '개발 최고',`data-act="develop" data-arg="${cid}"`,ap && G.gold>=devCost(c) && c.dev<10));
       b.push(actBtn('성벽 보수', c.wall < maxWall(c) ? `금 ${wallCost(c)} · 성벽 +${wallGain(c)}` : `성벽 최고 ${maxWall(c)}`, `data-act="repair" data-arg="${cid}"`, ap && c.wall < maxWall(c) && G.gold >= wallCost(c)));
+      b.push(worksBtn(c));
     }
     if (G.role==='officer' && adj && c.owner && c.owner!==G.pfac) b.push(actBtn('망명',`${facName(c.owner)}로`,`data-sheet="defect" data-arg="${c.owner}"`,ap));
   }
@@ -8039,6 +8087,12 @@ function openSheet(kind, arg){
         return `<div class="prow"><span class="nm">${esc(facName(f.id))}</span><span class="mini">${src ? `${src.n}에서 약 ${fmt(Math.round(src.troops*.3/100)*100)} · ${travel(src.id, tg.id)}개월` : '보낼 병력 없음'}${cd ? ' · 대기 중' : ''}</span><button class="ghost" data-af="${f.id}" ${src && !cd && G.ap>0 && G.gold>=150 ? '' : 'disabled'}>요청</button></div>`; }).join('')}
       <button class="btn2" data-close>닫기</button>`);
     bg.querySelectorAll('[data-af]').forEach(b => b.onclick = () => { bg.remove(); doAct('askAid', b.dataset.af); });
+  } else if (kind==='works'){
+    const c = city(arg), ap = G.ap > 0;
+    const row = k => { const W = WORKS[k], why = workWhyNot(c, k), cost = W.cost(c), done = hasW(c, k), on = c.work && c.work.k===k;
+      return `<button class="mrow" data-bw="${k}" ${!why && ap && G.gold >= cost ? '' : 'disabled'}><span class="mg" style="--c:#a8822a">${W.gl}</span><span class="grow"><b>${W.n} ${done ? '<span class="chip up">완공</span>' : on ? `<span class="chip">공사 중 · ${Math.max(0, c.work.at - mi())}달</span>` : ''}</b><small>${W.d}<br>공사 ${W.mo}달 · ${W.up ? `유지비 월 ${W.up}` : '유지비 없음'}${why && !done && !on ? ` · <b style="color:#a33">${why}</b>` : ''}</small></span><b class="pv">${done || on ? '—' : fmt(cost)}</b></button>`; };
+    const bg = sheet(`<h3>${c.n} · 대형 사업</h3><p class="small muted">성마다 한 번에 하나씩 짓는다. 시작할 때 금을 모두 내고 행동력 1을 쓴다. 지은 시설은 성에 남아, 성을 빼앗기면 적의 것이 된다. 가진 금 <b>${fmt(G.gold)}</b>${ap ? '' : ' · 이번 달 행동력이 없다'}</p><div class="mlist">${Object.keys(WORKS).map(row).join('')}</div><button class="btn2" data-close>닫기</button>`);
+    bg.querySelectorAll('[data-bw]').forEach(b => b.onclick = () => { bg.remove(); doAct('build', arg, b.dataset.bw); });
   } else if (kind==='transport'){
     const c = city(arg), srcs = c.adj.map(city).filter(o => o.owner===G.pfac && o.troops>=1000);
     const far = citiesOf(G.pfac).filter(o => o.id!==c.id && !c.adj.includes(o.id) && o.troops>=1500 && !besieged(o.id)).sort((a,b) => travel(a.id, c.id) - travel(b.id, c.id)).slice(0, 6);
@@ -8322,9 +8376,9 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
 /* =====================================================================
    BOOT
    ===================================================================== */
-if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, famTalk, makeKid, addSpouse, spouseLook, doAct, openSheet, frontStep, court, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
+if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, mi, famTalk, makeKid, addSpouse, spouseLook, doAct, openSheet, frontStep, court, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
-  globalThis.T = { rebel, frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { WORKS, workWhyNot, frState, frCorps, corpsAvail, FR_INV, frInvest, rebel, frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();

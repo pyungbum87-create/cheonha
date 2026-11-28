@@ -56,6 +56,7 @@ const SCENES = [
   ['가문', prep(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); D.G.view = 'family'; D.render(); })],
   ['출진 계획', prep(() => { D.G.view = 'map'; D.render(); const c = Object.values(D.G.cities).find(c => c.owner && c.owner!==D.G.pfac && D.city(D.G.city).adj.includes(c.id)); D.openSheet('war', c && c.id); })],
   ['계략', prep(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); const c = Object.values(D.G.cities).find(c => c.owner && c.owner!==D.G.pfac); D.openSheet('plot', c.id); })],
+  ['대형 사업', prep(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); const c = D.city(D.G.city); c.bld = { tun:1 }; c.work = { k:'si', f:D.G.pfac, at:D.mi() + 5 }; D.G.gold = 9000; D.openSheet('works', c.id); })],
   ['내정 방침', prep(() => { document.querySelectorAll('.sheet-bg').forEach(x => x.remove()); D.openSheet('policy'); })],
   ['메뉴', async p => { await p.evaluate(() => document.querySelectorAll('.sheet-bg').forEach(x => x.remove())); await p.locator('#menuBtn').click(); await p.waitForTimeout(250); }],
   ['설정', async p => { await p.evaluate(() => document.querySelectorAll('.sheet-bg').forEach(x => x.remove())); await p.locator('#menuBtn').click(); await p.waitForTimeout(200); await p.locator('#mSet').click(); await p.waitForTimeout(250); }],

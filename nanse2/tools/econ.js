@@ -43,6 +43,9 @@ function act(G, mode){
     else if (pool && G.gold >= 400) T.doAct('draft', pool.id);
     else break;
   }
+  // 큰 금: 대형 사업 → 병종 숙련 (mode 'none'은 안 함)
+  for (const c of cs.slice().sort((a, b) => b.dev - a.dev)){ if (G.ap <= 0 || G.gold < 4000) break; for (const k of ['si','tun','ying','gwan','hak','gung']){ if (!T.workWhyNot(c, k) && G.gold >= T.WORKS[k].cost(c) + 2500){ T.doAct('build', c.id, k); break; } } }
+  for (const F of T.frontsOf(G.pfac)){ const S = T.frState(F.id); if (!T.frCorps(F, S)){ const ck = T.corpsAvail(G.pfac)[0]; if (ck) S.corps = ck; } if (T.frCorps(F, S) && G.gold >= T.FR_INV.drill.cost(F, S) + 3000 && T.FR_INV.drill.ok(F, S)) T.frInvest(F.id, 'drill'); }
 }
 function setCourt(G){
   const ids = T.npcs().filter(p => p.fac === G.pfac && p.alive && p.active && p.id !== G.pid);
@@ -53,7 +56,7 @@ function setCourt(G){
   G.frAuto = true;
 }
 const res = {};
-for (const diff of ['normal', 'nanse']) for (const mode of ['none', 'build', 'court']) {
+for (const diff of (process.env.DIFF||'normal,nanse').split(',')) for (const mode of (process.env.MODES||'none,build,court').split(',')) {
   const R = res[diff + '/' + mode] = { life: 0, n: 0, alive: 0, cities: 0, gold: 0, troops: 0, inc: 0 };
   for (let r = 0; r < N; r++) {
     const [pid, sc] = rulers[r % rulers.length];
@@ -76,8 +79,8 @@ for (const diff of ['normal', 'nanse']) for (const mode of ['none', 'build', 'co
     const G2 = T.G; R.n++; R.life += m;
     const own = G2.pfac ? T.citiesOf(G2.pfac) : [];
     if (G2.role === 'ruler' && own.length) R.alive++;
-    R.cities += own.length; R.gold += G2.gold; R.troops += own.reduce((a, c) => a + c.troops, 0); R.inc += G2.lastIncome || 0;
+    R.cities += own.length; R.gold += G2.gold; R.troops += own.reduce((a, c) => a + c.troops, 0); R.inc += G2.lastIncome || 0; R.bld = (R.bld||0) + own.reduce((a, c) => a + Object.keys(c.bld||{}).length, 0); R.dl = (R.dl||0) + Object.values(G2.corpsLv||{}).reduce((a, b) => a + b, 0);
   }
 }
 console.log('난이도/방식      판  생존  평균성  평균금   평균병력  월수입  버틴달');
-for (const [k, R] of Object.entries(res)) { const d = x => R.n ? Math.round(x / R.n) : 0; console.log(k.padEnd(14), String(R.n).padStart(3), String(R.alive).padStart(5), String(d(R.cities)).padStart(7), String(d(R.gold)).padStart(7), String(d(R.troops)).padStart(10), String(d(R.inc)).padStart(7), String(d(R.life)).padStart(6)); }
+for (const [k, R] of Object.entries(res)) { const d = x => R.n ? Math.round(x / R.n) : 0; console.log(k.padEnd(14), String(R.n).padStart(3), String(R.alive).padStart(5), String(d(R.cities)).padStart(7), String(d(R.gold)).padStart(7), String(d(R.troops)).padStart(10), String(d(R.inc)).padStart(7), String(d(R.life)).padStart(6), '시설', (R.bld/R.n||0).toFixed(1), '숙련', (R.dl/R.n||0).toFixed(1)); }
