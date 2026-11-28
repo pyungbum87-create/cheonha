@@ -2642,6 +2642,7 @@ function brkTalk(F, tgt, atk, def, oursAtk){
 }
 function frBreak(F, S, ours){
   if (ours && G.role==='ruler'){ const ids = [...new Set([...(S.gens||[]), ...Object.values(S.r||{})].filter(Boolean))]; for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) nrelAdd(ids[i], ids[j], 6); }
+  { const tg0 = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0]; if (ours){ const eg = tg0 && bestGen(tg0.id, tg0.owner); if (eg) hurtGen(eg.id, rnd(8, 20), `${F.name}`); } else for (const id of [...new Set([...(S.gens||[]), ...Object.values(S.r||{})].filter(Boolean))]) hurtGen(id, rnd(6, 18), `${F.name}`); }
   if (ours){ const ids = [...new Set([...(S.gens||[]), ...Object.values(S.r||{})].filter(Boolean))]; xpMany(ids, 'm', 6); xpMany(ids, 'l', 6); if ((S.r||{}).adv) xpGain(S.r.adv, 'i', 8); }
   if (G.frBreakOffer && G.frBreakOffer.front===F.id) G.frBreakOffer = null;
   if (ours){
@@ -3056,7 +3057,7 @@ function openRolePick(id, k){
   const pool = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).concat(F.my.includes(G.city) && !G.inArmy ? [me()] : []);
   const val = p => R[2]==='g' ? (p.g||p.i) : R[2]==='m' ? (p.m*1.2 + p.l*.8)/2 : p[R[2]];
   const where = p => { for (const [fid, o] of Object.entries(G.fronts||{})) for (const [r, g] of Object.entries(o.r||{})) if (g===p.id && !(fid===id && r===k)) return FR_ROLES[r][0]; return ''; };
-  const rows = pool.sort((a, b) => val(b) - val(a)).map(p => `<button class="mrow" data-pk="${p.id}"><span>${pp(p, 36)}</span><span class="grow"><b>${esc(p.n)}${S.r[k]===p.id ? ' ✓' : ''}</b><small>무 ${SV(p.m)} · 지 ${SV(p.i)} · 통 ${SV(p.l)} · 정 ${SV(p.g||p.i)}${where(p) ? ` · 지금 ${where(p)}` : ''}</small></span><b class="pv">${Math.round(val(p))}</b></button>`).join('');
+  const rows = pool.sort((a, b) => val(b) - val(a)).map(p => `<button class="mrow" data-pk="${p.id}"><span>${pp(p, 36)}</span><span class="grow"><b>${esc(p.n)}${S.r[k]===p.id ? ' ✓' : ''}${npcHp(p) < 60 ? ` <span class="chip down">부상 ${npcHp(p)}</span>` : ''}</b><small>무 ${SV(p.m)} · 지 ${SV(p.i)} · 통 ${SV(p.l)} · 정 ${SV(p.g||p.i)}${where(p) ? ` · 지금 ${where(p)}` : ''}</small></span><b class="pv">${Math.round(val(p))}</b></button>`).join('');
   const bg = sheet(`<div class="cu-head"><h3>${esc(F.sec)} 전선 · ${R[0]}</h3><button class="icon" data-close aria-label="닫기">✕</button></div><p class="small muted">${R[3]}. 이 전선의 성에 있는 장수만 맡을 수 있다.</p><div class="mlist">${rows || '<p class="small" style="padding:12px">이 전선의 성에 장수가 없다. 군단 화면에서 장수를 옮기자.</p>'}</div>${S.r[k] ? '<button class="btn2" data-pk="" style="margin-top:8px">자리 비우기</button>' : ''}`);
   bg.querySelectorAll('[data-pk]').forEach(b => b.onclick = () => { frSetRole(id, k, b.dataset.pk || null); bg.remove(); save(); render(); });
 }
@@ -3458,6 +3459,9 @@ function resolveSiege(B, ff){
       const cap = B.duelCap; if (cap && active(person(cap))) res.captive = cap; }
     if (!ff && !pAtt && !pDef && involves(list[0]||{ fac:B.fid, to:B.to })) news(`${t.n} 공방전: ${facName(B.fid)}의 공격이 막혔다.`, false, true);
   }
+  { const ag0 = list.flatMap(a => a.gens), dg0 = [...new Set([B.def && B.def.gid, t.gov].filter(Boolean))], aw0 = B.winner==='att', where = `${t.n} 싸움`;
+    for (const id of (aw0 ? dg0 : ag0)) hurtGen(id, rnd(14, 30), where); for (const id of (aw0 ? ag0 : dg0)) hurtGen(id, rnd(2, 8), where);
+    if (res.captive && !active(person(res.captive))) res.captive = null; }
   { const ag = list.flatMap(a => a.gens), dg2 = [B.def && B.def.gid, t.gov].filter(Boolean), aw = B.winner==='att';
     xpMany(ag, 'm', aw ? 8 : 3); xpMany(ag, 'l', aw ? 8 : 3); xpMany(dg2, 'm', aw ? 3 : 8); xpMany(dg2, 'l', aw ? 3 : 10); if (ag[0]) xpGain(ag[0], 'l', aw ? 5 : 2); }
   if (!G.dead && G.hp<=0) G.dead = '전사';
@@ -3531,12 +3535,37 @@ function destroyFaction(f, ff){
   }
   for (const c of citiesOf(f)) c.owner = null;
 }
+/* ---------------- 장수 부상과 전사 ----------------
+   장수마다 체력(p.hp, 없으면 100). 싸움에서 지면 다치고, 다친 뒤 체력이 25 아래면 낮은 확률로 전사한다
+   (체력이 낮을수록·55세 이상이면 높고, '강철'은 절반). 쉬면 달마다 회복. 그대 자신은 따로(G.hp). */
+const npcHp = p => p.hp ?? 100;
+function hurtGen(id, dmg, where){
+  const p = person(id); if (!p || !p.alive || id===G.pid) return false;
+  const d = dmg*(p.tr==='강철' ? .6 : 1); p.hp = Math.max(0, Math.round(npcHp(p) - d));
+  if (p.hp < 25){ let ch = (25 - p.hp)/25*.22; if (ageOf(p) >= 55) ch *= 1.4; if (p.tr==='강철') ch *= .5; if (Math.random() < ch){ warDeath(p, where); return true; } }
+  return false;
+}
+// 일기토 완패(체력 0으로 쓰러짐)일 때만: 진 쪽 체력이 낮거나 무력 차이가 크면 더 위험, 이름난 맹장은 절반
+function duelDeath(loserId, winM){
+  const p = person(loserId); if (!p || !p.alive || loserId===G.pid) return false;
+  let ch = .06 + (npcHp(p) < 40 ? .10 : 0) + ((winM||0) - (p.m||0) >= 15 ? .06 : 0); if ((p.m||0) >= 95) ch *= .5; if (p.tr==='강철') ch *= .5; ch = Math.min(.25, ch);
+  if (Math.random() < ch){ warDeath(p, '일기토'); return true; } p.hp = Math.max(1, npcHp(p) - rnd(20, 35)); return false;
+}
+function warDeath(p, where){
+  const mine = p.fac===G.pfac, n = p.n; killNpc(p, '전사:' + where);
+  if (SIM) return;
+  if ((mine || p.custom || isSworn(p.id)) && G.pid) talkQ({ title:`전사 · ${n}`, bg:'bg_field_dusk', lines:[[null, `${where}에서 ${J(n,'이')} 끝내 쓰러졌다.`], [null, p.custom ? '그대가 길러 온 장수였다. 이 판에서는 다시 볼 수 없지만, 내 장수 기록과 쌓은 성장은 남는다.' : '진중에 곡소리가 퍼진다. 장수들이 말없이 투구를 벗었다.']] });
+}
+// 달마다 회복: 전선 역할·군단에 없으면 +8, 있으면 +3
+function hpMonth(){ const busy = new Set(); for (const F of frontsOf(G.pfac||'')){ const S = frState(F.id); for (const id of [...(S.gens||[]), ...Object.values(S.r||{})]) if (id) busy.add(id); }
+  for (const p of Object.values(G.people)) if (p.alive && p.hp!=null && p.hp < 100){ p.hp = Math.min(100, p.hp + (p.army || busy.has(p.id) ? 3 : 8)); if (p.hp >= 100) delete p.hp; } }
 function killNpc(p, cause){
   p.alive = false;
   { const kk = G.kids && G.kids.find(x => x.pid===p.id); if (kk) kk.dead = G.year; }
   for (const c of allCities()) if (c.gov===p.id) c.gov = null;
   if (p.army){ const a = armyById(p.army); if (a) a.gens = a.gens.filter(g => g!==p.id); p.army = null; }
-  if (G.pid && notable(p)) news(`${J(p.n,'이')} ${ageOf(p)}세로 세상을 떠났다${cause==='처형'?' (처형)':''}.`, true, p.fac===G.pfac || isSworn(p.id));
+  if (G.pid && /^전사:/.test(cause||'') && (notable(p) || p.fac===G.pfac || p.custom)) news(`${J(p.n,'이')} ${cause.slice(3)}에서 전사했다 (${ageOf(p)}세).`, true, p.fac===G.pfac || p.custom || isSworn(p.id));
+  else if (G.pid && notable(p)) news(`${J(p.n,'이')} ${ageOf(p)}세로 세상을 떠났다${cause==='처형'?' (처형)':''}.`, true, p.fac===G.pfac || isSworn(p.id));
   if (G.pid && isSworn(p.id)) news(`의형제 ${p.n}의 부고에 그대는 목놓아 울었다.`, true, true);
   for (const f of aliveFacs()) if (f.ruler===p.id) succeedFaction(f.id);
 }
@@ -3862,8 +3891,10 @@ function duelFinish(B, out){
   if (out==='win'){
     const ko = ds.fh <= 0;
     foe.morale = Math.max(0, foe.morale - (ko ? 42 : 30)); mine.morale = Math.min(130, mine.morale + 20); G.duels++; xpGain(mine.gid, 'm', 20);
+    if (ko && foe.gid && duelDeath(foe.gid, me().m)){ B.lastDuel.killed = foe.gid; }
     B.log = [`${me().n}의 일격! ${J(foe.name,'이')} 말에서 떨어졌다.`];
-    if (Math.random() < (ko ? .5 : .3)){ B.duelCap = foe.gid; B.lastDuel.cap = true; foe.morale = Math.max(0, foe.morale-20); B.log.push(`${J(foe.name,'을')} 사로잡았다!`); }
+    if (B.lastDuel.killed){ foe.morale = Math.max(0, foe.morale - 15); B.log.push(`${J(foe.name,'이')} 그 자리에서 숨을 거두었다! 적진이 술렁인다.`); }
+    else if (Math.random() < (ko ? .5 : .3)){ B.duelCap = foe.gid; B.lastDuel.cap = true; foe.morale = Math.max(0, foe.morale-20); B.log.push(`${J(foe.name,'을')} 사로잡았다!`); }
   } else if (out==='lose'){
     mine.morale = Math.max(0, mine.morale - 35); foe.morale = Math.min(130, foe.morale + 15);
     let h = Math.round(rnd(15,30)*(ds.mh<=0 ? 1 : .6)); if (me().tr==='강철') h = Math.round(h*.6); if (lg('mu') >= 5) h = Math.round(h*.6);
@@ -4130,7 +4161,8 @@ function tbDuelFinish(B, out){
   B.lastDuel = { win: out==='win', draw: out==='draw', fled: out==='fled', cap:false, rounds: ds.rounds };
   if (out==='win'){ const ko = ds.fh<=0; e.morale = clamp(e.morale - (ko ? 45 : 32), 0, 130); e.troops = Math.round(e.troops*.9); u.morale = clamp(u.morale+15, 0, 130); G.duels++; xpGain(u.gid, 'm', 20);
     tb.log.push(`일기토 승리! ${J(e.name,'이')} 말에서 떨어졌다.`);
-    if (ko && Math.random()<.4){ e.out = true; e.troops = Math.round(e.troops*.6); B.duelCap = e.gid; tb.log.push(`${J(e.name,'을')} 사로잡았다! 부대가 흩어진다.`); if (e.cmd) for (const o of tb.units) if (!o.out && o.side===e.side) o.morale = clamp(o.morale-22, 0, 130); }
+    if (ko && e.gid && duelDeath(e.gid, me().m)){ e.out = true; tb.log.push(`${J(e.name,'이')} 그 자리에서 숨을 거두었다!`); B.lastDuel.killed = e.gid; }
+    if (ko && !B.lastDuel.killed && Math.random()<.4){ e.out = true; e.troops = Math.round(e.troops*.6); B.duelCap = e.gid; tb.log.push(`${J(e.name,'을')} 사로잡았다! 부대가 흩어진다.`); if (e.cmd) for (const o of tb.units) if (!o.out && o.side===e.side) o.morale = clamp(o.morale-22, 0, 130); }
     else tbCheckRout(B, e);
   } else if (out==='lose'){ u.morale = clamp(u.morale-30, 0, 130); e.morale = clamp(e.morale+12, 0, 130);
     let h = Math.round(rnd(12,24)*(ds.mh<=0 ? 1 : .6)); if (me().tr==='강철') h = Math.round(h*.6); if (lg('mu') >= 5) h = Math.round(h*.6); G.hp = clamp(G.hp - h);
@@ -5542,7 +5574,7 @@ function endMonth(){
   const _sp = spList().length && ageOf(me())<56 && G.kids.length<8 && Math.random()<.028*Math.min(2, 1+(spList().length-1)*.6) ? pick(spList()) : null;
   if (_sp){ const k = makeKid(_sp); G.kids.push(k); news(`${k.sex==='남'?'아들':'딸'} ${J(k.n,'이')} 태어났다.`, true, true); }
   if (G.role==='officer' && G.mission) evalMission();
-  dirMonth(); sqCheck(true); relMonth(); xpMonth();
+  dirMonth(); sqCheck(true); relMonth(); xpMonth(); hpMonth();
   calendar(false);
   if (G.pfac && citiesOf(G.pfac).length>=UNIFY_N && !(G.scen===184 && !G.flags.era190)) G.over = { kind:'unify' };
   else if (G.year>=280){ G.over = { kind:'era' }; news('280년, 삼국의 시대가 저물었다.', true, true); }
@@ -8381,6 +8413,7 @@ function openSheet(kind, arg){
       <p class="small">병종 적성 <b>${aptLine(p)}</b> (기병·창병·궁병·수군)</p>`;
     if (!isMe){
       body += `<p class="small">인연 <b>${bond(p.id)}</b>${isSworn(p.id)?' · 의형제':''}${G.role==='ruler'&&sameFac?` · 충성 ${Math.round(p.loy)}`:''}</p>`;
+      if (npcHp(p) < 100) body += `<p class="small"><span class="chip ${npcHp(p) < 25 ? 'down' : ''}">부상 · 체력 ${npcHp(p)}</span> <span class="muted">${npcHp(p) < 25 ? '지금 싸움에 나서면 전사할 수 있다. ' : ''}쉬면 달마다 +8(전선·군단에 있으면 +3)</span></p>`;
       if (sameFac || p.custom){ const gro = Object.entries(p.gro||{}).filter(([, v]) => v > 0), xs = Object.entries(p.xp||{}).filter(([k]) => p[k] < 100);
         if (gro.length || xs.length) body += `<div class="relw"><span class="small muted">전공 성장${p.custom ? '(내 장수 · 세 배 빠름, 평생 +40)' : '(이번 판 +12까지)'}</span>${gro.map(([k, v]) => `<span class="chip up">${ST[k]} +${v}</span>`).join('')}${xs.sort((a, b) => b[1]/xpNeed(p[b[0]]) - a[1]/xpNeed(p[a[0]])).slice(0, 2).map(([k, v]) => `<span class="chip">${ST[k]} 다음 칸 ${Math.min(99, Math.round(v/xpNeed(p[k])*100))}%</span>`).join('')}</div>`; }
       if (G.role==='ruler' && sameFac){ const R = relList(p.id); if (R.length) body += `<div class="relw"><span class="small muted">동료 사이</span>${R.map(([o, v, pr]) => `<span class="chip ${v >= 0 ? 'up' : 'down'}">${pr==='sworn' ? '의형제 ' : pr==='feud' ? '반목 ' : ''}${esc(o.n)} ${v > 0 ? '+' : ''}${Math.round(v)}</span>`).join('')}</div>`; }
