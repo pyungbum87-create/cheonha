@@ -367,6 +367,7 @@ p{margin:0}
 .tgl{width:46px;height:28px;border-radius:14px;background:#cfc3a9;position:relative;flex:0 0 46px;transition:background .2s}.tgl i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}.tgl.on{background:#3d7a52}.tgl.on i{transform:translateX(18px)}
 .mapview.th{display:flex;flex-direction:column;gap:8px;padding:8px 10px 96px;overflow-y:auto}.mseg{display:flex;gap:4px;background:#e6dcc6;border-radius:12px;padding:3px;align-self:center;position:relative;z-index:3}.mapview:not(.th) .mseg{position:absolute;bottom:14px;left:12px;box-shadow:0 2px 8px rgba(40,25,10,.25)}.mseg button{border:0;background:none;font:inherit;font-size:13px;font-weight:700;padding:6px 18px;border-radius:9px;color:#5e5347;min-height:36px}.mseg button.on{background:#2a1f16;color:#f4ecdc}
 .lgc{margin:8px 0;border:1px solid #a8822a55;border-radius:12px;padding:6px 10px;background:#a8822a0d}.lgc summary{cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.lgrow{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}.lgs{flex:none;width:40px;height:40px;border-radius:10px;background:var(--c);color:#fff;display:grid;place-items:center;font-size:20px;font-weight:900}.lgt{display:flex;gap:4px;margin:4px 0}.lgt span{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;border:1.5px solid var(--c);color:var(--c)}.lgt span.on{background:var(--c);color:#fff}.lgt span.nx{box-shadow:0 0 0 3px #d4a01f66}.lgrow small{display:block;font-size:12.5px}.lgb{flex:none;min-height:44px}
+.sqc{border-left:4px solid #a8822a}.sqt{position:relative;display:flex;align-items:center;gap:8px;padding:7px 0 9px;font-size:14px;border-top:1px dashed var(--line)}.sqt small{display:block;font-size:12px;color:var(--muted)}.sqt i{position:absolute;left:0;bottom:2px;height:4px;width:var(--w);background:#a8822a;border-radius:2px}.sqt.ok{color:#3d6b47}.sqt.ok i{background:#3d6b47}
 .budget{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}.budget summary{cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.bud{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13px;margin:4px 0}.bud b{color:#a33;text-align:right}
 .phase{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e6dcc6;color:#5e5347;margin-left:4px;vertical-align:2px}.phase.good{background:#dcefdf;color:#2f6b3a}.phase.hot{background:#2f6b3a;color:#fff}.phase.warn{background:#f6e3c4;color:#8a5a12}.phase.bad{background:#a3322a;color:#fff}
 .phase.terr{background:#e9e2f0;color:#5a4a7a}.thint{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:#f1e8d6}.thint .gl{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#6f6356;color:#fff;font-family:var(--seal);flex:0 0 28px}.thint b{display:block;font-size:13px}.thint small{display:block;font-size:12px;color:var(--muted)}.thint.warn{background:#f6e3c4}.thint.warn .gl{background:#b8791a}.thint.bad{background:#f6dcd6}.thint.bad .gl{background:#a3322a}
@@ -1652,7 +1653,9 @@ const WORKS = {
 };
 /* 나라 살림의 지출(금 소모처): 세력이 클수록, 금을 쌓아 둘수록 커진다. 손을 놓아도 금이 끝없이 쌓이지 않게 한다 */
 const OFF_PAY = { gun:30, gunS:15, sang:25, sangS:10, elite:8 };
-const treasuryCap = () => Math.max(3000, Math.round((G.lastIncome||0)*12));
+// 이번 달 세금 수입(군주): 성 세금 × 민심·난이도 × 조정 × 세금 감면. 성이 셋 이하면 최소 수입 보장
+function incomeNow(){ const nC0 = citiesOf(G.pfac).length; return Math.max(Math.round(citiesOf(G.pfac).reduce((a,c)=>a+cityTax(c.dev)*taxW(c),0)*taxMul()*courtIncMul()*((G.taxCut||0) > mi() ? .6 : 1)), nC0 <= 3 ? Math.round((140 + nC0*50)*dif().inc) : 0); }
+const treasuryCap = () => Math.max(3000, Math.round((G.lastIncome || (G.role==='ruler' && G.pfac ? incomeNow() : 0))*12));
 function upkeepParts(){
   const ps = npcs().filter(p => p.fac===G.pfac && active(p)), C = G.court;
   const troops = Math.round(totalTroops(G.pfac)/1000*2), salary = Math.round(ps.reduce((a, p) => a + 2 + rkOf(p)*1.5, 0));
@@ -5489,7 +5492,7 @@ function endMonth(){
   if (G.role==='ruler'){
     // 땅이 넓어질수록 관리가 어려워 걷히는 몫이 줄어든다(6성 초과분마다 5%)
     const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05);
-    const nC0 = citiesOf(G.pfac).length, inc = Math.max(Math.round(citiesOf(G.pfac).reduce((a,c)=>a+cityTax(c.dev)*taxW(c),0)*taxMul()*courtIncMul()*((G.taxCut||0) > mi() ? .6 : 1)), nC0 <= 3 ? Math.round((140 + nC0*50)*dif().inc) : 0);
+    const inc = incomeNow();
     // 유지비(군량·녹봉): 세력이 커질수록 같이 커져 금이 끝없이 쌓이지 않는다
     const UP = upkeepParts(), up = UP.total;
     G.gold += inc - up; G.lastIncome = inc; G.lastUpkeep = up; G.lastUp = UP;
@@ -5512,7 +5515,7 @@ function endMonth(){
   const _sp = spList().length && ageOf(me())<56 && G.kids.length<8 && Math.random()<.028*Math.min(2, 1+(spList().length-1)*.6) ? pick(spList()) : null;
   if (_sp){ const k = makeKid(_sp); G.kids.push(k); news(`${k.sex==='남'?'아들':'딸'} ${J(k.n,'이')} 태어났다.`, true, true); }
   if (G.role==='officer' && G.mission) evalMission();
-  dirMonth();
+  dirMonth(); sqCheck(true);
   calendar(false);
   if (G.pfac && citiesOf(G.pfac).length>=UNIFY_N && !(G.scen===184 && !G.flags.era190)) G.over = { kind:'unify' };
   else if (G.year>=280){ G.over = { kind:'era' }; news('280년, 삼국의 시대가 저물었다.', true, true); }
@@ -5667,7 +5670,7 @@ const LG = {
   hy:{ n:'혈맥', gl:'血', c:'#3d6b47', d:'핏줄을 길고 굳게 잇는다', t:[['튼튼한 핏줄','나이 들어 깎이는 체력 -25%'],['가산 보전','대를 이을 때 금 90% 유지(원래 70%)'],['가신의 의리','대를 이을 때 인연 80% 유지, 계급이 내려가지 않음'],['영재 교육','자녀 능력 +4'],['장수 가문','나이 들어 깎이는 체력 -50%, 새 가주 능력 +3']] } };
 const LG_COST = [150, 300, 450, 650, 900];
 const lg = k => ((typeof G!=='undefined' && G && G.lg) || {})[k] || 0;
-const renown = () => Math.max(0, Math.floor(((G.dynScore||0) + genScore())*.5) - (G.lgSpent||0));
+const renown = () => Math.max(0, Math.floor(((G.dynScore||0) + genScore())*.5) + (G.renBonus||0) - (G.lgSpent||0));
 function lgHeadBonus(p){ if (!p) return; if (lg('mu') >= 1) p.m = clamp(p.m + 3); if (lg('mun') >= 1) p.i = clamp(p.i + 3); if (lg('hy') >= 5) for (const k of ['m','i','l','c']) p[k] = clamp(p[k] + 3); }
 function lgFamBonus(p){ if (p && lg('mu') >= 3 && !p.lgFam){ p.lgFam = 1; p.m = clamp(p.m + 4); p.l = clamp(p.l + 4); } }
 function buyLegacy(k){
@@ -6992,7 +6995,7 @@ function civicCard(){
     <div class="civ">${Object.entries(CIVIC).map(([k, C]) => { const w = Math.max(0, (fl[k]||-99) + 3 - mi()), cost = C.cost();
       return `<button class="civb" data-act="civic" data-arg="${k}" ${G.ap > 0 && !w && G.gold >= cost ? '' : 'disabled'}><b>${C.n}</b><small>${w ? `${w}개월 뒤` : `${cost ? `금 ${fmt(cost)} · ` : ''}${C.d}`}</small></button>`; }).join('')}</div>
     <p class="tiny muted">민심은 개발하면 +1, 징병하면 -1. 여섯 달마다 60 쪽으로 조금씩 돌아간다. 민심이 높을수록 세금이 늘고, 40 아래면 민란이 날 수 있다.</p>
-    ${(() => { const U = upkeepParts(), inc = G.lastIncome||0, net = inc - U.total; return `<details class="budget"><summary><b>나라 살림</b> <span class="small">수입 +${fmt(inc)} · 지출 -${fmt(U.total)} · <b style="color:${net < 0 ? '#a33' : '#3d6b47'}">${net >= 0 ? '+' : ''}${fmt(net)}</b>/달</span></summary>
+    ${(() => { const U = upkeepParts(), inc = incomeNow(), net = inc - U.total; return `<details class="budget"><summary><b>나라 살림</b> <span class="small">수입 +${fmt(inc)} · 지출 -${fmt(U.total)} · <b style="color:${net < 0 ? '#a33' : '#3d6b47'}">${net >= 0 ? '+' : ''}${fmt(net)}</b>/달</span></summary>
       <div class="bud">${UP_LB.filter(([k]) => U[k]).map(([k, n]) => `<span>${n}</span><b>-${fmt(U[k])}</b>`).join('')}</div>
       <p class="tiny muted">국고 한도 ${fmt(U.cap)}(월 수입 12달치). 넘는 금은 달마다 4%가 관리 부패로 샌다. 장수 녹봉은 계급마다 오르고, 정예 병종은 숙련이 높을수록 유지비가 크다.</p></details>`; })()}</div>`;
 }
@@ -7013,6 +7016,47 @@ function warRoom(){
     ${fs ? `<div class="card wr"><div class="row between"><b>전선</b><button class="ghost" data-sheet="court">${C && courtP(C.gun) ? `대군사 ${person(C.gun).n}` : '대군사 임명'} ›</button></div><div class="wr-frs">${fs}</div></div>` : ''}
     <div class="card wr"><div class="row between"><b>${esc(C ? C.eName : '직속 친위군')}</b><button class="ghost" data-sheet="court">편성 ›</button></div>${el.length ? `<div class="row" style="gap:8px;flex-wrap:wrap">${el.map(p => `<button class="wr-el" data-person="${p.id}">${pp(p, 40)}<small>${esc(p.n)}${p.army ? ' · 출진' : ''}</small></button>`).join('')}</div>` : '<p class="small muted">아직 친위군이 없다. 최고의 무장을 뽑아 직속으로 두자.</p>'}</div>`;
 }
+/* ---------------- 계절 과업(군주): 철마다(3달) 지금 형편에 맞는 목표 셋. 하나마다 금·명망, 셋 다 하면 명망·민심 더 ---------------- */
+const SEASON_N = ['봄','여름','가을','겨울'];
+const seasonId = () => G.year*4 + Math.floor((G.month-1)/3);
+const sqWorks = () => citiesOf(G.pfac).reduce((a, c) => a + Object.keys(c.bld||{}).length + (c.work ? 1 : 0), 0);
+const sqOfficers = () => npcs().filter(p => p.fac===G.pfac && active(p)).length;
+const sqEnemyNb = () => citiesOf(G.pfac).some(c => c.adj.some(a => city(a).owner && hostile(G.pfac, city(a).owner)));
+const SQ = {
+  take:{ n:'성 하나를 빼앗아라', ok:sqEnemyNb, cur:() => citiesOf(G.pfac).length, g:1, gold:600, ren:40 },
+  win:{ n:'싸움에서 두 번 이겨라', ok:sqEnemyNb, cur:() => G.wins||0, g:2, gold:400, ren:30 },
+  front:{ n:'전선 하나를 크게 밀어붙여라', ok:() => frontsOf(G.pfac).length > 0 && Math.max(0, ...frontsOf(G.pfac).map(F => frState(F.id).p)) < 60, cur:() => Math.max(0, ...frontsOf(G.pfac).map(F => frState(F.id).p)), goal:b => Math.min(100, Math.max(50, b + 40)), gold:350, ren:25 },
+  dev:{ n:'성을 세 번 개발하라', ok:() => citiesOf(G.pfac).some(c => c.dev < 10), cur:() => cntOf('a_develop'), g:3, gold:250, ren:20 },
+  recruit:{ n:'인재 한 명을 얻어라', ok:() => true, cur:sqOfficers, g:1, gold:250, ren:25 },
+  build:{ n:'대형 사업을 하나 시작하라', ok:() => G.gold >= 2500, cur:sqWorks, g:1, gold:200, ren:30 },
+  drill:{ n:'정예 병종을 한 단계 조련하라', ok:() => frontsOf(G.pfac).some(F => frCorps(F, frState(F.id))), cur:() => Object.values(G.corpsLv||{}).reduce((a, b) => a + b, 0), g:1, gold:200, ren:20 },
+  plot:{ n:'계략을 한 번 성공시켜라', ok:sqEnemyNb, cur:() => G.plotWins||0, g:1, gold:300, ren:25 },
+  trust:{ n:'민심을 70까지 끌어올려라', ok:() => G.trust < 66, cur:() => G.trust, abs:1, g:70, gold:250, ren:25 },
+  duel:{ n:'일기토에서 이겨라', ok:() => sqEnemyNb() && me().m >= 70, cur:() => G.duels||0, g:1, gold:300, ren:30 },
+  troops:{ n:'총병력을 1할 늘려라', ok:() => true, cur:() => totalTroops(G.pfac), pct:.1, gold:250, ren:20 }
+};
+function sqGoal(t){ const Q = SQ[t.k]; return Q.goal ? Q.goal(t.base) : Q.abs ? Q.g : Q.pct ? Math.round(t.base*(1 + Q.pct)) : t.base + Q.g; }
+function sqNew(){
+  const ks = shuffle(Object.keys(SQ).filter(k => SQ[k].ok())).slice(0, 3);
+  G.sq = { s:seasonId(), tasks:ks.map(k => ({ k, base:SQ[k].cur(), done:0 })), all:0 }; cntAdd('sqN', ks.length); for (const k of ks) cntAdd('sqn_' + k);
+  news(`${SEASON_N[(G.month-1)/3|0]}의 과업이 정해졌다: ${ks.map(k => SQ[k].n).join(' · ')}`, false, true);
+}
+// 달마다·행동 뒤: 끝낸 과업에 보상을 주고, 철이 바뀌면 새 과업
+function sqCheck(newMonth){
+  if (!G || G.role!=='ruler' || !G.pfac || !citiesOf(G.pfac).length) return;
+  if (!G.sq || G.sq.s!==seasonId()){ if (newMonth || !G.sq) sqNew(); return; }
+  for (const t of G.sq.tasks){ if (t.done) continue; const Q = SQ[t.k]; if (Q.cur() >= sqGoal(t)){ t.done = 1; cntAdd('sq'); cntAdd('sq_' + t.k); G.gold += Q.gold; G.renBonus = (G.renBonus||0) + Q.ren;
+    Snd.sfx('coin'); toast(`과업 완수 「${Q.n}」`, [[`금 +${fmt(Q.gold)}`, true], [`명망 +${Q.ren}`, true]]); news(`과업 완수: ${Q.n}`, false, true); } }
+  if (!G.sq.all && G.sq.tasks.length && G.sq.tasks.every(t => t.done)){ G.sq.all = 1; cntAdd('sqAll'); G.renBonus = (G.renBonus||0) + 40; G.trust = clamp(G.trust + 3); toast('이번 철 과업을 모두 이뤘다!', [['명망 +40', true], ['민심 +3', true]]); }
+}
+function sqCard(){
+  if (G.role!=='ruler' || !G.sq) return '';
+  const left = 3 - (G.month-1)%3, sn = SEASON_N[(G.month-1)/3|0];
+  return `<div class="card sqc"><div class="row between"><b>${sn}의 과업</b><span class="small muted">${left}달 남음 · ${G.sq.tasks.filter(t => t.done).length}/${G.sq.tasks.length}</span></div>
+    ${G.sq.tasks.map(t => { const Q = SQ[t.k], g = sqGoal(t), c = Q.cur(), st = Q.abs ? 0 : t.base, pct = t.done ? 100 : Math.max(0, Math.min(100, Math.round((c - st)/Math.max(1, g - st)*100)));
+      return `<div class="sqt ${t.done ? 'ok' : ''}"><span class="grow">${t.done ? '✓ ' : ''}${Q.n}<small>금 ${fmt(Q.gold)} · 명망 ${Q.ren}</small></span><i style="--w:${pct}%"></i></div>`; }).join('')}
+    <small class="muted">셋 다 이루면 명망 +40 · 민심 +3. 명망은 가문 유산에 쓴다.</small></div>`;
+}
 function viewArmy(){
   const mine = G.armies.filter(a => a.fac===G.pfac);
   const threats = G.pfac ? G.armies.filter(a => a.fac!==G.pfac && (city(a.to).owner===G.pfac) && a.state!=='return') : [];
@@ -7027,7 +7071,8 @@ function viewArmy(){
     if (G.campaign && G.campaign.until>=mi() && !G.campaign.used) head += `<div class="card"><b>${city(G.campaign.target).n} 공략 허가</b><span class="small">지원군 ${fmt(G.campaign.support)} · 부장 ${G.campaign.deps}명 · 군량 무상 · ${G.campaign.until-mi()}개월 안에 출진</span>
       <button class="btn fac" data-sheet="campaign" data-arg="${G.campaign.target}" ${G.inArmy?'disabled':''}>출진 계획 세우기</button></div>`;
   }
-  if (G.role==='ruler') head += warRoom();
+  if (G.role==='ruler' && !G.sq) sqCheck(true);
+  if (G.role==='ruler') head += sqCard() + warRoom();
   if (G.role==='ruler') head += `<details class="card"><summary><b>작전 세우는 법</b></summary><span class="small muted">지도에서 적 성을 눌러 <b>출진</b>을 고르면, 인접한 여러 성에서 장수와 병력을 골라 한꺼번에 보낼 수 있다(합동 공격). 군단은 다음 달 도착해 달마다 공성한다.</span></details>`;
   return `<div class="pane">${head}
     <div class="sec"><h3>우리 군단</h3><span class="small muted">${mine.length}개</span></div>
@@ -7970,7 +8015,7 @@ function doAct(name, ...args){
   ACT[name](...args);
   if (G.ap < ap0) cntAdd('a_' + name);
   if (name==='scout' && G.scout[args[0]]!==sc0) cntAdd('scout');
-  dirCheck();
+  dirCheck(); sqCheck(false);
   if (G.dead && G.phase==='act'){ G.phase = 'succession'; G.deadAt = 'act'; }
   save();
   render();
@@ -8465,7 +8510,7 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
    ===================================================================== */
 if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, mi, renown, famTalk, makeKid, addSpouse, spouseLook, doAct, openSheet, frontStep, court, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
-  globalThis.T = { LG, lg, renown, buyLegacy, WORKS, workWhyNot, frState, frCorps, corpsAvail, FR_INV, frInvest, rebel, frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { SQ, sqCheck, sqGoal, LG, lg, renown, buyLegacy, WORKS, workWhyNot, frState, frCorps, corpsAvail, FR_INV, frInvest, rebel, frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
