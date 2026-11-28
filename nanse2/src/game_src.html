@@ -2362,6 +2362,7 @@ function frEval(F){
   if (van) me_.k = .6 + (van.m*1.2 + van.l*.8)/500;
   me_.k *= frDepK(F, S);
   if (S.rift > 0) en.k *= .8;
+  if (S.mole > 0) en.k *= .88;
   const a = Math.pow(me_.t, .8)*me_.k, b = Math.pow(en.t, .8)*en.k; // 병력의 이점은 점점 줄어든다: 두 배의 병력이 두 배의 힘은 아니다
   return { S, me_, en, ratio: a/(a + b || 1) };
 }
@@ -2385,7 +2386,8 @@ function promoTalkN(p){ const r = p.rk, hi = r >= 9, ps = persOf(p);
   const L = hi ? { uiri:'이 몸, 이 자리의 무게를 압니다. 주공의 대의를 끝까지 받들겠습니다.', sinjung:'과분한 자리입니다. 한 치의 허술함도 없게 하겠습니다.', yongjang:'하하! 이제 더 큰 군사를 몰 수 있겠군요! 맡겨 주십시오!', gyohwal:'이 자리에 맞는 공을 곧 보여 드리지요.', onhwa:'부족한 몸을 믿어 주셨으니, 사람들을 아끼며 다스리겠습니다.', yasim:'주공의 눈이 틀리지 않았음을 증명하겠습니다.' }
     : { uiri:'황공하옵니다! 이 은혜, 목숨으로 갚겠습니다.', sinjung:'감사합니다. 맡은 일부터 차근차근 하겠습니다.', yongjang:'오오! 다음 싸움에서 선봉은 제 몫입니다!', gyohwal:'헤헤, 주공께서 알아주시니 힘이 납니다.', onhwa:'과분합니다… 더 열심히 하겠습니다.', yasim:'이 정도로 만족하진 않겠습니다. 더 올라가겠습니다.' };
   talkQ({ title:`${NRANKS[r]} 임명 · ${p.n}`, bg:'bg_palace', lines:[['me', `${p.n}, 그대를 ${NRANKS[r]}(으)로 삼는다.`], [p.id, L[ps] || L.uiri]] }); }
-const rkOf = p => p.rk != null ? p.rk : (p.rk = clamp(Math.floor((Math.max(SV(p.m), SV(p.l), SV(p.i), SV(p.g||p.i)) - 45)/6), 0, 9));
+// 계급은 모두 백인장에서 시작한다. 예전 저장에서 능력치로 자동 매겨진 계급(승진 기록 없음)은 한 번 백인장으로 되돌린다
+const rkOf = p => { if (!p.rkM){ p.rkM = 1; if (p.rkAt == null) p.rk = 0; } return p.rk ?? (p.rk = 0); };
 function officeOf(pid){ const C = G.court; if (!C) return null; if (C.gun===pid) return OFFICES.gun[0]; if (C.gunS.includes(pid)) return OFFICES.gunS[0]; if (C.sang===pid) return OFFICES.sang[0]; if (C.sangS.includes(pid)) return OFFICES.sangS[0]; if (C.elite.includes(pid)) return C.eName; return null; }
 const courtP = id => { const p = id && person(id); return p && p.alive && active(p) && p.fac===G.pfac ? p : null; };
 function courtClean(){ if (!G.court || G.role!=='ruler') return; const C = G.court; ['gun','sang'].forEach(k => { if (!courtP(C[k])) C[k] = null; }); ['gunS','sangS'].forEach(k => { C[k] = C[k].map(id => courtP(id) ? id : null); }); C.elite = C.elite.filter(courtP);
@@ -2439,7 +2441,7 @@ function frontStep(ff){
   for (const F of FS){ const S = frState(F.id); S.pp = S.p; if (S.fNext==null){ S.fNext = Math.random() < .4 ? 'push' : 'hold'; S.fKnown = false; }
     if (S.st==='push') nPush[F.ef] = (nPush[F.ef]||0) + 1;
     if (S.st==='feint'){ const e = frEval(F), adv = frAdv(F, S), ok = Math.random() < clamp(.55 + ((adv ? adv.i : 45) - (e.en.best ? e.en.best.i : 50))/90, .2, .92); S.feintOk = ok; if (ok) lure[F.ef] = F.id; rep.push(`${F.sec} 양동 ${ok ? '성공' : '간파당함'}`); } }
-  const stratLog = [], nFr = {}, nFrE = {}, planB = {};
+  const stratLog = [], subLog = [], nFr = {}, nFrE = {}, planB = {};
   for (const F of FS){ for (const id of F.my) nFr[id] = (nFr[id]||0) + 1; for (const id of F.foe) nFrE[id] = (nFrE[id]||0) + 1; }
   for (const F of FS){
     const stp = G.role==='ruler' ? frStrat(F) : null;
@@ -2449,6 +2451,12 @@ function frontStep(ff){
       if (stp && !frRoleP(F, S0(F), 'van')){ const used = new Set(Object.values(G.fronts||{}).flatMap(o => Object.values(o.r||{}))), C = G.court || {};
         const mv = npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && !used.has(p.id) && p.id!==C.gun && p.id!==C.sang && !(C.gunS||[]).includes(p.id) && !(C.sangS||[]).includes(p.id) && city(p.city).gov!==p.id && !frontsOf(G.pfac).some(o => o.my.includes(p.city))).sort((a, b) => (b.m*1.2 + b.l*.8) - (a.m*1.2 + a.l*.8))[0];
         if (mv){ mv.city = F.my[0]; frSetRole(F.id, 'van', mv.id); } }
+      if (stp){ // 군사가 빈 부장 자리(넷)를 채운다: 먼저 전선 성에 노는 장수, 모자라면 후방에서 불러온다
+        const S = S0(F); S.deps = frDeps(F, S).map(p => p.id); let need = 4 - S.deps.length;
+        if (need > 0){ const busy = new Set(Object.values(G.fronts||{}).flatMap(o => Object.values(o.r||{}).concat(o.deps||[]))), frontC = new Set(FS.flatMap(o => o.my));
+          const ok = p => p.fac===G.pfac && active(p) && !p.army && !busy.has(p.id) && !courtRole(p.id) && city(p.city).gov!==p.id, sc = p => p.m + p.l;
+          const here = npcs().filter(p => ok(p) && F.my.includes(p.city)).sort((a, b) => sc(b) - sc(a)), rear = npcs().filter(p => ok(p) && !frontC.has(p.city)).sort((a, b) => sc(b) - sc(a));
+          for (const p of here.concat(rear)){ if (need <= 0) break; if (!F.my.includes(p.city)){ if (S.deps.length >= 2) break; /* 후방에서는 전선마다 둘까지만 */ p.city = F.my[0]; subLog.push(`${p.n}→${F.sec}`); } S.deps.push(p.id); busy.add(p.id); need--; } } }
       if (!frCorps(F, S0(F))){ const usedC = new Set(Object.values(G.fronts).map(o => o.corps).filter(Boolean)), ck = corpsAvail(G.pfac).filter(x => !usedC.has(x)).sort((a, b) => CORPS[b].p[frIdx(F)] - CORPS[a].p[frIdx(F)])[0]; if (ck) S0(F).corps = ck; }
       const S1 = S0(F); if (stp){ frSmart(F, S1, stp, planB); const L = stratLog.find(x => x.n===stp.n) || (stratLog.push({ n:stp.n, p:0, h:0 }), stratLog[stratLog.length-1]); L[S1.st==='push' ? 'p' : 'h']++; }
       else if (!S1.sug){ const r0 = frEval(F).ratio; S1.st = (r0 > .55 || Math.random() < .25) && S1.sup >= 1 ? 'push' : 'hold'; if (S1.st==='push') S1.bonus = Math.round(rnd(0, 10)); } S1.sug = false;
@@ -2474,6 +2482,7 @@ function frontStep(ff){
     // 적 군사가 뛰어나면 우리 공세가 매복에 걸리기도 한다. 군사 자리를 비워 두면 위험하다
     if (S.st==='push' && fi==='hold' && foeI >= 80 && Math.random() < clamp((foeI - advI)/100, 0, .3)){ d -= 12; pr = pr || { le:0, lm:0 }; pr.lm = (pr.lm||0) + .03; rep.push(`${F.sec} 적의 매복에 걸렸다`); S.planLast = (S.planLast ? S.planLast + ' · ' : '') + '적의 매복에 걸렸다'; }
     if (S.rift > 0) S.rift--;
+    if (S.mole > 0){ S.fKnown = true; if (--S.mole===0){ d += 20; rep.push(`${F.sec} 내응! 거짓 귀순한 장수가 안에서 성문을 열었다`); S.planLast = (S.planLast ? S.planLast + ' · ' : '') + '내응 성공'; } }
     // 기세: 공세가 달마다 이어져 먹히면 병사들이 신이 난다 (+2씩, 최대 +6). 멈추거나 밀리면 사라진다
     if (S.st==='push'){ d += (S.mom||0)*2; S.mom = d > 0 ? Math.min(3, (S.mom||0) + 1) : 0; } else S.mom = 0;
     S.starve = starve; S.pincer = pincer > 0; S.lureB = lureB > 0;
@@ -2491,6 +2500,7 @@ function frontStep(ff){
   }
   frPlanFoe(frontsOf(G.pfac));
   if (rep.length) news(`전선 보고: ${rep.join(', ')}`, false, true);
+  if (subLog.length) news(`군사가 노는 장수를 전선 부장으로 보냈다: ${subLog.join(', ')}`, false, true);
   if (stratLog.length) news(`군사의 지휘: ${stratLog.map(L => `${L.n} 공세 ${L.p} · 수비 ${L.h}`).join(' / ')}`, false, true);
   // 적장의 도전: 대치 중인 전선에서 가끔 적 선봉이 진 앞으로 나온다
   if (!G.frDuelOffer && !SIM && Math.random() < .22){
@@ -2499,6 +2509,7 @@ function frontStep(ff){
   }
 }
 const S0 = F => frState(F.id);
+function courtRole(id){ const C = G.court; if (!C || G.role!=='ruler') return ''; if (C.gun===id) return '대군사'; if ((C.gunS||[]).includes(id)) return '군사중랑장'; if (C.sang===id) return '승상'; if ((C.sangS||[]).includes(id)) return '상서'; if ((C.elite||[]).includes(id)) return '친위'; return ''; }
 const frVan = F => frRoleP(F, frState(F.id), 'van') || npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).sort((a, b) => b.m - a.m)[0] || null;
 // 전선이 무너지면 결전이 벌어진다
 function frBreak(F, S, ours){
@@ -2613,6 +2624,8 @@ const FR_PLANS = {
   flood:{ n:'수공', gl:'물', d:'둑을 터 적진을 쓸어버린다. 강 전선에서 여름 장마철에만.', can:c => c.terr==='river' && c.sea.k==='summer', bon:() => .12 },
   lure:{ n:'거짓 퇴각', gl:'퇴', d:'일부러 물러나(-10) 적을 끌어들인 뒤 되친다. 적이 쫓아오면 크게 이기고(+30), 안 오면 땅만 내준다.', can:() => true, bon:c => (c.known==='mass' ? .2 : c.known==='push' ? .1 : c.known==='hold' ? -.3 : 0) },
   night:{ n:'야습', gl:'밤', d:'지키고 있는 적의 진영을 밤에 친다. 적이 수비 중일 때만 통한다. 겨울밤이 길다.', can:() => true, bon:c => (c.sea.k==='winter' ? .1 : 0) + (c.known==='hold' ? .12 : c.known ? -.25 : 0) },
+  fake:{ n:'거짓 항복', gl:'항', d:'장수 하나가 매를 맞고 적에게 항복하는 척한다(고육계). 적이 믿으면 배를 몰고 들어가 적진 한가운데서 불을 지른다. 적 군사가 영리할수록 간파당한다.', can:c => !c.S.fakeUsed || c.S.fakeUsed < mi(), bon:c => (c.foeI >= 80 ? -.12 : 0) - .03 },
+  mole:{ n:'거짓 귀순', gl:'귀', d:'우리 장수를 적에게 거짓으로 투항시켜 등용되게 한다. 들키지 않으면 석 달 동안 적의 움직임을 다 알고 적의 지휘가 흐려지며, 마지막 달에 안에서 들고일어나 성문을 연다(내응). 들키면 그 장수는 돌아오지 못할 수도 있다.', can:c => !c.S.mole, bon:() => -.08 },
   rift:{ n:'이간', gl:'이', d:'적장과 그 주군 사이에 의심을 심는다. 통하면 석 달 동안 적장의 지휘가 무뎌진다.', can:c => !c.S.rift, bon:() => -.05 }
 };
 function frCtx(F, S){ const e = frEval(F), adv = frRoleP(F, S, 'adv'), R = person(fac(G.pfac).ruler); return { F, S, terr: frTerr(F), sea: frSeason(), ce: frFoeCorps(F), known: S.fKnown ? S.fNext : null, advI: adv ? adv.i : Math.max(40, Math.round((R ? R.i : 50)*.7)), foeI: e.en.best ? e.en.best.i : 50 }; }
@@ -2626,6 +2639,8 @@ function frPlanResolve(F, S, c, fi){
   else if (k==='flood'){ if (ok){ o.d = 20; o.le = .15; for (const id of F.foe){ const t = city(id); t.grain = Math.max(0, grainOf(t) - 1); } o.msg = '수공 성공! 강물이 적진을 쓸었다'; } else { o.lm = .04; o.msg = '수공 실패. 물길이 아군 쪽으로 넘쳤다'; } }
   else if (k==='lure'){ o.d = -10; if (!foePush) o.msg = '거짓으로 물러났지만 적은 쫓아오지 않았다'; else if (ok){ o.d += fi==='mass' ? 40 : 30; o.le = fi==='mass' ? .18 : .12; o.msg = '거짓 퇴각 성공! 쫓아온 적을 삼면에서 되쳤다'; } else { o.d -= 8; o.lm = .04; o.msg = '거짓 퇴각이 진짜 패주가 되었다'; } }
   else if (k==='night'){ if (foePush) { o.lm = .03; o.msg = '야습대가 밀고 나오던 적과 마주쳤다'; } else if (ok){ o.d = 14; o.le = .07; o.msg = '야습 성공! 적 진영이 혼란에 빠졌다'; } else { o.lm = .04; o.msg = '야습 실패. 적이 기다리고 있었다'; } }
+  else if (k==='fake'){ S.fakeUsed = mi() + 6; if (ok){ o.d = 26; o.le = .14; o.msg = '거짓 항복 성공! 항복하러 온 배에서 불길이 치솟았다'; } else { o.d = -6; o.lm = .03; o.msg = '거짓 항복이 간파당했다. 항복하러 간 병사들이 몰살당했다'; } }
+  else if (k==='mole'){ if (ok){ S.mole = 3; S.fKnown = true; o.d = 2; o.msg = '거짓 귀순 성공! 우리 장수가 적에게 등용되었다(석 달 뒤 내응)'; } else { o.lm = .01; o.msg = '거짓 귀순이 들통났다. 보낸 장수가 옥에 갇혔다 돌아왔다'; const a = frAdv(F, S); if (a && a.id!==G.pid) a.hp = Math.max(10, (a.hp??100) - 30); } }
   else if (k==='rift'){ if (ok){ S.rift = 3; o.d = 4; o.msg = '이간 성공! 적장이 주군의 의심을 사 몸을 사린다'; } else o.msg = '이간 실패. 적장은 흔들리지 않았다'; }
   o.ok = ok && o.d > 0; return o;
 }
@@ -5075,7 +5090,7 @@ const ACT = {
     toast(`${J(p.n,'을')} ${NRANKS[p.rk]}(으)로 올렸다.`, [[NRANKS[p.rk], true], ...up, ['충성 +10', true], [`금 -${cost}`, false]]); },
   execute(id){ const p = person(id); if (G.role!=='ruler' || !p || p.fac!==G.pfac || p.army || p.fam) return; if (!spend(0)) return;
     const { L } = execPlead(p); talkQ({ title:`${p.n} 처형`, bg:'bg_siege', lines:L, choices:[{ t:'그래도 벤다', sub:'다른 장수의 충성이 흔들린다', cn:'execY', arg:id }, { t:'살려 둔다', sub:'모든 장수 충성 +2', cn:'execN', arg:id }] }); },
-  courtSet(slot, i, pid){ courtSet(slot, +i, pid); const p = person(pid); toast(`${J(p.n,'을')} ${slot==='elite' ? court().eName : OFFICES[slot][0]}에 임명했다.`, [['충성 +8', true]]); },
+  courtSet(slot, i, pid){ courtSet(slot, +i, pid); const p = person(pid); const auto = slot==='gun' && !G.frAuto; if (auto) G.frAuto = true; toast(`${J(p.n,'을')} ${slot==='elite' ? court().eName : OFFICES[slot][0]}에 임명했다.${auto ? ' 전선 지휘도 대군사에게 맡겼다(조정에서 끌 수 있다).' : ''}`, [['충성 +8', true]]); },
   courtOff(slot, i){ const C = court(); if (slot==='gun' || slot==='sang') C[slot] = null; else if (slot==='elite') C.elite.splice(+i, 1); else C[slot][+i] = null; },
   sendAid(to, from, pct){ const t = city(to), f = city(from); if (G.role!=='ruler' || t.owner!==G.pfac || f.owner!==G.pfac || f.troops < 1500) return; if (!spend(0)) return;
     const n = Math.round(f.troops*(+pct||.4)/100)*100, g = peopleIn(f.id, G.pfac).filter(p => !p.army && f.gov!==p.id).sort((a,b) => (b.m+b.l)-(a.m+a.l))[0]; f.troops -= n;
@@ -6879,7 +6894,7 @@ const stat5 = p => `<span class="stat5">${[['무',p.m],['용',p.l],['지',p.i],[
 const SORTK = { bond:['인연',1], loy:['충성 낮은',0], m:['무용',1], l:['용병',1], i:['지략',1], g:['정무',1], c:['인망',1], tot:['종합',1], age:['젊은',0] };
 const FILK = { all:'전체', gov:'태수', army:'원정 중', idle:'놀고 있음', risk:'충성 위험' };
 function srowAttrs(p){
-  const loy = p.fac===G.pfac ? Math.round(p.loy??70) : 100, gov = city(p.city).gov===p.id && !p.army, role = Object.values(G.fronts||{}).some(S => Object.values(S.r||{}).includes(p.id));
+  const loy = p.fac===G.pfac ? Math.round(p.loy??70) : 100, gov = city(p.city).gov===p.id && !p.army, role = Object.values(G.fronts||{}).some(S => Object.values(S.r||{}).concat(S.deps||[]).includes(p.id)) || !!courtRole(p.id);
   const fl = [gov ? 'gov' : '', p.army ? 'army' : '', !gov && !p.army && !role ? 'idle' : '', G.role==='ruler' && loy < 45 ? 'risk' : ''].filter(Boolean).join(' ');
   return `data-bond="${bond(p.id)}" data-loy="${loy}" data-m="${SV(p.m)}" data-l="${SV(p.l)}" data-i="${SV(p.i)}" data-g="${SV(p.g||p.i)}" data-c="${SV(p.c)}" data-tot="${SV(p.m)+SV(p.l)+SV(p.i)+SV(p.g||p.i)+SV(p.c)}" data-age="${ageOf(p)}" data-fl="${fl}"`;
 }
