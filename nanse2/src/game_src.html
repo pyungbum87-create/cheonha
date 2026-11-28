@@ -368,6 +368,7 @@ p{margin:0}
 .mapview.th{display:flex;flex-direction:column;gap:8px;padding:8px 10px 96px;overflow-y:auto}.mseg{display:flex;gap:4px;background:#e6dcc6;border-radius:12px;padding:3px;align-self:center;position:relative;z-index:3}.mapview:not(.th) .mseg{position:absolute;bottom:14px;left:12px;box-shadow:0 2px 8px rgba(40,25,10,.25)}.mseg button{border:0;background:none;font:inherit;font-size:13px;font-weight:700;padding:6px 18px;border-radius:9px;color:#5e5347;min-height:36px}.mseg button.on{background:#2a1f16;color:#f4ecdc}
 .lgc{margin:8px 0;border:1px solid #a8822a55;border-radius:12px;padding:6px 10px;background:#a8822a0d}.lgc summary{cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.lgrow{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}.lgs{flex:none;width:40px;height:40px;border-radius:10px;background:var(--c);color:#fff;display:grid;place-items:center;font-size:20px;font-weight:900}.lgt{display:flex;gap:4px;margin:4px 0}.lgt span{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;border:1.5px solid var(--c);color:var(--c)}.lgt span.on{background:var(--c);color:#fff}.lgt span.nx{box-shadow:0 0 0 3px #d4a01f66}.lgrow small{display:block;font-size:12.5px}.lgb{flex:none;min-height:44px}
 .sqc{border-left:4px solid #a8822a}.sqt{position:relative;display:flex;align-items:center;gap:8px;padding:7px 0 9px;font-size:14px;border-top:1px dashed var(--line)}.sqt small{display:block;font-size:12px;color:var(--muted)}.sqt i{position:absolute;left:0;bottom:2px;height:4px;width:var(--w);background:#a8822a;border-radius:2px}.sqt.ok{color:#3d6b47}.sqt.ok i{background:#3d6b47}
+.relw{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0}
 .budget{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}.budget summary{cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.bud{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13px;margin:4px 0}.bud b{color:#a33;text-align:right}
 .phase{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e6dcc6;color:#5e5347;margin-left:4px;vertical-align:2px}.phase.good{background:#dcefdf;color:#2f6b3a}.phase.hot{background:#2f6b3a;color:#fff}.phase.warn{background:#f6e3c4;color:#8a5a12}.phase.bad{background:#a3322a;color:#fff}
 .phase.terr{background:#e9e2f0;color:#5a4a7a}.thint{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:#f1e8d6}.thint .gl{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#6f6356;color:#fff;font-family:var(--seal);flex:0 0 28px}.thint b{display:block;font-size:13px}.thint small{display:block;font-size:12px;color:var(--muted)}.thint.warn{background:#f6e3c4}.thint.warn .gl{background:#b8791a}.thint.bad{background:#f6dcd6}.thint.bad .gl{background:#a3322a}
@@ -2353,6 +2354,7 @@ function createArmy(o){
     food:o.food ?? 6, from:o.from, to:o.to, home:o.from, kind:o.kind||'attack', state:'march', eta, total:eta, siege:0, player:!!o.player, share:o.share ?? 0 };
   for (const g of a.gens){ const p = person(g); if (p) p.army = id; }
   if (a.fac===G.pfac && lg('mu') >= 2) a.morale = Math.min(100, a.morale + 8);
+  if (a.fac===G.pfac && G.npair && a.gens.some((x, i) => a.gens.slice(i + 1).some(y => npairOf(x, y)==='sworn'))) a.morale = Math.min(100, a.morale + 5);
   if (a.fac===G.pfac && a.gens.some(isElite)){ a.train = Math.min(100, a.train + 10); a.morale = Math.min(100, a.morale + 5); a.elite = 1; }
   if (a.player) G.inArmy = id;
   G.armies.push(a);
@@ -2437,6 +2439,7 @@ function frEval(F){
   if (S.mole > 0) en.k *= .88;
   if (S.merc && G.role==='ruler') me_.k *= 1.15;
   if (lg('mu') >= 4) me_.k *= 1.06;
+  if (G.role==='ruler') me_.k *= frPairK(S);
   const a = Math.pow(me_.t, .8)*me_.k, b = Math.pow(en.t, .8)*en.k; // 병력의 이점은 점점 줄어든다: 두 배의 병력이 두 배의 힘은 아니다
   return { S, me_, en, ratio: a/(a + b || 1) };
 }
@@ -2618,6 +2621,7 @@ function brkTalk(F, tgt, atk, def, oursAtk){
   return lines;
 }
 function frBreak(F, S, ours){
+  if (ours && G.role==='ruler'){ const ids = [...new Set([...(S.gens||[]), ...Object.values(S.r||{})].filter(Boolean))]; for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) nrelAdd(ids[i], ids[j], 6); }
   if (G.frBreakOffer && G.frBreakOffer.front===F.id) G.frBreakOffer = null;
   if (ours){
     const tgt = F.foe.map(city).sort((a, b) => a.troops - b.troops)[0], src = F.my.map(city).filter(c => c.adj.includes(tgt.id)).sort((a, b) => b.troops - a.troops)[0];
@@ -5515,7 +5519,7 @@ function endMonth(){
   const _sp = spList().length && ageOf(me())<56 && G.kids.length<8 && Math.random()<.028*Math.min(2, 1+(spList().length-1)*.6) ? pick(spList()) : null;
   if (_sp){ const k = makeKid(_sp); G.kids.push(k); news(`${k.sex==='남'?'아들':'딸'} ${J(k.n,'이')} 태어났다.`, true, true); }
   if (G.role==='officer' && G.mission) evalMission();
-  dirMonth(); sqCheck(true);
+  dirMonth(); sqCheck(true); relMonth();
   calendar(false);
   if (G.pfac && citiesOf(G.pfac).length>=UNIFY_N && !(G.scen===184 && !G.flags.era190)) G.over = { kind:'unify' };
   else if (G.year>=280){ G.over = { kind:'era' }; news('280년, 삼국의 시대가 저물었다.', true, true); }
@@ -6517,6 +6521,14 @@ function councilRuler(){
 }
 // 상소 처리
 const CN = {
+  relMed(a, b){ if (!spend(200)) return '금이 모자라 중재하지 못했다.'; nrelAdd(a, b, 40); G.npair[rkey(a, b)] = 'calm'; for (const x of [a, b]) person(x).loy = clamp(person(x).loy + 2); return JF(`${person(a).n}과(와) ${person(b).n}이(가) 마지못해 손을 맞잡았다.`); },
+  relSide(w, l){ person(w).loy = clamp(person(w).loy + 8); person(l).loy = clamp(person(l).loy - 12); nrelAdd(w, l, -10); return `${person(w).n}의 손을 들어 주었다. ${person(l).n}의 얼굴이 굳었다.`; },
+  relSep(id, o){ const p = person(id), cs = citiesOf(G.pfac).filter(c => c.id!==p.city && c.id!==person(o).city); for (const F of frontsOf(G.pfac)){ const S = frState(F.id); S.gens = S.gens.filter(g => g!==id); for (const r in S.r||{}) if (S.r[r]===id) S.r[r] = null; }
+    if (cs.length) p.city = cs.sort((x, y) => y.troops - x.troops)[0].id; G.npair[rkey(id, o)] = 'apart'; return `${J(p.n,'을')} ${cs.length ? JF(city(p.city).n + '(으)로') : '멀리'} 보냈다. 얼굴을 안 보니 다툼은 잦아들 것이다.`; },
+  relKeep(id, o){ if (!spend(500)) return '금이 모자라 붙잡지 못했다.'; const p = person(id); p.loy = clamp(p.loy + 20); nrelAdd(id, o, 25); return `${J(p.n,'이')} 금과 진심 어린 말에 마음을 돌렸다.`; },
+  relLet(id){ const p = person(id); const en = [...new Set(citiesOf(G.pfac).flatMap(c => c.adj).map(city).filter(c => c.owner && hostile(G.pfac, c.owner)).map(c => c.owner))];
+    for (const F of frontsOf(G.pfac)){ const S = frState(F.id); S.gens = S.gens.filter(g => g!==id); for (const r in S.r||{}) if (S.r[r]===id) S.r[r] = null; }
+    if (en.length){ const f = pick(en); p.fac = f; p.city = citiesOf(f)[0].id; p.loy = 60; news(JF(`${J(p.n,'이')} ${facName(f)}(으)로 떠났다.`), true, true); } else { p.fac = 'free'; news(`${J(p.n,'이')} 벼슬을 버리고 떠났다.`, true, true); } return `${J(p.n,'이')} 떠났다.`; },
   execY(id){ ACT.executeGo(id); return null; },
   execN(id){ const p = person(id); if (p){ p.loy = clamp(p.loy + 6); for (const q of npcs()) if (q.fac===G.pfac && active(q)) q.loy = clamp(q.loy + 2); } return `${J(p.n,'을')} 살려 두었다. 장수들이 주공의 너그러움에 감복했다. (모든 장수 충성 +2)`; },
   famRep(who, a2){
@@ -7049,6 +7061,48 @@ function sqCheck(newMonth){
     Snd.sfx('coin'); toast(`과업 완수 「${Q.n}」`, [[`금 +${fmt(Q.gold)}`, true], [`명망 +${Q.ren}`, true]]); news(`과업 완수: ${Q.n}`, false, true); } }
   if (!G.sq.all && G.sq.tasks.length && G.sq.tasks.every(t => t.done)){ G.sq.all = 1; cntAdd('sqAll'); G.renBonus = (G.renBonus||0) + 40; G.trust = clamp(G.trust + 3); toast('이번 철 과업을 모두 이뤘다!', [['명망 +40', true], ['민심 +3', true]]); }
 }
+/* ---------------- 장수끼리의 관계: 같은 성·전선에서 성격 궁합대로 친분·원한이 쌓이고, 결의·반목·이탈 사건이 스스로 터진다 ---------------- */
+const PCOMP = { uiri:{ uiri:8, onhwa:6, yongjang:4, yasim:-10, gyohwal:-6 }, sinjung:{ sinjung:4, gyohwal:4, onhwa:3, yongjang:-8 }, yongjang:{ yongjang:6, yasim:2, gyohwal:-6 },
+  gyohwal:{ gyohwal:2, yasim:2 }, onhwa:{ onhwa:4, sinjung:3, yasim:-4 }, yasim:{ yasim:-8 } };
+const pcomp = (a, b) => (PCOMP[a] && PCOMP[a][b]) ?? (PCOMP[b] && PCOMP[b][a]) ?? 0;
+const rkey = (a, b) => a < b ? a + '|' + b : b + '|' + a;
+function nrel(a, b){ G.nrel = G.nrel || {}; const k = rkey(a, b); if (G.nrel[k]==null){ const h = BONDS.find(x => (x[0]===a && x[1]===b) || (x[0]===b && x[1]===a));
+  G.nrel[k] = h ? (h[2] >= 0 ? Math.min(90, h[2]) : Math.max(-90, h[2] - 10)) : Math.round(pcomp(persOf(person(a)), persOf(person(b)))*1.5); } return G.nrel[k]; }
+function nrelAdd(a, b, v){ const k = rkey(a, b); nrel(a, b); G.nrel[k] = Math.max(-100, Math.min(100, G.nrel[k] + v)); return G.nrel[k]; }
+const npairOf = (a, b) => ((G.npair || {})[rkey(a, b)]) || '';
+// 한 전선에 선 장수들 사이의 결의(+6%)·반목(-7%)
+function frPairK(S){ const ids = [...new Set([...(S.gens||[]), ...Object.values(S.r||{})].filter(Boolean))]; let k = 1;
+  for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++){ const pr = npairOf(ids[i], ids[j]); if (pr==='sworn') k *= 1.06; else if (pr==='feud') k *= .93; } return Math.max(.8, Math.min(1.2, k)); }
+const REL_PLEDGE = { uiri:'{b}, 그대와는 생사를 함께하고 싶소. 오늘부터 형제가 됩시다.', sinjung:'오래 지켜보았소. {b} 같은 이라면 등을 맡길 수 있겠소.', yongjang:'하하! {b}, 그대만 한 사내는 처음이오. 술잔을 들어 형제의 의를 맺읍시다!',
+  gyohwal:'{b}, 그대와 나라면 천하를 손바닥 위에서 굴릴 수 있겠구려.', onhwa:'{b}, 이 난세에 마음 맞는 이를 만난 것이 큰 복이오.', yasim:'{b}, 함께 큰 공을 세웁시다. 공은 나누되 뜻은 하나로.' };
+const REL_FEUD = { uiri:'{b}의 처신은 의리가 없소. 같은 깃발 아래 설 수 없소!', sinjung:'{b}이(가) 또 멋대로 움직였소. 이대로면 군이 무너집니다.', yongjang:'{b} 그 겁쟁이와는 한 진영에 못 있겠소! 칼로 가립시다!',
+  gyohwal:'{b}이(가) 뒤에서 제 험담을 하고 다닌다 들었습니다. 그냥 두실 겁니까?', onhwa:'{b}과(와)는 아무리 애써도 뜻이 맞지 않습니다…', yasim:'{b}이(가) 제 공을 가로챘습니다. 주공께서 가려 주십시오.' };
+const relFill = (t, b) => JF(t.replace(/\{b\}/g, b.n));
+function relMonth(){
+  if (!G || G.role!=='ruler' || !G.pfac) return;
+  const ps = npcs().filter(p => p.fac===G.pfac && active(p) && p.id!==G.pid), byCity = {};
+  for (const p of ps) (byCity[p.city] = byCity[p.city] || []).push(p);
+  const near = new Set(); for (const F of frontsOf(G.pfac)){ const S = frState(F.id), ids = [...new Set([...(S.gens||[]), ...Object.values(S.r||{})].filter(Boolean))]; for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) near.add(rkey(ids[i], ids[j])); }
+  for (const L of Object.values(byCity)) for (let i = 0; i < L.length && i < 14; i++) for (let j = i + 1; j < L.length && j < 14; j++) near.add(rkey(L[i].id, L[j].id));
+  for (const k of near){ const [a, b] = k.split('|'), pa = person(a), pb = person(b); if (!pa || !pb) continue; nrelAdd(a, b, pcomp(persOf(pa), persOf(pb))*.08 + (Math.random() - .5)*1.6); }
+  G.npair = G.npair || {}; if ((G.relEvAt||0) > mi() - 3 || SIM) return;
+  // 사건 하나: 결의 → 반목 → 이탈 위기 순으로 찾는다
+  const cand = [...near].map(k => [k, G.nrel[k]]).filter(([k]) => { const [a, b] = k.split('|'); return person(a) && person(b) && active(person(a)) && active(person(b)); });
+  const sw = cand.find(([k, v]) => v >= 75 && !G.npair[k]);
+  if (sw){ const [a, b] = sw[0].split('|').map(person); G.npair[sw[0]] = 'sworn'; a.loy = clamp(a.loy + 5); b.loy = clamp(b.loy + 5); G.relEvAt = mi();
+    talkQ({ title:JF(`결의 · ${a.n}과(와) ${b.n}`), bg:'bg_tavern', lines:[[null, JF(`${city(a.city).n}의 밤. ${a.n}과(와) ${b.n}이(가) 술잔을 마주하고 앉았다.`)], [a.id, relFill(REL_PLEDGE[persOf(a)], b)], [b.id, relFill(REL_PLEDGE[persOf(b)], a)], [null, '두 장수가 의형제를 맺었다. 같은 전선에 서면 힘 +6%, 함께 출진하면 사기 +5.']] });
+    news(JF(`${a.n}과(와) ${b.n}이(가) 의형제를 맺었다.`), true, true); return; }
+  const fd = cand.filter(([k, v]) => v <= -55 && !['feud','apart','calm','sworn'].includes(G.npair[k])).sort((x, y) => x[1] - y[1])[0];
+  if (fd){ const [a, b] = fd[0].split('|').map(person); G.npair[fd[0]] = 'feud'; G.relEvAt = mi(); const lo = a.loy <= b.loy ? a : b;
+    if (fd[1] <= -80 && lo.loy < 50){ const other = lo===a ? b : a;
+      talkQ({ title:`이탈 위기 · ${lo.n}`, bg:'bg_wallnight', lines:[[null, JF(`${J(lo.n,'이')} 짐을 꾸린다는 소식이 들어왔다. ${other.n}과(와)의 원한이 끝내 터진 것이다.`)], [lo.id, relFill(REL_FEUD[persOf(lo)], other)]],
+        choices:[{ t:'금 500으로 붙잡는다', sub:`${lo.n} 충성 +20 · 원한 조금 풀림`, cn:'relKeep', arg:lo.id, arg2:other.id }, { t:'떠나게 둔다', sub:JF(`${lo.n}이(가) 떠난다`), cn:'relLet', arg:lo.id }] }); return; }
+    talkQ({ title:JF(`반목 · ${a.n}과(와) ${b.n}`), bg:'bg_council', lines:[[null, JF(`${a.n}과(와) ${b.n}의 사이가 험악하다. 군막 안에 칼 소리가 날 지경이다.`)], [a.id, relFill(REL_FEUD[persOf(a)], b)], [b.id, relFill(REL_FEUD[persOf(b)], a)]],
+      choices:[{ t:'둘을 불러 중재한다', sub:'금 200 · 원한 +40 풀림 · 둘 다 충성 +2', cn:'relMed', arg:a.id, arg2:b.id }, { t:`${a.n}의 편을 든다`, sub:`${a.n} 충성 +8 · ${b.n} 충성 -12`, cn:'relSide', arg:a.id, arg2:b.id },
+        { t:`${b.n}의 편을 든다`, sub:`${b.n} 충성 +8 · ${a.n} 충성 -12`, cn:'relSide', arg:b.id, arg2:a.id }, { t:'떼어 놓는다', sub:JF(`${lo.n}을(를) 다른 성으로 보낸다`), cn:'relSep', arg:lo.id, arg2:(lo===a ? b : a).id }] }); }
+}
+function relList(id){ const out = []; for (const [k, v] of Object.entries(G.nrel||{})){ const [a, b] = k.split('|'); if (a!==id && b!==id) continue; const o = person(a===id ? b : a); if (!o || !o.alive) continue; if (v >= 50 || v <= -40 || (G.npair||{})[k]) out.push([o, v, (G.npair||{})[k]||'']); }
+  return out.sort((x, y) => Math.abs(y[1]) - Math.abs(x[1])).slice(0, 5); }
 function sqCard(){
   if (G.role!=='ruler' || !G.sq) return '';
   const left = 3 - (G.month-1)%3, sn = SEASON_N[(G.month-1)/3|0];
@@ -8265,6 +8319,7 @@ function openSheet(kind, arg){
       <p class="small">병종 적성 <b>${aptLine(p)}</b> (기병·창병·궁병·수군)</p>`;
     if (!isMe){
       body += `<p class="small">인연 <b>${bond(p.id)}</b>${isSworn(p.id)?' · 의형제':''}${G.role==='ruler'&&sameFac?` · 충성 ${Math.round(p.loy)}`:''}</p>`;
+      if (G.role==='ruler' && sameFac){ const R = relList(p.id); if (R.length) body += `<div class="relw"><span class="small muted">동료 사이</span>${R.map(([o, v, pr]) => `<span class="chip ${v >= 0 ? 'up' : 'down'}">${pr==='sworn' ? '의형제 ' : pr==='feud' ? '반목 ' : ''}${esc(o.n)} ${v > 0 ? '+' : ''}${Math.round(v)}</span>`).join('')}</div>`; }
       if (canTalk) body += `<div class="choices">${modes.map(([k,t,s])=>`<button class="choice" data-mode="${k}" ${G.ap>0&&(k!=='gift'||G.gold>=60)?'':'disabled'}><span>${t}</span>${s?`<span class="p">${ST[s]} ${Math.round(check(s,55)*100)}%</span>`:''}</button>`).join('')}</div>`;
       else body += '<p class="small muted">같은 세력이거나 같은 성에 있어야 교류할 수 있다.</p>';
       if (G.role==='ruler' && sameFac && !p.army && G.phase==='act'){
@@ -8508,9 +8563,9 @@ function pxText(id, html, cls){ const el = document.getElementById(id); if (!el)
 /* =====================================================================
    BOOT
    ===================================================================== */
-if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, mi, renown, famTalk, makeKid, addSpouse, spouseLook, doAct, openSheet, frontStep, court, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
+if (typeof location!=='undefined' && /[?&]dbg=1/.test(location.search||'')) globalThis.D = { get G(){ return G; }, mi, renown, relMonth, rkey, famTalk, makeKid, addSpouse, spouseLook, doAct, openSheet, frontStep, court, citiesOf, createArmy, etaLine, mostThreatened, tutStart, openDirs, dirMonth, DIRS, dirMake, askTalk, pathAsk, promoTalk, dirDo, dirOffers, dirTake, dirCheck, CN, AIMS, beginRaise, tbStart, render: () => render(), city, openSheet, queueCouncil, talkQ, openCustom, duelStart: typeof duelStart!=="undefined" ? duelStart : null, startMonth, person, openMeleePick, cineDuel, drawElephant, get MEL(){ return MEL; }, taleStart: typeof taleStart!=='undefined' ? taleStart : null, jailStart: typeof jailStart!=='undefined' ? jailStart : null };
 if (SIM){
-  globalThis.T = { SQ, sqCheck, sqGoal, LG, lg, renown, buyLegacy, WORKS, workWhyNot, frState, frCorps, corpsAvail, FR_INV, frInvest, rebel, frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
+  globalThis.T = { nrel, nrelAdd, relMonth, CN, rkey, SQ, sqCheck, sqGoal, LG, lg, renown, buyLegacy, WORKS, workWhyNot, frState, frCorps, corpsAvail, FR_INV, frInvest, rebel, frontsOf, dataClean, devCost, maxWall, wallCost, courtSet, citiesOf, npcs, tbStart, tbAuto, tbTap, tbAct, cuCode, cuFromCode, cuSummon, cuBlank, newRegressor, memories, histMatch, regFacs, regCities, joinFaction, mi, spList, addSpouse, makeKid, person, momentDo, blockade, estimateCapture, newGame, doAct, ACT, chooseEvent, afterEvent, evChoices, playerTactic, chooseUnit, duel, retreat, autoBattle, captiveDo, afterBattle, endMonth, afterReport, succeed, heirCands, noHeir,
     councilRuler, councilOfficer, CN, totalTroops, aliveFacs, bestGen, brain,
     get G(){ return G; }, set G(v){ G = v; }, city, citiesOf, npcs, peopleIn, allied, hostile, me, bond, picksFor, ptSvg, lookOf, SCEN, armiesOf, visible, foodCost, plotRange, OFFICER_PICKS, inkSvg, cityScene, mapSvg, viewArmy, viewPanel, viewPeople, viewFamily, viewTop, viewModal, viewMap };
 } else renderTitle();
