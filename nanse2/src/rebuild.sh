@@ -6,3 +6,4 @@ open('spliced.html','w',encoding='utf8').write(s.replace('/*@@INK@@*/',ink))
 P
 python3 build_dbg.py
 python3 $(dirname "$0")/minify.py $(dirname "$0")/spliced.html $(dirname "$0")/min.html
+python3 "$(dirname "$0")/../tools/font_split.py"

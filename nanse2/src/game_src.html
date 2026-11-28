@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>난세일생 2 시험판</title>
-<link rel="icon" href="art/icon-180.png"><link rel="apple-touch-icon" href="art/icon-180.png">
+<link rel="icon" href="art/icon-180.png"><link rel="apple-touch-icon" href="art/icon-180.png"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#7a2a1e">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preload" href="fonts/pretendard.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -11,7 +11,7 @@
   --paper:#efe5cf;
   --paper2:#f7f0e1;
   --ink:#26201c;
-  --muted:#6f6356;
+  --muted:#62574b;
   --line:#d8c9aa;
   --red:#b3352a;
   --gold:#a8822a;
@@ -363,10 +363,11 @@ p{margin:0}
 .msec{margin:14px 2px 6px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px;border-radius:14px;border:0;background:color-mix(in srgb,var(--c) 10%,#fffaf0);font:inherit;color:inherit;text-align:left;min-height:88px;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 22%,transparent)}.mt::after{content:"";position:absolute;right:-18px;bottom:-18px;width:64px;height:64px;border-radius:50%;background:color-mix(in srgb,var(--c) 12%,transparent)}.mt b{font-size:16px;margin-top:6px}.mt small{font-size:12px;color:var(--muted)}.mt:active,.mrow:active,.mad:active{transform:scale(.98)}
 .mg{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-family:var(--seal);font-size:18px;background:var(--c);color:#fff;flex:0 0 34px}
-.mlist{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}.mrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:#fffaf0;font:inherit;color:inherit;text-align:left;min-height:56px}.mrow:last-child{border-bottom:0}.mrow b{display:block;font-size:14px}.mrow small{display:block;font-size:12px;color:var(--muted)}.mi{width:30px;height:30px;border-radius:9px;background:#efe5cf;display:grid;place-items:center;font-size:16px;color:#6f6356}.mch{font-size:21px;color:#b7a789}.mrow.dim b{color:var(--muted)}.mrow.danger b{color:var(--red)}.mrow.danger .mi{background:#f6dcd6;color:var(--red)}
+.mlist{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}.mrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:#fffaf0;font:inherit;color:inherit;text-align:left;min-height:56px}.mrow:last-child{border-bottom:0}.mrow b{display:block;font-size:14px}.mrow small{display:block;font-size:12px;color:var(--muted)}.mi{width:30px;height:30px;border-radius:9px;background:#efe5cf;display:grid;place-items:center;font-size:16px;color:#5e5347}.mch{font-size:21px;color:#b7a789}.mrow.dim b{color:var(--muted)}.mrow.danger b{color:var(--red)}.mrow.danger .mi{background:#f6dcd6;color:var(--red)}
 .tgl{width:46px;height:28px;border-radius:14px;background:#cfc3a9;position:relative;flex:0 0 46px;transition:background .2s}.tgl i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}.tgl.on{background:#3d7a52}.tgl.on i{transform:translateX(18px)}
-.mapview.th{display:flex;flex-direction:column;gap:8px;padding:8px 10px 96px;overflow-y:auto}.mseg{display:flex;gap:4px;background:#e6dcc6;border-radius:12px;padding:3px;align-self:center;position:relative;z-index:3}.mapview:not(.th) .mseg{position:absolute;bottom:14px;left:12px;box-shadow:0 2px 8px rgba(40,25,10,.25)}.mseg button{border:0;background:none;font:inherit;font-size:13px;font-weight:700;padding:6px 18px;border-radius:9px;color:#6f6356;min-height:36px}.mseg button.on{background:#2a1f16;color:#f4ecdc}
-.phase{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e6dcc6;color:#6f6356;margin-left:4px;vertical-align:2px}.phase.good{background:#dcefdf;color:#2f6b3a}.phase.hot{background:#2f6b3a;color:#fff}.phase.warn{background:#f6e3c4;color:#8a5a12}.phase.bad{background:#a3322a;color:#fff}
+.mapview.th{display:flex;flex-direction:column;gap:8px;padding:8px 10px 96px;overflow-y:auto}.mseg{display:flex;gap:4px;background:#e6dcc6;border-radius:12px;padding:3px;align-self:center;position:relative;z-index:3}.mapview:not(.th) .mseg{position:absolute;bottom:14px;left:12px;box-shadow:0 2px 8px rgba(40,25,10,.25)}.mseg button{border:0;background:none;font:inherit;font-size:13px;font-weight:700;padding:6px 18px;border-radius:9px;color:#5e5347;min-height:36px}.mseg button.on{background:#2a1f16;color:#f4ecdc}
+.budget{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}.budget summary{cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.bud{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13px;margin:4px 0}.bud b{color:#a33;text-align:right}
+.phase{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e6dcc6;color:#5e5347;margin-left:4px;vertical-align:2px}.phase.good{background:#dcefdf;color:#2f6b3a}.phase.hot{background:#2f6b3a;color:#fff}.phase.warn{background:#f6e3c4;color:#8a5a12}.phase.bad{background:#a3322a;color:#fff}
 .phase.terr{background:#e9e2f0;color:#5a4a7a}.thint{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:#f1e8d6}.thint .gl{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#6f6356;color:#fff;font-family:var(--seal);flex:0 0 28px}.thint b{display:block;font-size:13px}.thint small{display:block;font-size:12px;color:var(--muted)}.thint.warn{background:#f6e3c4}.thint.warn .gl{background:#b8791a}.thint.bad{background:#f6dcd6}.thint.bad .gl{background:#a3322a}
 .thbtns.q4{grid-template-columns:1fr 1fr}.thbtns.q4 button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:52px}.thbtns.q4 small{font-size:11px;font-weight:400;color:var(--muted)}.thbtns.q4 button.on small{color:#cfc3a9}.thbtns button:disabled{opacity:.45}
 .thdelta{opacity:0}.thsvg.done .thdelta{animation:thd 2.2s ease-out forwards}@keyframes thd{0%{opacity:0;transform:translateY(6px)}15%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
@@ -374,25 +375,25 @@ p{margin:0}
 .thsea{display:inline-flex;align-items:center;gap:5px;background:rgba(42,31,22,.82);color:#f4ecdc;font-size:12px;padding:4px 9px 4px 4px;border-radius:14px;pointer-events:none}.thsea i{width:20px;height:20px;border-radius:50%;background:#d4a01f;color:#2a1f16;font-style:normal;font-family:var(--seal);display:grid;place-items:center;font-size:12px}
 .thdip{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;padding:0 2px}.thdip button{border:1px solid #c8b48a;background:#fffaf0;border-radius:10px;font:inherit;font-size:12px;font-weight:700;padding:6px 10px;min-height:40px;white-space:nowrap}.thdip button:disabled{opacity:.45}
 .thplan{display:flex;align-items:center;gap:8px;padding:8px;border-radius:12px;border:1px dashed #c8b48a;background:#fbf6ea;font:inherit;color:inherit;text-align:left;min-height:52px;width:100%}.thplan.on{border:1px solid #7a2a22;background:#fff}.thplan small{display:block;font-size:11px;color:var(--muted)}.thplan b{font-size:13px}.thplan .mg{width:30px;height:30px;flex:0 0 30px;font-size:16px}
-.thtabs2{display:flex;gap:4px;background:#efe5cf;border-radius:12px;padding:3px}.thtabs2 button{flex:1;border:0;background:none;font:inherit;font-size:13px;font-weight:700;color:#6f6356;min-height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:5px}.thtabs2 button.on{background:#fffaf0;color:#2a1f16;box-shadow:0 1px 4px rgba(40,25,10,.15)}.thtabs2 i{font-style:normal;font-size:11px;min-width:16px;height:16px;border-radius:8px;background:#a3322a;color:#fff;display:inline-grid;place-items:center;padding:0 4px}.lvd{color:#c9932a;letter-spacing:1px;font-size:11px}.mrow:disabled{opacity:.5}
+.thtabs2{display:flex;gap:4px;background:#efe5cf;border-radius:12px;padding:3px}.thtabs2 button{flex:1;border:0;background:none;font:inherit;font-size:13px;font-weight:700;color:#5e5347;min-height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:5px}.thtabs2 button.on{background:#fffaf0;color:#2a1f16;box-shadow:0 1px 4px rgba(40,25,10,.15)}.thtabs2 i{font-style:normal;font-size:11px;min-width:16px;height:16px;border-radius:8px;background:#a3322a;color:#fff;display:inline-grid;place-items:center;padding:0 4px}.lvd{color:#c9932a;letter-spacing:1px;font-size:11px}.mrow:disabled{opacity:.5}
 .tkcv{display:block;width:100%;height:auto;border-radius:12px;background:#eadfc4}
 .modal.mel{padding:10px;max-width:720px;width:100%}.melee{display:flex;flex-direction:column;gap:6px}.mel-top{display:flex;align-items:center;gap:10px;font-size:13px}.mel-time{font-family:var(--display);font-size:21px;min-width:34px;text-align:center}.mel-hp{flex:1;height:12px;border-radius:6px;background:#3a1410;overflow:hidden}.mel-hp i{display:block;height:100%;background:linear-gradient(90deg,#4f9a5c,#d9b04a)}.mel-k b{font-family:var(--display);font-size:18px;color:var(--red)}
 .mel-wrap{position:relative;border-radius:12px;overflow:hidden;background:#1a140f;touch-action:none;user-select:none;-webkit-user-select:none}.mel-wrap canvas{display:block;width:100%;height:auto;touch-action:none}.mel-obj{position:absolute;left:6px;top:26px;display:flex;flex-direction:column;gap:3px;pointer-events:none}.mel-obj span{font-size:11px;background:rgba(20,14,8,.65);color:#f4ecdc;border-radius:8px;padding:2px 7px}.mel-obj span.ok{background:#2f6b3a;text-decoration:line-through}
-.mel-skill{position:absolute;right:10px;bottom:10px;width:64px;height:64px;border-radius:50%;border:2px solid #f3c95a;background:#2a1f16;color:#f3c95a;font-family:var(--seal);font-size:16px;overflow:hidden;display:grid;place-items:center}.mel-skill b{position:relative;z-index:1}.mel-skill i{position:absolute;left:0;right:0;bottom:0;background:rgba(217,154,30,.55)}.mel-skill:disabled{border-color:#6f6356;color:#a89a7c}.mel-skill:not(:disabled){animation:thx .5s ease-in-out infinite alternate;box-shadow:0 0 16px #f3c95a}
+.mel-skill{position:absolute;right:10px;bottom:10px;width:64px;height:64px;border-radius:50%;border:2px solid #f3c95a;background:#2a1f16;color:#f3c95a;font-family:var(--seal);font-size:16px;overflow:hidden;display:grid;place-items:center}.mel-skill b{position:relative;z-index:1}.mel-skill i{position:absolute;left:0;right:0;bottom:0;background:rgba(217,154,30,.55)}.mel-skill:disabled{border-color:#5e5347;color:#a89a7c}.mel-skill:not(:disabled){animation:thx .5s ease-in-out infinite alternate;box-shadow:0 0 16px #f3c95a}
 .mel-msg{position:absolute;left:50%;top:38%;transform:translateX(-50%);background:rgba(20,14,8,.78);color:#fff6dc;font-weight:700;font-size:14px;padding:6px 14px;border-radius:12px;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none}.mel-msg.on{opacity:1}.mel-msg.bad{background:rgba(163,50,42,.88)}
 @media (orientation:landscape) and (max-height:520px){.modal.mel{max-width:92vh}}
 .cinevs{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(90deg,rgba(20,40,70,.94),rgba(20,14,8,.94) 50%,rgba(90,25,20,.94));color:#fff6dc;transition:opacity .3s;z-index:3;cursor:pointer}.cinevs.out{opacity:0}.cv-p{display:flex;flex-direction:column;align-items:center;gap:3px;width:42%;text-align:center}.cv-p .pt{border-radius:14px!important;border:3px solid #f3c95a!important;box-shadow:0 4px 18px rgba(0,0,0,.5)}.cv-p b{font-family:var(--display);font-size:21px}.cv-p small{font-size:12px;opacity:.85}.cv-p em{font-style:normal;font-size:12px;opacity:.9}.cv-p.l{animation:cvl .45s ease-out}.cv-p.r{animation:cvr .45s ease-out}@keyframes cvl{from{transform:translateX(-40px);opacity:0}}@keyframes cvr{from{transform:translateX(40px);opacity:0}}.cv-x{font-family:var(--display);font-size:28px;color:#f3c95a}.cv-tap{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;opacity:.6}
 .evpt{display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;background:linear-gradient(135deg,#3a1410,#7a2a22);color:#fff6dc;margin:6px 0}.evpt .pt{border-radius:12px!important;border:2px solid #f3c95a!important}.evpt b{display:block;font-family:var(--display);font-size:21px}.evpt small{font-size:12px;opacity:.85}
 .tbcp{position:absolute;left:-4px;top:-5px;width:16px;height:16px;border-radius:50%;background:#7a2a22;color:#f3c95a;font-style:normal;font-size:11px;display:grid;place-items:center;box-shadow:0 0 0 1.5px #fff;z-index:1}
-.thdel{display:flex;align-items:center;gap:6px;border:0;background:none;font:inherit;font-size:12px;color:#6f6356;min-height:40px;padding:0 2px}.thdel .tgl{transform:scale(.8)}.thtab .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:5px}.thtab .dot.r{background:#c2452f}.thtab .dot.g{background:#2f8a46}
+.thdel{display:flex;align-items:center;gap:6px;border:0;background:none;font:inherit;font-size:12px;color:#5e5347;min-height:40px;padding:0 2px}.thdel .tgl{transform:scale(.8)}.thtab .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:5px}.thtab .dot.r{background:#c2452f}.thtab .dot.g{background:#2f8a46}
 .thcorps{display:grid;grid-template-columns:1fr 1fr;gap:6px}.thcorps button,.thcorps .foe{display:flex;align-items:center;gap:8px;padding:8px;border-radius:12px;border:1px solid #c8b48a;background:#fff;font:inherit;color:inherit;text-align:left;min-height:52px}.thcorps .foe{background:#f1e8d6;border-color:transparent}.thcorps small{display:block;font-size:11px;color:var(--muted)}.thcorps b{font-size:13px}.thcorps .mg{width:30px;height:30px;flex:0 0 30px;font-size:16px}
 .trb{padding:12px;border-radius:14px;background:#fffaf0;box-shadow:inset 0 0 0 1px var(--line);margin-bottom:8px;display:flex;flex-direction:column;gap:8px}.trb.far{opacity:.6}.trb small.d{display:block;font-size:12px;color:var(--muted)}
 .thslots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.thslot{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;border:1px dashed #c8b48a;background:#fbf6ea;font:inherit;color:inherit;min-height:96px;position:relative}.thslot.on{border-style:solid;background:#fff}.thslot .gl{position:absolute;top:4px;left:6px;font-family:var(--seal);color:var(--red);font-size:14px}.thslot .empty{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#efe5cf;color:#a89a7c;font-style:normal;font-size:18px}.thslot .nm{display:flex;flex-direction:column;align-items:center;line-height:1.2}.thslot .nm b{font-size:13px}.thslot .nm small{font-size:11px;color:var(--muted)}
 .thsup{display:flex;align-items:center;gap:8px;font-size:13px}.thsup .sb{display:flex;gap:3px}.thsup .sb i{width:14px;height:10px;border-radius:3px;background:#e6dcc6}.thsup .sb i.on{background:#c9932a}.thsup .sb i.half{background:linear-gradient(90deg,#c9932a 50%,#e6dcc6 50%)}.thsup button{margin-left:auto;border:1px solid #c8b48a;background:#fff;border-radius:10px;font:inherit;font-size:12px;padding:6px 10px;min-height:40px}.thhelp summary{font-size:12px;color:var(--muted);min-height:32px;display:flex;align-items:center}.pv{font-family:var(--display);font-size:18px;color:var(--red)}
-.theater{display:flex;flex-direction:column;gap:8px}.thtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.thtab{flex:0 0 auto;border:0;border-bottom:3px solid transparent;background:#f4ecdc;border-radius:10px 10px 4px 4px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;min-height:40px;color:#6f6356}.thtab small{margin-left:4px;font-size:11px;opacity:.7}.thtab.on{border-bottom-color:var(--fc);background:#fffaf0;color:#2a1f16}
+.theater{display:flex;flex-direction:column;gap:8px}.thtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.thtab{flex:0 0 auto;border:0;border-bottom:3px solid transparent;background:#f4ecdc;border-radius:10px 10px 4px 4px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;min-height:40px;color:#5e5347}.thtab small{margin-left:4px;font-size:11px;opacity:.7}.thtab.on{border-bottom-color:var(--fc);background:#fffaf0;color:#2a1f16}
 .thmap{border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(40,25,10,.16);background:#f4ecdc}.thsvg{display:block;width:100%;height:auto}.thl{cursor:pointer}.thc{cursor:pointer}
 .thcard{background:#fffaf0;border-radius:16px;padding:12px;box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:8px}.thcard .bad{color:var(--red)}.thcard .good{color:var(--good)}.thinfo{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px}.thinfo span{background:#f1e8d6;border-radius:10px;padding:7px 9px}.thgens{display:flex;flex-wrap:wrap;gap:5px}
-.thbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.thbtns button{min-height:46px;border-radius:12px;border:1px solid #c8b48a;background:#fff;font:inherit;font-weight:700;font-size:14px;color:#2a1f16}.thbtns button.on{background:#2a1f16;color:#f4ecdc;border-color:#2a1f16}.thauto{display:flex;align-items:center;gap:8px;border:0;background:none;font:inherit;font-size:13px;color:#6f6356;min-height:40px;padding:0}
+.thbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.thbtns button{min-height:46px;border-radius:12px;border:1px solid #c8b48a;background:#fff;font:inherit;font-weight:700;font-size:14px;color:#2a1f16}.thbtns button.on{background:#2a1f16;color:#f4ecdc;border-color:#2a1f16}.thauto{display:flex;align-items:center;gap:8px;border:0;background:none;font:inherit;font-size:13px;color:#5e5347;min-height:40px;padding:0}
 .frsum{margin-left:auto;border:0;border-radius:10px;background:#2a1f16;color:#f4ecdc;font:inherit;font-size:13px;padding:6px 10px;min-height:40px;white-space:nowrap;display:flex;align-items:center;gap:4px}.frsum i{font-style:normal}.frsum .g{color:#8fd19e}.frsum .y{color:#f3c95a}.frsum .r{color:#ff9a8a}.frsum .seal.sm{width:22px;height:22px;font-size:13px}
 .frmini.wide{flex:none;width:100%;margin-bottom:8px;min-height:56px}.frlab{cursor:pointer}
 .frstrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;pointer-events:auto}.frstrip::-webkit-scrollbar{display:none}.frmini{flex:0 0 128px;display:flex;flex-direction:column;gap:5px;text-align:left;padding:7px 9px;border-radius:12px;border:0;border-top:3px solid var(--fc);background:rgba(251,246,234,.96);box-shadow:0 2px 8px rgba(40,25,10,.18);font:inherit;color:inherit;min-height:48px}.frn{display:flex;justify-content:space-between;align-items:center;font-size:13px;white-space:nowrap}.frn i{font-style:normal;font-size:11px;padding:1px 6px;border-radius:8px}.frn .push{background:#2f6b3a;color:#fff}.frn .hot{background:#d4a01f;color:#fff}.frn .bad{background:#a3322a;color:#fff}
@@ -460,11 +461,11 @@ details summary{font-weight:800;cursor:pointer;padding:5px 0}
 .talk{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;background:#1b1610;color:#f3ead6;overflow:hidden}
 @keyframes tkin{from{opacity:0}to{opacity:1}}
 .tk-blur{position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(16px) brightness(.32) saturate(.8)}
-.tk-band{position:relative;z-index:1;flex:none;width:100%;aspect-ratio:3/2;max-height:48vh;background:radial-gradient(ellipse at 50% 30%,#5a4a36,#1b1610 75%) center/cover no-repeat}
+.tk-band{position:relative;z-index:1;flex:1 1 auto;width:100%;min-height:min(66vw,48vh);background-position:center 40%!important;background:radial-gradient(ellipse at 50% 30%,#5a4a36,#1b1610 75%) center/cover no-repeat}
 .tk-band::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25) 0,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,rgba(15,12,8,.7) 100%);pointer-events:none}
 .tk-title{position:absolute;z-index:2;top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;background:rgba(20,15,10,.72);border:1px solid #a8822a88;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.02em}
 .tk-skip{position:absolute;z-index:2;top:calc(env(safe-area-inset-top,0px) + 8px);right:10px;background:rgba(20,15,10,.6);color:#f3ead6;border:1px solid #f3ead644;border-radius:999px;padding:6px 12px;font-size:12px}
-.tk-stage{position:relative;z-index:3;flex:1;min-height:0;display:flex;justify-content:space-between;align-items:flex-end;padding:0 12px;margin-top:-34%;pointer-events:auto}
+.tk-stage{position:relative;z-index:3;flex:none;display:flex;justify-content:space-between;align-items:flex-end;padding:0 12px;margin-top:calc(min(44vw,200px)*-.92);pointer-events:auto}
 .tk-pt{width:min(44vw,200px);transition:opacity .25s,filter .25s,transform .25s}
 .tk-pt .pt{width:100%!important;height:auto!important;aspect-ratio:1;border-radius:14px;border:2px solid #a8822a;box-shadow:0 10px 28px rgba(0,0,0,.55);background:#efe5cf}
 .tk-pt.dim{opacity:.38;filter:grayscale(.7) brightness(.8);transform:scale(.92)}
@@ -479,8 +480,8 @@ details summary{font-weight:800;cursor:pointer;padding:5px 0}
 .tk-ch{position:relative;z-index:4;display:flex;flex-direction:column;gap:7px;margin:0 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
 .tk-ch .choice{background:#f3ead6;color:#2a241c}
 .tk-q{position:relative;z-index:4;text-align:center;font-size:11px;color:#a89a80;margin:0 0 calc(env(safe-area-inset-bottom,0px) + 8px)}
-@media (orientation:landscape) and (max-height:520px){.tk-band{max-height:42vh}.tk-stage{margin-top:-14%}.tk-pt{width:min(22vw,150px)}.tk-box{min-height:70px;padding:14px 14px 18px}}
-.talk.has-ch .tk-band{max-height:26vh}.talk.has-ch .tk-stage{margin-top:-60px;flex:1}.talk.has-ch .tk-pt{width:min(28vw,120px)}.talk.has-ch .tk-box{min-height:0;margin-top:8px;padding:14px 14px 14px}.talk.has-ch .tk-text{font-size:16px}.talk.has-ch .tk-ch{flex:none;max-height:56vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+@media (orientation:landscape) and (max-height:520px){.tk-band{max-height:42vh;min-height:0}.tk-stage{margin-top:-14%}.tk-pt{width:min(22vw,150px)}.tk-box{min-height:70px;padding:14px 14px 18px}}
+.talk.has-ch .tk-band{max-height:26vh;min-height:0;flex:none;height:26vh}.talk.has-ch .tk-stage{margin-top:-60px;flex:1}.talk.has-ch .tk-pt{width:min(28vw,120px)}.talk.has-ch .tk-box{min-height:0;margin-top:8px;padding:14px 14px 14px}.talk.has-ch .tk-text{font-size:16px}.talk.has-ch .tk-ch{flex:none;max-height:56vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
 .btn.tbgo{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px}.btn.tbgo b{font-size:18px}.btn.tbgo small{font-weight:400;opacity:.85;font-size:12px}
 details.quick{border:1px dashed #b9a98a;border-radius:10px;padding:6px 10px;margin:6px 0}details.quick summary{font-size:13px;font-weight:700;cursor:pointer;color:#5a4d3a}
 
@@ -1648,6 +1649,20 @@ const WORKS = {
   hak:{ n:'태학', gl:'학', cost:() => 5000, mo:12, up:25, one:1, d:'나라의 큰 학당(나라에 하나). 해마다 이 성에 있는 우리 장수 셋의 지략 또는 정무 +1.' },
   gung:{ n:'궁궐 증축', gl:'궁', cost:() => 8000, mo:12, up:30, one:1, cap:1, d:'도읍에만(나라에 하나). 군주의 위엄이 선다. 해마다 민심 +4, 우리 장수 모두 충성 +2.' }
 };
+/* 나라 살림의 지출(금 소모처): 세력이 클수록, 금을 쌓아 둘수록 커진다. 손을 놓아도 금이 끝없이 쌓이지 않게 한다 */
+const OFF_PAY = { gun:30, gunS:15, sang:25, sangS:10, elite:8 };
+const treasuryCap = () => Math.max(3000, Math.round((G.lastIncome||0)*12));
+function upkeepParts(){
+  const ps = npcs().filter(p => p.fac===G.pfac && active(p)), C = G.court;
+  const troops = Math.round(totalTroops(G.pfac)/1000*2), salary = Math.round(ps.reduce((a, p) => a + 2 + rkOf(p)*1.5, 0));
+  let office = 0; if (C){ if (courtP(C.gun)) office += OFF_PAY.gun; if (courtP(C.sang)) office += OFF_PAY.sang; office += C.gunS.filter(courtP).length*OFF_PAY.gunS + C.sangS.filter(courtP).length*OFF_PAY.sangS + C.elite.filter(courtP).length*OFF_PAY.elite; }
+  office = Math.round(office*Math.min(1, citiesOf(G.pfac).length/5)); // 작은 나라는 관직 녹봉도 작다(성 5개 이상이면 전액)
+  const corps = Object.values(G.corpsLv||{}).reduce((a, v) => a + v*v*3, 0), works = worksUp(G.pfac);
+  const merc = frontsOf(G.pfac).reduce((a, F) => a + (frState(F.id).merc ? mercCost(F) : 0), 0);
+  const cap = treasuryCap(), leak = G.gold > cap ? Math.round((G.gold - cap)*.04) : 0;
+  return { troops, salary, office, corps, works, merc, leak, cap, total: troops + salary + office + corps + works + merc + leak };
+}
+const UP_LB = [['troops','병사 군량'],['salary','장수 녹봉(계급)'],['office','관직 녹봉'],['corps','정예 병종'],['works','시설 유지'],['merc','객군'],['leak','국고 넘침(부패)']];
 const hasW = (c, k) => !!(c && c.bld && c.bld[k]);
 const worksUp = fid => citiesOf(fid).reduce((a, c) => a + Object.keys(c.bld||{}).reduce((b, k) => b + (WORKS[k] ? WORKS[k].up : 0), 0), 0);
 const taxW = c => hasW(c, 'si') ? 1.25 : 1;
@@ -2394,25 +2409,27 @@ function frPlanFoe(FS){
 /* 부장: 전선마다 넷까지. 한 사람당 미는 힘이 조금씩 오른다 (무력·통솔 평균 80이면 +4%). 결전이 나면 함께 출진한다 */
 function frDeps(F, S){ const used = new Set(Object.values(S.r||{}).filter(Boolean)); return (S.deps||[]).map(person).filter(p => p && active(p) && p.fac===G.pfac && !p.army && !used.has(p.id) && (p.id===G.pid ? F.my.includes(G.city) && !G.inArmy : F.my.includes(p.city))); }
 const frDepK = (F, S) => 1 + frDeps(F, S).reduce((a, p) => a + (p.m + p.l)/2/100*.05, 0);
-/* 금을 쓰는 곳: 진지(덜 밀림)·병종 숙련(미는 힘)·첩보망(적의 낌새가 늘 보임)·호궤(이번 달 +5) */
+/* 금을 쓰는 곳: 진지(덜 밀림)·병종 숙련(미는 힘)·첩보망(적의 낌새가 늘 보임)·객군(달마다 돈을 내는 용병, 힘 +15%) */
 const FR_INV = {
   fort:{ n:'진지 구축', gl:'진', max:3, cost:(F, S) => 180*((S.fort||0) + 1), lv:(F, S) => S.fort||0, d:'목책과 참호를 판다. 단계마다 버틸 때 12% 덜 밀린다. 전선이 무너지면 한 단계 잃는다.', ok:(F, S) => (S.fort||0) < 3, go:(F, S) => { S.fort = (S.fort||0) + 1; } },
   drill:{ n:'병종 숙련', gl:'숙', max:10, cost:(F, S) => drillCost(((G.corpsLv||{})[S.corps])||0), lv:(F, S) => ((G.corpsLv||{})[S.corps])||0, d:'이 전선의 정예 병종을 조련한다. 미는 힘 1~3단계 +4%씩, 4~10단계 +3%씩. 5단계: 버틸 때 10% 덜 밀림 · 8단계: 이 전선 우리 병사 소모 -15% · 성 싸움에서 단계마다 힘 +2%. 병종을 다른 전선으로 옮겨도 남는다.', ok:(F, S) => !!frCorps(F, S) && (((G.corpsLv||{})[S.corps])||0) < 10, go:(F, S) => { G.corpsLv = G.corpsLv || {}; G.corpsLv[S.corps] = (G.corpsLv[S.corps]||0) + 1; } },
   spy:{ n:'첩보망', gl:'첩', max:1, cost:() => 150, lv:(F) => (G.spy||{})[F.ef] > mi() ? 1 : 0, d:'이 적의 진영에 세작을 심는다. 여섯 달 동안 이 적의 모든 전선에서 낌새가 읽힌다.', ok:(F) => !((G.spy||{})[F.ef] > mi()), go:(F) => { G.spy = G.spy || {}; G.spy[F.ef] = mi() + 6; for (const o of frontsOf(G.pfac)) if (o.ef===F.ef) frState(o.id).fKnown = true; } },
-  feast:{ n:'호궤', gl:'호', max:1, cost:(F, S) => 60 + Math.round(frEval(F).me_.t/1000*3), lv:(F, S) => S.feast ? 1 : 0, d:'소를 잡고 술을 내려 병사를 배불리 먹인다. 이번 달 전선 +5, 군량 +0.5.', ok:(F, S) => !S.feast, go:(F, S) => { S.feast = 1; S.sup = Math.min(6, S.sup + .5); } }
+  merc:{ n:'객군 고용', gl:'객', max:1, cost:(F, S) => S.merc ? 0 : mercCost(F), lv:(F, S) => S.merc ? 1 : 0, d:'떠돌이 무사·용병을 산다. 고용하는 동안 이 전선 힘 +15%. 다음 달부터 달마다 같은 값을 유지비로 내고, 금이 모자라면 떠난다. 고용 중에 누르면 해고.', ok:() => true, go:(F, S) => { S.merc = S.merc ? 0 : 1; } }
 };
-function frInvest(id, k){ const F = frontsOf(G.pfac).find(f => f.id===id), I = FR_INV[k]; if (!F || !I || G.role!=='ruler') return; const S = frState(id); if (!I.ok(F, S)) return; const c = I.cost(F, S); if (G.gold < c) return toast('금이 모자란다. 투자 탭 위의 후원(광고)으로 군자금을 받을 수 있다.', [], true); G.gold -= c; I.go(F, S); Snd.sfx('coin'); toast(`${F.sec} 전선 · ${I.n}`, [[`금 -${fmt(c)}`, false]]); }
+function frInvest(id, k){ const F = frontsOf(G.pfac).find(f => f.id===id), I = FR_INV[k]; if (!F || !I || G.role!=='ruler') return; const S = frState(id); if (!I.ok(F, S)) return; const c = I.cost(F, S); if (G.gold < c) return toast('금이 모자란다. 투자 탭 위의 후원(광고)으로 군자금을 받을 수 있다.', [], true); G.gold -= c; const was = k==='merc' && S.merc; I.go(F, S); Snd.sfx('coin'); toast(was ? `${F.sec} 전선 · 객군을 해고했다` : `${F.sec} 전선 · ${I.n}`, c ? [[`금 -${fmt(c)}`, false]].concat(k==='merc' ? [[`다음 달부터 월 ${fmt(c)}`, false]] : []) : []); }
 // 숙련 비용: 1~3단계는 싸고(220·440·660), 그 뒤로 가파르게 오른다(10단계까지 합 약 3만 7천)
 const drillCost = lv => Math.round(220*(lv + 1)*(1 + Math.max(0, lv - 2)*.5));
 const drillK = lv => 1 + .04*Math.min(lv, 3) + .03*Math.max(0, lv - 3);
 const frSupCost = (F, S) => Math.round(frEval(F).me_.t/1000*6 + 40);
 const frPow = (ids, gens, fid) => { const t = ids.reduce((s, id) => s + (city(id).troops||0), 0); const g = (gens && gens.length ? gens.map(person).filter(Boolean) : ids.map(id => bestGen(id, fid)).filter(Boolean)); const best = g.sort((a, b) => (b.m + b.l) - (a.m + a.l))[0]; return { t, k: genFactor(best), best }; };
+const mercCost = F => 80 + Math.round(frPow(F.my, null, G.pfac).t/1000*5);
 function frEval(F){
   const S = frState(F.id), van = frRoleP(F, S, 'van'), me_ = frPow(F.my, van ? [van.id] : [], G.pfac), en = frPow(F.foe, null, F.ef);
   if (van) me_.k = .6 + (van.m*1.2 + van.l*.8)/500;
   me_.k *= frDepK(F, S);
   if (S.rift > 0) en.k *= .8;
   if (S.mole > 0) en.k *= .88;
+  if (S.merc && G.role==='ruler') me_.k *= 1.15;
   const a = Math.pow(me_.t, .8)*me_.k, b = Math.pow(en.t, .8)*en.k; // 병력의 이점은 점점 줄어든다: 두 배의 병력이 두 배의 힘은 아니다
   return { S, me_, en, ratio: a/(a + b || 1) };
 }
@@ -2524,7 +2541,6 @@ function frontStep(ff){
     let d = ((ratio*mk) - ((1 - ratio)*fk))*34 + (S.st==='push' ? S.bonus*(starve ? .5 : 1) + pincer + lureB : 0) + rnd(-6, 6);
     const dLv = cp ? (((G.corpsLv||{})[S.corps])||0) : 0;
     if (S.st!=='push' && d < 0) d *= (terr==='mountain' ? .4 : .6)*corpsHold(cp, terr, foeI)*(1 - .12*(S.fort||0))*(dLv >= 5 ? .9 : 1);
-    if (S.feast){ d += 5; S.feast = 0; }
     { const vv = frRoleP(F, S, 'van'); if (S.st==='push' && vv && isElite(vv.id)) d += 4; }
     if (d > 0 && !foePush) d *= corpsHold(ce, terr, advI);
     d *= FR_TERR[terr][2];
@@ -2567,6 +2583,33 @@ const frWeak = (F, FS) => citiesOf(G.pfac).length <= 2 || FS.some(o => o!==F && 
 function courtRole(id){ const C = G.court; if (!C || G.role!=='ruler') return ''; if (C.gun===id) return '대군사'; if ((C.gunS||[]).includes(id)) return '군사중랑장'; if (C.sang===id) return '승상'; if ((C.sangS||[]).includes(id)) return '상서'; if ((C.elite||[]).includes(id)) return '친위'; return ''; }
 const frVan = F => frRoleP(F, frState(F.id), 'van') || npcs().filter(p => p.fac===G.pfac && active(p) && !p.army && F.my.includes(p.city)).sort((a, b) => b.m - a.m)[0] || null;
 // 전선이 무너지면 결전이 벌어진다
+/* 전선 돌파·붕괴 대사: 공격하는 장수와 막는 장수의 성격 · 지형 · 계절 · 병력 차이에 따라 달라진다 ({t}=목표 성, {e}=상대 장수/세력) */
+const BRK_ATK = {
+  uiri:['{t}의 백성은 해치지 마라. 성문만 열면 된다!', '의로운 군대다. 깃발을 높이 들고 {t}(으)로 간다!', '{e}, 그대와는 오늘 끝을 보아야겠다.', '먼저 간 형제들의 몫까지 싸운다. 앞으로!'],
+  sinjung:['서두르지 마라. 보급로를 지키며 {t}을(를) 조여 간다.', '적이 흩어졌다고 방심 마라. 대열을 갖춰 전진!', '{t}의 성벽 높이부터 재라. 무턱대고 붙지 않는다.', '척후를 앞세워라. 매복이 없는지 살피고 간다.'],
+  yongjang:['하하! 길이 열렸다! 나를 따르는 자는 공을 세운다!', '{e} 따위가 내 창을 막을 수 있겠느냐!', '쉬지 마라! 숨 돌릴 틈을 주면 놈들이 다시 뭉친다!', '내가 맨 먼저 {t} 성벽에 오른다!'],
+  gyohwal:['도망치는 놈들 사이에 우리 군사를 섞어 성문까지 들여보내라.', '{t} 안에 소문을 퍼뜨려라. 성주가 이미 달아났다고.', '정면은 소란만 피워라. 진짜 길은 따로 있다.', '{e}이(가) 허둥대는 지금이 값이 가장 싸다.'],
+  onhwa:['항복하는 자는 받아 주어라. 피는 적게 흘릴수록 좋다.', '{t} 사람들에게 우리 군은 약탈하지 않는다고 알려라.', '다친 병사부터 뒤로 물려라. 성은 그다음이다.', '이 싸움으로 난세가 하루라도 빨리 끝나기를.'],
+  yasim:['{t}을(를) 얻으면 천하가 한 걸음 가까워진다.', '공은 먼저 오른 자의 것이다. 누가 내 앞을 가겠느냐!', '{e}의 목을 가져오는 자에게 큰 상을 내린다!', '이 기회를 놓치면 다시는 오지 않는다. 몰아쳐라!'] };
+const BRK_DEF = {
+  uiri:['성 위의 깃발이 내려가는 날은 내가 죽는 날이다.', '{e}! 의리를 아는 자라면 정정당당히 오너라!', '{t}은(는) 내 목숨으로 지킨다. 한 발도 물러서지 마라!', '주공께 받은 성이다. 성과 함께 죽을 각오로!'],
+  sinjung:['성벽이 약한 곳에 모래주머니를 쌓아라. 밤에도 교대로 지킨다.', '적이 지치기를 기다린다. 먼저 나서는 쪽이 진다.', '성문을 굳게 닫고 화살과 돌을 아껴라. 원군이 올 때까지 버틴다.', '우물과 군량부터 살펴라. 길게 버티는 쪽이 이긴다.'],
+  yongjang:['성벽에만 숨어 있으면 사기가 꺾인다. 기병 오백을 내게 다오!', '오라! 이 성벽이 네놈들의 무덤이 될 것이다!', '기다릴 것 없다! 성문을 열고 나가 단번에 쳐부순다!', '{e}, 성 아래서 나와 겨루자!'],
+  gyohwal:['거짓 항복 사신을 보내 시간을 번다. 그사이 원군을 부른다.', '성 안 우물에 독을 풀었다고 소문을 내라. {e}의 군사가 물을 겁낼 것이다.', '성벽 위 허수아비를 늘려 세워라. 군사가 많아 보이게.', '밤에 몰래 나가 놈들 군량에 불을 지른다.'],
+  onhwa:['부상병은 성 안 절로 옮겨라. 살아야 다시 싸운다.', '이 성 사람들이 우리를 믿고 있다. 저버릴 수 없다.', '백성들은 안쪽으로 피하게 하라. 싸움은 우리가 맡는다.', '겁먹지 마라. 서로 등을 맡기면 버틸 수 있다.'],
+  yasim:['버티기만 하면 된다. 주공께서 내 공을 잊지 못하시게!', '이 고비를 넘기면 다음 성주 자리는 내 것이다.', '이 성을 지켜 내면 내 이름이 천하에 울린다.', '{e}이(가) 여기서 꺾이면 그 공은 모두 내 것이다.'] };
+const BRK_SCENE = { plain:['먼지 구름이 들판을 덮고 말발굽 소리가 땅을 울린다.', '넓은 들판 위로 흩어진 적의 깃발이 짓밟힌다.'], mountain:['좁은 산길을 따라 군사들이 개미처럼 기어오른다.', '골짜기마다 함성이 메아리친다.'], river:['강가의 배들이 불타고, 물살 위로 부서진 노가 떠내려간다.', '나루를 빼앗긴 군사들이 물가에서 우왕좌왕한다.'], pass:['관문 위 봉화가 연달아 타오른다.', '험한 관도 위로 깃발이 밀려든다.'] };
+const BRK_SEA = { spring:'봄바람에', summer:'장맛비 속에', autumn:'가을 서리 위로', winter:'눈보라를 뚫고' };
+function brkFill(x, t, e){ return JF(x.replace(/\{t\}/g, t).replace(/\{e\}/g, e)); }
+function brkTalk(F, tgt, atk, def, oursAtk){
+  const terr = TERRAIN[tgt.id]==='pass' ? 'pass' : frTerr(F), sea = frSeason().k, ef = facName(F.ef), my = facName(G.pfac);
+  const scene = `${BRK_SEA[sea] || ''} ${pick(BRK_SCENE[terr] || BRK_SCENE.plain)}`.trim();
+  const lines = [[null, oursAtk ? `${F.name}이 무너졌다. ${scene} ${tgt.n}의 성문이 눈앞에 보인다.` : `${F.name}이 뚫렸다. ${scene} ${ef}의 깃발이 ${tgt.n} 성벽 아래를 뒤덮는다.`]];
+  const aN = oursAtk ? (def ? def.n : ef) : (def ? def.n : my), dN = oursAtk ? (atk ? atk.n : my) : (atk ? atk.n : ef);
+  lines.push([atk ? atk.id : (oursAtk ? 'me' : null), brkFill(pick(BRK_ATK[persOf(atk)] || BRK_ATK.uiri), tgt.n, aN)]);
+  if (def && active(def)) lines.push([def.id, brkFill(pick(BRK_DEF[persOf(def)] || BRK_DEF.uiri), tgt.n, dN)]);
+  return lines;
+}
 function frBreak(F, S, ours){
   if (G.frBreakOffer && G.frBreakOffer.front===F.id) G.frBreakOffer = null;
   if (ours){
@@ -2583,7 +2626,7 @@ function frBreak(F, S, ours){
     a.state = 'siege'; a.eta = 0; a.bonus = { surprise:15, intel:.1 }; a.frontBreak = 1;
     G.queue.push({ kind:'siege', to:tgt.id, fac:G.pfac, front:1 });
     news(`${F.name}이 무너졌다! 아군이 ${J(tgt.n,'을')} 향해 결전에 나선다.`, true, true);
-    { const v = person(gens[0]); talkQ({ title:`${F.sec} 전선 돌파 · ${tgt.n}`, bg:'bg_siege', lines:[[null, `${F.name}이 무너졌다. 적의 대열이 흩어지고 ${tgt.n}의 성문이 눈앞에 보인다.`], [v ? v.id : 'me', pick(['지금이다! 단숨에 성벽까지 밀어붙여라!', '흩어진 적을 쫓아 성 아래까지 간다!', '이 기세라면 성도 버티지 못한다!'])]] }); }
+    { const v = person(gens[0]); talkQ({ title:`${F.sec} 전선 돌파 · ${tgt.n}`, bg:'bg_siege', lines:brkTalk(F, tgt, v, bestGen(tgt.id, tgt.owner), true) }); }
     S.p = 35;
     for (const o of frontsOf(G.pfac)) if (o.ef===F.ef && o.id!==F.id){ const So = frState(o.id); So.p = clamp(So.p + 12, -100, 100); }
   } else {
@@ -2595,7 +2638,7 @@ function frBreak(F, S, ours){
     const a = createArmy({ fac:F.ef, gens: g ? [g.id] : [], troops:n, from:src.id, to:tgt.id, kind:'attack', food:4 });
     a.state = 'siege'; a.eta = 0; a.frontBreak = 1;
     news(`${F.name}이 밀렸다! ${facName(F.ef)}의 대군이 ${J(tgt.n,'을')} 에워쌌다.`, true, true);
-    talkQ({ title:`${F.sec} 전선 붕괴 · ${tgt.n}`, bg:'bg_wallnight', lines:[[null, `${F.name}이 뚫렸다. ${facName(F.ef)}의 깃발이 ${tgt.n} 성벽 아래를 뒤덮는다.`], [g ? g.id : null, pick(['성을 에워싸라! 한 놈도 빠져나가지 못하게!', '이 성만 떨어뜨리면 길이 열린다!'])]] });
+    talkQ({ title:`${F.sec} 전선 붕괴 · ${tgt.n}`, bg:'bg_wallnight', lines:brkTalk(F, tgt, g, (tgt.gov && person(tgt.gov)) || bestGen(tgt.id, G.pfac), false) });
     S.p = -35; S.fort = Math.max(0, (S.fort||0) - 1);
   }
 }
@@ -5444,8 +5487,10 @@ function endMonth(){
     const nC = citiesOf(G.pfac).length, eff = 1/(1 + Math.max(0, nC-6)*.05);
     const nC0 = citiesOf(G.pfac).length, inc = Math.max(Math.round(citiesOf(G.pfac).reduce((a,c)=>a+cityTax(c.dev)*taxW(c),0)*taxMul()*courtIncMul()*((G.taxCut||0) > mi() ? .6 : 1)), nC0 <= 3 ? Math.round((140 + nC0*50)*dif().inc) : 0);
     // 유지비(군량·녹봉): 세력이 커질수록 같이 커져 금이 끝없이 쌓이지 않는다
-    const offs = npcs().filter(p => p.fac===G.pfac && active(p)).length, up = Math.round(totalTroops(G.pfac)/1000*2 + offs*2 + worksUp(G.pfac));
-    G.gold += inc - up; G.lastIncome = inc; G.lastUpkeep = up;
+    const UP = upkeepParts(), up = UP.total;
+    G.gold += inc - up; G.lastIncome = inc; G.lastUpkeep = up; G.lastUp = UP;
+    if (UP.leak >= 50 && G.month % 3===0) news(`국고에 금이 넘쳐 관리들 손에서 새어 나간다(달마다 -${fmt(UP.leak)}). 한도 ${fmt(UP.cap)}를 넘는 금은 시설·숙련·포상에 쓰는 편이 낫다.`, false, true);
+    if (G.gold < UP.merc && UP.merc){ for (const F of frontsOf(G.pfac)) frState(F.id).merc = 0; news('삯을 받지 못한 객군이 모두 떠났다.', true, true); }
     if (G.gold < 0){ const loss = Math.round(totalTroops(G.pfac)*.03); for (const c of citiesOf(G.pfac)) c.troops = Math.round(c.troops*.97); G.gold = 0; news(`군량이 모자라 병사 ${fmt(loss)}이 흩어졌다.`, true, true); }
   }
   else if (G.role==='officer'){ const s = Math.round((30 + G.rank*25 + (G.gov?20:0))*dif().inc); G.gold += s; G.lastIncome = s; if (G.month===12) G.trust = clamp(G.trust-3); }
@@ -6921,7 +6966,10 @@ function civicCard(){
     <div class="wr-b" style="margin:6px 0"><i style="width:${t}%;background:${t < 40 ? '#b3352a88' : t < 60 ? '#c9a24a88' : '#4f8a5b88'}"></i><em>${t < 40 ? '위험: 민란이 날 수 있다' : t < 60 ? '보통: 조금 더 돌보자' : '안정: 세금이 잘 걷힌다'}</em></div>
     <div class="civ">${Object.entries(CIVIC).map(([k, C]) => { const w = Math.max(0, (fl[k]||-99) + 3 - mi()), cost = C.cost();
       return `<button class="civb" data-act="civic" data-arg="${k}" ${G.ap > 0 && !w && G.gold >= cost ? '' : 'disabled'}><b>${C.n}</b><small>${w ? `${w}개월 뒤` : `${cost ? `금 ${fmt(cost)} · ` : ''}${C.d}`}</small></button>`; }).join('')}</div>
-    <p class="tiny muted">민심은 개발하면 +1, 징병하면 -1. 여섯 달마다 60 쪽으로 조금씩 돌아간다. 민심이 높을수록 세금이 늘고, 40 아래면 민란이 날 수 있다.</p></div>`;
+    <p class="tiny muted">민심은 개발하면 +1, 징병하면 -1. 여섯 달마다 60 쪽으로 조금씩 돌아간다. 민심이 높을수록 세금이 늘고, 40 아래면 민란이 날 수 있다.</p>
+    ${(() => { const U = upkeepParts(), inc = G.lastIncome||0, net = inc - U.total; return `<details class="budget"><summary><b>나라 살림</b> <span class="small">수입 +${fmt(inc)} · 지출 -${fmt(U.total)} · <b style="color:${net < 0 ? '#a33' : '#3d6b47'}">${net >= 0 ? '+' : ''}${fmt(net)}</b>/달</span></summary>
+      <div class="bud">${UP_LB.filter(([k]) => U[k]).map(([k, n]) => `<span>${n}</span><b>-${fmt(U[k])}</b>`).join('')}</div>
+      <p class="tiny muted">국고 한도 ${fmt(U.cap)}(월 수입 12달치). 넘는 금은 달마다 4%가 관리 부패로 샌다. 장수 녹봉은 계급마다 오르고, 정예 병종은 숙련이 높을수록 유지비가 크다.</p></details>`; })()}</div>`;
 }
 /* 군무 본부: 성마다 위험도·수비·성벽과 바로 할 일, 전선 요약, 친위군 */
 function warRoom(){
@@ -7566,7 +7614,7 @@ function regForm(sc){
     <div class="three">${Object.entries(REG_ROLES).map(([k,[t]]) => seg('role', k, t)).join('')}</div>
     <p class="small muted">${REG_ROLES[d.role][1]}${d.role==='ruler' && !cities.length ? ' <b style="color:var(--red)">이 시점에는 주인 없는 성이 없다. 무명으로 시작해 거병하라.</b>' : ''}</p>
     ${d.role==='officer' ? `<span class="lbl">섬길 세력</span><div class="three">${facs.map(fr => seg('fac', fr[0], facName0(fr))).join('')}</div>` : ''}
-    ${d.role!=='officer' && cities.length ? `<span class="lbl">${d.role==='ruler'?'일어설 성 (주인 없는 성)':'눈을 뜬 곳'}</span><select id="rgCity" style="font:inherit;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--paper2)">${cities.map(c => `<option value="${c}" ${c===d.city?'selected':''}>${cityName(c)}</option>`).join('')}</select>` : ''}
+    ${d.role!=='officer' && cities.length ? `<span class="lbl">${d.role==='ruler'?'일어설 성 (주인 없는 성)':'눈을 뜬 곳'}</span><select id="rgCity" aria-label="시작할 성" style="font:inherit;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--paper2)">${cities.map(c => `<option value="${c}" ${c===d.city?'selected':''}>${cityName(c)}</option>`).join('')}</select>` : ''}
     <span class="lbl">얼굴</span>${facePick(d.face, false, true)}
     <span class="lbl">회귀 전에 잘하던 것</span>
     <div class="three">${Object.entries(FOCUS).map(([k,[t,sub,st]]) => seg('focus', k, t, ST[st]+' 성장 빠름')).join('')}</div>
@@ -7597,7 +7645,7 @@ const cuList = () => META.custom || (META.custom = []);
 const cuUsed = c => CU_STATS.reduce((a,[k]) => a + c.st[k], 0);
 const FACES = PORTRAITS.filter(x => x.startsWith('face'));
 const faceList = female => FACES.filter(x => female ? +x.slice(4) >= 13 : +x.slice(4) <= 12);
-const facePick = (cur, female, all) => `<div class="facepick">${(all ? [...faceList(false), ...faceList(true)] : faceList(female)).map(x => `<button class="fp" data-face="${x}" aria-pressed="${cur===x}"><img loading="lazy" decoding="async" src="portraits/${x}.webp" alt=""></button>`).join('')}</div>`;
+const facePick = (cur, female, all) => `<div class="facepick">${(all ? [...faceList(false), ...faceList(true)] : faceList(female)).map(x => `<button class="fp" data-face="${x}" aria-pressed="${cur===x}" aria-label="얼굴 ${x.replace(/\D/g, '')}"><img loading="lazy" decoding="async" src="portraits/${x}.webp" alt=""></button>`).join('')}</div>`;
 function cuBlank(){ return { id:'cu'+Date.now().toString(36), n:'', female:false, age:22, st:{ mu:10, yong:10, ji:10, jeong:10, in:10 }, tr:['ilgi'], pers:'uiri', w:'do', look:{ img:'face01', skin:'a', hat:'helmet', hc:'#666666', beard:'mustache', bc:'', eye:'sharp', extra:'' } }; }
 const cuPt = (c, size) => ptHTML(c.look, c.age, c.female, '#7a3b2a', size, 'sq');
 function openCustom(){
@@ -7761,7 +7809,7 @@ function renderTitle0(){
     <span class="lbl">수명 규칙</span>
     <div class="two">${[['real','현실 모드','역사 속 사망 연도 즈음에 세상을 떠난다'],['virtual','가상 모드','전사하지 않으면 천수를 누린다']].map(([k,n,d])=>`<button class="segb" aria-pressed="${pr.mode===k}" data-mode="${k}"><b>${n}</b><small>${d}</small></button>`).join('')}</div>
   </div>
-  <div class="tabs">${[['reg','회귀자'],['wei','위'],['shu','촉'],['wu','오'],['qun','군웅'],['ruler','군주']].map(([k,n])=>`<button class="tab" aria-selected="${titleTab===k}" data-ttab="${k}">${n}</button>`).join('')}</div>
+  <div class="tabs" role="tablist">${[['reg','회귀자'],['wei','위'],['shu','촉'],['wu','오'],['qun','군웅'],['ruler','군주']].map(([k,n])=>`<button class="tab" role="tab" aria-selected="${titleTab===k}" data-ttab="${k}">${n}</button>`).join('')}</div>
   ${titleTab==='reg' ? regForm(sc) : ''}<div class="grid" ${titleTab==='reg'?'hidden':''}>${list.length ? list.map(o => {
     const r = PEOPLE_RAW.find(x => x[0]===o.id), locked = META.fame < o.cost, sy = startYearFor(o.id, sc);
     return `<button class="gen${locked?' locked':''}" data-pick="${o.id}"><div class="head">${ptHTML(rowLook(o.id), sy - r[4], false, col, 50)}<div><strong>${r[1]}</strong><span class="sub">${r[4]}–${r[5]} · ${sy}년</span></div></div>

@@ -25,6 +25,10 @@ function paReady(){
   for (const c of PA_CORE) if (!paHas(c)) return false;
   return (PA_READY = true);
 }
+/* 미리 받기는 페이지가 다 뜬 뒤, 브라우저가 한가할 때(requestIdleCallback) 시작한다. 게임 화면에 들어가면 바로 시작 */
+function paIdle(f, d){ const go = () => setTimeout(() => (globalThis.requestIdleCallback ? requestIdleCallback(f, { timeout:4000 }) : f()), 1200 + (d||0));
+  if (typeof document==='undefined' || typeof addEventListener==='undefined') return setTimeout(f, d||0);
+  if (document.readyState==='complete') go(); else addEventListener('load', go, { once:true }); }
 const PA_CORE = ['s_walk1', 's_walk2', 'w_atk', 'w_ret', 'a_draw', 'a_shot', 'c_gal1', 'c_gal2', 'r_gal1', 'r_gal2', 'q_gal1', 'q_gal2'];
 function paHas(c){ return !!(PA_MAN[c] && paImg(c) && (!PA.msk[c] || (PA.msk[c].complete && PA.msk[c].naturalWidth))); }
 const PA_FAM = {};
@@ -120,7 +124,7 @@ function paEleph(c, x, y, sc, flip, col, t){
   if (!paOk('e_walk')) return false; const m = PA_MAN.e_walk;
   return paDraw(c, paLoop(['e_walk'], t*.18), x, y, 92*sc/m.w, flip, col);
 }
-setTimeout(() => { try { PA_CORE.forEach(paImg); setTimeout(() => { for (const c in PA_MAN) if (/^(r_|q_|s_|w_|a_|c_|e_|v_)/.test(c)) paImg(c); }, 1500); } catch(e){} }, 200);
+paIdle(() => { try { PA_CORE.forEach(paImg); setTimeout(() => { for (const c in PA_MAN) if (/^(r_|q_|s_|w_|a_|c_|e_|v_)/.test(c)) paImg(c); }, 1500); } catch(e){} }, 0);
 /* 그린 효과 */
 const PA_UI = {};
 function paUi(n){ let o = PA_UI[n]; if (!o){ o = PA_UI[n] = paNew('art/ui/' + n + '.webp'); } return o.complete && o.naturalWidth ? o : null; }
@@ -174,12 +178,12 @@ function paTrek(ctx, road, sc, W, H){
   }
   return true;
 }
-setTimeout(() => { try { ['bf_plain', 'bf_mountain', 'bf_river', 'bf_pass', 'siege_wall', 'tk_land', 'tk_hill', 'tk_water', 'parapet'].forEach(paArt); ['bn_tall', 'bn_pennant', 'bn_std'].forEach(paUi); } catch(e){} }, 600);
+paIdle(() => { try { ['bf_plain', 'bf_mountain', 'bf_river', 'bf_pass', 'siege_wall', 'tk_land', 'tk_hill', 'tk_water', 'parapet'].forEach(paArt); ['bn_tall', 'bn_pennant', 'bn_std'].forEach(paUi); } catch(e){} }, 600);
 /* 그림 한 장을 바닥 기준(가운데 아래)으로 */
 function paUiDraw(c, n, x, y, w){ const im = paUi(n); if (!im) return false; const h = w*im.naturalHeight/im.naturalWidth; c.drawImage(im, x - w/2, y - h, w, h); return true; }
 /* 공성 장비(사다리 l, 충차 m, 투석기 k) */
 function paSiegeOk(f){ if (!paReady()) return false; for (const c in PA_MAN) if (c.startsWith(f + '_') && !paHas(c)) return false; return !!PA_MAN[f === 'l' ? 'l_up1' : f === 'm' ? 'm_hit' : 'k_fire']; }
-setTimeout(() => { try { for (const c in PA_MAN) if (/^(l_|m_|k_|t_)/.test(c)) paImg(c); } catch(e){} }, 2500);
+paIdle(() => { try { for (const c in PA_MAN) if (/^(l_|m_|k_|t_)/.test(c)) paImg(c); } catch(e){} }, 2500);
 /* 깃발: 흰 천만 진영색으로 물들인다 */
 const PA_BN = new Map();
 function paBanner(n, col){

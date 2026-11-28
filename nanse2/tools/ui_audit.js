@@ -73,16 +73,16 @@ const SCENES = [
   ['알현', prep(() => { D.G.talks = []; D.render(); D.openSheet('audience'); })],
 ];
 (async () => {
-  const b = await chromium.launch(); let total = { over:0, clip:0, tap:0, tapWarn:0, cover:0, img:0, err:0, docOver:0 };
+  const b = await chromium.launch(); let total = { fail:0, over:0, clip:0, tap:0, tapWarn:0, cover:0, img:0, err:0, docOver:0 };
   const report = [];
   for (const [vn, w, h] of VPS){
     const p = await b.newPage({ viewport: { width: w, height: h } }); p.setDefaultTimeout(4000);
     const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type()==='error') errs.push(m.text()); });
     for (const [sn, fn] of SCENES){
       errs.length = 0;
-      try { await fn(p); } catch (e) { report.push(`[${vn}] ${sn}: 준비 실패 ${e.message.split('\n')[0].slice(0,90)}`); continue; }
+      try { await fn(p); } catch (e) { report.push(`[${vn}] ${sn}: 준비 실패 ${e.message.split('\n')[0].slice(0,90)}`); total.fail++; continue; }
       const r = await check(p);
-      if (SHOTS) await p.screenshot({ path: `/tmp/audit_${vn}_${sn.replace(/[^\w가-힣]/g,'_')}.png` });
+      if (SHOTS) await p.screenshot({ path: `/tmp/shots/${vn}_${String(SCENES.findIndex(x => x[0]===sn)).padStart(2,"0")}.png` });
       const tapFail = r.tap.filter(t => { const m = t.match(/(\d+)×(\d+)$/); return m && Math.min(+m[1], +m[2]) < MIN_TAP; });
       const issues = [];
       if (r.docOver) issues.push(`화면 가로 넘침 ${r.docOver}px`);

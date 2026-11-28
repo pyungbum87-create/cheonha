@@ -1,0 +1,15 @@
+{
+  "name": "난세일생 2",
+  "short_name": "난세일생",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1b1610",
+  "theme_color": "#7a2a1e",
+  "icons": [
+    { "src": "art/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "art/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
